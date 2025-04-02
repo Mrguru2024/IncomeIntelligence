@@ -99,9 +99,12 @@ export class MemStorage implements IStorage {
       : new Date(insertIncome.date || new Date());
       
     const income: Income = { 
-      ...insertIncome, 
       id,
-      date
+      description: insertIncome.description,
+      amount: insertIncome.amount,
+      date: date,
+      source: insertIncome.source || 'Manual',
+      userId: insertIncome.userId || null
     };
     
     this.incomes.set(id, income);
@@ -144,4 +147,8 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Import database storage
+import { dbStorage } from './db-storage';
+
+// Export the database storage implementation instead of memory storage
+export const storage = dbStorage;
