@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import IncomeHistory from "@/pages/IncomeHistory";
 import BankConnections from "@/pages/BankConnections";
+import Goals from "@/pages/Goals";
 import Settings from "@/pages/Settings";
 import Sidebar from "@/components/Sidebar";
 import { useState } from "react";
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/income-history" component={IncomeHistory} />
       <Route path="/bank-connections" component={BankConnections} />
+      <Route path="/goals" component={Goals} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
