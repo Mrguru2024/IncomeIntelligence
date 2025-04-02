@@ -1,15 +1,18 @@
 /**
- * Format a number as currency with $ sign and 2 decimal places
- * @param value The number to format
+ * Format a number or numeric string as currency with $ sign and 2 decimal places
+ * @param value The number or numeric string to format
  * @returns Formatted currency string
  */
-export function formatCurrency(value: number): string {
+export function formatCurrency(value: number | string): string {
+  // Convert string to number if needed
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(value);
+  }).format(numValue);
 }
 
 /**
