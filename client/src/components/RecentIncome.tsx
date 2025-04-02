@@ -1,8 +1,9 @@
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
-import { Income } from "@shared/schema";
+import { Income, getCategoryById } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
+import * as LucideIcons from "lucide-react";
 
 interface RecentIncomeProps {
   incomes: Income[];
@@ -58,6 +59,7 @@ export default function RecentIncome({ incomes, isLoading }: RecentIncomeProps) 
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Split (40/30/30)</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
@@ -71,10 +73,31 @@ export default function RecentIncome({ incomes, isLoading }: RecentIncomeProps) 
                   const investmentsAmount = amount * 0.3;
                   const savingsAmount = amount * 0.3;
 
+                  // Get category details
+                  const categoryId = income.category || 'other';
+                  const category = getCategoryById(categoryId);
+                  
+                  // Create icon component
+                  let IconComponent = null;
+                  if (category) {
+                    const iconName = category.icon as keyof typeof LucideIcons;
+                    if (iconName in LucideIcons) {
+                      IconComponent = LucideIcons[iconName] as React.FC<{ className?: string }>;
+                    }
+                  }
+                  
                   return (
                     <tr key={income.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(income.date)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{income.description}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          {IconComponent && (
+                            <IconComponent className="h-4 w-4 text-primary" />
+                          )}
+                          <span>{category?.name || 'Other'}</span>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{formatCurrency(amount)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="flex items-center space-x-2">
@@ -93,7 +116,7 @@ export default function RecentIncome({ incomes, isLoading }: RecentIncomeProps) 
                 })
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                     No income entries yet. Add your first income entry above.
                   </td>
                 </tr>

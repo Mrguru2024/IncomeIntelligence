@@ -10,6 +10,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { incomeCategories } from "@shared/schema";
+import * as LucideIcons from "lucide-react";
 
 const incomeFormSchema = z.object({
   description: z.string().min(1, "Job description is required"),
@@ -18,6 +21,7 @@ const incomeFormSchema = z.object({
   }),
   date: z.string().min(1, "Date is required"),
   source: z.string().default("Manual"),
+  category: z.string().default("other"),
 });
 
 type IncomeFormValues = z.infer<typeof incomeFormSchema>;
@@ -32,6 +36,7 @@ export default function IncomeInputForm() {
       amount: "", // Changed back to string
       date: new Date().toISOString().split('T')[0],
       source: "Manual",
+      category: "other",
     },
   });
 
@@ -46,6 +51,7 @@ export default function IncomeInputForm() {
         amount: data.amount, // This should be a string matching the schema
         date: dateObj, // Send the Date object, not a string
         source: data.source,
+        category: data.category,
         userId: 1, // In a real app, we would get this from auth context
       });
       return response.json();
@@ -61,6 +67,7 @@ export default function IncomeInputForm() {
         amount: "",
         date: new Date().toISOString().split('T')[0],
         source: "Manual",
+        category: "other",
       });
     },
     onError: (error) => {
@@ -134,6 +141,55 @@ export default function IncomeInputForm() {
                       className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium text-gray-700">Category</FormLabel>
+                  <Select
+                    defaultValue={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {incomeCategories.map((category) => {
+                        // Handle icon names to match Lucide icons
+                        const iconName = category.icon.charAt(0).toUpperCase() + category.icon.slice(1);
+                        // Create a dynamic component based on the icon name
+                        let IconComponent: React.FC<{ className?: string }> | null = null;
+                        
+                        // Check if the icon exists in LucideIcons
+                        if (iconName in LucideIcons) {
+                          IconComponent = LucideIcons[iconName as keyof typeof LucideIcons] as React.FC<{ className?: string }>;
+                        }
+                        
+                        return (
+                          <SelectItem 
+                            key={category.id} 
+                            value={category.id}
+                            className="flex items-center gap-2"
+                          >
+                            <div className="flex items-center gap-2">
+                              {IconComponent && (
+                                <IconComponent className="h-4 w-4 text-primary" />
+                              )}
+                              <span>{category.name}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
