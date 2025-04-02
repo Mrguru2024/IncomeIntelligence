@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, incomes, type Income, type InsertIncome } from "@shared/schema";
+import { users, type User, type InsertUser, incomes, type Income, type InsertIncome, goals, type Goal, type InsertGoal } from "@shared/schema";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -16,19 +16,33 @@ export interface IStorage {
   deleteIncome(id: number): Promise<boolean>;
   getIncomesByUserId(userId: number): Promise<Income[]>;
   getIncomesByMonth(year: number, month: number): Promise<Income[]>;
+  
+  // Goal methods
+  getGoals(): Promise<Goal[]>;
+  getGoalById(id: number): Promise<Goal | undefined>;
+  createGoal(goal: InsertGoal): Promise<Goal>;
+  updateGoal(id: number, goal: Partial<InsertGoal>): Promise<Goal | undefined>;
+  deleteGoal(id: number): Promise<boolean>;
+  getGoalsByUserId(userId: number): Promise<Goal[]>;
+  getGoalsByType(type: string): Promise<Goal[]>;
+  updateGoalProgress(id: number, amount: number): Promise<Goal | undefined>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private incomes: Map<number, Income>;
+  private goals: Map<number, Goal>;
   private userCurrentId: number;
   private incomeCurrentId: number;
+  private goalCurrentId: number;
 
   constructor() {
     this.users = new Map();
     this.incomes = new Map();
+    this.goals = new Map();
     this.userCurrentId = 1;
     this.incomeCurrentId = 1;
+    this.goalCurrentId = 1;
     
     // Add some initial data
     this.setupInitialData();
@@ -148,6 +162,118 @@ export class MemStorage implements IStorage {
         return incomeDate.getFullYear() === year && incomeDate.getMonth() === month;
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+  
+  // Goal methods
+  async getGoals(): Promise<Goal[]> {
+    return Array.from(this.goals.values()).sort((a, b) => 
+      new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    );
+  }
+
+  async getGoalById(id: number): Promise<Goal | undefined> {
+    return this.goals.get(id);
+  }
+
+  async createGoal(insertGoal: InsertGoal): Promise<Goal> {
+    const id = this.goalCurrentId++;
+    const startDate = insertGoal.startDate instanceof Date 
+      ? insertGoal.startDate 
+      : new Date(insertGoal.startDate || new Date());
+
+    const deadline = insertGoal.deadline instanceof Date 
+      ? insertGoal.deadline 
+      : (insertGoal.deadline ? new Date(insertGoal.deadline) : null);
+      
+    const goal: Goal = { 
+      id,
+      name: insertGoal.name,
+      targetAmount: insertGoal.targetAmount,
+      currentAmount: insertGoal.currentAmount || "0",
+      type: insertGoal.type,
+      deadline: deadline,
+      isCompleted: insertGoal.isCompleted || false,
+      startDate: startDate,
+      userId: insertGoal.userId || null,
+      description: insertGoal.description || null
+    };
+    
+    this.goals.set(id, goal);
+    return goal;
+  }
+
+  async updateGoal(id: number, updatedGoal: Partial<InsertGoal>): Promise<Goal | undefined> {
+    const goal = this.goals.get(id);
+    if (!goal) return undefined;
+
+    // Process dates
+    let startDate = goal.startDate;
+    if (updatedGoal.startDate) {
+      startDate = updatedGoal.startDate instanceof Date 
+        ? updatedGoal.startDate 
+        : new Date(updatedGoal.startDate);
+    }
+
+    let deadline = goal.deadline;
+    if (updatedGoal.deadline !== undefined) {
+      deadline = updatedGoal.deadline === null 
+        ? null 
+        : (updatedGoal.deadline instanceof Date 
+            ? updatedGoal.deadline 
+            : new Date(updatedGoal.deadline));
+    }
+    
+    const updated: Goal = { 
+      ...goal, 
+      ...updatedGoal,
+      startDate,
+      deadline
+    };
+    
+    this.goals.set(id, updated);
+    return updated;
+  }
+
+  async deleteGoal(id: number): Promise<boolean> {
+    return this.goals.delete(id);
+  }
+
+  async getGoalsByUserId(userId: number): Promise<Goal[]> {
+    return Array.from(this.goals.values())
+      .filter(goal => goal.userId === userId)
+      .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  }
+
+  async getGoalsByType(type: string): Promise<Goal[]> {
+    return Array.from(this.goals.values())
+      .filter(goal => goal.type === type)
+      .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  }
+
+  async updateGoalProgress(id: number, amount: number): Promise<Goal | undefined> {
+    const goal = this.goals.get(id);
+    if (!goal) return undefined;
+    
+    const currentAmount = typeof goal.currentAmount === 'string' 
+      ? parseFloat(goal.currentAmount) 
+      : goal.currentAmount;
+    
+    const newAmount = currentAmount + amount;
+    const targetAmount = typeof goal.targetAmount === 'string' 
+      ? parseFloat(goal.targetAmount) 
+      : goal.targetAmount;
+    
+    // Check if goal is now completed
+    const isCompleted = newAmount >= targetAmount;
+    
+    const updatedGoal: Goal = {
+      ...goal,
+      currentAmount: newAmount.toString(),
+      isCompleted
+    };
+    
+    this.goals.set(id, updatedGoal);
+    return updatedGoal;
   }
 }
 

@@ -13,6 +13,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
     { name: "Dashboard", path: "/", icon: "chart-pie" },
     { name: "Income History", path: "/income-history", icon: "history" },
     { name: "Bank Connections", path: "/bank-connections", icon: "university" },
+    { name: "Goals", path: "/goals", icon: "bullseye" },
     { name: "Settings", path: "/settings", icon: "cog" },
   ];
 

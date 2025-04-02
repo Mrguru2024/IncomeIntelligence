@@ -69,3 +69,70 @@ export type Income = typeof incomes.$inferSelect;
 export function getCategoryById(categoryId: string) {
   return incomeCategories.find(cat => cat.id === categoryId) || incomeCategories[incomeCategories.length - 1]; // Default to "Other"
 }
+
+// Define goal types
+export const goalTypes = [
+  { id: "savings", name: "Savings", icon: "piggyBank", color: "green" },
+  { id: "investments", name: "Investments", icon: "barChart", color: "purple" },
+  { id: "needs", name: "Needs", icon: "home", color: "blue" },
+  { id: "income", name: "Income", icon: "wallet", color: "amber" }
+];
+
+// Goals schema
+export const goals = pgTable("goals", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  targetAmount: numeric("target_amount").notNull(),
+  currentAmount: numeric("current_amount").notNull().default("0"),
+  type: text("type").notNull(),
+  deadline: timestamp("deadline"),
+  isCompleted: boolean("is_completed").notNull().default(false),
+  startDate: timestamp("start_date").notNull().defaultNow(),
+  userId: integer("user_id"),
+  description: text("description"),
+});
+
+// Create the base schema
+const baseInsertGoalSchema = createInsertSchema(goals).pick({
+  name: true,
+  targetAmount: true,
+  currentAmount: true,
+  type: true,
+  deadline: true,
+  isCompleted: true,
+  startDate: true,
+  userId: true,
+  description: true,
+});
+
+// Extend it to handle date conversion
+export const insertGoalSchema = baseInsertGoalSchema.extend({
+  // Override the date fields to accept both string and Date objects
+  deadline: z.preprocess(
+    (arg) => {
+      if (arg === null || arg === undefined) return null;
+      if (typeof arg === 'string' || arg instanceof Date) {
+        return new Date(arg);
+      }
+      return arg;
+    },
+    z.date().nullable()
+  ),
+  startDate: z.preprocess(
+    (arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) {
+        return new Date(arg);
+      }
+      return arg;
+    },
+    z.date()
+  ),
+});
+
+export type InsertGoal = z.infer<typeof insertGoalSchema>;
+export type Goal = typeof goals.$inferSelect;
+
+// Helper function to get goal type by ID
+export function getGoalTypeById(typeId: string) {
+  return goalTypes.find(type => type.id === typeId) || { id: "savings", name: "Savings", icon: "piggyBank", color: "green" };
+}
