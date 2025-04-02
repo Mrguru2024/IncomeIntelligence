@@ -29,7 +29,7 @@ export default function IncomeInputForm() {
     resolver: zodResolver(incomeFormSchema),
     defaultValues: {
       description: "",
-      amount: "",
+      amount: "", // Changed back to string
       date: new Date().toISOString().split('T')[0],
       source: "Manual",
     },
@@ -37,12 +37,10 @@ export default function IncomeInputForm() {
 
   const createIncomeMutation = useMutation({
     mutationFn: async (data: IncomeFormValues) => {
-      // Ensure numeric amount is properly formatted for the API
-      const numAmount = parseFloat(data.amount);
-      
+      // Convert form data to match the API requirements
       const response = await apiRequest('POST', '/api/incomes', {
         description: data.description,
-        amount: numAmount,
+        amount: data.amount, // This should be a string matching the schema
         date: new Date(data.date),
         source: data.source,
         userId: 1, // In a real app, we would get this from auth context
