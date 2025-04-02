@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Income } from "@shared/schema";
+import { Income, getCategoryById, incomeCategories } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency } from "@/lib/utils/format";
+import * as LucideIcons from "lucide-react";
 
 export default function IncomeHistory() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSource, setFilterSource] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
 
   const { data: incomes, isLoading } = useQuery<Income[]>({
@@ -34,7 +36,10 @@ export default function IncomeHistory() {
     // Filter by source
     const matchesSource = filterSource === "all" || income.source === filterSource;
     
-    return matchesSearch && matchesSource;
+    // Filter by category
+    const matchesCategory = filterCategory === "all" || income.category === filterCategory;
+    
+    return matchesSearch && matchesSource && matchesCategory;
   }).sort((a, b) => {
     // Sort by date
     const dateA = new Date(a.date).getTime();
@@ -104,6 +109,31 @@ export default function IncomeHistory() {
                   <SelectItem value="Bank">Bank</SelectItem>
                 </SelectContent>
               </Select>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Filter category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {incomeCategories.map((category) => {
+                    const iconName = category.icon as keyof typeof LucideIcons;
+                    let IconComponent = null;
+                    
+                    if (iconName in LucideIcons) {
+                      IconComponent = LucideIcons[iconName] as React.FC<{ className?: string }>;
+                    }
+                    
+                    return (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex items-center gap-2">
+                          {IconComponent && <IconComponent className="h-4 w-4 text-primary" />}
+                          <span>{category.name}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
               <Select value={sortOrder} onValueChange={setSortOrder}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Sort by" />
@@ -122,6 +152,7 @@ export default function IncomeHistory() {
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Split (40/30/30)</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
@@ -134,11 +165,32 @@ export default function IncomeHistory() {
                   const needsAmount = amount * 0.4;
                   const investAmount = amount * 0.3;
                   const saveAmount = amount * 0.3;
+                  
+                  // Get category details
+                  const categoryId = income.category || 'other';
+                  const category = getCategoryById(categoryId);
+                  
+                  // Create icon component
+                  let IconComponent = null;
+                  if (category) {
+                    const iconName = category.icon as keyof typeof LucideIcons;
+                    if (iconName in LucideIcons) {
+                      IconComponent = LucideIcons[iconName] as React.FC<{ className?: string }>;
+                    }
+                  }
 
                   return (
                     <tr key={income.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(income.date)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{income.description}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          {IconComponent && (
+                            <IconComponent className="h-4 w-4 text-primary" />
+                          )}
+                          <span>{category?.name || 'Other'}</span>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{formatCurrency(amount)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="flex items-center space-x-2">
@@ -167,7 +219,7 @@ export default function IncomeHistory() {
                 })}
                 {filteredIncomes.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                       {isLoading ? "Loading income data..." : "No income entries found."}
                     </td>
                   </tr>

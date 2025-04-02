@@ -41,6 +41,7 @@ export class MemStorage implements IStorage {
         amount: "225.00",
         date: new Date("2023-05-18"),
         source: "Manual",
+        category: "emergency",
         userId: 1
       },
       {
@@ -48,6 +49,7 @@ export class MemStorage implements IStorage {
         amount: "185.00",
         date: new Date("2023-05-16"),
         source: "Bank",
+        category: "service",
         userId: 1
       },
       {
@@ -55,6 +57,7 @@ export class MemStorage implements IStorage {
         amount: "450.00",
         date: new Date("2023-05-15"),
         source: "Manual",
+        category: "installation",
         userId: 1
       }
     ];
@@ -104,6 +107,7 @@ export class MemStorage implements IStorage {
       amount: insertIncome.amount,
       date: date,
       source: insertIncome.source || 'Manual',
+      category: insertIncome.category || 'other',
       userId: insertIncome.userId || null
     };
     

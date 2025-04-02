@@ -16,6 +16,17 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+// Define income categories
+export const incomeCategories = [
+  { id: "service", name: "Service Job", icon: "wrench" },
+  { id: "emergency", name: "Emergency Call", icon: "bell" },
+  { id: "installation", name: "Installation", icon: "settings" },
+  { id: "consulting", name: "Consulting", icon: "messagesSquare" },
+  { id: "repair", name: "Repair", icon: "tool" },
+  { id: "retail", name: "Retail Sale", icon: "shoppingBag" },
+  { id: "other", name: "Other", icon: "moreHorizontal" }
+];
+
 // Income entry schema
 export const incomes = pgTable("incomes", {
   id: serial("id").primaryKey(),
@@ -23,6 +34,7 @@ export const incomes = pgTable("incomes", {
   amount: numeric("amount").notNull(),
   date: timestamp("date").notNull().defaultNow(),
   source: text("source").notNull().default("Manual"),
+  category: text("category").notNull().default("other"), // New category field
   userId: integer("user_id"),
 });
 
@@ -32,6 +44,7 @@ const baseInsertIncomeSchema = createInsertSchema(incomes).pick({
   amount: true,
   date: true,
   source: true,
+  category: true,
   userId: true,
 });
 
@@ -51,3 +64,8 @@ export const insertIncomeSchema = baseInsertIncomeSchema.extend({
 
 export type InsertIncome = z.infer<typeof insertIncomeSchema>;
 export type Income = typeof incomes.$inferSelect;
+
+// Helper function to get category by ID
+export function getCategoryById(categoryId: string) {
+  return incomeCategories.find(cat => cat.id === categoryId) || incomeCategories[incomeCategories.length - 1]; // Default to "Other"
+}
