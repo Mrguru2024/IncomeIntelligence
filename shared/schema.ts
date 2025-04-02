@@ -26,12 +26,27 @@ export const incomes = pgTable("incomes", {
   userId: integer("user_id"),
 });
 
-export const insertIncomeSchema = createInsertSchema(incomes).pick({
+// Create the base schema
+const baseInsertIncomeSchema = createInsertSchema(incomes).pick({
   description: true,
   amount: true,
   date: true,
   source: true,
   userId: true,
+});
+
+// Extend it to handle date conversion
+export const insertIncomeSchema = baseInsertIncomeSchema.extend({
+  // Override the date field to accept both string and Date objects
+  date: z.preprocess(
+    (arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) {
+        return new Date(arg);
+      }
+      return arg;
+    },
+    z.date()
+  ),
 });
 
 export type InsertIncome = z.infer<typeof insertIncomeSchema>;

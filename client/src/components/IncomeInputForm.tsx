@@ -38,10 +38,13 @@ export default function IncomeInputForm() {
   const createIncomeMutation = useMutation({
     mutationFn: async (data: IncomeFormValues) => {
       // Convert form data to match the API requirements
+      // Make sure to format the date as a proper ISO string for the API
+      const dateObj = new Date(data.date);
+      
       const response = await apiRequest('POST', '/api/incomes', {
         description: data.description,
         amount: data.amount, // This should be a string matching the schema
-        date: new Date(data.date),
+        date: dateObj, // Send the Date object, not a string
         source: data.source,
         userId: 1, // In a real app, we would get this from auth context
       });
