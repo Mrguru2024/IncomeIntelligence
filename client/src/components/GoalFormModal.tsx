@@ -141,7 +141,7 @@ export default function GoalFormModal({ isOpen, onClose }: GoalFormModalProps) {
   }));
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Create New Goal</DialogTitle>
@@ -275,20 +275,28 @@ export default function GoalFormModal({ isOpen, onClose }: GoalFormModalProps) {
                 <FormField
                   control={form.control}
                   name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Why is this goal important to you?"
-                          className="resize-none" 
-                          defaultValue=""
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    // Ensure field.value is always a string
+                    const value = typeof field.value === 'string' ? field.value : '';
+                    
+                    return (
+                      <FormItem>
+                        <FormLabel>Description (Optional)</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Why is this goal important to you?"
+                            className="resize-none" 
+                            name={field.name}
+                            ref={field.ref}
+                            onBlur={field.onBlur}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            value={value}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
                 
                 <DialogFooter>
