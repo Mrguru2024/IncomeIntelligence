@@ -22,7 +22,7 @@ export default function Dashboard() {
   }) || [];
 
   const totalMonthlyIncome = currentMonthIncomes.reduce((sum, income) => {
-    return sum + parseFloat(income.amount.toString());
+    return sum + (typeof income.amount === 'string' ? parseFloat(income.amount) : income.amount);
   }, 0);
 
   const totalJobs = currentMonthIncomes.length;

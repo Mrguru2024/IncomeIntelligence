@@ -15,7 +15,8 @@ export default function IncomeBreakdown() {
   });
 
   useEffect(() => {
-    const numAmount = parseFloat(amount) || 0;
+    // Handle both string and number amount values
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) || 0 : amount || 0;
     setBreakdown({
       needs: numAmount * 0.4,
       investments: numAmount * 0.3,

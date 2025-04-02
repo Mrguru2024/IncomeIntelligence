@@ -66,7 +66,7 @@ export default function RecentIncome({ incomes, isLoading }: RecentIncomeProps) 
             <tbody className="bg-white divide-y divide-gray-200">
               {recentIncomes.length > 0 ? (
                 recentIncomes.map((income) => {
-                  const amount = parseFloat(income.amount.toString());
+                  const amount = typeof income.amount === 'string' ? parseFloat(income.amount) : income.amount;
                   const needsAmount = amount * 0.4;
                   const investmentsAmount = amount * 0.3;
                   const savingsAmount = amount * 0.3;

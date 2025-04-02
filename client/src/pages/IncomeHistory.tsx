@@ -45,7 +45,7 @@ export default function IncomeHistory() {
 
   // Calculate totals
   const totalIncome = filteredIncomes.reduce((sum, income) => {
-    return sum + parseFloat(income.amount.toString());
+    return sum + (typeof income.amount === 'string' ? parseFloat(income.amount) : income.amount);
   }, 0);
 
   return (
@@ -130,7 +130,7 @@ export default function IncomeHistory() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredIncomes.map((income) => {
-                  const amount = parseFloat(income.amount.toString());
+                  const amount = typeof income.amount === 'string' ? parseFloat(income.amount) : income.amount;
                   const needsAmount = amount * 0.4;
                   const investAmount = amount * 0.3;
                   const saveAmount = amount * 0.3;
