@@ -37,10 +37,14 @@ export default function IncomeInputForm() {
 
   const createIncomeMutation = useMutation({
     mutationFn: async (data: IncomeFormValues) => {
+      // Ensure numeric amount is properly formatted for the API
+      const numAmount = parseFloat(data.amount);
+      
       const response = await apiRequest('POST', '/api/incomes', {
-        ...data,
-        amount: parseFloat(data.amount),
+        description: data.description,
+        amount: numAmount,
         date: new Date(data.date),
+        source: data.source,
         userId: 1, // In a real app, we would get this from auth context
       });
       return response.json();

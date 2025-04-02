@@ -32,18 +32,17 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.path}>
-                <Link href={item.path}>
-                  <a
-                    className={cn(
-                      "flex items-center px-4 py-3 rounded-lg font-medium",
-                      location === item.path
-                        ? "text-primary bg-blue-50"
-                        : "text-gray-700 hover:bg-gray-100"
-                    )}
-                  >
-                    <i className={`fas fa-${item.icon} mr-3`}></i>
-                    {item.name}
-                  </a>
+                <Link 
+                  href={item.path}
+                  className={cn(
+                    "flex items-center px-4 py-3 rounded-lg font-medium",
+                    location === item.path
+                      ? "text-primary bg-blue-50"
+                      : "text-gray-700 hover:bg-gray-100"
+                  )}
+                >
+                  <i className={`fas fa-${item.icon} mr-3`}></i>
+                  {item.name}
                 </Link>
               </li>
             ))}
@@ -88,19 +87,18 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.path}>
-                <Link href={item.path}>
-                  <a
-                    className={cn(
-                      "flex items-center px-4 py-3 rounded-lg font-medium",
-                      location === item.path
-                        ? "text-primary bg-blue-50"
-                        : "text-gray-700 hover:bg-gray-100"
-                    )}
-                    onClick={closeMobileMenu}
-                  >
-                    <i className={`fas fa-${item.icon} mr-3`}></i>
-                    {item.name}
-                  </a>
+                <Link 
+                  href={item.path}
+                  className={cn(
+                    "flex items-center px-4 py-3 rounded-lg font-medium",
+                    location === item.path
+                      ? "text-primary bg-blue-50"
+                      : "text-gray-700 hover:bg-gray-100"
+                  )}
+                  onClick={closeMobileMenu}
+                >
+                  <i className={`fas fa-${item.icon} mr-3`}></i>
+                  {item.name}
                 </Link>
               </li>
             ))}
