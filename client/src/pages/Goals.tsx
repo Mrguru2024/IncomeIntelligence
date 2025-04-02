@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Goal } from "@shared/schema";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,9 +9,12 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatCurrency, formatDate, formatPercentage } from "@/lib/utils/format";
-import { TargetIcon, PiggyBankIcon, TrendingUpIcon, AlertCircleIcon } from "lucide-react";
+import { TargetIcon, PiggyBankIcon, TrendingUpIcon, AlertCircleIcon, PlusIcon } from "lucide-react";
+import GoalFormModal from "@/components/GoalFormModal";
 
 export default function Goals() {
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  
   const {
     data: goals = [] as Goal[],
     isLoading,
@@ -112,7 +116,7 @@ export default function Goals() {
               <p className="text-sm text-muted-foreground max-w-sm">
                 Track your progress by setting financial goals aligned with your 40/30/30 strategy.
               </p>
-              <Button className="mt-2">Add Your First Goal</Button>
+              <Button className="mt-2" onClick={() => setIsGoalModalOpen(true)}>Add Your First Goal</Button>
             </div>
           </CardContent>
         </Card>
@@ -124,7 +128,10 @@ export default function Goals() {
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Financial Goals</h1>
-        <Button>Add New Goal</Button>
+        <Button onClick={() => setIsGoalModalOpen(true)}>
+          <PlusIcon className="h-4 w-4 mr-2" />
+          Add New Goal
+        </Button>
       </div>
 
       <Tabs defaultValue="all" className="w-full">
@@ -160,6 +167,12 @@ export default function Goals() {
           </TabsContent>
         ))}
       </Tabs>
+      
+      {/* Goal Form Modal */}
+      <GoalFormModal 
+        isOpen={isGoalModalOpen} 
+        onClose={() => setIsGoalModalOpen(false)} 
+      />
     </div>
   );
 }
