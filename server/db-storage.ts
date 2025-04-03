@@ -629,9 +629,12 @@ export class DbStorage implements IStorage {
       if (!connection) return undefined;
 
       // Create income record
+      // Convert negative amount from Plaid to a positive amount for our income tracking
+      const parsedAmount = Math.abs(parseFloat(transaction.amount));
+      
       const incomeData: InsertIncome = {
         description: transaction.name,
-        amount: transaction.amount,
+        amount: parsedAmount.toString(),
         date: transaction.date,
         source: 'Bank',
         category: transaction.category || 'other',

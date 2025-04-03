@@ -246,21 +246,20 @@ export class PlaidService {
         // Get all transactions for this account
         const transactions = await storage.getBankTransactions(account.id);
         
-        // Filter for positive amounts (income) and not yet imported
-        // Plaid reports expenses as positive numbers, income as negative
-        // For our app, we want to track income, so we look for negative values 
-        // and make them positive later
-        const positiveTransactions = transactions.filter(
+        // Filter for negative amounts from Plaid (money coming in) and not yet imported
+        // In Plaid, negative values are money coming into the account (income)
+        // We'll convert these to positive values when importing as income
+        const incomeTransactions = transactions.filter(
           (t: any) => parseFloat(t.amount.toString()) < 0 && !t.importedAsIncome
         );
         
-        // Import each positive transaction as income
-        for (const transaction of positiveTransactions) {
+        // Import each income transaction 
+        for (const transaction of incomeTransactions) {
           await storage.importBankTransactionAsIncome(transaction.id);
         }
       }
     } catch (error) {
-      console.error('Error importing positive transactions as income:', error);
+      console.error('Error importing income transactions:', error);
       throw error;
     }
   }
