@@ -31,7 +31,7 @@ export function usePlaidLink(userId: number = 1) {
           method: 'POST',
           body: JSON.stringify({ userId }),
         });
-        return response as { link_token: string };
+        return response;
       } catch (error) {
         console.error('Error creating link token:', error);
         throw error;
@@ -65,7 +65,7 @@ export function usePlaidLink(userId: number = 1) {
             metadata,
           }),
         });
-        return response as { connectionId: number };
+        return response;
       } catch (error) {
         console.error('Error exchanging public token:', error);
         throw error;
