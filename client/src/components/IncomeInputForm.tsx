@@ -46,15 +46,18 @@ export default function IncomeInputForm() {
       // Make sure to format the date as a proper ISO string for the API
       const dateObj = new Date(data.date);
       
-      const response = await apiRequest('POST', '/api/incomes', {
-        description: data.description,
-        amount: data.amount, // This should be a string matching the schema
-        date: dateObj, // Send the Date object, not a string
-        source: data.source,
-        category: data.category,
-        userId: 1, // In a real app, we would get this from auth context
+      const response = await apiRequest('/api/incomes', {
+        method: 'POST',
+        body: JSON.stringify({
+          description: data.description,
+          amount: data.amount, // This should be a string matching the schema
+          date: dateObj, // Send the Date object, not a string
+          source: data.source,
+          category: data.category,
+          userId: 1, // In a real app, we would get this from auth context
+        })
       });
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/incomes'] });
