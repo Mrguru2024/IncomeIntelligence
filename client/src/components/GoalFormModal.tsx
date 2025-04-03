@@ -52,6 +52,7 @@ interface GoalFormModalProps {
 }
 
 export default function GoalFormModal({ isOpen, onClose }: GoalFormModalProps) {
+  console.log("GoalFormModal rendered with isOpen:", isOpen);
   const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(undefined);
   const [aiMode, setAiMode] = useState<boolean>(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
