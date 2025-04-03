@@ -1,39 +1,39 @@
 /**
- * Format a number or numeric string as currency with $ sign and 2 decimal places
- * @param value The number or numeric string to format
- * @returns Formatted currency string
+ * Format a number as currency (USD)
  */
 export function formatCurrency(value: number | string): string {
-  // Convert string to number if needed
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  // If value is a string, convert it to a number
+  const numericValue = typeof value === 'string' ? parseFloat(value) : value;
   
+  // Handle NaN or undefined
+  if (isNaN(numericValue) || numericValue === undefined) {
+    return '$0.00';
+  }
+  
+  // Format as USD
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(numValue);
+    maximumFractionDigits: 2
+  }).format(numericValue);
 }
 
 /**
- * Format a date string or Date object to a readable format
- * @param date The date to format
- * @returns Formatted date string
+ * Format a number as a percentage
+ */
+export function formatPercentage(value: number): string {
+  return `${value.toFixed(0)}%`;
+}
+
+/**
+ * Format a date as a string
  */
 export function formatDate(date: Date | string): string {
-  const dateObj = date instanceof Date ? date : new Date(date);
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
   return dateObj.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric',
+    day: 'numeric'
   });
-}
-
-/**
- * Format a percentage value with % sign
- * @param value The percentage value (e.g., 40 for 40%)
- * @returns Formatted percentage string
- */
-export function formatPercentage(value: number): string {
-  return `${value}%`;
 }

@@ -18,13 +18,13 @@ export type User = typeof users.$inferSelect;
 
 // Define income categories
 export const incomeCategories = [
-  { id: "service", name: "Service Job", icon: "wrench" },
-  { id: "emergency", name: "Emergency Call", icon: "bell" },
-  { id: "installation", name: "Installation", icon: "settings" },
-  { id: "consulting", name: "Consulting", icon: "messagesSquare" },
-  { id: "repair", name: "Repair", icon: "tool" },
-  { id: "retail", name: "Retail Sale", icon: "shoppingBag" },
-  { id: "other", name: "Other", icon: "moreHorizontal" }
+  { id: "service", name: "Service Job", icon: "wrench", color: "blue" },
+  { id: "emergency", name: "Emergency Call", icon: "bell", color: "red" },
+  { id: "installation", name: "Installation", icon: "settings", color: "purple" },
+  { id: "consulting", name: "Consulting", icon: "messagesSquare", color: "indigo" },
+  { id: "repair", name: "Repair", icon: "tool", color: "amber" },
+  { id: "retail", name: "Retail Sale", icon: "shoppingBag", color: "green" },
+  { id: "other", name: "Other", icon: "moreHorizontal", color: "gray" }
 ];
 
 // Income entry schema
@@ -36,6 +36,7 @@ export const incomes = pgTable("incomes", {
   source: text("source").notNull().default("Manual"),
   category: text("category").notNull().default("other"), // New category field
   userId: integer("user_id"),
+  notes: text("notes"),
 });
 
 // Create the base schema
@@ -46,6 +47,7 @@ const baseInsertIncomeSchema = createInsertSchema(incomes).pick({
   source: true,
   category: true,
   userId: true,
+  notes: true,
 });
 
 // Extend it to handle date conversion
