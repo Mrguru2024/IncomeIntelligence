@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, numeric, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -138,3 +138,110 @@ export type Goal = typeof goals.$inferSelect;
 export function getGoalTypeById(typeId: string) {
   return goalTypes.find(type => type.id === typeId) || { id: "savings", name: "Savings", icon: "piggyBank", color: "green" };
 }
+
+// Bank connections schema
+export const bankConnections = pgTable("bank_connections", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  institutionId: text("institution_id").notNull(),
+  institutionName: text("institution_name").notNull(),
+  accessToken: text("access_token").notNull(),
+  itemId: text("item_id").notNull(),
+  status: text("status").notNull().default("active"),
+  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+  metadata: json("metadata"),
+});
+
+// Create the base schema
+const baseInsertBankConnectionSchema = createInsertSchema(bankConnections).pick({
+  userId: true,
+  institutionId: true,
+  institutionName: true,
+  accessToken: true,
+  itemId: true,
+  status: true,
+  metadata: true,
+});
+
+export const insertBankConnectionSchema = baseInsertBankConnectionSchema;
+
+export type InsertBankConnection = z.infer<typeof insertBankConnectionSchema>;
+export type BankConnection = typeof bankConnections.$inferSelect;
+
+// Bank accounts schema
+export const bankAccounts = pgTable("bank_accounts", {
+  id: serial("id").primaryKey(),
+  connectionId: integer("connection_id").notNull(),
+  accountId: text("account_id").notNull().unique(),
+  accountName: text("account_name").notNull(),
+  accountType: text("account_type").notNull(),
+  accountSubtype: text("account_subtype"),
+  mask: text("mask"),
+  balanceAvailable: numeric("balance_available"),
+  balanceCurrent: numeric("balance_current"),
+  isActive: boolean("is_active").notNull().default(true),
+  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+});
+
+// Create the base schema
+const baseInsertBankAccountSchema = createInsertSchema(bankAccounts).pick({
+  connectionId: true,
+  accountId: true,
+  accountName: true,
+  accountType: true,
+  accountSubtype: true,
+  mask: true,
+  balanceAvailable: true,
+  balanceCurrent: true,
+  isActive: true,
+});
+
+export const insertBankAccountSchema = baseInsertBankAccountSchema;
+
+export type InsertBankAccount = z.infer<typeof insertBankAccountSchema>;
+export type BankAccount = typeof bankAccounts.$inferSelect;
+
+// Bank Transactions schema
+export const bankTransactions = pgTable("bank_transactions", {
+  id: serial("id").primaryKey(),
+  accountId: integer("account_id").notNull(),
+  transactionId: text("transaction_id").notNull().unique(),
+  amount: numeric("amount").notNull(),
+  date: timestamp("date").notNull(),
+  name: text("name").notNull(),
+  merchantName: text("merchant_name"),
+  category: text("category"),
+  pending: boolean("pending").notNull().default(false),
+  importedAsIncome: boolean("imported_as_income").notNull().default(false),
+  metadata: json("metadata"),
+});
+
+// Create the base schema
+const baseInsertBankTransactionSchema = createInsertSchema(bankTransactions).pick({
+  accountId: true,
+  transactionId: true,
+  amount: true,
+  date: true,
+  name: true,
+  merchantName: true,
+  category: true,
+  pending: true,
+  importedAsIncome: true,
+  metadata: true,
+});
+
+// Extend it to handle date conversion
+export const insertBankTransactionSchema = baseInsertBankTransactionSchema.extend({
+  date: z.preprocess(
+    (arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) {
+        return new Date(arg);
+      }
+      return arg;
+    },
+    z.date()
+  ),
+});
+
+export type InsertBankTransaction = z.infer<typeof insertBankTransactionSchema>;
+export type BankTransaction = typeof bankTransactions.$inferSelect;

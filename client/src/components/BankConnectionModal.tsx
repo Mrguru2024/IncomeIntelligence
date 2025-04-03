@@ -1,23 +1,81 @@
+import { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { usePlaidLink as useReactPlaidLink, PlaidLinkOnSuccessMetadata } from "react-plaid-link";
+import { usePlaidLink, type PlaidLinkSuccessMetadata } from "@/hooks/usePlaidLink";
+import { BuildingIcon, Loader2Icon } from "lucide-react";
 
 interface BankConnectionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
+  userId?: number;
 }
 
-export default function BankConnectionModal({ isOpen, onClose }: BankConnectionModalProps) {
+export default function BankConnectionModal({ 
+  isOpen, 
+  onClose, 
+  onSuccess, 
+  userId = 1
+}: BankConnectionModalProps) {
   const { toast } = useToast();
+  const { 
+    linkToken, 
+    isLoading, 
+    createLinkToken, 
+    exchangePublicToken 
+  } = usePlaidLink(userId);
 
-  const handleBankSelection = (bankName: string) => {
-    // In a real implementation, this would open the Plaid Link
-    // and handle the authentication flow
-    toast({
-      title: "Bank Connection",
-      description: `This would connect to ${bankName} in a production app with Plaid API.`,
-    });
-    onClose();
+  // Initialize by requesting a link token when modal opens
+  useEffect(() => {
+    if (isOpen && !linkToken && !isLoading) {
+      createLinkToken();
+    }
+  }, [isOpen, linkToken, isLoading, createLinkToken]);
+
+  // Setup Plaid Link configuration
+  const { open, ready } = useReactPlaidLink({
+    token: linkToken || "",
+    onSuccess: (publicToken, metadata) => {
+      // Handle successful connection
+      console.log("Successfully connected account");
+      
+      // Exchange public token for access token on our server
+      exchangePublicToken({
+        publicToken,
+        metadata: metadata as unknown as PlaidLinkSuccessMetadata
+      });
+      
+      // Close modal and notify parent component
+      onClose();
+      if (onSuccess) {
+        onSuccess();
+      }
+    },
+    onExit: (err, metadata) => {
+      // Handle exit (including user exit or error)
+      if (err) {
+        console.error("Plaid Link error:", err);
+        toast({
+          title: "Connection Failed",
+          description: "There was an issue connecting to your bank. Please try again.",
+          variant: "destructive"
+        });
+      }
+    }
+  });
+
+  // Handle connect button click
+  const handleConnect = () => {
+    if (ready && linkToken) {
+      open();
+    } else {
+      toast({
+        title: "Not Ready",
+        description: "Please wait for the connection to initialize.",
+      });
+    }
   };
 
   return (
@@ -26,55 +84,46 @@ export default function BankConnectionModal({ isOpen, onClose }: BankConnectionM
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-800">Connect Your Bank</DialogTitle>
           <DialogDescription className="text-gray-600">
-            Select your bank to securely connect your accounts and automatically track your income.
+            Connect your bank accounts to automatically track your income.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-3 mb-6">
-          <Button
-            variant="outline"
-            className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
-            onClick={() => handleBankSelection("Chase")}
-          >
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-blue-100 flex items-center justify-center rounded-lg mr-3">
-                <i className="fas fa-university text-blue-600"></i>
-              </div>
-              <span className="font-medium">Chase</span>
+        <div className="py-4">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <Loader2Icon className="h-8 w-8 text-primary animate-spin mb-4" />
+              <p className="text-gray-600">Initializing connection...</p>
             </div>
-            <i className="fas fa-chevron-right text-gray-400"></i>
-          </Button>
-          
-          <Button
-            variant="outline"
-            className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
-            onClick={() => handleBankSelection("Bank of America")}
-          >
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-blue-100 flex items-center justify-center rounded-lg mr-3">
-                <i className="fas fa-university text-blue-600"></i>
+          ) : (
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-blue-100 mx-auto flex items-center justify-center">
+                <BuildingIcon className="h-8 w-8 text-primary" />
               </div>
-              <span className="font-medium">Bank of America</span>
-            </div>
-            <i className="fas fa-chevron-right text-gray-400"></i>
-          </Button>
-          
-          <Button
-            variant="outline"
-            className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
-            onClick={() => handleBankSelection("Wells Fargo")}
-          >
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-blue-100 flex items-center justify-center rounded-lg mr-3">
-                <i className="fas fa-university text-blue-600"></i>
+              <div>
+                <h3 className="text-lg font-medium">Securely Connect Your Bank</h3>
+                <p className="text-sm text-gray-500 mt-1 mb-4">
+                  We use Plaid to securely connect to over 10,000 financial institutions.
+                </p>
               </div>
-              <span className="font-medium">Wells Fargo</span>
+              <Button 
+                className="w-full" 
+                onClick={handleConnect} 
+                disabled={!ready || !linkToken || isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                    Preparing...
+                  </>
+                ) : (
+                  "Connect Bank Account"
+                )}
+              </Button>
             </div>
-            <i className="fas fa-chevron-right text-gray-400"></i>
-          </Button>
+          )}
         </div>
         
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-sm text-gray-500 border-t pt-4">
           <p>We use Plaid to securely connect your accounts.</p>
           <p>Your credentials are never shared with us.</p>
         </div>

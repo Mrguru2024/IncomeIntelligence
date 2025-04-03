@@ -1,4 +1,9 @@
-import { InsertIncome, InsertUser, Income, User, InsertGoal, Goal, incomes, users, goals } from '@shared/schema';
+import { 
+  InsertIncome, InsertUser, Income, User, InsertGoal, Goal, 
+  incomes, users, goals, bankConnections, bankAccounts, bankTransactions,
+  InsertBankConnection, BankConnection, InsertBankAccount, BankAccount,
+  InsertBankTransaction, BankTransaction
+} from '@shared/schema';
 import { IStorage } from './storage';
 import { db, pool } from './db';
 import { eq, and, gte, lte, desc } from 'drizzle-orm';
@@ -351,6 +356,299 @@ export class DbStorage implements IStorage {
       });
     } catch (error) {
       console.error('Error updating goal progress:', error);
+      return undefined;
+    }
+  }
+
+  // Bank connection methods
+  async getBankConnections(userId: number): Promise<BankConnection[]> {
+    try {
+      return await db
+        .select()
+        .from(bankConnections)
+        .where(eq(bankConnections.userId, userId))
+        .orderBy(desc(bankConnections.lastUpdated));
+    } catch (error) {
+      console.error('Error getting bank connections:', error);
+      return [];
+    }
+  }
+
+  async getBankConnectionById(id: number): Promise<BankConnection | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(bankConnections)
+        .where(eq(bankConnections.id, id));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting bank connection by id:', error);
+      return undefined;
+    }
+  }
+
+  async createBankConnection(connection: InsertBankConnection): Promise<BankConnection> {
+    try {
+      const result = await db
+        .insert(bankConnections)
+        .values({
+          ...connection,
+          lastUpdated: new Date()
+        })
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating bank connection:', error);
+      throw error;
+    }
+  }
+
+  async updateBankConnection(id: number, connection: Partial<InsertBankConnection>): Promise<BankConnection | undefined> {
+    try {
+      const result = await db
+        .update(bankConnections)
+        .set({
+          ...connection,
+          lastUpdated: new Date()
+        })
+        .where(eq(bankConnections.id, id))
+        .returning();
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating bank connection:', error);
+      return undefined;
+    }
+  }
+
+  async deleteBankConnection(id: number): Promise<boolean> {
+    try {
+      // Delete all associated accounts first (which will cascade delete transactions)
+      const accounts = await this.getBankAccounts(id);
+      for (const account of accounts) {
+        await this.deleteBankAccount(account.id);
+      }
+      
+      const result = await db
+        .delete(bankConnections)
+        .where(eq(bankConnections.id, id))
+        .returning({ id: bankConnections.id });
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting bank connection:', error);
+      return false;
+    }
+  }
+
+  // Bank account methods
+  async getBankAccounts(connectionId: number): Promise<BankAccount[]> {
+    try {
+      return await db
+        .select()
+        .from(bankAccounts)
+        .where(eq(bankAccounts.connectionId, connectionId));
+    } catch (error) {
+      console.error('Error getting bank accounts:', error);
+      return [];
+    }
+  }
+
+  async getBankAccountById(id: number): Promise<BankAccount | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(bankAccounts)
+        .where(eq(bankAccounts.id, id));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting bank account by id:', error);
+      return undefined;
+    }
+  }
+
+  async getBankAccountByAccountId(accountId: string): Promise<BankAccount | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(bankAccounts)
+        .where(eq(bankAccounts.accountId, accountId));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting bank account by account id:', error);
+      return undefined;
+    }
+  }
+
+  async createBankAccount(account: InsertBankAccount): Promise<BankAccount> {
+    try {
+      const result = await db
+        .insert(bankAccounts)
+        .values({
+          ...account,
+          lastUpdated: new Date()
+        })
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating bank account:', error);
+      throw error;
+    }
+  }
+
+  async updateBankAccount(id: number, account: Partial<InsertBankAccount>): Promise<BankAccount | undefined> {
+    try {
+      const result = await db
+        .update(bankAccounts)
+        .set({
+          ...account,
+          lastUpdated: new Date()
+        })
+        .where(eq(bankAccounts.id, id))
+        .returning();
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating bank account:', error);
+      return undefined;
+    }
+  }
+
+  async deleteBankAccount(id: number): Promise<boolean> {
+    try {
+      // Delete all associated transactions first
+      const transactions = await this.getBankTransactions(id);
+      for (const transaction of transactions) {
+        await this.deleteBankTransaction(transaction.id);
+      }
+      
+      const result = await db
+        .delete(bankAccounts)
+        .where(eq(bankAccounts.id, id))
+        .returning({ id: bankAccounts.id });
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting bank account:', error);
+      return false;
+    }
+  }
+
+  // Bank transaction methods
+  async getBankTransactions(accountId: number): Promise<BankTransaction[]> {
+    try {
+      return await db
+        .select()
+        .from(bankTransactions)
+        .where(eq(bankTransactions.accountId, accountId))
+        .orderBy(desc(bankTransactions.date));
+    } catch (error) {
+      console.error('Error getting bank transactions:', error);
+      return [];
+    }
+  }
+
+  async getBankTransactionById(id: number): Promise<BankTransaction | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(bankTransactions)
+        .where(eq(bankTransactions.id, id));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting bank transaction by id:', error);
+      return undefined;
+    }
+  }
+
+  async getBankTransactionByTransactionId(transactionId: string): Promise<BankTransaction | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(bankTransactions)
+        .where(eq(bankTransactions.transactionId, transactionId));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting bank transaction by transaction id:', error);
+      return undefined;
+    }
+  }
+
+  async createBankTransaction(transaction: InsertBankTransaction): Promise<BankTransaction> {
+    try {
+      const result = await db
+        .insert(bankTransactions)
+        .values(transaction)
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating bank transaction:', error);
+      throw error;
+    }
+  }
+
+  async updateBankTransaction(id: number, transaction: Partial<InsertBankTransaction>): Promise<BankTransaction | undefined> {
+    try {
+      const result = await db
+        .update(bankTransactions)
+        .set(transaction)
+        .where(eq(bankTransactions.id, id))
+        .returning();
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating bank transaction:', error);
+      return undefined;
+    }
+  }
+
+  async deleteBankTransaction(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(bankTransactions)
+        .where(eq(bankTransactions.id, id))
+        .returning({ id: bankTransactions.id });
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting bank transaction:', error);
+      return false;
+    }
+  }
+
+  async importBankTransactionAsIncome(transactionId: number): Promise<Income | undefined> {
+    try {
+      // Get the transaction
+      const transaction = await this.getBankTransactionById(transactionId);
+      if (!transaction) return undefined;
+
+      // Skip if already imported or negative amount (expense)
+      if (transaction.importedAsIncome || parseFloat(transaction.amount) <= 0) {
+        return undefined;
+      }
+
+      // Create income from transaction
+      const account = await this.getBankAccountById(transaction.accountId);
+      if (!account) return undefined;
+
+      const connection = await this.getBankConnectionById(account.connectionId);
+      if (!connection) return undefined;
+
+      // Create income record
+      const incomeData: InsertIncome = {
+        description: transaction.name,
+        amount: transaction.amount,
+        date: transaction.date,
+        source: 'Bank',
+        category: transaction.category || 'other',
+        userId: connection.userId,
+        notes: `Imported from ${connection.institutionName} - ${account.accountName}`
+      };
+
+      const income = await this.createIncome(incomeData);
+
+      // Mark transaction as imported
+      await this.updateBankTransaction(transaction.id, {
+        importedAsIncome: true
+      });
+
+      return income;
+    } catch (error) {
+      console.error('Error importing transaction as income:', error);
       return undefined;
     }
   }
