@@ -115,7 +115,10 @@ export default function GoalFormModal({ isOpen, onClose }: GoalFormModalProps) {
       delete formattedData.askAiAdvice;
       delete formattedData.aiQuestion;
 
-      await apiRequest("POST", "/api/goals", formattedData);
+      await apiRequest("/api/goals", {
+        method: "POST",
+        body: JSON.stringify(formattedData)
+      });
 
       queryClient.invalidateQueries({ queryKey: ["/api/goals"] });
       
