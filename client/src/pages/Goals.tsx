@@ -116,7 +116,10 @@ export default function Goals() {
               <p className="text-sm text-muted-foreground max-w-sm">
                 Track your progress by setting financial goals aligned with your 40/30/30 strategy.
               </p>
-              <Button className="mt-2" onClick={() => setIsGoalModalOpen(true)}>Add Your First Goal</Button>
+              <Button className="mt-2" onClick={() => {
+                console.log("Add Your First Goal button clicked");
+                setIsGoalModalOpen(true);
+              }}>Add Your First Goal</Button>
             </div>
           </CardContent>
         </Card>
