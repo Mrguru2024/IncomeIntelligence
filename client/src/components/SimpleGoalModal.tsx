@@ -37,13 +37,13 @@ const goalFormSchema = insertGoalSchema.extend({
 
 type GoalFormValues = z.infer<typeof goalFormSchema>;
 
-interface GoalFormModalProps {
+interface SimpleGoalModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function GoalFormModal({ isOpen, onClose }: GoalFormModalProps) {
-  console.log("GoalFormModal rendered with isOpen:", isOpen);
+export default function SimpleGoalModal({ isOpen, onClose }: SimpleGoalModalProps) {
+  console.log("SimpleGoalModal rendered with isOpen:", isOpen);
   const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(undefined);
   const [aiMode, setAiMode] = useState<boolean>(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
