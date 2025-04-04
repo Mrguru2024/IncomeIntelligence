@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,12 +14,21 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 
 export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
+  // State management for the form
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState('savings');
   const [targetAmount, setTargetAmount] = useState('');
   const [deadline, setDeadline] = useState<Date | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Use useEffect to set focus when modal opens
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (nameInputRef.current) {
+      setTimeout(() => nameInputRef.current?.focus(), 100);
+    }
+  }, []);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -128,6 +137,7 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
           <Label htmlFor="name" className="text-sm font-medium">Goal Name *</Label>
           <Input
             id="name"
+            ref={nameInputRef}
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g., New Car, Emergency Fund"

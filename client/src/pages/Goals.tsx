@@ -132,9 +132,6 @@ export default function Goals() {
             <AlertDescription>Failed to load goals. Please try again.</AlertDescription>
           </div>
         </Alert>
-        {isGoalModalOpen && (
-          <DirectGoalModal onClose={() => setIsGoalModalOpen(false)} />
-        )}
       </div>
     );
   }
@@ -167,10 +164,6 @@ export default function Goals() {
             </div>
           </CardContent>
         </Card>
-        
-        {isGoalModalOpen && (
-          <DirectGoalModal onClose={() => setIsGoalModalOpen(false)} />
-        )}
       </div>
     );
   }
