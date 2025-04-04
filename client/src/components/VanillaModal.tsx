@@ -62,12 +62,12 @@ const VanillaModal: React.FC<VanillaModalProps> = ({
   return (
     <div 
       ref={modalRef} 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[200] px-4" 
       onClick={handleOverlayClick}
       style={{ top: 0, left: 0, right: 0, bottom: 0 }}
     >
       <div 
-        className="bg-white rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto relative" 
+        className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto relative z-[210]" 
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-center px-6 py-4 border-b">
