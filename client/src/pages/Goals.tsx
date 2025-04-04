@@ -181,7 +181,7 @@ export default function Goals() {
       </div>
 
       {/* Goal Categories */}
-      <div className="sticky top-0 z-[100] bg-white shadow-md pb-4 border-b mb-8">
+      <div className="sticky top-0 z-[50] bg-white shadow-md pb-4 border-b mb-8">
         <h2 className="text-xl font-bold mb-3">Goal Categories</h2>
         <div className="flex flex-wrap gap-2">
           <Button
