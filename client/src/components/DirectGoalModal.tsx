@@ -7,12 +7,18 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import VanillaModal from './VanillaModal';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
 
 export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState('savings');
   const [targetAmount, setTargetAmount] = useState('');
+  const [deadline, setDeadline] = useState<Date | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { toast } = useToast();
@@ -40,6 +46,7 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
         currentAmount: 0,
         userId: 1, // Default user for now
         startDate: new Date(),
+        deadline: deadline || null,
       };
       
       await apiRequest('/api/goals', {
@@ -132,6 +139,30 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
               required
             />
           </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="deadline">Deadline Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {deadline ? format(deadline, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={deadline}
+                onSelect={setDeadline}
+                initialFocus
+                disabled={(date) => date < new Date()}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
     </VanillaModal>
