@@ -20,6 +20,8 @@ import {
   analyzeExpenses, 
   type FinancialAdviceRequest 
 } from "./openai-service";
+import { notificationService } from "./notification-service";
+import { insertNotificationSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all incomes
@@ -1059,6 +1061,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error marking reminder as sent:', error);
       res.status(500).json({ message: "Failed to mark reminder as sent" });
+    }
+  });
+
+  // NOTIFICATION ENDPOINTS
+  
+  // Get user notifications
+  app.get("/api/notifications/user/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const notifications = await storage.getNotifications(userId);
+      res.json(notifications);
+    } catch (error) {
+      console.error('Error getting notifications:', error);
+      res.status(500).json({ message: "Failed to get notifications" });
+    }
+  });
+  
+  // Get unread notifications
+  app.get("/api/notifications/user/:userId/unread", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const notifications = await storage.getUnreadNotifications(userId);
+      res.json(notifications);
+    } catch (error) {
+      console.error('Error getting unread notifications:', error);
+      res.status(500).json({ message: "Failed to get unread notifications" });
+    }
+  });
+  
+  // Get notification by ID
+  app.get("/api/notifications/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid notification ID" });
+      }
+      
+      const notification = await storage.getNotificationById(id);
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      res.json(notification);
+    } catch (error) {
+      console.error('Error getting notification:', error);
+      res.status(500).json({ message: "Failed to get notification" });
+    }
+  });
+  
+  // Create notification
+  app.post("/api/notifications", async (req, res) => {
+    try {
+      const validatedData = insertNotificationSchema.parse(req.body);
+      
+      const notification = await storage.createNotification(validatedData);
+      res.status(201).json(notification);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating notification:', error);
+      res.status(500).json({ message: "Failed to create notification" });
+    }
+  });
+  
+  // Send notification with email
+  app.post("/api/notifications/send", async (req, res) => {
+    try {
+      const schema = z.object({
+        userId: z.number().int().positive(),
+        title: z.string(),
+        message: z.string(),
+        type: z.enum(['info', 'warning', 'success', 'reminder']),
+        sendEmail: z.boolean().optional(),
+        sendPush: z.boolean().optional(),
+        metadata: z.any().optional()
+      });
+      
+      const notificationData = schema.parse(req.body);
+      
+      const notification = await notificationService.createNotification(notificationData);
+      res.status(201).json(notification);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error sending notification:', error);
+      res.status(500).json({ message: "Failed to send notification" });
+    }
+  });
+  
+  // Mark notification as read
+  app.patch("/api/notifications/:id/read", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid notification ID" });
+      }
+      
+      const notification = await storage.markNotificationAsRead(id);
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      res.json(notification);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+  
+  // Mark all notifications as read
+  app.patch("/api/notifications/user/:userId/read-all", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const success = await storage.markAllNotificationsAsRead(userId);
+      res.json({ success });
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+  
+  // Delete notification
+  app.delete("/api/notifications/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid notification ID" });
+      }
+      
+      const success = await storage.deleteNotification(id);
+      if (!success) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      res.status(500).json({ message: "Failed to delete notification" });
+    }
+  });
+  
+  // Check for due reminders and send notifications
+  app.post("/api/notifications/check-reminders", async (req, res) => {
+    try {
+      await notificationService.sendReminderNotifications();
+      res.json({ success: true, message: "Reminder notifications processed" });
+    } catch (error) {
+      console.error('Error processing reminder notifications:', error);
+      res.status(500).json({ message: "Failed to process reminder notifications" });
     }
   });
 

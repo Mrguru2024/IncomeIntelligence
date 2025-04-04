@@ -10,7 +10,8 @@ import { users, type User, type InsertUser, incomes, type Income, type InsertInc
   pointTransactions, type PointTransaction, type InsertPointTransaction,
   userProfiles, type UserProfile, type InsertUserProfile,
   reminders, type Reminder, type InsertReminder,
-  widgetSettings, type WidgetSettings, type InsertWidgetSettings
+  widgetSettings, type WidgetSettings, type InsertWidgetSettings,
+  notifications, type Notification, type InsertNotification
  } from "@shared/schema";
 
 // modify the interface with any CRUD methods
@@ -142,6 +143,16 @@ export interface IStorage {
   getPointTransactionById(id: number): Promise<PointTransaction | undefined>;
   createPointTransaction(transaction: InsertPointTransaction): Promise<PointTransaction>;
   getRecentPointTransactions(userId: number, limit: number): Promise<PointTransaction[]>;
+  
+  // Notification methods
+  getNotifications(userId: number): Promise<Notification[]>;
+  getNotificationById(id: number): Promise<Notification | undefined>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  updateNotification(id: number, notification: Partial<InsertNotification>): Promise<Notification | undefined>;
+  markNotificationAsRead(id: number): Promise<Notification | undefined>;
+  markAllNotificationsAsRead(userId: number): Promise<boolean>;
+  deleteNotification(id: number): Promise<boolean>;
+  getUnreadNotifications(userId: number): Promise<Notification[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -160,6 +171,7 @@ export class MemStorage implements IStorage {
   private userAchievements: Map<number, UserAchievement>;
   private gamificationProfiles: Map<number, GamificationProfile>;
   private pointTransactions: Map<number, PointTransaction>;
+  private notifications: Map<number, Notification>;
   
   private userCurrentId: number;
   private userProfileCurrentId: number;
@@ -176,6 +188,7 @@ export class MemStorage implements IStorage {
   private userAchievementCurrentId: number;
   private gamificationProfileCurrentId: number;
   private pointTransactionCurrentId: number;
+  private notificationCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -193,6 +206,7 @@ export class MemStorage implements IStorage {
     this.userAchievements = new Map();
     this.gamificationProfiles = new Map();
     this.pointTransactions = new Map();
+    this.notifications = new Map();
     
     this.userCurrentId = 1;
     this.userProfileCurrentId = 1;
@@ -209,6 +223,7 @@ export class MemStorage implements IStorage {
     this.userAchievementCurrentId = 1;
     this.gamificationProfileCurrentId = 1;
     this.pointTransactionCurrentId = 1;
+    this.notificationCurrentId = 1;
     
     // Add some initial data
     this.setupInitialData();
@@ -583,6 +598,8 @@ export class MemStorage implements IStorage {
       preferredContactMethod: profile.preferredContactMethod || null,
       widgetEnabled: profile.widgetEnabled !== undefined ? profile.widgetEnabled : false,
       remindersEnabled: profile.remindersEnabled !== undefined ? profile.remindersEnabled : true,
+      notificationsEmail: profile.notificationsEmail !== undefined ? profile.notificationsEmail : true,
+      notificationsPush: profile.notificationsPush !== undefined ? profile.notificationsPush : true,
       updatedAt: now
     };
     
@@ -1835,6 +1852,88 @@ export class MemStorage implements IStorage {
 
   async getRecentPointTransactions(userId: number, limit: number): Promise<PointTransaction[]> {
     return (await this.getPointTransactions(userId)).slice(0, limit);
+  }
+  
+  // Notification methods
+  async getNotifications(userId: number): Promise<Notification[]> {
+    return Array.from(this.notifications.values())
+      .filter(notification => notification.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  
+  async getNotificationById(id: number): Promise<Notification | undefined> {
+    return this.notifications.get(id);
+  }
+  
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const id = this.notificationCurrentId++;
+    const now = new Date();
+    
+    const newNotification: Notification = {
+      id,
+      userId: notification.userId,
+      title: notification.title,
+      message: notification.message,
+      type: notification.type || 'info',
+      isRead: notification.isRead || false,
+      createdAt: now,
+      metadata: notification.metadata || null
+    };
+    
+    this.notifications.set(id, newNotification);
+    return newNotification;
+  }
+  
+  async updateNotification(id: number, notification: Partial<InsertNotification>): Promise<Notification | undefined> {
+    const existingNotification = this.notifications.get(id);
+    if (!existingNotification) return undefined;
+    
+    const updatedNotification: Notification = {
+      ...existingNotification,
+      ...notification
+    };
+    
+    this.notifications.set(id, updatedNotification);
+    return updatedNotification;
+  }
+  
+  async markNotificationAsRead(id: number): Promise<Notification | undefined> {
+    const existingNotification = this.notifications.get(id);
+    if (!existingNotification) return undefined;
+    
+    const updatedNotification: Notification = {
+      ...existingNotification,
+      isRead: true
+    };
+    
+    this.notifications.set(id, updatedNotification);
+    return updatedNotification;
+  }
+  
+  async markAllNotificationsAsRead(userId: number): Promise<boolean> {
+    const userNotifications = Array.from(this.notifications.values())
+      .filter(notification => notification.userId === userId);
+      
+    if (userNotifications.length === 0) return false;
+    
+    userNotifications.forEach(notification => {
+      this.notifications.set(notification.id, {
+        ...notification,
+        isRead: true
+      });
+    });
+    
+    return true;
+  }
+  
+  async deleteNotification(id: number): Promise<boolean> {
+    return this.notifications.delete(id);
+  }
+  
+  async getUnreadNotifications(userId: number): Promise<Notification[]> {
+    return Array.from(this.notifications.values())
+      .filter(notification => notification.userId === userId && !notification.isRead)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 }
 
