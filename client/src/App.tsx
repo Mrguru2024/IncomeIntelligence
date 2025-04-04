@@ -9,7 +9,9 @@ import BankConnections from "@/pages/BankConnections";
 import Goals from "@/pages/Goals";
 import Settings from "@/pages/Settings";
 import BudgetPlanner from "@/pages/BudgetPlanner";
+import VoiceCommands from "@/pages/VoiceCommands";
 import Sidebar from "@/components/Sidebar";
+import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import { useState } from "react";
 
 function Router() {
@@ -21,6 +23,7 @@ function Router() {
       <Route path="/goals" component={Goals} />
       <Route path="/budget-planner" component={BudgetPlanner} />
       <Route path="/settings" component={Settings} />
+      <Route path="/voice-commands" component={VoiceCommands} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -58,6 +61,7 @@ function App() {
             <Router />
           </main>
         </div>
+        <VoiceCommandWidget />
       </div>
       <Toaster />
     </QueryClientProvider>
