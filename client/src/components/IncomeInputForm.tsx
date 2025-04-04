@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { incomeCategories } from "@shared/schema";
-import * as LucideIcons from "lucide-react";
+import IncomeCategorySelector from "./IncomeCategorySelector";
+import IncomeCategoryIcon from "./IncomeCategoryIcon";
 
 const incomeFormSchema = z.object({
   description: z.string().min(1, "Job description is required"),
@@ -156,44 +157,12 @@ export default function IncomeInputForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium text-gray-700">Category</FormLabel>
-                  <Select
-                    defaultValue={field.value}
-                    onValueChange={field.onChange}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {incomeCategories.map((category) => {
-                        // Handle icon names to match Lucide icons
-                        const iconName = category.icon.charAt(0).toUpperCase() + category.icon.slice(1);
-                        // Create a dynamic component based on the icon name
-                        let IconComponent: React.FC<{ className?: string }> | null = null;
-                        
-                        // Check if the icon exists in LucideIcons
-                        if (iconName in LucideIcons) {
-                          IconComponent = LucideIcons[iconName as keyof typeof LucideIcons] as React.FC<{ className?: string }>;
-                        }
-                        
-                        return (
-                          <SelectItem 
-                            key={category.id} 
-                            value={category.id}
-                            className="flex items-center gap-2"
-                          >
-                            <div className="flex items-center gap-2">
-                              {IconComponent && (
-                                <IconComponent className="h-4 w-4 text-primary" />
-                              )}
-                              <span>{category.name}</span>
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <IncomeCategorySelector
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

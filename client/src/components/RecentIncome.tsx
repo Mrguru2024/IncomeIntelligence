@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Income, getCategoryById } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
-import * as LucideIcons from "lucide-react";
+import IncomeCategoryIcon from "./IncomeCategoryIcon";
 
 interface RecentIncomeProps {
   incomes: Income[];
@@ -60,15 +60,6 @@ export default function RecentIncome({ incomes, isLoading }: RecentIncomeProps) 
           const categoryId = income.category || 'other';
           const category = getCategoryById(categoryId);
           
-          // Create icon component
-          let IconComponent = null;
-          if (category) {
-            const iconName = category.icon as keyof typeof LucideIcons;
-            if (iconName in LucideIcons) {
-              IconComponent = LucideIcons[iconName] as React.FC<{ className?: string }>;
-            }
-          }
-          
           return (
             <div key={income.id} className="p-4">
               <div className="flex justify-between items-start mb-2">
@@ -79,7 +70,7 @@ export default function RecentIncome({ incomes, isLoading }: RecentIncomeProps) 
               <div className="flex justify-between items-center text-sm text-gray-500 mb-2">
                 <div>{formatDate(income.date)}</div>
                 <div className="flex items-center gap-1">
-                  {IconComponent && <IconComponent className="h-3 w-3 text-primary" />}
+                  <IncomeCategoryIcon categoryId={categoryId} size="sm" />
                   <span>{category?.name || 'Other'}</span>
                 </div>
               </div>
@@ -139,24 +130,13 @@ export default function RecentIncome({ incomes, isLoading }: RecentIncomeProps) 
                   const categoryId = income.category || 'other';
                   const category = getCategoryById(categoryId);
                   
-                  // Create icon component
-                  let IconComponent = null;
-                  if (category) {
-                    const iconName = category.icon as keyof typeof LucideIcons;
-                    if (iconName in LucideIcons) {
-                      IconComponent = LucideIcons[iconName] as React.FC<{ className?: string }>;
-                    }
-                  }
-                  
                   return (
                     <tr key={income.id} className="hover:bg-gray-50">
                       <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">{formatDate(income.date)}</td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">{income.description}</td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                         <div className="flex items-center gap-1 sm:gap-2">
-                          {IconComponent && (
-                            <IconComponent className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-                          )}
+                          <IncomeCategoryIcon categoryId={categoryId} size="sm" />
                           <span>{category?.name || 'Other'}</span>
                         </div>
                       </td>

@@ -86,6 +86,8 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils/format";
 import { apiRequest } from "@/lib/queryClient";
 import * as LucideIcons from "lucide-react";
+import IncomeCategorySelector from "@/components/IncomeCategorySelector";
+import IncomeCategoryIcon from "@/components/IncomeCategoryIcon";
 
 // Colors for the pie chart
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#8DD1E1', '#A4DE6C', '#D0ED57', '#F7C59F', '#F38181'];
@@ -622,17 +624,10 @@ export default function IncomeHistory() {
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
                   {incomeCategories.map((category) => {
-                    const iconName = category.icon as keyof typeof LucideIcons;
-                    let IconComponent = null;
-                    
-                    if (iconName in LucideIcons) {
-                      IconComponent = LucideIcons[iconName] as React.FC<{ className?: string }>;
-                    }
-                    
                     return (
                       <SelectItem key={category.id} value={category.id}>
                         <div className="flex items-center gap-2">
-                          {IconComponent && <IconComponent className="h-4 w-4 text-primary" />}
+                          <IncomeCategoryIcon categoryId={category.id} size="sm" />
                           <span>{category.name}</span>
                         </div>
                       </SelectItem>
@@ -691,14 +686,7 @@ export default function IncomeHistory() {
                   const categoryId = income.category || 'other';
                   const category = getCategoryById(categoryId);
                   
-                  // Create icon component
-                  let IconComponent = null;
-                  if (category) {
-                    const iconName = category.icon as keyof typeof LucideIcons;
-                    if (iconName in LucideIcons) {
-                      IconComponent = LucideIcons[iconName] as React.FC<{ className?: string }>;
-                    }
-                  }
+                  // Category information already extracted
 
                   return (
                     <tr key={income.id} className="hover:bg-muted/20">
@@ -713,27 +701,7 @@ export default function IncomeHistory() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="flex items-center gap-2">
-                          {IconComponent && (
-                            <div className={`p-1 rounded-full ${
-                              category?.color === "blue" ? "bg-blue-100" : 
-                              category?.color === "red" ? "bg-red-100" : 
-                              category?.color === "purple" ? "bg-purple-100" : 
-                              category?.color === "indigo" ? "bg-indigo-100" : 
-                              category?.color === "amber" ? "bg-amber-100" : 
-                              category?.color === "green" ? "bg-green-100" : 
-                              "bg-gray-100"
-                            }`}>
-                              <IconComponent className={`h-3.5 w-3.5 ${
-                                category?.color === "blue" ? "text-blue-500" : 
-                                category?.color === "red" ? "text-red-500" : 
-                                category?.color === "purple" ? "text-purple-500" : 
-                                category?.color === "indigo" ? "text-indigo-500" : 
-                                category?.color === "amber" ? "text-amber-500" : 
-                                category?.color === "green" ? "text-green-500" : 
-                                "text-gray-500"
-                              }`} />
-                            </div>
-                          )}
+                          <IncomeCategoryIcon categoryId={categoryId} size="sm" />
                           <span>{category?.name || 'Other'}</span>
                         </div>
                       </td>
@@ -843,14 +811,7 @@ export default function IncomeHistory() {
                 const categoryId = income.category || 'other';
                 const category = getCategoryById(categoryId);
                 
-                // Create icon component
-                let IconComponent = null;
-                if (category) {
-                  const iconName = category.icon as keyof typeof LucideIcons;
-                  if (iconName in LucideIcons) {
-                    IconComponent = LucideIcons[iconName] as React.FC<{ className?: string }>;
-                  }
-                }
+                // Category is already extracted above
 
                 return (
                   <Card key={income.id} className="overflow-hidden">
@@ -858,27 +819,7 @@ export default function IncomeHistory() {
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            {IconComponent && (
-                              <div className={`p-1 rounded-full ${
-                                category?.color === "blue" ? "bg-blue-100" : 
-                                category?.color === "red" ? "bg-red-100" : 
-                                category?.color === "purple" ? "bg-purple-100" : 
-                                category?.color === "indigo" ? "bg-indigo-100" : 
-                                category?.color === "amber" ? "bg-amber-100" : 
-                                category?.color === "green" ? "bg-green-100" : 
-                                "bg-gray-100"
-                              }`}>
-                                <IconComponent className={`h-3.5 w-3.5 ${
-                                  category?.color === "blue" ? "text-blue-500" : 
-                                  category?.color === "red" ? "text-red-500" : 
-                                  category?.color === "purple" ? "text-purple-500" : 
-                                  category?.color === "indigo" ? "text-indigo-500" : 
-                                  category?.color === "amber" ? "text-amber-500" : 
-                                  category?.color === "green" ? "text-green-500" : 
-                                  "text-gray-500"
-                                }`} />
-                              </div>
-                            )}
+                            <IncomeCategoryIcon categoryId={categoryId} size="sm" />
                             <h3 className="font-medium">{income.description}</h3>
                           </div>
                           <div className="text-sm text-gray-500">{formatDate(income.date)}</div>
@@ -1031,32 +972,12 @@ export default function IncomeHistory() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {incomeCategories.map((category) => {
-                            const iconName = category.icon as keyof typeof LucideIcons;
-                            let IconComponent = null;
-                            
-                            if (iconName in LucideIcons) {
-                              IconComponent = LucideIcons[iconName] as React.FC<{ className?: string }>;
-                            }
-                            
-                            return (
-                              <SelectItem key={category.id} value={category.id}>
-                                <div className="flex items-center gap-2">
-                                  {IconComponent && <IconComponent className="h-4 w-4 text-primary" />}
-                                  <span>{category.name}</span>
-                                </div>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <IncomeCategorySelector 
+                          value={field.value} 
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
