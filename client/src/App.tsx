@@ -10,6 +10,7 @@ import Goals from "@/pages/Goals";
 import Settings from "@/pages/Settings";
 import BudgetPlanner from "@/pages/BudgetPlanner";
 import VoiceCommands from "@/pages/VoiceCommands";
+import Expenses from "@/pages/Expenses";
 import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import { useState } from "react";
@@ -19,6 +20,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/income-history" component={IncomeHistory} />
+      <Route path="/expenses" component={Expenses} />
       <Route path="/bank-connections" component={BankConnections} />
       <Route path="/goals" component={Goals} />
       <Route path="/budget-planner" component={BudgetPlanner} />
