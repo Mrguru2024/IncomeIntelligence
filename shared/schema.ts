@@ -340,3 +340,128 @@ export const insertBalanceSchema = baseInsertBalanceSchema;
 
 export type InsertBalance = z.infer<typeof insertBalanceSchema>;
 export type Balance = typeof balances.$inferSelect;
+
+// Gamification System
+
+// Define achievement types
+export const achievementTypes = [
+  { id: "income", name: "Income Achievements", icon: "wallet", color: "blue" },
+  { id: "savings", name: "Savings Achievements", icon: "piggyBank", color: "green" },
+  { id: "streak", name: "Streak Achievements", icon: "flame", color: "amber" },
+  { id: "goals", name: "Goal Achievements", icon: "target", color: "purple" },
+  { id: "expense", name: "Expense Achievements", icon: "receipt", color: "red" },
+  { id: "milestone", name: "Milestone Achievements", icon: "trophy", color: "yellow" }
+];
+
+// Achievements schema
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(),
+  pointsValue: integer("points_value").notNull().default(10),
+  icon: text("icon"),
+  level: integer("level").notNull().default(1),
+  criteria: json("criteria").notNull(), // JSON data with criteria for unlocking
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+const baseInsertAchievementSchema = createInsertSchema(achievements).pick({
+  name: true,
+  description: true,
+  category: true,
+  pointsValue: true,
+  icon: true,
+  level: true,
+  criteria: true,
+});
+
+export const insertAchievementSchema = baseInsertAchievementSchema;
+
+// User Achievements junction table
+export const userAchievements = pgTable("user_achievements", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  achievementId: integer("achievement_id").notNull(),
+  dateEarned: timestamp("date_earned").notNull().defaultNow(),
+  progress: json("progress"), // For tracking partial progress
+});
+
+const baseInsertUserAchievementSchema = createInsertSchema(userAchievements).pick({
+  userId: true,
+  achievementId: true,
+  progress: true,
+});
+
+export const insertUserAchievementSchema = baseInsertUserAchievementSchema;
+
+// Gamification Profile
+export const gamificationProfiles = pgTable("gamification_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  points: integer("points").notNull().default(0),
+  level: integer("level").notNull().default(1),
+  streak: integer("streak").notNull().default(0),
+  lastActive: timestamp("last_active").notNull().defaultNow(),
+  totalPointsEarned: integer("total_points_earned").notNull().default(0),
+  milestones: json("milestones"), // JSON array of milestones reached
+  achievements: json("achievements"), // Summary of achievements earned
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+const baseInsertGamificationProfileSchema = createInsertSchema(gamificationProfiles).pick({
+  userId: true,
+  points: true,
+  level: true,
+  streak: true,
+  lastActive: true,
+  totalPointsEarned: true,
+  milestones: true,
+  achievements: true,
+});
+
+export const insertGamificationProfileSchema = baseInsertGamificationProfileSchema.extend({
+  lastActive: z.preprocess(
+    (arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) {
+        return new Date(arg);
+      }
+      return arg;
+    },
+    z.date()
+  ),
+});
+
+// Point Transactions - history of points earned/spent
+export const pointTransactions = pgTable("point_transactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  amount: integer("amount").notNull(), // Positive = earned, Negative = spent
+  reason: text("reason").notNull(),
+  source: text("source").notNull(), // achievement, milestone, etc.
+  sourceId: integer("source_id"), // Optional ID reference to the source
+  transactionDate: timestamp("transaction_date").notNull().defaultNow(),
+});
+
+const baseInsertPointTransactionSchema = createInsertSchema(pointTransactions).pick({
+  userId: true,
+  amount: true,
+  reason: true,
+  source: true,
+  sourceId: true,
+});
+
+export const insertPointTransactionSchema = baseInsertPointTransactionSchema;
+
+// Types for gamification
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
+
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
+
+export type GamificationProfile = typeof gamificationProfiles.$inferSelect;
+export type InsertGamificationProfile = z.infer<typeof insertGamificationProfileSchema>;
+
+export type PointTransaction = typeof pointTransactions.$inferSelect;
+export type InsertPointTransaction = z.infer<typeof insertPointTransactionSchema>;

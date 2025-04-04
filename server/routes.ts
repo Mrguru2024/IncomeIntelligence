@@ -11,6 +11,12 @@ import {
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { plaidService } from "./plaid-service";
+import { 
+  getFinancialAdvice, 
+  suggestFinancialGoals, 
+  analyzeExpenses, 
+  type FinancialAdviceRequest 
+} from "./openai-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all incomes
@@ -666,6 +672,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error('Error creating/updating balance:', error);
       res.status(500).json({ message: "Failed to create/update balance" });
+    }
+  });
+  
+  // AI FINANCIAL ADVICE ENDPOINTS
+  
+  // Get personalized financial advice
+  app.post("/api/ai/financial-advice", async (req, res) => {
+    try {
+      const schema = z.object({
+        userId: z.number().int().positive(),
+        question: z.string().optional()
+      });
+      
+      const { userId, question } = schema.parse(req.body);
+      
+      // Gather relevant financial data for the user
+      const incomeData = await storage.getIncomesByUserId(userId);
+      const expenseData = await storage.getExpensesByUserId(userId);
+      const goalData = await storage.getGoalsByUserId(userId);
+      
+      // Get the most recent balance data
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth();
+      const balanceData = await storage.getBalance(userId, currentYear, currentMonth);
+      
+      // Get AI advice
+      const adviceRequest: FinancialAdviceRequest = {
+        userId,
+        incomeData,
+        expenseData,
+        goalData,
+        balanceData,
+        question
+      };
+      
+      const advice = await getFinancialAdvice(adviceRequest);
+      res.json(advice);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error getting financial advice:', error);
+      res.status(500).json({ message: "Failed to get financial advice" });
+    }
+  });
+  
+  // Suggest AI-generated financial goals
+  app.post("/api/ai/suggest-goals", async (req, res) => {
+    try {
+      const schema = z.object({
+        userId: z.number().int().positive()
+      });
+      
+      const { userId } = schema.parse(req.body);
+      
+      // Get recent income data
+      const incomeData = await storage.getIncomesByUserId(userId);
+      
+      // Get goal suggestions from AI
+      const suggestedGoals = await suggestFinancialGoals(incomeData);
+      res.json({ goals: suggestedGoals });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error suggesting goals:', error);
+      res.status(500).json({ message: "Failed to suggest goals" });
+    }
+  });
+  
+  // Analyze expenses and provide optimization suggestions
+  app.post("/api/ai/analyze-expenses", async (req, res) => {
+    try {
+      const schema = z.object({
+        userId: z.number().int().positive(),
+        period: z.enum(['week', 'month', 'year']).optional().default('month')
+      });
+      
+      const { userId, period } = schema.parse(req.body);
+      
+      // Get expense data
+      const expenses = await storage.getExpensesByUserId(userId);
+      
+      // Filter expenses based on period
+      const today = new Date();
+      let filteredExpenses;
+      
+      switch (period) {
+        case 'week':
+          // Get expenses from the last 7 days
+          const weekAgo = new Date();
+          weekAgo.setDate(today.getDate() - 7);
+          filteredExpenses = expenses.filter(expense => 
+            new Date(expense.date) >= weekAgo && new Date(expense.date) <= today
+          );
+          break;
+        case 'month':
+          // Get expenses from the current month
+          const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+          filteredExpenses = expenses.filter(expense => 
+            new Date(expense.date) >= startOfMonth && new Date(expense.date) <= today
+          );
+          break;
+        case 'year':
+          // Get expenses from the current year
+          const startOfYear = new Date(today.getFullYear(), 0, 1);
+          filteredExpenses = expenses.filter(expense => 
+            new Date(expense.date) >= startOfYear && new Date(expense.date) <= today
+          );
+          break;
+      }
+      
+      // Get expense analysis from AI
+      const analysis = await analyzeExpenses(filteredExpenses);
+      res.json(analysis);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error analyzing expenses:', error);
+      res.status(500).json({ message: "Failed to analyze expenses" });
+    }
+  });
+  
+  // Check and record when user has used AI advice
+  app.post("/api/ai/mark-advice-used", async (req, res) => {
+    try {
+      const schema = z.object({
+        userId: z.number().int().positive(),
+        adviceType: z.enum(['financial_advice', 'goal_suggestion', 'expense_analysis'])
+      });
+      
+      const { userId, adviceType } = schema.parse(req.body);
+      
+      // Determine point values (for future implementation of points system)
+      let points = 0;
+      let reason = '';
+      
+      switch (adviceType) {
+        case 'financial_advice':
+          points = 5;
+          reason = 'Used AI financial advice';
+          break;
+        case 'goal_suggestion':
+          points = 10;
+          reason = 'Created goal from AI suggestion';
+          break;
+        case 'expense_analysis':
+          points = 8;
+          reason = 'Reviewed AI expense analysis';
+          break;
+      }
+      
+      // Just return success for now until gamification system is fully implemented in db-storage
+      res.json({
+        success: true,
+        pointsAwarded: points,
+        reason
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error recording AI advice usage:', error);
+      res.status(500).json({ message: "Failed to record AI advice usage" });
     }
   });
 

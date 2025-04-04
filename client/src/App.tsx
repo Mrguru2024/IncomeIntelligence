@@ -11,6 +11,7 @@ import Settings from "@/pages/Settings";
 import BudgetPlanner from "@/pages/BudgetPlanner";
 import VoiceCommands from "@/pages/VoiceCommands";
 import Expenses from "@/pages/Expenses";
+import FinancialAdvice from "@/pages/FinancialAdvice";
 import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import { useState } from "react";
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/bank-connections" component={BankConnections} />
       <Route path="/goals" component={Goals} />
       <Route path="/budget-planner" component={BudgetPlanner} />
+      <Route path="/financial-advice" component={FinancialAdvice} />
       <Route path="/settings" component={Settings} />
       <Route path="/voice-commands" component={VoiceCommands} />
       <Route component={NotFound} />
