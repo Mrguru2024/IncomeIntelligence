@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Income, getCategoryById, incomeCategories, InsertIncome } from "@shared/schema";
 import { useForm } from "react-hook-form";
@@ -128,8 +128,10 @@ export default function IncomeHistory() {
   // Update income mutation
   const updateIncomeMutation = useMutation({
     mutationFn: async (data: { id: number; income: Partial<InsertIncome> }) => {
-      const response = await apiRequest("PATCH", `/api/incomes/${data.id}`, data.income);
-      return response.json();
+      return await apiRequest(`/api/incomes/${data.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data.income)
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/incomes'] });
@@ -151,7 +153,9 @@ export default function IncomeHistory() {
   // Delete income mutation
   const deleteIncomeMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/incomes/${id}`, undefined);
+      await apiRequest(`/api/incomes/${id}`, {
+        method: "DELETE"
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/incomes'] });
@@ -366,20 +370,40 @@ export default function IncomeHistory() {
     <main className="container px-4 py-6 mx-auto max-w-7xl">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Income History</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Income History</h1>
           <p className="text-gray-500 mt-1">Review, analyze and manage your income</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => setGroupBy('none')} className={groupBy === 'none' ? "bg-primary text-white" : ""}>
+        <div className="flex gap-2 mt-4 lg:mt-0 overflow-x-auto pb-2 sm:pb-0">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setGroupBy('none')} 
+            className={groupBy === 'none' ? "bg-primary text-white" : ""}
+          >
             All Entries
           </Button>
-          <Button variant="outline" onClick={() => setGroupBy('month')} className={groupBy === 'month' ? "bg-primary text-white" : ""}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setGroupBy('month')} 
+            className={groupBy === 'month' ? "bg-primary text-white" : ""}
+          >
             By Month
           </Button>
-          <Button variant="outline" onClick={() => setGroupBy('category')} className={groupBy === 'category' ? "bg-primary text-white" : ""}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setGroupBy('category')} 
+            className={groupBy === 'category' ? "bg-primary text-white" : ""}
+          >
             By Category
           </Button>
-          <Button variant="outline" onClick={() => setGroupBy('source')} className={groupBy === 'source' ? "bg-primary text-white" : ""}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setGroupBy('source')} 
+            className={groupBy === 'source' ? "bg-primary text-white" : ""}
+          >
             By Source
           </Button>
         </div>
@@ -627,8 +651,9 @@ export default function IncomeHistory() {
             </div>
           </div>
 
-          {/* Income Table */}
-          <div className="overflow-x-auto">
+          {/* Income Table and Cards View - Responsive */}
+          {/* Desktop Table View (Hidden on mobile) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-muted/50">
                 <tr>
@@ -783,6 +808,135 @@ export default function IncomeHistory() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View (Hidden on desktop) */}
+          <div className="md:hidden space-y-4">
+            {isLoading ? (
+              <div className="flex justify-center items-center py-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : filteredIncomes.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center text-gray-500">
+                <SearchIcon className="h-10 w-10 text-gray-300 mb-2" />
+                <p>No income entries found matching your filters.</p>
+                <Button 
+                  variant="link" 
+                  className="mt-2"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setFilterSource("all");
+                    setFilterCategory("all");
+                  }}
+                >
+                  Clear filters
+                </Button>
+              </div>
+            ) : (
+              filteredIncomes.map((income) => {
+                const amount = typeof income.amount === 'string' ? parseFloat(income.amount) : income.amount;
+                const needsAmount = amount * 0.4;
+                const investAmount = amount * 0.3;
+                const saveAmount = amount * 0.3;
+                
+                // Get category details
+                const categoryId = income.category || 'other';
+                const category = getCategoryById(categoryId);
+                
+                // Create icon component
+                let IconComponent = null;
+                if (category) {
+                  const iconName = category.icon as keyof typeof LucideIcons;
+                  if (iconName in LucideIcons) {
+                    IconComponent = LucideIcons[iconName] as React.FC<{ className?: string }>;
+                  }
+                }
+
+                return (
+                  <Card key={income.id} className="overflow-hidden">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            {IconComponent && (
+                              <div className={`p-1 rounded-full ${
+                                category?.color === "blue" ? "bg-blue-100" : 
+                                category?.color === "red" ? "bg-red-100" : 
+                                category?.color === "purple" ? "bg-purple-100" : 
+                                category?.color === "indigo" ? "bg-indigo-100" : 
+                                category?.color === "amber" ? "bg-amber-100" : 
+                                category?.color === "green" ? "bg-green-100" : 
+                                "bg-gray-100"
+                              }`}>
+                                <IconComponent className={`h-3.5 w-3.5 ${
+                                  category?.color === "blue" ? "text-blue-500" : 
+                                  category?.color === "red" ? "text-red-500" : 
+                                  category?.color === "purple" ? "text-purple-500" : 
+                                  category?.color === "indigo" ? "text-indigo-500" : 
+                                  category?.color === "amber" ? "text-amber-500" : 
+                                  category?.color === "green" ? "text-green-500" : 
+                                  "text-gray-500"
+                                }`} />
+                              </div>
+                            )}
+                            <h3 className="font-medium">{income.description}</h3>
+                          </div>
+                          <div className="text-sm text-gray-500">{formatDate(income.date)}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-lg mb-1">{formatCurrency(amount)}</div>
+                          <Badge variant="outline" className={`border-0 ${income.source === 'Manual' ? 'bg-gray-100 text-gray-800' : 'bg-blue-100 text-blue-800'}`}>
+                            {income.source}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {income.notes && (
+                        <div className="text-sm text-gray-600 mb-3 bg-gray-50 p-2 rounded">
+                          {income.notes}
+                        </div>
+                      )}
+
+                      <div className="mb-4">
+                        <div className="text-xs font-medium text-gray-500 mb-1">Split (40/30/30)</div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-0">
+                            Needs: {formatCurrency(needsAmount)}
+                          </Badge>
+                          <Badge variant="outline" className="bg-purple-100 text-purple-800 hover:bg-purple-200 border-0">
+                            Invest: {formatCurrency(investAmount)}
+                          </Badge>
+                          <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-200 border-0">
+                            Save: {formatCurrency(saveAmount)}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-end space-x-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                          onClick={() => handleEdit(income)}
+                        >
+                          <EditIcon className="h-3.5 w-3.5 mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDeleteConfirm(income)}
+                        >
+                          <TrashIcon className="h-3.5 w-3.5 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
           </div>
         </CardContent>
       </Card>
