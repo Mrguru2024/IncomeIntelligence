@@ -14,14 +14,15 @@ import {
   TabsTrigger 
 } from "@/components/ui/tabs";
 import { 
-  CalculatorIcon, 
-  CalendarIcon, 
-  ChartBarIcon, 
-  PieChartIcon,
-  DollarSignIcon,
-  ArrowDownIcon,
-  ArrowUpIcon,
-  TargetIcon
+  Calculator, 
+  Calendar, 
+  BarChart, 
+  PieChart,
+  DollarSign,
+  ArrowDown,
+  ArrowUp,
+  Target,
+  TrendingUp
 } from "lucide-react";
 import BudgetCalendar from "@/components/BudgetCalendar";
 import { Income, Goal } from "@shared/schema";
@@ -88,19 +89,19 @@ export default function BudgetPlanner() {
         <StatCard 
           title="Monthly Income" 
           value={formatCurrency(totalIncome)}
-          icon={<DollarSignIcon className="h-5 w-5" />}
+          icon={<DollarSign className="h-5 w-5" />}
           color="bg-green-100 text-green-800"
         />
         <StatCard 
           title="Goals in Progress" 
           value={goals.length.toString()}
-          icon={<TargetIcon className="h-5 w-5" />}
+          icon={<Target className="h-5 w-5" />}
           color="bg-blue-100 text-blue-800"
         />
         <StatCard 
           title="Upcoming Deadlines" 
           value={upcomingGoals.length.toString()}
-          icon={<CalendarIcon className="h-5 w-5" />}
+          icon={<Calendar className="h-5 w-5" />}
           color="bg-purple-100 text-purple-800"
         />
       </div>
@@ -108,15 +109,15 @@ export default function BudgetPlanner() {
       <Tabs defaultValue="calendar" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="calendar">
-            <CalendarIcon className="h-4 w-4 mr-2" />
+            <Calendar className="h-4 w-4 mr-2" />
             Calendar View
           </TabsTrigger>
           <TabsTrigger value="allocation">
-            <PieChartIcon className="h-4 w-4 mr-2" />
+            <PieChart className="h-4 w-4 mr-2" />
             Budget Allocation
           </TabsTrigger>
           <TabsTrigger value="goals">
-            <ChartBarIcon className="h-4 w-4 mr-2" />
+            <BarChart className="h-4 w-4 mr-2" />
             Goals Progress
           </TabsTrigger>
         </TabsList>
@@ -132,21 +133,21 @@ export default function BudgetPlanner() {
               value={formatCurrency(needsAllocation)}
               description="Essential expenses (rent, groceries, utilities, transportation)"
               color="bg-blue-50 border-blue-200"
-              icon={<ArrowDownIcon className="h-5 w-5 text-blue-600" />}
+              icon={<ArrowDown className="h-5 w-5 text-blue-600" />}
             />
             <AllocationCard 
               title="Savings (30%)" 
               value={formatCurrency(savingsAllocation)}
               description="Emergency fund, short-term savings goals"
               color="bg-emerald-50 border-emerald-200"
-              icon={<ArrowUpIcon className="h-5 w-5 text-emerald-600" />}
+              icon={<ArrowUp className="h-5 w-5 text-emerald-600" />}
             />
             <AllocationCard 
               title="Investments (30%)" 
               value={formatCurrency(investmentsAllocation)}
               description="Retirement, long-term wealth building"
               color="bg-purple-50 border-purple-200"
-              icon={<ChartBarIcon className="h-5 w-5 text-purple-600" />}
+              icon={<BarChart className="h-5 w-5 text-purple-600" />}
             />
           </div>
           
