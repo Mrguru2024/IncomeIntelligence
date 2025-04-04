@@ -245,3 +245,98 @@ export const insertBankTransactionSchema = baseInsertBankTransactionSchema.exten
 
 export type InsertBankTransaction = z.infer<typeof insertBankTransactionSchema>;
 export type BankTransaction = typeof bankTransactions.$inferSelect;
+
+// Define expense categories
+export const expenseCategories = [
+  { id: "housing", name: "Housing", icon: "home", color: "slate" },
+  { id: "food", name: "Food & Groceries", icon: "utensils", color: "red" },
+  { id: "transportation", name: "Transportation", icon: "car", color: "blue" },
+  { id: "utilities", name: "Utilities", icon: "plug", color: "amber" },
+  { id: "healthcare", name: "Healthcare", icon: "stethoscope", color: "emerald" },
+  { id: "personal", name: "Personal", icon: "user", color: "purple" },
+  { id: "entertainment", name: "Entertainment", icon: "film", color: "pink" },
+  { id: "education", name: "Education", icon: "graduationCap", color: "indigo" },
+  { id: "debt", name: "Debt", icon: "creditCard", color: "rose" },
+  { id: "savings", name: "Savings", icon: "piggyBank", color: "green" },
+  { id: "other", name: "Other", icon: "moreHorizontal", color: "gray" }
+];
+
+// Expenses schema
+export const expenses = pgTable("expenses", {
+  id: serial("id").primaryKey(),
+  description: text("description").notNull(),
+  amount: numeric("amount").notNull(),
+  date: timestamp("date").notNull().defaultNow(),
+  category: text("category").notNull().default("other"),
+  userId: integer("user_id"),
+  paymentMethod: text("payment_method").default("cash"),
+  location: text("location"),
+  notes: text("notes"),
+  isRecurring: boolean("is_recurring").default(false),
+  recurringPeriod: text("recurring_period"),
+  offlineCreated: boolean("offline_created").default(false),
+  offlineId: text("offline_id").unique(),
+});
+
+// Create the base schema
+const baseInsertExpenseSchema = createInsertSchema(expenses).pick({
+  description: true,
+  amount: true,
+  date: true,
+  category: true,
+  userId: true,
+  paymentMethod: true,
+  location: true,
+  notes: true,
+  isRecurring: true,
+  recurringPeriod: true,
+  offlineCreated: true,
+  offlineId: true,
+});
+
+// Extend it to handle date conversion
+export const insertExpenseSchema = baseInsertExpenseSchema.extend({
+  // Override the date field to accept both string and Date objects
+  date: z.preprocess(
+    (arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) {
+        return new Date(arg);
+      }
+      return arg;
+    },
+    z.date()
+  ),
+});
+
+export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+export type Expense = typeof expenses.$inferSelect;
+
+// Helper function to get expense category by ID
+export function getExpenseCategoryById(categoryId: string) {
+  return expenseCategories.find(cat => cat.id === categoryId) || expenseCategories[expenseCategories.length - 1]; // Default to "Other"
+}
+
+// Balance tracking schema
+export const balances = pgTable("balances", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  beginningBalance: numeric("beginning_balance").notNull(),
+  currentBalance: numeric("current_balance").notNull(),
+  month: integer("month").notNull(),
+  year: integer("year").notNull(),
+  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+});
+
+// Create the balance schema
+const baseInsertBalanceSchema = createInsertSchema(balances).pick({
+  userId: true,
+  beginningBalance: true,
+  currentBalance: true,
+  month: true,
+  year: true,
+});
+
+export const insertBalanceSchema = baseInsertBalanceSchema;
+
+export type InsertBalance = z.infer<typeof insertBalanceSchema>;
+export type Balance = typeof balances.$inferSelect;

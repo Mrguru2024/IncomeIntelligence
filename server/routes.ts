@@ -1,7 +1,13 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertIncomeSchema, insertGoalSchema, insertBankConnectionSchema } from "@shared/schema";
+import { 
+  insertIncomeSchema, 
+  insertGoalSchema, 
+  insertBankConnectionSchema, 
+  insertExpenseSchema,
+  insertBalanceSchema
+} from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { plaidService } from "./plaid-service";
@@ -417,6 +423,249 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting bank connection:', error);
       res.status(500).json({ message: "Failed to delete bank connection" });
+    }
+  });
+
+  // EXPENSE ENDPOINTS
+  
+  // Get all expenses
+  app.get("/api/expenses", async (req, res) => {
+    try {
+      const expenses = await storage.getExpenses();
+      res.json(expenses);
+    } catch (error) {
+      console.error('Error getting expenses:', error);
+      res.status(500).json({ message: "Failed to get expenses" });
+    }
+  });
+  
+  // Get expense by ID
+  app.get("/api/expenses/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid expense ID" });
+      }
+      
+      const expense = await storage.getExpenseById(id);
+      if (!expense) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      
+      res.json(expense);
+    } catch (error) {
+      console.error('Error getting expense:', error);
+      res.status(500).json({ message: "Failed to get expense" });
+    }
+  });
+  
+  // Create new expense
+  app.post("/api/expenses", async (req, res) => {
+    try {
+      const validatedData = insertExpenseSchema.parse(req.body);
+      
+      const expense = await storage.createExpense(validatedData);
+      res.status(201).json(expense);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating expense:', error);
+      res.status(500).json({ message: "Failed to create expense" });
+    }
+  });
+  
+  // Update expense
+  app.patch("/api/expenses/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid expense ID" });
+      }
+      
+      const validatedData = insertExpenseSchema.partial().parse(req.body);
+      
+      const expense = await storage.updateExpense(id, validatedData);
+      if (!expense) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      
+      res.json(expense);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating expense:', error);
+      res.status(500).json({ message: "Failed to update expense" });
+    }
+  });
+  
+  // Delete expense
+  app.delete("/api/expenses/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid expense ID" });
+      }
+      
+      const success = await storage.deleteExpense(id);
+      if (!success) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      res.status(500).json({ message: "Failed to delete expense" });
+    }
+  });
+  
+  // Get expenses by user ID
+  app.get("/api/users/:userId/expenses", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const expenses = await storage.getExpensesByUserId(userId);
+      res.json(expenses);
+    } catch (error) {
+      console.error('Error getting user expenses:', error);
+      res.status(500).json({ message: "Failed to get user expenses" });
+    }
+  });
+  
+  // Get expenses by month
+  app.get("/api/expenses/month/:year/:month", async (req, res) => {
+    try {
+      const year = parseInt(req.params.year);
+      const month = parseInt(req.params.month) - 1; // JavaScript months are 0-indexed
+      
+      if (isNaN(year) || isNaN(month) || month < 0 || month > 11) {
+        return res.status(400).json({ message: "Invalid year or month" });
+      }
+      
+      const expenses = await storage.getExpensesByMonth(year, month);
+      res.json(expenses);
+    } catch (error) {
+      console.error('Error getting expenses by month:', error);
+      res.status(500).json({ message: "Failed to get expenses by month" });
+    }
+  });
+  
+  // Get expenses by category
+  app.get("/api/expenses/category/:categoryId", async (req, res) => {
+    try {
+      const categoryId = req.params.categoryId;
+      const expenses = await storage.getExpensesByCategory(categoryId);
+      res.json(expenses);
+    } catch (error) {
+      console.error('Error getting expenses by category:', error);
+      res.status(500).json({ message: "Failed to get expenses by category" });
+    }
+  });
+  
+  // Sync offline expenses
+  app.post("/api/expenses/sync", async (req, res) => {
+    try {
+      const schema = z.array(insertExpenseSchema);
+      const validatedData = schema.parse(req.body);
+      
+      const syncedExpenses = await storage.syncOfflineExpenses(validatedData);
+      res.json(syncedExpenses);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error syncing offline expenses:', error);
+      res.status(500).json({ message: "Failed to sync offline expenses" });
+    }
+  });
+  
+  // BALANCE ENDPOINTS
+  
+  // Get balance for user by month and year
+  app.get("/api/balances/user/:userId/month/:year/:month", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const year = parseInt(req.params.year);
+      const month = parseInt(req.params.month) - 1; // JavaScript months are 0-indexed
+      
+      if (isNaN(userId) || isNaN(year) || isNaN(month) || month < 0 || month > 11) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      
+      const balance = await storage.getBalance(userId, year, month);
+      
+      if (!balance) {
+        // If no balance exists, calculate current balance
+        const calculatedBalance = await storage.calculateCurrentBalance(userId, year, month);
+        return res.json({ 
+          userId,
+          year,
+          month,
+          beginningBalance: calculatedBalance.toString(),
+          currentBalance: calculatedBalance.toString(),
+          lastUpdated: new Date()
+        });
+      }
+      
+      res.json(balance);
+    } catch (error) {
+      console.error('Error getting user balance:', error);
+      res.status(500).json({ message: "Failed to get user balance" });
+    }
+  });
+  
+  // Get all balances for user
+  app.get("/api/balances/user/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const balances = await storage.getAllBalances(userId);
+      res.json(balances);
+    } catch (error) {
+      console.error('Error getting user balances:', error);
+      res.status(500).json({ message: "Failed to get user balances" });
+    }
+  });
+  
+  // Create or update balance
+  app.post("/api/balances", async (req, res) => {
+    try {
+      const validatedData = insertBalanceSchema.parse(req.body);
+      
+      // Check if balance already exists
+      const existingBalance = await storage.getBalance(
+        validatedData.userId, 
+        validatedData.year, 
+        validatedData.month
+      );
+      
+      let balance;
+      if (existingBalance) {
+        // Update existing balance
+        balance = await storage.updateBalance(existingBalance.id, validatedData);
+      } else {
+        // Create new balance
+        balance = await storage.createBalance(validatedData);
+      }
+      
+      res.status(201).json(balance);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating/updating balance:', error);
+      res.status(500).json({ message: "Failed to create/update balance" });
     }
   });
 
