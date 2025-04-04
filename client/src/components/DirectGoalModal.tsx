@@ -42,8 +42,8 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
         name,
         description,
         type,
-        targetAmount: parseFloat(targetAmount),
-        currentAmount: 0,
+        targetAmount: targetAmount, // Keep as string for numeric type in DB
+        currentAmount: "0", // Send as string for numeric type in DB
         userId: 1, // Default user for now
         startDate: new Date(),
         deadline: deadline || null,
