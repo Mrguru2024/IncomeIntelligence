@@ -67,14 +67,14 @@ const VanillaModal: React.FC<VanillaModalProps> = ({
       style={{ top: 0, left: 0, right: 0, bottom: 0 }}
     >
       <div 
-        className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto relative z-[210]" 
+        className="bg-card-background rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto relative z-[210]" 
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center px-6 py-4 border-b">
-          <h3 className="text-lg font-semibold">{title}</h3>
+        <div className="flex justify-between items-center px-6 py-4 border-b border-border">
+          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
           <button 
             onClick={closeModal} 
-            className="text-gray-500 hover:text-gray-700 rounded-full p-1 hover:bg-gray-100 transition-colors"
+            className="text-muted-foreground hover:text-foreground rounded-full p-1 hover:bg-muted-background transition-colors"
             disabled={isSubmitting}
             aria-label="Close"
           >
@@ -86,7 +86,7 @@ const VanillaModal: React.FC<VanillaModalProps> = ({
           {children}
         </div>
         
-        <div className="flex justify-end items-center space-x-3 px-6 py-4 border-t bg-gray-50">
+        <div className="flex justify-end items-center space-x-3 px-6 py-4 border-t border-border bg-muted-background">
           <Button 
             variant="outline" 
             onClick={closeModal}

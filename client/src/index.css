@@ -28,15 +28,15 @@ html {
 /* Dark mode colors */
 .dark {
   --background: #0f172a;
-  --foreground: #e1e7ef;
+  --foreground: #f1f5f9;
   --card-background: #1e293b;
-  --card-foreground: #e1e7ef;
+  --card-foreground: #f1f5f9;
   --primary-foreground: #ffffff;
   --muted-background: #334155;
-  --muted-foreground: #94a3b8;
+  --muted-foreground: #cbd5e1;
   --accent-background: #1e293b;
-  --accent-foreground: #e1e7ef;
-  --border: #2a3649;
+  --accent-foreground: #f1f5f9;
+  --border: #334155;
   --input-background: #1e293b;
   --ring: rgba(59, 130, 246, 0.3);
 }
@@ -55,6 +55,133 @@ body {
   -webkit-overflow-scrolling: touch;
   position: relative;
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+/* Dark mode specific overrides */
+.dark .card,
+.dark .bg-white {
+  background-color: var(--card-background) !important;
+  color: var(--card-foreground) !important;
+}
+
+.dark .text-gray-700,
+.dark .text-gray-800,
+.dark .text-gray-900 {
+  color: var(--foreground) !important;
+}
+
+.dark .text-gray-500,
+.dark .text-gray-600 {
+  color: var(--muted-foreground) !important;
+}
+
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: var(--muted-background) !important;
+}
+
+.dark .border-gray-200 {
+  border-color: var(--border) !important;
+}
+
+.dark .shadow-lg,
+.dark .shadow-md,
+.dark .shadow-sm {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Fix goal cards in dark mode */
+.dark .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+.dark .bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+.dark .bg-purple-100 {
+  background-color: rgba(124, 58, 237, 0.3) !important;
+}
+
+.dark .bg-green-50 {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+
+.dark .text-blue-800 {
+  color: #93c5fd !important;
+}
+
+.dark .text-emerald-800 {
+  color: #6ee7b7 !important;
+}
+
+.dark .text-purple-800 {
+  color: #c4b5fd !important;
+}
+
+.dark .text-green-800 {
+  color: #6ee7b7 !important;
+}
+
+/* Fix expense and income cards in dark mode */
+.dark .border-green-300 {
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.dark .bg-green-500 {
+  background-color: rgba(16, 185, 129, 0.8) !important;
+}
+
+.dark .bg-red-500 {
+  background-color: rgba(239, 68, 68, 0.8) !important;
+}
+
+/* Fix form inputs in dark mode */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: var(--input-background) !important;
+  color: var(--foreground) !important;
+  border-color: var(--border) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--muted-foreground) !important;
+}
+
+/* Fix button colors in dark mode */
+.dark .bg-blue-600 {
+  background-color: rgb(37, 99, 235) !important;
+}
+
+.dark .bg-emerald-600 {
+  background-color: rgb(5, 150, 105) !important;
+}
+
+.dark .bg-purple-600 {
+  background-color: rgb(124, 58, 237) !important;
+}
+
+/* Fix calendar in dark mode */
+.dark .rdp-day_selected, 
+.dark .rdp-day_selected:focus-visible, 
+.dark .rdp-day_selected:hover {
+  background-color: rgb(37, 99, 235) !important;
+  color: white !important;
+}
+
+.dark .rdp-button:hover:not([disabled]):not(.rdp-day_selected) {
+  background-color: var(--muted-background) !important;
+}
+
+/* Fix modals in dark mode */
+.dark .bg-gray-50 {
+  background-color: var(--muted-background) !important;
 }
 
 @layer base {
