@@ -62,18 +62,18 @@ export default function Expenses() {
   };
 
   return (
-    <div className="container mx-auto py-6 px-4 sm:px-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+    <div className="w-full max-w-full overflow-x-hidden px-3 sm:px-6 py-4 sm:py-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Expenses</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Expenses</h1>
+          <p className="text-sm sm:text-base text-gray-500 mt-1">
             Track and manage your spending
           </p>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <div className="mt-3 sm:mt-0 w-full sm:w-auto">
           <Button 
             onClick={() => setShowExpenseForm(!showExpenseForm)}
-            className="bg-primary hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
           >
             {showExpenseForm ? "Cancel" : "Add Expense"}
           </Button>
@@ -81,10 +81,10 @@ export default function Expenses() {
       </div>
 
       {showExpenseForm && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Add New Expense</CardTitle>
-            <CardDescription>
+        <Card className="mb-4 sm:mb-6 overflow-hidden">
+          <CardHeader className="px-4 py-4 sm:px-6 sm:py-5">
+            <CardTitle className="text-lg sm:text-xl">Add New Expense</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Record your expense details below
             </CardDescription>
           </CardHeader>

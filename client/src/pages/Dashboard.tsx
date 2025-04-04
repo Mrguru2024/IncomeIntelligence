@@ -31,9 +31,9 @@ export default function Dashboard() {
   const savingsTotal = totalMonthlyIncome * 0.3;
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-      <main className="py-4 sm:py-6 lg:py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8">
+    <div className="w-full max-w-full overflow-x-hidden px-3 sm:px-6 py-4 sm:py-6">
+      <main className="w-full py-4 sm:py-6 lg:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-8">
           <div>
             <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">Dashboard</h2>
             <p className="text-sm sm:text-base text-gray-500 mt-1">Track and manage your income distribution</p>
@@ -41,7 +41,7 @@ export default function Dashboard() {
         </div>
 
         {/* Overview Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
           <StatCard 
             title="Total Income (This Month)"
             value={formatCurrency(totalMonthlyIncome)}

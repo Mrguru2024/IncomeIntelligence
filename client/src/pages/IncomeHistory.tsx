@@ -367,18 +367,18 @@ export default function IncomeHistory() {
   }, [groupBy, incomesByMonth, incomesByCategory, incomesBySource]);
 
   return (
-    <main className="container px-4 py-6 mx-auto max-w-7xl">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+    <main className="w-full px-3 sm:px-4 py-4 sm:py-6 mx-auto max-w-[100vw] sm:max-w-7xl overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-4 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Income History</h1>
-          <p className="text-gray-500 mt-1">Review, analyze and manage your income</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Income History</h1>
+          <p className="text-gray-500 mt-1 text-sm sm:text-base">Review, analyze and manage your income</p>
         </div>
-        <div className="flex gap-2 mt-4 lg:mt-0 overflow-x-auto pb-2 sm:pb-0">
+        <div className="flex flex-wrap gap-2 mt-3 sm:mt-0 overflow-x-auto pb-2 -mx-1 px-1">
           <Button 
             variant="outline" 
             size="sm" 
             onClick={() => setGroupBy('none')} 
-            className={groupBy === 'none' ? "bg-primary text-white" : ""}
+            className={`whitespace-nowrap text-xs sm:text-sm ${groupBy === 'none' ? "bg-primary text-white" : ""}`}
           >
             All Entries
           </Button>
@@ -386,7 +386,7 @@ export default function IncomeHistory() {
             variant="outline" 
             size="sm" 
             onClick={() => setGroupBy('month')} 
-            className={groupBy === 'month' ? "bg-primary text-white" : ""}
+            className={`whitespace-nowrap text-xs sm:text-sm ${groupBy === 'month' ? "bg-primary text-white" : ""}`}
           >
             By Month
           </Button>
