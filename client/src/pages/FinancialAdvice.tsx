@@ -186,44 +186,44 @@ const FinancialAdvice = () => {
   };
   
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">
+    <div className="w-full max-w-full overflow-x-hidden px-3 sm:px-6 py-4 sm:py-6">
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 sm:mb-6">
         AI-Powered Financial Advice
       </h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="advice">
-            <BrainCircuit className="h-4 w-4 mr-2" />
-            Financial Advice
+        <TabsList className="w-full grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-0">
+          <TabsTrigger value="advice" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
+            <BrainCircuit className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="whitespace-nowrap">Financial Advice</span>
           </TabsTrigger>
-          <TabsTrigger value="goals">
-            <Lightbulb className="h-4 w-4 mr-2" />
-            Goal Suggestions
+          <TabsTrigger value="goals" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
+            <Lightbulb className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="whitespace-nowrap">Goal Suggestions</span>
           </TabsTrigger>
-          <TabsTrigger value="expenses">
-            <LineChart className="h-4 w-4 mr-2" />
-            Expense Analysis
+          <TabsTrigger value="expenses" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
+            <LineChart className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="whitespace-nowrap">Expense Analysis</span>
           </TabsTrigger>
         </TabsList>
         
         {/* Financial Advice Tab */}
         <TabsContent value="advice" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Get Personalized Financial Advice</CardTitle>
-              <CardDescription>
+          <Card className="overflow-hidden border-gray-200">
+            <CardHeader className="px-4 py-4 sm:px-6 sm:py-6">
+              <CardTitle className="text-lg sm:text-xl">Get Personalized Financial Advice</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 Our AI will provide customized financial advice based on your income, expenses, and goals.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="px-4 py-4 sm:px-6 sm:py-6">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="question">Ask a specific question (optional)</Label>
+                  <Label htmlFor="question" className="text-sm font-medium">Ask a specific question (optional)</Label>
                   <Textarea
                     id="question"
                     placeholder="E.g., How can I save more money for retirement? Should I focus on reducing expenses?"
-                    className="min-h-[100px]"
+                    className="min-h-[80px] sm:min-h-[100px] text-sm sm:text-base"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                   />
@@ -306,47 +306,47 @@ const FinancialAdvice = () => {
         
         {/* Goal Suggestions Tab */}
         <TabsContent value="goals" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI-Suggested Financial Goals</CardTitle>
-              <CardDescription>
+          <Card className="overflow-hidden border-gray-200">
+            <CardHeader className="px-4 py-4 sm:px-6 sm:py-6">
+              <CardTitle className="text-lg sm:text-xl">AI-Suggested Financial Goals</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 Based on your income patterns, our AI can suggest realistic financial goals to help you succeed.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 py-4 sm:px-6 sm:py-6">
               {isGoalsError && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>
+                <Alert variant="destructive" className="mb-2">
+                  <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <AlertTitle className="text-xs sm:text-sm font-medium">Error</AlertTitle>
+                  <AlertDescription className="text-xs sm:text-sm">
                     Unable to generate goal suggestions at this time. Please try again later.
                   </AlertDescription>
                 </Alert>
               )}
               
               {goalSuggestions && goalSuggestions.goals && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {goalSuggestions.goals.map((goal: any, index: number) => (
-                    <Card key={index} className="overflow-hidden">
-                      <div className="bg-primary/10 px-4 py-2 flex justify-between items-center">
-                        <h3 className="font-medium">{goal.name}</h3>
-                        <Badge variant="outline">{goal.timeframe}</Badge>
+                    <Card key={index} className="overflow-hidden border-gray-100">
+                      <div className="bg-primary/10 px-3 sm:px-4 py-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                        <h3 className="font-medium text-sm sm:text-base">{goal.name}</h3>
+                        <Badge variant="outline" className="self-start sm:self-auto text-xs">{goal.timeframe}</Badge>
                       </div>
-                      <CardContent className="p-4">
+                      <CardContent className="p-3 sm:p-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm text-muted-foreground">Target Amount</span>
-                          <span className="font-semibold">${typeof goal.targetAmount === 'number' ? 
+                          <span className="text-xs sm:text-sm text-muted-foreground">Target Amount</span>
+                          <span className="font-semibold text-sm sm:text-base">${typeof goal.targetAmount === 'number' ? 
                             goal.targetAmount.toFixed(2) : goal.targetAmount}</span>
                         </div>
-                        <p className="text-sm mb-4">{goal.description}</p>
+                        <p className="text-xs sm:text-sm mb-3 sm:mb-4">{goal.description}</p>
                         <Button 
                           variant="outline" 
-                          className="w-full"
+                          className="w-full text-xs sm:text-sm"
                           onClick={() => handleCreateGoalFromSuggestion(goal)}
                           disabled={createGoalMutation.isPending}
                         >
                           {createGoalMutation.isPending ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                           ) : (
                             <>Create This Goal</>
                           )}
@@ -358,30 +358,30 @@ const FinancialAdvice = () => {
               )}
               
               {!goalSuggestions && !isGoalsLoading && (
-                <div className="flex flex-col items-center justify-center text-center p-8">
-                  <Lightbulb className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No Goal Suggestions Yet</h3>
-                  <p className="text-sm text-muted-foreground mb-6">
+                <div className="flex flex-col items-center justify-center text-center p-4 sm:p-8">
+                  <Lightbulb className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4" />
+                  <h3 className="text-base sm:text-lg font-medium mb-1 sm:mb-2">No Goal Suggestions Yet</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">
                     Click the button below to generate AI-powered goal suggestions based on your financial situation.
                   </p>
                 </div>
               )}
             </CardContent>
-            <CardFooter>
+            <CardFooter className="px-4 py-4 sm:px-6">
               <Button 
                 onClick={handleGetGoalSuggestions} 
                 disabled={isGoalsLoading}
-                className="w-full"
+                className="w-full text-sm sm:text-base"
               >
                 {isGoalsLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating Goal Suggestions...
+                    <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                    <span className="whitespace-nowrap">Generating Suggestions...</span>
                   </>
                 ) : (
                   <>
-                    {goalSuggestions ? "Refresh Goal Suggestions" : "Get Goal Suggestions"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <span className="whitespace-nowrap">{goalSuggestions ? "Refresh Goal Suggestions" : "Get Goal Suggestions"}</span>
+                    <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                   </>
                 )}
               </Button>
@@ -391,22 +391,22 @@ const FinancialAdvice = () => {
         
         {/* Expense Analysis Tab */}
         <TabsContent value="expenses" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Expense Analysis & Optimization</CardTitle>
-              <CardDescription>
+          <Card className="overflow-hidden border-gray-200">
+            <CardHeader className="px-4 py-4 sm:px-6 sm:py-6">
+              <CardTitle className="text-lg sm:text-xl">Expense Analysis & Optimization</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 Let our AI analyze your spending patterns and suggest ways to optimize your expenses.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <Label>Time Period:</Label>
-                  <div className="flex border rounded-md overflow-hidden">
+            <CardContent className="px-4 py-4 sm:px-6 sm:py-6">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <Label className="text-sm font-medium sm:text-base">Time Period:</Label>
+                  <div className="flex border rounded-md overflow-hidden w-full sm:w-auto">
                     <Button 
                       type="button"
                       variant={expensePeriod === 'week' ? 'default' : 'ghost'} 
-                      className="rounded-none"
+                      className="rounded-none flex-1 text-xs sm:text-sm py-1 px-2 sm:py-2 sm:px-3"
                       onClick={() => setExpensePeriod('week')}
                     >
                       Week
@@ -415,7 +415,7 @@ const FinancialAdvice = () => {
                     <Button 
                       type="button"
                       variant={expensePeriod === 'month' ? 'default' : 'ghost'} 
-                      className="rounded-none"
+                      className="rounded-none flex-1 text-xs sm:text-sm py-1 px-2 sm:py-2 sm:px-3"
                       onClick={() => setExpensePeriod('month')}
                     >
                       Month
@@ -424,7 +424,7 @@ const FinancialAdvice = () => {
                     <Button 
                       type="button"
                       variant={expensePeriod === 'year' ? 'default' : 'ghost'} 
-                      className="rounded-none"
+                      className="rounded-none flex-1 text-xs sm:text-sm py-1 px-2 sm:py-2 sm:px-3"
                       onClick={() => setExpensePeriod('year')}
                     >
                       Year
@@ -433,31 +433,31 @@ const FinancialAdvice = () => {
                 </div>
                 
                 {isAnalysisError && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>
+                  <Alert variant="destructive" className="mb-2">
+                    <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <AlertTitle className="text-xs sm:text-sm font-medium">Error</AlertTitle>
+                    <AlertDescription className="text-xs sm:text-sm">
                       Unable to analyze expenses at this time. Please try again later.
                     </AlertDescription>
                   </Alert>
                 )}
                 
                 {expenseAnalysis && (
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Analysis</h3>
-                      <p className="text-sm leading-relaxed">{expenseAnalysis.analysis}</p>
+                      <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">Analysis</h3>
+                      <p className="text-xs sm:text-sm leading-relaxed">{expenseAnalysis.analysis}</p>
                     </div>
                     
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Optimization Suggestions</h3>
+                      <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">Optimization Suggestions</h3>
                       <div className="space-y-2">
                         {expenseAnalysis.suggestions && expenseAnalysis.suggestions.map((suggestion: string, index: number) => (
                           <div key={index} className="flex items-start gap-2">
-                            <div className="bg-primary/10 p-1 rounded-full mt-0.5">
-                              <Lightbulb className="h-4 w-4 text-primary" />
+                            <div className="bg-primary/10 p-1 rounded-full mt-0.5 flex-shrink-0">
+                              <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
                             </div>
-                            <p className="text-sm">{suggestion}</p>
+                            <p className="text-xs sm:text-sm">{suggestion}</p>
                           </div>
                         ))}
                       </div>
@@ -465,8 +465,8 @@ const FinancialAdvice = () => {
                     
                     {expenseAnalysis.potentialSavings && (
                       <Alert className="bg-primary/10 border-primary">
-                        <AlertTitle className="text-primary">Potential Monthly Savings</AlertTitle>
-                        <AlertDescription>
+                        <AlertTitle className="text-primary text-sm sm:text-base">Potential Monthly Savings</AlertTitle>
+                        <AlertDescription className="text-xs sm:text-sm font-semibold">
                           ${typeof expenseAnalysis.potentialSavings === 'number' ? 
                             expenseAnalysis.potentialSavings.toFixed(2) : expenseAnalysis.potentialSavings}
                         </AlertDescription>
@@ -476,31 +476,31 @@ const FinancialAdvice = () => {
                 )}
                 
                 {!expenseAnalysis && !isAnalysisLoading && (
-                  <div className="flex flex-col items-center justify-center text-center p-8">
-                    <LineChart className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No Expense Analysis Yet</h3>
-                    <p className="text-sm text-muted-foreground mb-6">
+                  <div className="flex flex-col items-center justify-center text-center p-4 sm:p-8">
+                    <LineChart className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4" />
+                    <h3 className="text-base sm:text-lg font-medium mb-1 sm:mb-2">No Expense Analysis Yet</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">
                       Click the button below to analyze your spending patterns and get optimization suggestions.
                     </p>
                   </div>
                 )}
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="px-4 py-4 sm:px-6">
               <Button 
                 onClick={handleAnalyzeExpenses} 
                 disabled={isAnalysisLoading}
-                className="w-full"
+                className="w-full text-sm sm:text-base"
               >
                 {isAnalysisLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyzing Expenses...
+                    <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                    <span className="whitespace-nowrap">Analyzing Expenses...</span>
                   </>
                 ) : (
                   <>
-                    {expenseAnalysis ? "Refresh Analysis" : "Analyze My Expenses"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <span className="whitespace-nowrap">{expenseAnalysis ? "Refresh Analysis" : "Analyze My Expenses"}</span>
+                    <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                   </>
                 )}
               </Button>
