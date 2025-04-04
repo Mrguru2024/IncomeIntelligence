@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -8,19 +8,44 @@ import { Expense } from "@shared/schema";
 import ExpenseForm from "@/components/ExpenseForm";
 import ExpensesList from "@/components/ExpensesList";
 import ExpenseCategorySelector from "@/components/ExpenseCategorySelector";
+import VoiceExpenseEntry from "@/components/VoiceExpenseEntry";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
+import { useLocation } from "wouter";
 
 export default function Expenses() {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [showVoiceExpense, setShowVoiceExpense] = useState(false);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [location] = useLocation();
 
   // Get current month and year for filtering
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth() + 1; // +1 because getMonth() returns 0-11
+  
+  // Process URL parameters for opening forms
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const openExpenseForm = url.searchParams.get('openExpenseForm');
+    const openVoiceExpense = url.searchParams.get('openVoiceExpense');
+    
+    if (openExpenseForm === 'true') {
+      setShowExpenseForm(true);
+      setShowVoiceExpense(false);
+      // Clean up the URL
+      window.history.replaceState({}, document.title, '/expenses');
+    }
+    
+    if (openVoiceExpense === 'true') {
+      setShowVoiceExpense(true);
+      setShowExpenseForm(false);
+      // Clean up the URL
+      window.history.replaceState({}, document.title, '/expenses');
+    }
+  }, [location]);
   
   // Get all expenses, with optional category filter
   const { data: expenses, isLoading, error } = useQuery({
@@ -70,12 +95,25 @@ export default function Expenses() {
             Track and manage your spending
           </p>
         </div>
-        <div className="mt-3 sm:mt-0 w-full sm:w-auto">
+        <div className="mt-3 sm:mt-0 w-full sm:w-auto flex flex-col sm:flex-row gap-2">
           <Button 
-            onClick={() => setShowExpenseForm(!showExpenseForm)}
+            onClick={() => {
+              setShowExpenseForm(!showExpenseForm);
+              setShowVoiceExpense(false);
+            }}
             className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
           >
             {showExpenseForm ? "Cancel" : "Add Expense"}
+          </Button>
+          <Button 
+            onClick={() => {
+              setShowVoiceExpense(!showVoiceExpense);
+              setShowExpenseForm(false);
+            }}
+            variant={showVoiceExpense ? "destructive" : "outline"}
+            className="w-full sm:w-auto"
+          >
+            {showVoiceExpense ? "Cancel Voice" : "Voice Entry"}
           </Button>
         </div>
       </div>
@@ -92,6 +130,15 @@ export default function Expenses() {
             <ExpenseForm onSuccess={handleExpenseAdded} />
           </CardContent>
         </Card>
+      )}
+      
+      {showVoiceExpense && (
+        <div className="mb-4 sm:mb-6">
+          <VoiceExpenseEntry onSuccess={() => {
+            setShowVoiceExpense(false);
+            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+          }} />
+        </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">

@@ -16,8 +16,11 @@ type CommandHandlers = {
 const availableCommands = [
   { command: "Show income", description: "Navigate to income history page" },
   { command: "Add income", description: "Open income form" },
+  { command: "Add expense", description: "Open expense form" },
+  { command: "Record expense", description: "Use voice to record expense" },
   { command: "Show dashboard", description: "Navigate to dashboard" },
   { command: "Show goals", description: "Navigate to goals page" },
+  { command: "Show expenses", description: "Navigate to expenses page" },
   { command: "Show budget", description: "Navigate to budget planner" },
   { command: "Show bank connections", description: "Navigate to bank connections page" },
   { command: "Show settings", description: "Navigate to settings page" },
@@ -40,8 +43,11 @@ const VoiceCommandCenter: React.FC = () => {
   const commandHandlers: CommandHandlers = {
     'show income': () => setLocation('/income-history'),
     'add income': () => setLocation('/income-form'),
+    'add expense': () => setLocation('/expenses?openExpenseForm=true'),
+    'record expense': () => setLocation('/expenses?openVoiceExpense=true'),
     'show dashboard': () => setLocation('/'),
     'show goals': () => setLocation('/goals'),
+    'show expenses': () => setLocation('/expenses'),
     'show budget': () => setLocation('/budget-planner'),
     'show bank connections': () => setLocation('/bank-connections'),
     'show settings': () => setLocation('/settings'),
