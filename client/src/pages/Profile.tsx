@@ -62,14 +62,60 @@ export default function Profile() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('personal');
   
+  // Define user data interface
+  interface UserProfileData {
+    id: number;
+    username: string;
+    firstName: string | null;
+    lastName: string | null;
+    email: string | null;
+    phone: string | null;
+    profileCompleted: boolean;
+    profile?: {
+      id: number;
+      userId: number;
+      occupation: string | null;
+      occupationDetails: string | null;
+      businessName: string | null;
+      yearsInBusiness: number | null;
+      averageMonthlyIncome: string | null;
+      financialGoals: string | null;
+      lifeGoals: string | null;
+      financialHealthStatus: string | null;
+      riskTolerance: string | null;
+      isSoleProvider: boolean | null;
+      hasEmergencyFund: boolean | null;
+      emergencyFundAmount: string | null;
+      preferredContactMethod: string | null;
+      widgetEnabled: boolean;
+      remindersEnabled: boolean;
+      updatedAt: Date;
+    };
+  }
+
+  // Define widget settings interface
+  interface WidgetSettingsData {
+    id: number;
+    userId: number;
+    enabled: boolean;
+    showBalance: boolean;
+    showIncomeGoal: boolean;
+    showNextReminder: boolean;
+    position: string;
+    size: string;
+    theme: string;
+    updatedAt: Date;
+    customSettings: any | null;
+  }
+
   // Fetch user data
-  const { data: userData, isLoading: isUserLoading } = useQuery({
+  const { data: userData, isLoading: isUserLoading } = useQuery<UserProfileData>({
     queryKey: ['/api/user/profile'],
     retry: false
   });
 
   // Fetch widget settings
-  const { data: widgetData, isLoading: isWidgetLoading } = useQuery({
+  const { data: widgetData, isLoading: isWidgetLoading } = useQuery<WidgetSettingsData>({
     queryKey: ['/api/user/widget-settings'],
     retry: false
   });
