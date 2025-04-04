@@ -20,7 +20,7 @@ export function ThemeToggle() {
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="bg-opacity-100 bg-[var(--card-background)] border border-border shadow-lg">
         <DropdownMenuItem onClick={() => setTheme("light")} className="cursor-pointer">
           <SunIcon className="mr-2 h-4 w-4" />
           <span>Light</span>

@@ -57,6 +57,11 @@ body {
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
+/* Light mode overrides */
+.bg-popover {
+  background-color: var(--card-background) !important;
+}
+
 /* Dark mode specific overrides */
 .dark .card,
 .dark .bg-white {
