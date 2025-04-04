@@ -9,7 +9,7 @@ import { apiRequest } from "@/lib/queryClient";
 import VanillaModal from './VanillaModal';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, TargetIcon, PiggyBankIcon, TrendingUpIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 
@@ -34,6 +34,7 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
           description: "Please fill in all required fields",
           variant: "destructive"
         });
+        setIsSubmitting(false);
         return;
       }
 
@@ -73,8 +74,31 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
         description: "There was an error creating your goal",
         variant: "destructive"
       });
-    } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Get icon by goal type
+  const getGoalIcon = () => {
+    switch (type) {
+      case 'income':
+        return <TargetIcon className="h-5 w-5 text-blue-500" />;
+      case 'savings':
+        return <PiggyBankIcon className="h-5 w-5 text-emerald-500" />;
+      case 'investments':
+        return <TrendingUpIcon className="h-5 w-5 text-purple-500" />;
+      default:
+        return <TargetIcon className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
+  // Helper for type-specific colors
+  const getTypeColor = () => {
+    switch (type) {
+      case 'income': return 'border-blue-200 bg-blue-50';
+      case 'savings': return 'border-emerald-200 bg-emerald-50';
+      case 'investments': return 'border-purple-200 bg-purple-50';
+      default: return 'border-gray-200 bg-gray-50';
     }
   };
 
@@ -83,46 +107,78 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
       title="Create New Goal" 
       onClose={onClose}
       onSubmit={handleSubmit}
+      isSubmitting={isSubmitting}
     >
-      <div className="space-y-4">
+      <div className="space-y-5">
+        <div className={`p-3 rounded-md border ${getTypeColor()} mb-2`}>
+          <div className="flex items-center gap-3">
+            {getGoalIcon()}
+            <div>
+              <h4 className="font-medium text-sm">{type.charAt(0).toUpperCase() + type.slice(1)} Goal</h4>
+              <p className="text-xs text-gray-600">
+                {type === 'income' && 'Track income targets for financial growth'}
+                {type === 'savings' && 'Save for emergencies or future purchases'}
+                {type === 'investments' && 'Grow your wealth through investments'}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-2">
-          <Label htmlFor="name">Goal Name *</Label>
+          <Label htmlFor="name" className="text-sm font-medium">Goal Name *</Label>
           <Input
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g., New Car, Emergency Fund"
+            className="text-sm"
             required
           />
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description" className="text-sm font-medium">Description</Label>
           <Textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Why is this goal important?"
+            className="text-sm resize-none"
             rows={3}
           />
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="type">Goal Type *</Label>
+          <Label htmlFor="type" className="text-sm font-medium">Goal Type *</Label>
           <Select value={type} onValueChange={setType} required>
-            <SelectTrigger>
+            <SelectTrigger className="text-sm">
               <SelectValue placeholder="Select goal type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="income">Income</SelectItem>
-              <SelectItem value="savings">Savings</SelectItem>
-              <SelectItem value="investments">Investments</SelectItem>
+              <SelectItem value="income" className="text-sm">
+                <div className="flex items-center gap-2">
+                  <TargetIcon className="h-4 w-4 text-blue-500" />
+                  Income
+                </div>
+              </SelectItem>
+              <SelectItem value="savings" className="text-sm">
+                <div className="flex items-center gap-2">
+                  <PiggyBankIcon className="h-4 w-4 text-emerald-500" />
+                  Savings
+                </div>
+              </SelectItem>
+              <SelectItem value="investments" className="text-sm">
+                <div className="flex items-center gap-2">
+                  <TrendingUpIcon className="h-4 w-4 text-purple-500" />
+                  Investments
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="targetAmount">Target Amount *</Label>
+          <Label htmlFor="targetAmount" className="text-sm font-medium">Target Amount *</Label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <span className="text-gray-500">$</span>
@@ -135,22 +191,23 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
               value={targetAmount}
               onChange={(e) => setTargetAmount(e.target.value)}
               placeholder="0.00"
-              className="pl-7"
+              className="pl-7 text-sm"
               required
             />
           </div>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="deadline">Deadline Date</Label>
+          <Label htmlFor="deadline" className="text-sm font-medium">Deadline Date</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
+                id="deadline"
                 variant="outline"
-                className="w-full justify-start text-left font-normal"
+                className="w-full justify-start text-left font-normal text-sm"
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {deadline ? format(deadline, "PPP") : <span>Pick a date</span>}
+                <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
+                {deadline ? format(deadline, "MMM d, yyyy") : <span>Pick a date</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -163,6 +220,11 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
               />
             </PopoverContent>
           </Popover>
+          {deadline && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Deadline set for {format(deadline, "EEEE, MMMM d, yyyy")}
+            </p>
+          )}
         </div>
       </div>
     </VanillaModal>

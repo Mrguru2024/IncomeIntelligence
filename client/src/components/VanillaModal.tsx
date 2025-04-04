@@ -1,14 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
+import { Loader2Icon, XIcon } from "lucide-react";
 
 interface VanillaModalProps {
   title: string;
   onClose: () => void;
   onSubmit?: () => void;
   children: React.ReactNode;
+  isSubmitting?: boolean;
 }
 
-const VanillaModal: React.FC<VanillaModalProps> = ({ title, onClose, onSubmit, children }) => {
+const VanillaModal: React.FC<VanillaModalProps> = ({ 
+  title, 
+  onClose, 
+  onSubmit, 
+  children, 
+  isSubmitting = false 
+}) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,6 +35,8 @@ const VanillaModal: React.FC<VanillaModalProps> = ({ title, onClose, onSubmit, c
   }, []);
 
   const closeModal = () => {
+    if (isSubmitting) return; // Prevent closing while submitting
+    
     const modal = modalRef.current;
     if (modal) {
       modal.style.display = 'none';
@@ -35,15 +45,16 @@ const VanillaModal: React.FC<VanillaModalProps> = ({ title, onClose, onSubmit, c
   };
 
   const handleSubmit = () => {
+    if (isSubmitting) return; // Prevent multiple submissions
+    
     if (onSubmit) {
       onSubmit();
     }
-    closeModal();
   };
 
   // Close modal when clicking outside the content
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === modalRef.current) {
+    if (e.target === modalRef.current && !isSubmitting) {
       closeModal();
     }
   };
@@ -51,30 +62,51 @@ const VanillaModal: React.FC<VanillaModalProps> = ({ title, onClose, onSubmit, c
   return (
     <div 
       ref={modalRef} 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" 
       onClick={handleOverlayClick}
     >
-      <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">{title}</h3>
+      <div 
+        className="bg-white rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-auto" 
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center px-6 py-4 border-b">
+          <h3 className="text-lg font-semibold">{title}</h3>
           <button 
             onClick={closeModal} 
-            className="text-gray-500 hover:text-gray-700 text-xl"
+            className="text-gray-500 hover:text-gray-700 rounded-full p-1 hover:bg-gray-100 transition-colors"
+            disabled={isSubmitting}
+            aria-label="Close"
           >
-            &times;
+            <XIcon className="h-5 w-5" />
           </button>
         </div>
         
-        <div className="mb-4">
+        <div className="px-6 py-4">
           {children}
         </div>
         
-        <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={closeModal}>
+        <div className="flex justify-end items-center space-x-3 px-6 py-4 border-t bg-gray-50">
+          <Button 
+            variant="outline" 
+            onClick={closeModal}
+            disabled={isSubmitting}
+            className="text-sm"
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>
-            Submit
+          <Button 
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="text-sm"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              'Submit'
+            )}
           </Button>
         </div>
       </div>
