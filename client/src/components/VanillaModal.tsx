@@ -51,7 +51,7 @@ const VanillaModal: React.FC<VanillaModalProps> = ({ title, onClose, onSubmit, c
   return (
     <div 
       ref={modalRef} 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40" 
       onClick={handleOverlayClick}
     >
       <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
