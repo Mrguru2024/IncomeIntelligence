@@ -12,6 +12,8 @@ import BudgetPlanner from "@/pages/BudgetPlanner";
 import VoiceCommands from "@/pages/VoiceCommands";
 import Expenses from "@/pages/Expenses";
 import FinancialAdvice from "@/pages/FinancialAdvice";
+import Profile from "@/pages/Profile";
+import Reminders from "@/pages/Reminders";
 import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -28,6 +30,8 @@ function Router() {
       <Route path="/goals" component={Goals} />
       <Route path="/budget-planner" component={BudgetPlanner} />
       <Route path="/financial-advice" component={FinancialAdvice} />
+      <Route path="/profile" component={Profile} />
+      <Route path="/reminders" component={Reminders} />
       <Route path="/settings" component={Settings} />
       <Route path="/voice-commands" component={VoiceCommands} />
       <Route component={NotFound} />

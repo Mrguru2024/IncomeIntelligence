@@ -2,19 +2,95 @@ import { pgTable, text, serial, integer, boolean, timestamp, numeric, json } fro
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// User profile options and enums
+export const occupationTypes = [
+  { id: "tradesperson", name: "Tradesperson" },
+  { id: "locksmith", name: "Locksmith" },
+  { id: "contractor", name: "Contractor" },
+  { id: "plumber", name: "Plumber" },
+  { id: "electrician", name: "Electrician" },
+  { id: "repair", name: "Repair Service" },
+  { id: "consultant", name: "Consultant" },
+  { id: "freelancer", name: "Freelancer" },
+  { id: "self_employed", name: "Self-Employed" },
+  { id: "other", name: "Other" }
+];
+
+export const financialHealthStatuses = [
+  { id: "building", name: "Building", description: "Starting to build financial foundation" },
+  { id: "stable", name: "Stable", description: "Maintaining stable finances" },
+  { id: "growing", name: "Growing", description: "Actively growing wealth" },
+  { id: "established", name: "Established", description: "Well-established financial position" }
+];
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  email: text("email"),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  phone: text("phone"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  lastLogin: timestamp("last_login"),
+  profileCompleted: boolean("profile_completed").notNull().default(false),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  phone: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// User profile for detailed personal and financial information
+export const userProfiles = pgTable("user_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  occupation: text("occupation"),
+  occupationDetails: text("occupation_details"),
+  businessName: text("business_name"),
+  yearsInBusiness: integer("years_in_business"),
+  averageMonthlyIncome: numeric("average_monthly_income"),
+  financialGoals: json("financial_goals"), // Array of goal objects
+  lifeGoals: json("life_goals"), // Array of goal objects
+  financialHealthStatus: text("financial_health_status"),
+  riskTolerance: text("risk_tolerance"), // low, medium, high
+  isSoleProvider: boolean("is_sole_provider"),
+  hasEmergencyFund: boolean("has_emergency_fund"),
+  emergencyFundAmount: numeric("emergency_fund_amount"),
+  preferredContactMethod: text("preferred_contact_method"), // email, phone, app
+  widgetEnabled: boolean("widget_enabled").notNull().default(false),
+  remindersEnabled: boolean("reminders_enabled").notNull().default(true),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertUserProfileSchema = createInsertSchema(userProfiles).pick({
+  userId: true,
+  occupation: true,
+  occupationDetails: true,
+  businessName: true,
+  yearsInBusiness: true,
+  averageMonthlyIncome: true,
+  financialGoals: true,
+  lifeGoals: true,
+  financialHealthStatus: true,
+  riskTolerance: true,
+  isSoleProvider: true,
+  hasEmergencyFund: true,
+  emergencyFundAmount: true,
+  preferredContactMethod: true,
+  widgetEnabled: true,
+  remindersEnabled: true,
+});
+
+export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
+export type UserProfile = typeof userProfiles.$inferSelect;
 
 // Define income categories
 export const incomeCategories = [
@@ -465,3 +541,92 @@ export type InsertGamificationProfile = z.infer<typeof insertGamificationProfile
 
 export type PointTransaction = typeof pointTransactions.$inferSelect;
 export type InsertPointTransaction = z.infer<typeof insertPointTransactionSchema>;
+
+// Reminder system
+export const reminderFrequencies = [
+  { id: "daily", name: "Daily" },
+  { id: "weekly", name: "Weekly" },
+  { id: "biweekly", name: "Bi-Weekly" },
+  { id: "monthly", name: "Monthly" }
+];
+
+export const reminderTypes = [
+  { id: "income", name: "Income Entry", icon: "dollarSign", color: "green" },
+  { id: "expense", name: "Expense Tracking", icon: "receipt", color: "red" },
+  { id: "goal", name: "Goal Update", icon: "target", color: "blue" },
+  { id: "budget", name: "Budget Check", icon: "pieChart", color: "purple" },
+  { id: "custom", name: "Custom", icon: "bell", color: "amber" }
+];
+
+export const reminders = pgTable("reminders", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull().default("custom"),
+  frequency: text("frequency").notNull(),
+  nextRemindAt: timestamp("next_remind_at").notNull(),
+  lastSentAt: timestamp("last_sent_at"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  metadata: json("metadata"),
+});
+
+const baseInsertReminderSchema = createInsertSchema(reminders).pick({
+  userId: true,
+  title: true,
+  message: true,
+  type: true,
+  frequency: true,
+  nextRemindAt: true,
+  isActive: true,
+  metadata: true,
+});
+
+export const insertReminderSchema = baseInsertReminderSchema.extend({
+  nextRemindAt: z.preprocess(
+    (arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) {
+        return new Date(arg);
+      }
+      return arg;
+    },
+    z.date()
+  ),
+});
+
+export type InsertReminder = z.infer<typeof insertReminderSchema>;
+export type Reminder = typeof reminders.$inferSelect;
+
+// Widget settings
+export const widgetSettings = pgTable("widget_settings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  enabled: boolean("enabled").notNull().default(true),
+  showBalance: boolean("show_balance").notNull().default(true),
+  showIncomeGoal: boolean("show_income_goal").notNull().default(true),
+  showNextReminder: boolean("show_next_reminder").notNull().default(true),
+  position: text("position").notNull().default("bottom-right"),
+  size: text("size").notNull().default("medium"),
+  theme: text("theme").notNull().default("auto"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  customSettings: json("custom_settings"),
+});
+
+const baseInsertWidgetSettingsSchema = createInsertSchema(widgetSettings).pick({
+  userId: true,
+  enabled: true,
+  showBalance: true,
+  showIncomeGoal: true,
+  showNextReminder: true,
+  position: true,
+  size: true,
+  theme: true,
+  customSettings: true,
+});
+
+export const insertWidgetSettingsSchema = baseInsertWidgetSettingsSchema;
+
+export type InsertWidgetSettings = z.infer<typeof insertWidgetSettingsSchema>;
+export type WidgetSettings = typeof widgetSettings.$inferSelect;

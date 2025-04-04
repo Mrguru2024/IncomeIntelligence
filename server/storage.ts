@@ -7,7 +7,10 @@ import { users, type User, type InsertUser, incomes, type Income, type InsertInc
   achievements, type Achievement, type InsertAchievement,
   userAchievements, type UserAchievement, type InsertUserAchievement,
   gamificationProfiles, type GamificationProfile, type InsertGamificationProfile,
-  pointTransactions, type PointTransaction, type InsertPointTransaction
+  pointTransactions, type PointTransaction, type InsertPointTransaction,
+  userProfiles, type UserProfile, type InsertUserProfile,
+  reminders, type Reminder, type InsertReminder,
+  widgetSettings, type WidgetSettings, type InsertWidgetSettings
  } from "@shared/schema";
 
 // modify the interface with any CRUD methods
@@ -17,6 +20,14 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  
+  // User Profile methods
+  getUserProfile(userId: number): Promise<UserProfile | undefined>;
+  createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
+  updateUserProfile(userId: number, profile: Partial<InsertUserProfile>): Promise<UserProfile | undefined>;
+  deleteUserProfile(userId: number): Promise<boolean>;
+  markProfileCompleted(userId: number): Promise<User | undefined>;
   
   // Income methods
   getIncomes(): Promise<Income[]>;
@@ -81,6 +92,23 @@ export interface IStorage {
   updateBalanceAfterExpense(userId: number, expenseAmount: number): Promise<Balance | undefined>;
   updateBalanceAfterIncome(userId: number, incomeAmount: number): Promise<Balance | undefined>;
   
+  // Reminder methods
+  getReminders(userId: number): Promise<Reminder[]>;
+  getReminderById(id: number): Promise<Reminder | undefined>;
+  createReminder(reminder: InsertReminder): Promise<Reminder>;
+  updateReminder(id: number, reminder: Partial<InsertReminder>): Promise<Reminder | undefined>;
+  deleteReminder(id: number): Promise<boolean>;
+  getActiveReminders(userId: number): Promise<Reminder[]>;
+  getDueReminders(userId: number): Promise<Reminder[]>;
+  markReminderSent(id: number): Promise<Reminder | undefined>;
+  updateReminderNextDate(id: number, nextDate: Date): Promise<Reminder | undefined>;
+  
+  // Widget methods
+  getWidgetSettings(userId: number): Promise<WidgetSettings | undefined>;
+  createWidgetSettings(settings: InsertWidgetSettings): Promise<WidgetSettings>;
+  updateWidgetSettings(userId: number, settings: Partial<InsertWidgetSettings>): Promise<WidgetSettings | undefined>;
+  toggleWidgetEnabled(userId: number, enabled: boolean): Promise<WidgetSettings | undefined>;
+  
   // Gamification methods
   
   // Achievement methods
@@ -118,6 +146,7 @@ export interface IStorage {
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
+  private userProfiles: Map<number, UserProfile>;
   private incomes: Map<number, Income>;
   private goals: Map<number, Goal>;
   private bankConnections: Map<number, BankConnection>;
@@ -125,11 +154,15 @@ export class MemStorage implements IStorage {
   private bankTransactions: Map<number, BankTransaction>;
   private expenses: Map<number, Expense>;
   private balances: Map<number, Balance>;
+  private reminders: Map<number, Reminder>;
+  private widgetSettings: Map<number, WidgetSettings>;
   private achievements: Map<number, Achievement>;
   private userAchievements: Map<number, UserAchievement>;
   private gamificationProfiles: Map<number, GamificationProfile>;
   private pointTransactions: Map<number, PointTransaction>;
+  
   private userCurrentId: number;
+  private userProfileCurrentId: number;
   private incomeCurrentId: number;
   private goalCurrentId: number;
   private bankConnectionCurrentId: number;
@@ -137,6 +170,8 @@ export class MemStorage implements IStorage {
   private bankTransactionCurrentId: number;
   private expenseCurrentId: number;
   private balanceCurrentId: number;
+  private reminderCurrentId: number;
+  private widgetSettingsCurrentId: number;
   private achievementCurrentId: number;
   private userAchievementCurrentId: number;
   private gamificationProfileCurrentId: number;
@@ -144,6 +179,7 @@ export class MemStorage implements IStorage {
 
   constructor() {
     this.users = new Map();
+    this.userProfiles = new Map();
     this.incomes = new Map();
     this.goals = new Map();
     this.bankConnections = new Map();
@@ -151,12 +187,15 @@ export class MemStorage implements IStorage {
     this.bankTransactions = new Map();
     this.expenses = new Map();
     this.balances = new Map();
+    this.reminders = new Map();
+    this.widgetSettings = new Map();
     this.achievements = new Map();
     this.userAchievements = new Map();
     this.gamificationProfiles = new Map();
     this.pointTransactions = new Map();
     
     this.userCurrentId = 1;
+    this.userProfileCurrentId = 1;
     this.incomeCurrentId = 1;
     this.goalCurrentId = 1;
     this.bankConnectionCurrentId = 1;
@@ -164,6 +203,8 @@ export class MemStorage implements IStorage {
     this.bankTransactionCurrentId = 1;
     this.expenseCurrentId = 1;
     this.balanceCurrentId = 1;
+    this.reminderCurrentId = 1;
+    this.widgetSettingsCurrentId = 1;
     this.achievementCurrentId = 1;
     this.userAchievementCurrentId = 1;
     this.gamificationProfileCurrentId = 1;
@@ -365,6 +406,109 @@ export class MemStorage implements IStorage {
     };
     
     this.gamificationProfiles.set(profileId, initialProfile);
+    
+    // Set up initial reminders
+    const initialDate = new Date();
+    const nextWeek = new Date();
+    nextWeek.setDate(initialDate.getDate() + 7);
+    
+    const nextBiweek = new Date();
+    nextBiweek.setDate(initialDate.getDate() + 14);
+    
+    const nextMonth = new Date();
+    nextMonth.setMonth(initialDate.getMonth() + 1);
+    
+    const reminders: InsertReminder[] = [
+      {
+        userId: 1,
+        title: "Review monthly expenses",
+        message: "Take time to categorize and review your expenses for the month",
+        type: "expense",
+        frequency: "monthly",
+        nextRemindAt: nextMonth,
+        isActive: true
+      },
+      {
+        userId: 1,
+        title: "Update 40/30/30 split",
+        message: "Check if your income allocations are on track and make adjustments if needed",
+        type: "budget",
+        frequency: "biweekly",
+        nextRemindAt: nextBiweek,
+        isActive: true
+      },
+      {
+        userId: 1,
+        title: "Emergency fund check",
+        message: "Verify your emergency fund is still at target level",
+        type: "savings",
+        frequency: "monthly",
+        nextRemindAt: nextMonth,
+        isActive: true
+      },
+      {
+        userId: 1,
+        title: "Weekly income entry",
+        message: "Don't forget to log your service calls for the week",
+        type: "income",
+        frequency: "weekly",
+        nextRemindAt: nextWeek,
+        isActive: true
+      }
+    ];
+    
+    reminders.forEach(reminder => {
+      const id = this.reminderCurrentId++;
+      const now = new Date();
+      
+      const newReminder: Reminder = {
+        id,
+        userId: reminder.userId,
+        title: reminder.title,
+        message: reminder.message,
+        type: reminder.type || "custom",
+        frequency: reminder.frequency,
+        nextRemindAt: reminder.nextRemindAt,
+        lastSentAt: null,
+        isActive: reminder.isActive !== undefined ? reminder.isActive : true,
+        createdAt: now,
+        updatedAt: now,
+        metadata: reminder.metadata || null
+      };
+      
+      this.reminders.set(id, newReminder);
+    });
+    
+    // Set up initial widget settings
+    const widgetSettingsData: InsertWidgetSettings = {
+      userId: 1,
+      enabled: true,
+      showBalance: true,
+      showIncomeGoal: true, 
+      showNextReminder: true,
+      position: "bottom-right",
+      size: "medium",
+      theme: "auto"
+    };
+    
+    const widgetSettingsId = this.widgetSettingsCurrentId++;
+    const widgetSettingsNow = new Date();
+    
+    const widgetSetting: WidgetSettings = {
+      id: widgetSettingsId,
+      userId: widgetSettingsData.userId,
+      enabled: widgetSettingsData.enabled !== undefined ? widgetSettingsData.enabled : true,
+      showBalance: widgetSettingsData.showBalance !== undefined ? widgetSettingsData.showBalance : true,
+      showIncomeGoal: widgetSettingsData.showIncomeGoal !== undefined ? widgetSettingsData.showIncomeGoal : true, 
+      showNextReminder: widgetSettingsData.showNextReminder !== undefined ? widgetSettingsData.showNextReminder : true,
+      position: widgetSettingsData.position || "bottom-right",
+      size: widgetSettingsData.size || "medium",
+      theme: widgetSettingsData.theme || "auto",
+      updatedAt: widgetSettingsNow,
+      customSettings: null
+    };
+    
+    this.widgetSettings.set(widgetSettingsId, widgetSetting);
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -379,9 +523,121 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userCurrentId++;
-    const user: User = { ...insertUser, id };
+    const now = new Date();
+    
+    const user: User = {
+      id,
+      username: insertUser.username,
+      password: insertUser.password,
+      email: insertUser.email || null,
+      firstName: insertUser.firstName || null,
+      lastName: insertUser.lastName || null,
+      phone: insertUser.phone || null,
+      createdAt: now,
+      lastLogin: null,
+      profileCompleted: false
+    };
+    
     this.users.set(id, user);
     return user;
+  }
+  
+  async updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined> {
+    const existingUser = this.users.get(id);
+    if (!existingUser) return undefined;
+    
+    const updatedUser: User = {
+      ...existingUser,
+      ...user
+    };
+    
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+  
+  // User Profile methods
+  async getUserProfile(userId: number): Promise<UserProfile | undefined> {
+    return Array.from(this.userProfiles.values())
+      .find(profile => profile.userId === userId);
+  }
+  
+  async createUserProfile(profile: InsertUserProfile): Promise<UserProfile> {
+    const id = this.userProfileCurrentId++;
+    const now = new Date();
+    
+    const userProfile: UserProfile = {
+      id,
+      userId: profile.userId,
+      occupation: profile.occupation || null,
+      occupationDetails: profile.occupationDetails || null,
+      businessName: profile.businessName || null,
+      yearsInBusiness: profile.yearsInBusiness || null,
+      averageMonthlyIncome: profile.averageMonthlyIncome || null,
+      financialGoals: profile.financialGoals || null,
+      lifeGoals: profile.lifeGoals || null,
+      financialHealthStatus: profile.financialHealthStatus || null,
+      riskTolerance: profile.riskTolerance || null,
+      isSoleProvider: profile.isSoleProvider || null,
+      hasEmergencyFund: profile.hasEmergencyFund || null,
+      emergencyFundAmount: profile.emergencyFundAmount || null,
+      preferredContactMethod: profile.preferredContactMethod || null,
+      widgetEnabled: profile.widgetEnabled !== undefined ? profile.widgetEnabled : false,
+      remindersEnabled: profile.remindersEnabled !== undefined ? profile.remindersEnabled : true,
+      updatedAt: now
+    };
+    
+    this.userProfiles.set(id, userProfile);
+    
+    // Also create default widget settings
+    this.createWidgetSettings({
+      userId: profile.userId,
+      enabled: userProfile.widgetEnabled,
+      showBalance: true,
+      showIncomeGoal: true,
+      showNextReminder: true,
+      position: "bottom-right",
+      size: "medium",
+      theme: "auto"
+    });
+    
+    return userProfile;
+  }
+  
+  async updateUserProfile(userId: number, updatedProfile: Partial<InsertUserProfile>): Promise<UserProfile | undefined> {
+    const profile = Array.from(this.userProfiles.values())
+      .find(profile => profile.userId === userId);
+      
+    if (!profile) return undefined;
+    
+    const updated: UserProfile = {
+      ...profile,
+      ...updatedProfile,
+      updatedAt: new Date()
+    };
+    
+    this.userProfiles.set(profile.id, updated);
+    return updated;
+  }
+  
+  async deleteUserProfile(userId: number): Promise<boolean> {
+    const profile = Array.from(this.userProfiles.values())
+      .find(profile => profile.userId === userId);
+      
+    if (!profile) return false;
+    return this.userProfiles.delete(profile.id);
+  }
+  
+  async markProfileCompleted(userId: number): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+    
+    const updatedUser: User = {
+      ...user,
+      profileCompleted: true
+    };
+    
+    this.users.set(userId, updatedUser);
+    return updatedUser;
   }
 
   // Income methods
@@ -1021,6 +1277,197 @@ export class MemStorage implements IStorage {
     return this.updateBalance(balance.id, {
       currentBalance: newAmount.toString()
     });
+  }
+  
+  // Reminder methods
+  async getReminders(userId: number): Promise<Reminder[]> {
+    return Array.from(this.reminders.values())
+      .filter(reminder => reminder.userId === userId)
+      .sort((a, b) => new Date(a.nextRemindAt).getTime() - new Date(b.nextRemindAt).getTime());
+  }
+  
+  async getReminderById(id: number): Promise<Reminder | undefined> {
+    return this.reminders.get(id);
+  }
+  
+  async createReminder(reminder: InsertReminder): Promise<Reminder> {
+    const id = this.reminderCurrentId++;
+    const now = new Date();
+    
+    const nextRemindAt = reminder.nextRemindAt instanceof Date 
+      ? reminder.nextRemindAt 
+      : new Date(reminder.nextRemindAt);
+    
+    const newReminder: Reminder = {
+      id,
+      userId: reminder.userId,
+      title: reminder.title,
+      message: reminder.message,
+      type: reminder.type || "custom",
+      frequency: reminder.frequency,
+      nextRemindAt: nextRemindAt,
+      lastSentAt: null,
+      isActive: reminder.isActive !== undefined ? reminder.isActive : true,
+      createdAt: now,
+      updatedAt: now,
+      metadata: reminder.metadata || null
+    };
+    
+    this.reminders.set(id, newReminder);
+    return newReminder;
+  }
+  
+  async updateReminder(id: number, reminder: Partial<InsertReminder>): Promise<Reminder | undefined> {
+    const existingReminder = this.reminders.get(id);
+    if (!existingReminder) return undefined;
+    
+    let nextRemindAt = existingReminder.nextRemindAt;
+    if (reminder.nextRemindAt) {
+      nextRemindAt = reminder.nextRemindAt instanceof Date 
+        ? reminder.nextRemindAt 
+        : new Date(reminder.nextRemindAt);
+    }
+    
+    const updatedReminder: Reminder = {
+      ...existingReminder,
+      ...reminder,
+      nextRemindAt,
+      updatedAt: new Date()
+    };
+    
+    this.reminders.set(id, updatedReminder);
+    return updatedReminder;
+  }
+  
+  async deleteReminder(id: number): Promise<boolean> {
+    return this.reminders.delete(id);
+  }
+  
+  async getActiveReminders(userId: number): Promise<Reminder[]> {
+    return Array.from(this.reminders.values())
+      .filter(reminder => reminder.userId === userId && reminder.isActive)
+      .sort((a, b) => new Date(a.nextRemindAt).getTime() - new Date(b.nextRemindAt).getTime());
+  }
+  
+  async getDueReminders(userId: number): Promise<Reminder[]> {
+    const now = new Date();
+    return Array.from(this.reminders.values())
+      .filter(reminder => 
+        reminder.userId === userId && 
+        reminder.isActive && 
+        new Date(reminder.nextRemindAt) <= now
+      )
+      .sort((a, b) => new Date(a.nextRemindAt).getTime() - new Date(b.nextRemindAt).getTime());
+  }
+  
+  async markReminderSent(id: number): Promise<Reminder | undefined> {
+    const reminder = this.reminders.get(id);
+    if (!reminder) return undefined;
+    
+    const now = new Date();
+    let nextRemindAt = new Date(now);
+    
+    // Calculate next remind date based on frequency
+    switch (reminder.frequency) {
+      case 'daily':
+        nextRemindAt.setDate(nextRemindAt.getDate() + 1);
+        break;
+      case 'weekly':
+        nextRemindAt.setDate(nextRemindAt.getDate() + 7);
+        break;
+      case 'biweekly':
+        nextRemindAt.setDate(nextRemindAt.getDate() + 14);
+        break;
+      case 'monthly':
+        nextRemindAt.setMonth(nextRemindAt.getMonth() + 1);
+        break;
+      default:
+        nextRemindAt.setDate(nextRemindAt.getDate() + 1);
+    }
+    
+    const updatedReminder: Reminder = {
+      ...reminder,
+      lastSentAt: now,
+      nextRemindAt,
+      updatedAt: now
+    };
+    
+    this.reminders.set(id, updatedReminder);
+    return updatedReminder;
+  }
+  
+  async updateReminderNextDate(id: number, nextDate: Date): Promise<Reminder | undefined> {
+    const reminder = this.reminders.get(id);
+    if (!reminder) return undefined;
+    
+    const updatedReminder: Reminder = {
+      ...reminder,
+      nextRemindAt: nextDate,
+      updatedAt: new Date()
+    };
+    
+    this.reminders.set(id, updatedReminder);
+    return updatedReminder;
+  }
+  
+  // Widget methods
+  async getWidgetSettings(userId: number): Promise<WidgetSettings | undefined> {
+    return Array.from(this.widgetSettings.values())
+      .find(settings => settings.userId === userId);
+  }
+  
+  async createWidgetSettings(settings: InsertWidgetSettings): Promise<WidgetSettings> {
+    const id = this.widgetSettingsCurrentId++;
+    const now = new Date();
+    
+    const widgetSetting: WidgetSettings = {
+      id,
+      userId: settings.userId,
+      enabled: settings.enabled !== undefined ? settings.enabled : true,
+      showBalance: settings.showBalance !== undefined ? settings.showBalance : true,
+      showIncomeGoal: settings.showIncomeGoal !== undefined ? settings.showIncomeGoal : true,
+      showNextReminder: settings.showNextReminder !== undefined ? settings.showNextReminder : true,
+      position: settings.position || "bottom-right",
+      size: settings.size || "medium",
+      theme: settings.theme || "auto",
+      updatedAt: now,
+      customSettings: settings.customSettings || null
+    };
+    
+    this.widgetSettings.set(id, widgetSetting);
+    return widgetSetting;
+  }
+  
+  async updateWidgetSettings(userId: number, settings: Partial<InsertWidgetSettings>): Promise<WidgetSettings | undefined> {
+    const existingSettings = Array.from(this.widgetSettings.values())
+      .find(setting => setting.userId === userId);
+      
+    if (!existingSettings) return undefined;
+    
+    const updatedSettings: WidgetSettings = {
+      ...existingSettings,
+      ...settings,
+      updatedAt: new Date()
+    };
+    
+    this.widgetSettings.set(existingSettings.id, updatedSettings);
+    return updatedSettings;
+  }
+  
+  async toggleWidgetEnabled(userId: number, enabled: boolean): Promise<WidgetSettings | undefined> {
+    const settings = Array.from(this.widgetSettings.values())
+      .find(setting => setting.userId === userId);
+      
+    if (!settings) return undefined;
+    
+    const updatedSettings: WidgetSettings = {
+      ...settings,
+      enabled,
+      updatedAt: new Date()
+    };
+    
+    this.widgetSettings.set(settings.id, updatedSettings);
+    return updatedSettings;
   }
 
   // Gamification methods 
