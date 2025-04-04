@@ -6,7 +6,10 @@ import {
   insertGoalSchema, 
   insertBankConnectionSchema, 
   insertExpenseSchema,
-  insertBalanceSchema
+  insertBalanceSchema,
+  insertReminderSchema,
+  insertWidgetSettingsSchema,
+  insertUserProfileSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -842,6 +845,318 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error('Error recording AI advice usage:', error);
       res.status(500).json({ message: "Failed to record AI advice usage" });
+    }
+  });
+
+  // USER PROFILE ENDPOINTS
+
+  // Get user profile
+  app.get("/api/user/profile", async (req, res) => {
+    try {
+      // For now, hardcode userId as 1 since we don't have authentication yet
+      const userId = 1;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const profile = await storage.getUserProfile(userId);
+      
+      res.json({
+        ...user,
+        profile: profile || {}
+      });
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+      res.status(500).json({ message: "Failed to get user profile" });
+    }
+  });
+
+  // Update user profile
+  app.patch("/api/user/profile", async (req, res) => {
+    try {
+      // For now, hardcode userId as 1 since we don't have authentication yet
+      const userId = 1;
+      
+      const validatedData = insertUserProfileSchema.partial().parse(req.body);
+      
+      let profile = await storage.getUserProfile(userId);
+      
+      if (!profile) {
+        // Create new profile if it doesn't exist
+        profile = await storage.createUserProfile({
+          userId,
+          ...validatedData
+        });
+      } else {
+        // Update existing profile
+        profile = await storage.updateUserProfile(profile.id, validatedData);
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      res.json({
+        ...user,
+        profile
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating user profile:', error);
+      res.status(500).json({ message: "Failed to update user profile" });
+    }
+  });
+
+  // REMINDER ENDPOINTS
+
+  // Get reminders
+  app.get("/api/reminders", async (req, res) => {
+    try {
+      // For now, hardcode userId as 1 since we don't have authentication yet
+      const userId = 1;
+      
+      const reminders = await storage.getReminders(userId);
+      res.json(reminders);
+    } catch (error) {
+      console.error('Error getting reminders:', error);
+      res.status(500).json({ message: "Failed to get reminders" });
+    }
+  });
+
+  // Get reminder by ID
+  app.get("/api/reminders/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid reminder ID" });
+      }
+      
+      const reminder = await storage.getReminderById(id);
+      if (!reminder) {
+        return res.status(404).json({ message: "Reminder not found" });
+      }
+      
+      res.json(reminder);
+    } catch (error) {
+      console.error('Error getting reminder:', error);
+      res.status(500).json({ message: "Failed to get reminder" });
+    }
+  });
+
+  // Create reminder
+  app.post("/api/reminders", async (req, res) => {
+    try {
+      // For now, hardcode userId as 1 since we don't have authentication yet
+      const userId = 1;
+      
+      const validatedData = insertReminderSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const reminder = await storage.createReminder(validatedData);
+      res.status(201).json(reminder);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating reminder:', error);
+      res.status(500).json({ message: "Failed to create reminder" });
+    }
+  });
+
+  // Update reminder
+  app.patch("/api/reminders/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid reminder ID" });
+      }
+      
+      const validatedData = insertReminderSchema.partial().parse(req.body);
+      
+      const reminder = await storage.updateReminder(id, validatedData);
+      if (!reminder) {
+        return res.status(404).json({ message: "Reminder not found" });
+      }
+      
+      res.json(reminder);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating reminder:', error);
+      res.status(500).json({ message: "Failed to update reminder" });
+    }
+  });
+
+  // Delete reminder
+  app.delete("/api/reminders/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid reminder ID" });
+      }
+      
+      const success = await storage.deleteReminder(id);
+      if (!success) {
+        return res.status(404).json({ message: "Reminder not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting reminder:', error);
+      res.status(500).json({ message: "Failed to delete reminder" });
+    }
+  });
+
+  // Get active reminders
+  app.get("/api/reminders/status/active", async (req, res) => {
+    try {
+      // For now, hardcode userId as 1 since we don't have authentication yet
+      const userId = 1;
+      
+      const reminders = await storage.getActiveReminders(userId);
+      res.json(reminders);
+    } catch (error) {
+      console.error('Error getting active reminders:', error);
+      res.status(500).json({ message: "Failed to get active reminders" });
+    }
+  });
+
+  // Get due reminders
+  app.get("/api/reminders/status/due", async (req, res) => {
+    try {
+      // For now, hardcode userId as 1 since we don't have authentication yet
+      const userId = 1;
+      
+      const reminders = await storage.getDueReminders(userId);
+      res.json(reminders);
+    } catch (error) {
+      console.error('Error getting due reminders:', error);
+      res.status(500).json({ message: "Failed to get due reminders" });
+    }
+  });
+
+  // Mark reminder as sent
+  app.post("/api/reminders/:id/sent", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid reminder ID" });
+      }
+      
+      const reminder = await storage.markReminderSent(id);
+      if (!reminder) {
+        return res.status(404).json({ message: "Reminder not found" });
+      }
+      
+      res.json(reminder);
+    } catch (error) {
+      console.error('Error marking reminder as sent:', error);
+      res.status(500).json({ message: "Failed to mark reminder as sent" });
+    }
+  });
+
+  // WIDGET SETTINGS ENDPOINTS
+
+  // Get widget settings
+  app.get("/api/user/widget-settings", async (req, res) => {
+    try {
+      // For now, hardcode userId as 1 since we don't have authentication yet
+      const userId = 1;
+      
+      let settings = await storage.getWidgetSettings(userId);
+      
+      if (!settings) {
+        // Create default settings if they don't exist
+        settings = await storage.createWidgetSettings({
+          userId,
+          enabled: false,
+          showBalance: true,
+          showIncomeGoal: true,
+          showNextReminder: true,
+          position: "bottom-right",
+          size: "medium",
+          theme: "auto"
+        });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      console.error('Error getting widget settings:', error);
+      res.status(500).json({ message: "Failed to get widget settings" });
+    }
+  });
+
+  // Update widget settings
+  app.patch("/api/user/widget-settings", async (req, res) => {
+    try {
+      // For now, hardcode userId as 1 since we don't have authentication yet
+      const userId = 1;
+      
+      const validatedData = insertWidgetSettingsSchema.partial().parse(req.body);
+      
+      let settings = await storage.getWidgetSettings(userId);
+      
+      if (!settings) {
+        // Create settings if they don't exist
+        settings = await storage.createWidgetSettings({
+          userId,
+          ...validatedData,
+          enabled: validatedData.enabled ?? false,
+          showBalance: validatedData.showBalance ?? true,
+          showIncomeGoal: validatedData.showIncomeGoal ?? true,
+          showNextReminder: validatedData.showNextReminder ?? true,
+          position: validatedData.position ?? "bottom-right",
+          size: validatedData.size ?? "medium",
+          theme: validatedData.theme ?? "auto"
+        });
+      } else {
+        // Update existing settings
+        settings = await storage.updateWidgetSettings(userId, validatedData);
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating widget settings:', error);
+      res.status(500).json({ message: "Failed to update widget settings" });
+    }
+  });
+
+  // Toggle widget enabled
+  app.post("/api/user/widget-settings/toggle", async (req, res) => {
+    try {
+      // For now, hardcode userId as 1 since we don't have authentication yet
+      const userId = 1;
+      
+      const schema = z.object({
+        enabled: z.boolean()
+      });
+      
+      const { enabled } = schema.parse(req.body);
+      
+      const settings = await storage.toggleWidgetEnabled(userId, enabled);
+      if (!settings) {
+        return res.status(404).json({ message: "Widget settings not found" });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error toggling widget:', error);
+      res.status(500).json({ message: "Failed to toggle widget" });
     }
   });
 

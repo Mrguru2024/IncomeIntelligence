@@ -3,7 +3,8 @@ import {
   incomes, users, goals, bankConnections, bankAccounts, bankTransactions,
   InsertBankConnection, BankConnection, InsertBankAccount, BankAccount,
   InsertBankTransaction, BankTransaction, InsertExpense, Expense, expenses,
-  InsertBalance, Balance, balances
+  InsertBalance, Balance, balances, UserProfile, InsertUserProfile, userProfiles,
+  Reminder, InsertReminder, reminders, WidgetSettings, InsertWidgetSettings, widgetSettings
 } from '@shared/schema';
 import { IStorage } from './storage';
 import { db, pool } from './db';
@@ -149,6 +150,115 @@ export class DbStorage implements IStorage {
     } catch (error) {
       console.error('Error creating user:', error);
       throw error;
+    }
+  }
+  
+  async updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined> {
+    try {
+      const result = await db
+        .update(users)
+        .set(user)
+        .where(eq(users.id, id))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return undefined;
+    }
+  }
+  
+  // User Profile methods
+  async getUserProfile(userId: number): Promise<UserProfile | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, userId));
+        
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+      return undefined;
+    }
+  }
+  
+  async createUserProfile(profile: InsertUserProfile): Promise<UserProfile> {
+    try {
+      const result = await db
+        .insert(userProfiles)
+        .values({
+          ...profile,
+          updatedAt: new Date()
+        })
+        .returning();
+        
+      // Create default widget settings for the user
+      await this.createWidgetSettings({
+        userId: profile.userId,
+        enabled: profile.widgetEnabled || false,
+        showBalance: true,
+        showIncomeGoal: true,
+        showNextReminder: true,
+        position: "bottom-right",
+        size: "medium",
+        theme: "auto"
+      });
+      
+      return result[0];
+    } catch (error) {
+      console.error('Error creating user profile:', error);
+      throw error;
+    }
+  }
+  
+  async updateUserProfile(userId: number, profile: Partial<InsertUserProfile>): Promise<UserProfile | undefined> {
+    try {
+      const existingProfile = await this.getUserProfile(userId);
+      if (!existingProfile) return undefined;
+      
+      const result = await db
+        .update(userProfiles)
+        .set({
+          ...profile,
+          updatedAt: new Date()
+        })
+        .where(eq(userProfiles.userId, userId))
+        .returning();
+        
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      return undefined;
+    }
+  }
+  
+  async deleteUserProfile(userId: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(userProfiles)
+        .where(eq(userProfiles.userId, userId))
+        .returning({ id: userProfiles.id });
+        
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting user profile:', error);
+      return false;
+    }
+  }
+  
+  async markProfileCompleted(userId: number): Promise<User | undefined> {
+    try {
+      const result = await db
+        .update(users)
+        .set({ profileCompleted: true })
+        .where(eq(users.id, userId))
+        .returning();
+        
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error marking profile completed:', error);
+      return undefined;
     }
   }
 
@@ -965,6 +1075,288 @@ export class DbStorage implements IStorage {
       return balance;
     } catch (error) {
       console.error('Error updating balance after income:', error);
+      return undefined;
+    }
+  }
+  
+  // Reminder methods
+  async getReminders(userId: number): Promise<Reminder[]> {
+    try {
+      return await db
+        .select()
+        .from(reminders)
+        .where(eq(reminders.userId, userId))
+        .orderBy(reminders.nextRemindAt);
+    } catch (error) {
+      console.error('Error getting reminders:', error);
+      return [];
+    }
+  }
+  
+  async getReminderById(id: number): Promise<Reminder | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(reminders)
+        .where(eq(reminders.id, id));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting reminder by id:', error);
+      return undefined;
+    }
+  }
+  
+  async createReminder(reminder: InsertReminder): Promise<Reminder> {
+    try {
+      const now = new Date();
+      const result = await db
+        .insert(reminders)
+        .values({
+          ...reminder,
+          createdAt: now,
+          updatedAt: now
+        })
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating reminder:', error);
+      throw error;
+    }
+  }
+  
+  async updateReminder(id: number, reminder: Partial<InsertReminder>): Promise<Reminder | undefined> {
+    try {
+      const result = await db
+        .update(reminders)
+        .set({
+          ...reminder,
+          updatedAt: new Date()
+        })
+        .where(eq(reminders.id, id))
+        .returning();
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating reminder:', error);
+      return undefined;
+    }
+  }
+  
+  async deleteReminder(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(reminders)
+        .where(eq(reminders.id, id))
+        .returning({ id: reminders.id });
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting reminder:', error);
+      return false;
+    }
+  }
+  
+  async getActiveReminders(userId: number): Promise<Reminder[]> {
+    try {
+      return await db
+        .select()
+        .from(reminders)
+        .where(
+          and(
+            eq(reminders.userId, userId),
+            eq(reminders.isActive, true)
+          )
+        )
+        .orderBy(reminders.nextRemindAt);
+    } catch (error) {
+      console.error('Error getting active reminders:', error);
+      return [];
+    }
+  }
+  
+  async getDueReminders(userId: number): Promise<Reminder[]> {
+    try {
+      const now = new Date();
+      return await db
+        .select()
+        .from(reminders)
+        .where(
+          and(
+            eq(reminders.userId, userId),
+            eq(reminders.isActive, true),
+            lte(reminders.nextRemindAt, now)
+          )
+        )
+        .orderBy(reminders.nextRemindAt);
+    } catch (error) {
+      console.error('Error getting due reminders:', error);
+      return [];
+    }
+  }
+  
+  async markReminderSent(id: number): Promise<Reminder | undefined> {
+    try {
+      const reminder = await this.getReminderById(id);
+      if (!reminder) return undefined;
+      
+      // Calculate next reminder date based on frequency
+      const nextRemindAt = new Date(reminder.nextRemindAt);
+      
+      switch (reminder.frequency) {
+        case 'daily':
+          nextRemindAt.setDate(nextRemindAt.getDate() + 1);
+          break;
+        case 'weekly':
+          nextRemindAt.setDate(nextRemindAt.getDate() + 7);
+          break;
+        case 'biweekly':
+          nextRemindAt.setDate(nextRemindAt.getDate() + 14);
+          break;
+        case 'monthly':
+          nextRemindAt.setMonth(nextRemindAt.getMonth() + 1);
+          break;
+        case 'quarterly':
+          nextRemindAt.setMonth(nextRemindAt.getMonth() + 3);
+          break;
+        case 'yearly':
+          nextRemindAt.setFullYear(nextRemindAt.getFullYear() + 1);
+          break;
+        // For one-time reminders, we'll mark them as inactive
+        case 'once':
+          return await db
+            .update(reminders)
+            .set({
+              lastSentAt: new Date(),
+              isActive: false,
+              updatedAt: new Date()
+            })
+            .where(eq(reminders.id, id))
+            .returning()
+            .then(result => result[0]);
+      }
+      
+      const result = await db
+        .update(reminders)
+        .set({
+          lastSentAt: new Date(),
+          nextRemindAt: nextRemindAt,
+          updatedAt: new Date()
+        })
+        .where(eq(reminders.id, id))
+        .returning();
+        
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error marking reminder as sent:', error);
+      return undefined;
+    }
+  }
+  
+  async updateReminderNextDate(id: number, nextDate: Date): Promise<Reminder | undefined> {
+    try {
+      const result = await db
+        .update(reminders)
+        .set({
+          nextRemindAt: nextDate,
+          updatedAt: new Date()
+        })
+        .where(eq(reminders.id, id))
+        .returning();
+        
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating reminder next date:', error);
+      return undefined;
+    }
+  }
+  
+  // Widget methods
+  async getWidgetSettings(userId: number): Promise<WidgetSettings | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(widgetSettings)
+        .where(eq(widgetSettings.userId, userId));
+        
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting widget settings:', error);
+      return undefined;
+    }
+  }
+  
+  async createWidgetSettings(settings: InsertWidgetSettings): Promise<WidgetSettings> {
+    try {
+      // Check if settings already exist for this user
+      const existingSettings = await this.getWidgetSettings(settings.userId);
+      if (existingSettings) {
+        // Update instead of create if settings already exist
+        const updated = await this.updateWidgetSettings(settings.userId, settings);
+        if (!updated) throw new Error("Failed to update existing widget settings");
+        return updated;
+      }
+      
+      const result = await db
+        .insert(widgetSettings)
+        .values({
+          ...settings,
+          updatedAt: new Date()
+        })
+        .returning();
+        
+      return result[0];
+    } catch (error) {
+      console.error('Error creating widget settings:', error);
+      throw error;
+    }
+  }
+  
+  async updateWidgetSettings(userId: number, settings: Partial<InsertWidgetSettings>): Promise<WidgetSettings | undefined> {
+    try {
+      const result = await db
+        .update(widgetSettings)
+        .set({
+          ...settings,
+          updatedAt: new Date()
+        })
+        .where(eq(widgetSettings.userId, userId))
+        .returning();
+        
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating widget settings:', error);
+      return undefined;
+    }
+  }
+  
+  async toggleWidgetEnabled(userId: number, enabled: boolean): Promise<WidgetSettings | undefined> {
+    try {
+      const existingSettings = await this.getWidgetSettings(userId);
+      
+      if (!existingSettings) {
+        // Create default settings if they don't exist
+        return this.createWidgetSettings({
+          userId,
+          enabled,
+          showBalance: true,
+          showIncomeGoal: true,
+          showNextReminder: true,
+          position: "bottom-right",
+          size: "medium",
+          theme: "auto"
+        });
+      }
+      
+      const result = await db
+        .update(widgetSettings)
+        .set({
+          enabled,
+          updatedAt: new Date()
+        })
+        .where(eq(widgetSettings.userId, userId))
+        .returning();
+        
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error toggling widget enabled state:', error);
       return undefined;
     }
   }
