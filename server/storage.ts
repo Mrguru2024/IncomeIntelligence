@@ -1,7 +1,9 @@
 import { users, type User, type InsertUser, incomes, type Income, type InsertIncome, goals, type Goal, type InsertGoal, 
   bankConnections, type BankConnection, type InsertBankConnection, 
   bankAccounts, type BankAccount, type InsertBankAccount,
-  bankTransactions, type BankTransaction, type InsertBankTransaction } from "@shared/schema";
+  bankTransactions, type BankTransaction, type InsertBankTransaction,
+  expenses, type Expense, type InsertExpense,
+  balances, type Balance, type InsertBalance } from "@shared/schema";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -53,6 +55,26 @@ export interface IStorage {
   updateBankTransaction(id: number, transaction: Partial<InsertBankTransaction>): Promise<BankTransaction | undefined>;
   deleteBankTransaction(id: number): Promise<boolean>;
   importBankTransactionAsIncome(transactionId: number): Promise<Income | undefined>;
+  
+  // Expense methods
+  getExpenses(): Promise<Expense[]>;
+  getExpenseById(id: number): Promise<Expense | undefined>;
+  createExpense(expense: InsertExpense): Promise<Expense>;
+  updateExpense(id: number, expense: Partial<InsertExpense>): Promise<Expense | undefined>;
+  deleteExpense(id: number): Promise<boolean>;
+  getExpensesByUserId(userId: number): Promise<Expense[]>;
+  getExpensesByMonth(year: number, month: number): Promise<Expense[]>;
+  getExpensesByCategory(category: string): Promise<Expense[]>;
+  syncOfflineExpenses(offlineExpenses: InsertExpense[]): Promise<Expense[]>;
+  
+  // Balance methods
+  getBalance(userId: number, year: number, month: number): Promise<Balance | undefined>;
+  getAllBalances(userId: number): Promise<Balance[]>;
+  createBalance(balance: InsertBalance): Promise<Balance>;
+  updateBalance(id: number, balance: Partial<InsertBalance>): Promise<Balance | undefined>;
+  calculateCurrentBalance(userId: number, year: number, month: number): Promise<number>;
+  updateBalanceAfterExpense(userId: number, expenseAmount: number): Promise<Balance | undefined>;
+  updateBalanceAfterIncome(userId: number, incomeAmount: number): Promise<Balance | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -62,12 +84,16 @@ export class MemStorage implements IStorage {
   private bankConnections: Map<number, BankConnection>;
   private bankAccounts: Map<number, BankAccount>;
   private bankTransactions: Map<number, BankTransaction>;
+  private expenses: Map<number, Expense>;
+  private balances: Map<number, Balance>;
   private userCurrentId: number;
   private incomeCurrentId: number;
   private goalCurrentId: number;
   private bankConnectionCurrentId: number;
   private bankAccountCurrentId: number;
   private bankTransactionCurrentId: number;
+  private expenseCurrentId: number;
+  private balanceCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -76,12 +102,16 @@ export class MemStorage implements IStorage {
     this.bankConnections = new Map();
     this.bankAccounts = new Map();
     this.bankTransactions = new Map();
+    this.expenses = new Map();
+    this.balances = new Map();
     this.userCurrentId = 1;
     this.incomeCurrentId = 1;
     this.goalCurrentId = 1;
     this.bankConnectionCurrentId = 1;
     this.bankAccountCurrentId = 1;
     this.bankTransactionCurrentId = 1;
+    this.expenseCurrentId = 1;
+    this.balanceCurrentId = 1;
     
     // Add some initial data
     this.setupInitialData();
@@ -117,6 +147,65 @@ export class MemStorage implements IStorage {
 
     incomes.forEach(income => {
       this.createIncome(income);
+    });
+    
+    // Add initial expenses
+    const expenses: InsertExpense[] = [
+      {
+        description: "Office supplies",
+        amount: "45.75",
+        date: new Date("2023-05-19"),
+        category: "other",
+        userId: 1,
+        paymentMethod: "credit"
+      },
+      {
+        description: "Fuel for work van",
+        amount: "68.50",
+        date: new Date("2023-05-17"),
+        category: "transportation",
+        userId: 1,
+        paymentMethod: "debit"
+      }
+    ];
+    
+    expenses.forEach(expense => {
+      const id = this.expenseCurrentId++;
+      const expenseObj: Expense = {
+        id,
+        description: expense.description,
+        amount: expense.amount,
+        date: expense.date instanceof Date ? expense.date : new Date(expense.date || new Date()),
+        category: expense.category || 'other',
+        userId: expense.userId || null,
+        paymentMethod: expense.paymentMethod || 'cash',
+        location: expense.location || null,
+        notes: expense.notes || null,
+        isRecurring: expense.isRecurring || false,
+        recurringPeriod: expense.recurringPeriod || null,
+        offlineCreated: expense.offlineCreated || false,
+        offlineId: expense.offlineId || null
+      };
+      this.expenses.set(id, expenseObj);
+    });
+    
+    // Add initial balance
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    
+    const initialBalance: InsertBalance = {
+      userId: 1,
+      beginningBalance: "2000.00",
+      currentBalance: "2000.00",
+      year: currentYear,
+      month: currentMonth
+    };
+    
+    this.balances.set(this.balanceCurrentId++, {
+      ...initialBalance,
+      id: this.balanceCurrentId,
+      lastUpdated: new Date()
     });
   }
 
@@ -517,6 +606,263 @@ export class MemStorage implements IStorage {
     this.bankTransactions.set(transactionId, transaction);
     
     return income;
+  }
+  
+  // Expense methods
+  async getExpenses(): Promise<Expense[]> {
+    return Array.from(this.expenses.values()).sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }
+
+  async getExpenseById(id: number): Promise<Expense | undefined> {
+    return this.expenses.get(id);
+  }
+
+  async createExpense(insertExpense: InsertExpense): Promise<Expense> {
+    const id = this.expenseCurrentId++;
+    const date = insertExpense.date instanceof Date 
+      ? insertExpense.date 
+      : new Date(insertExpense.date || new Date());
+      
+    const expense: Expense = { 
+      id,
+      description: insertExpense.description,
+      amount: insertExpense.amount,
+      date: date,
+      category: insertExpense.category || 'other',
+      userId: insertExpense.userId || null,
+      paymentMethod: insertExpense.paymentMethod || 'cash',
+      location: insertExpense.location || null,
+      notes: insertExpense.notes || null,
+      isRecurring: insertExpense.isRecurring || false,
+      recurringPeriod: insertExpense.recurringPeriod || null,
+      offlineCreated: insertExpense.offlineCreated || false,
+      offlineId: insertExpense.offlineId || null
+    };
+    
+    this.expenses.set(id, expense);
+    
+    // Update the user's balance
+    if (expense.userId) {
+      await this.updateBalanceAfterExpense(expense.userId, 
+        typeof expense.amount === 'string' ? parseFloat(expense.amount) : expense.amount);
+    }
+    
+    return expense;
+  }
+
+  async updateExpense(id: number, updatedExpense: Partial<InsertExpense>): Promise<Expense | undefined> {
+    const expense = this.expenses.get(id);
+    if (!expense) return undefined;
+
+    const updated: Expense = { 
+      ...expense, 
+      ...updatedExpense,
+      date: updatedExpense.date ? 
+        (updatedExpense.date instanceof Date ? updatedExpense.date : new Date(updatedExpense.date)) 
+        : expense.date
+    };
+    
+    this.expenses.set(id, updated);
+    return updated;
+  }
+
+  async deleteExpense(id: number): Promise<boolean> {
+    const expense = this.expenses.get(id);
+    if (!expense) return false;
+    
+    // Adjust balance if deleting an expense
+    if (expense.userId) {
+      const amount = typeof expense.amount === 'string' ? parseFloat(expense.amount) : expense.amount;
+      await this.updateBalanceAfterIncome(expense.userId, amount);
+    }
+    
+    return this.expenses.delete(id);
+  }
+
+  async getExpensesByUserId(userId: number): Promise<Expense[]> {
+    return Array.from(this.expenses.values())
+      .filter(expense => expense.userId === userId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
+  async getExpensesByMonth(year: number, month: number): Promise<Expense[]> {
+    return Array.from(this.expenses.values())
+      .filter(expense => {
+        const expenseDate = new Date(expense.date);
+        return expenseDate.getFullYear() === year && expenseDate.getMonth() === month;
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+  
+  async getExpensesByCategory(category: string): Promise<Expense[]> {
+    return Array.from(this.expenses.values())
+      .filter(expense => expense.category === category)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
+  async syncOfflineExpenses(offlineExpenses: InsertExpense[]): Promise<Expense[]> {
+    const syncedExpenses: Expense[] = [];
+    
+    for (const expense of offlineExpenses) {
+      // Check if expense with this offlineId already exists
+      if (expense.offlineId) {
+        const existing = Array.from(this.expenses.values())
+          .find(exp => exp.offlineId === expense.offlineId);
+        
+        if (!existing) {
+          const newExpense = await this.createExpense(expense);
+          syncedExpenses.push(newExpense);
+        }
+      }
+    }
+    
+    return syncedExpenses;
+  }
+  
+  // Balance methods
+  async getBalance(userId: number, year: number, month: number): Promise<Balance | undefined> {
+    return Array.from(this.balances.values())
+      .find(balance => 
+        balance.userId === userId && 
+        balance.year === year && 
+        balance.month === month);
+  }
+
+  async getAllBalances(userId: number): Promise<Balance[]> {
+    return Array.from(this.balances.values())
+      .filter(balance => balance.userId === userId)
+      .sort((a, b) => {
+        if (a.year !== b.year) return b.year - a.year;
+        return b.month - a.month;
+      });
+  }
+
+  async createBalance(insertBalance: InsertBalance): Promise<Balance> {
+    const id = this.balanceCurrentId++;
+    const lastUpdated = new Date();
+    
+    const balance: Balance = {
+      id,
+      userId: insertBalance.userId,
+      beginningBalance: insertBalance.beginningBalance,
+      currentBalance: insertBalance.currentBalance,
+      month: insertBalance.month,
+      year: insertBalance.year,
+      lastUpdated
+    };
+    
+    this.balances.set(id, balance);
+    return balance;
+  }
+
+  async updateBalance(id: number, updatedBalance: Partial<InsertBalance>): Promise<Balance | undefined> {
+    const balance = this.balances.get(id);
+    if (!balance) return undefined;
+    
+    const updated: Balance = {
+      ...balance,
+      ...updatedBalance,
+      lastUpdated: new Date()
+    };
+    
+    this.balances.set(id, updated);
+    return updated;
+  }
+
+  async calculateCurrentBalance(userId: number, year: number, month: number): Promise<number> {
+    // Get the balance record for this user and month
+    const balance = await this.getBalance(userId, year, month);
+    
+    if (!balance) {
+      // Create a new balance if it doesn't exist
+      const previousMonth = month === 0 ? 11 : month - 1;
+      const previousYear = month === 0 ? year - 1 : year;
+      
+      // Get previous month's balance
+      const previousBalance = await this.getBalance(userId, previousYear, previousMonth);
+      const beginningBalance = previousBalance ? 
+        (typeof previousBalance.currentBalance === 'string' ? 
+          parseFloat(previousBalance.currentBalance) : previousBalance.currentBalance) : 
+        0;
+      
+      // Create new balance
+      await this.createBalance({
+        userId,
+        beginningBalance: beginningBalance.toString(),
+        currentBalance: beginningBalance.toString(),
+        month,
+        year
+      });
+      
+      return beginningBalance;
+    }
+    
+    return typeof balance.currentBalance === 'string' ? 
+      parseFloat(balance.currentBalance) : balance.currentBalance;
+  }
+
+  async updateBalanceAfterExpense(userId: number, expenseAmount: number): Promise<Balance | undefined> {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    
+    // Get or create balance for this month
+    let balance = await this.getBalance(userId, year, month);
+    
+    if (!balance) {
+      // Create new balance if it doesn't exist
+      balance = await this.createBalance({
+        userId,
+        beginningBalance: "0",
+        currentBalance: "0",
+        month,
+        year
+      });
+    }
+    
+    // Calculate new balance
+    const currentAmount = typeof balance.currentBalance === 'string' ? 
+      parseFloat(balance.currentBalance) : balance.currentBalance;
+    
+    const newAmount = currentAmount - expenseAmount;
+    
+    // Update balance
+    return this.updateBalance(balance.id, {
+      currentBalance: newAmount.toString()
+    });
+  }
+
+  async updateBalanceAfterIncome(userId: number, incomeAmount: number): Promise<Balance | undefined> {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    
+    // Get or create balance for this month
+    let balance = await this.getBalance(userId, year, month);
+    
+    if (!balance) {
+      // Create new balance if it doesn't exist
+      balance = await this.createBalance({
+        userId,
+        beginningBalance: "0",
+        currentBalance: "0",
+        month,
+        year
+      });
+    }
+    
+    // Calculate new balance
+    const currentAmount = typeof balance.currentBalance === 'string' ? 
+      parseFloat(balance.currentBalance) : balance.currentBalance;
+    
+    const newAmount = currentAmount + incomeAmount;
+    
+    // Update balance
+    return this.updateBalance(balance.id, {
+      currentBalance: newAmount.toString()
+    });
   }
 }
 

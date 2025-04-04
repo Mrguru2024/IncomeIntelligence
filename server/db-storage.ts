@@ -2,7 +2,8 @@ import {
   InsertIncome, InsertUser, Income, User, InsertGoal, Goal, 
   incomes, users, goals, bankConnections, bankAccounts, bankTransactions,
   InsertBankConnection, BankConnection, InsertBankAccount, BankAccount,
-  InsertBankTransaction, BankTransaction
+  InsertBankTransaction, BankTransaction, InsertExpense, Expense, expenses,
+  InsertBalance, Balance, balances
 } from '@shared/schema';
 import { IStorage } from './storage';
 import { db, pool } from './db';
@@ -652,6 +653,318 @@ export class DbStorage implements IStorage {
       return income;
     } catch (error) {
       console.error('Error importing transaction as income:', error);
+      return undefined;
+    }
+  }
+  
+  // Expense methods
+  async getExpenses(): Promise<Expense[]> {
+    try {
+      return await db.select().from(expenses).orderBy(desc(expenses.date));
+    } catch (error) {
+      console.error('Error getting expenses:', error);
+      return [];
+    }
+  }
+
+  async getExpenseById(id: number): Promise<Expense | undefined> {
+    try {
+      const result = await db.select().from(expenses).where(eq(expenses.id, id));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting expense by id:', error);
+      return undefined;
+    }
+  }
+
+  async createExpense(expense: InsertExpense): Promise<Expense> {
+    try {
+      const result = await db.insert(expenses).values(expense).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating expense:', error);
+      throw error;
+    }
+  }
+
+  async updateExpense(id: number, expense: Partial<InsertExpense>): Promise<Expense | undefined> {
+    try {
+      const result = await db
+        .update(expenses)
+        .set(expense)
+        .where(eq(expenses.id, id))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating expense:', error);
+      return undefined;
+    }
+  }
+
+  async deleteExpense(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(expenses)
+        .where(eq(expenses.id, id))
+        .returning({ id: expenses.id });
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      return false;
+    }
+  }
+
+  async getExpensesByUserId(userId: number): Promise<Expense[]> {
+    try {
+      return await db
+        .select()
+        .from(expenses)
+        .where(eq(expenses.userId, userId))
+        .orderBy(desc(expenses.date));
+    } catch (error) {
+      console.error('Error getting expenses by user id:', error);
+      return [];
+    }
+  }
+
+  async getExpensesByMonth(year: number, month: number): Promise<Expense[]> {
+    try {
+      const startDate = new Date(year, month, 1);
+      const endDate = new Date(year, month + 1, 0); // Last day of the month
+      
+      return await db
+        .select()
+        .from(expenses)
+        .where(
+          and(
+            gte(expenses.date, startDate),
+            lte(expenses.date, endDate)
+          )
+        )
+        .orderBy(desc(expenses.date));
+    } catch (error) {
+      console.error('Error getting expenses by month:', error);
+      return [];
+    }
+  }
+
+  async getExpensesByCategory(category: string): Promise<Expense[]> {
+    try {
+      return await db
+        .select()
+        .from(expenses)
+        .where(eq(expenses.category, category))
+        .orderBy(desc(expenses.date));
+    } catch (error) {
+      console.error('Error getting expenses by category:', error);
+      return [];
+    }
+  }
+
+  async syncOfflineExpenses(offlineExpenses: InsertExpense[]): Promise<Expense[]> {
+    try {
+      const syncedExpenses: Expense[] = [];
+      
+      // Process each offline expense
+      for (const expense of offlineExpenses) {
+        // Check if this offline expense already exists
+        if (expense.offlineId) {
+          const existingExpense = await db
+            .select()
+            .from(expenses)
+            .where(eq(expenses.offlineId, expense.offlineId));
+          
+          // If it exists, skip it
+          if (existingExpense.length > 0) {
+            syncedExpenses.push(existingExpense[0]);
+            continue;
+          }
+        }
+        
+        // Create new expense record
+        const newExpense = await this.createExpense(expense);
+        syncedExpenses.push(newExpense);
+      }
+      
+      return syncedExpenses;
+    } catch (error) {
+      console.error('Error syncing offline expenses:', error);
+      return [];
+    }
+  }
+  
+  // Balance methods
+  async getBalance(userId: number, year: number, month: number): Promise<Balance | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(balances)
+        .where(
+          and(
+            eq(balances.userId, userId),
+            eq(balances.year, year),
+            eq(balances.month, month)
+          )
+        );
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting balance:', error);
+      return undefined;
+    }
+  }
+
+  async getAllBalances(userId: number): Promise<Balance[]> {
+    try {
+      return await db
+        .select()
+        .from(balances)
+        .where(eq(balances.userId, userId))
+        .orderBy(desc(balances.year), desc(balances.month));
+    } catch (error) {
+      console.error('Error getting all balances:', error);
+      return [];
+    }
+  }
+
+  async createBalance(balance: InsertBalance): Promise<Balance> {
+    try {
+      const result = await db
+        .insert(balances)
+        .values({
+          ...balance,
+          lastUpdated: new Date()
+        })
+        .returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error('Error creating balance:', error);
+      throw error;
+    }
+  }
+
+  async updateBalance(id: number, balance: Partial<InsertBalance>): Promise<Balance | undefined> {
+    try {
+      const result = await db
+        .update(balances)
+        .set({
+          ...balance,
+          lastUpdated: new Date()
+        })
+        .where(eq(balances.id, id))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating balance:', error);
+      return undefined;
+    }
+  }
+
+  async calculateCurrentBalance(userId: number, year: number, month: number): Promise<number> {
+    try {
+      // Get the balance record for the previous month
+      const prevMonth = month === 0 ? 11 : month - 1;
+      const prevYear = month === 0 ? year - 1 : year;
+      const prevBalance = await this.getBalance(userId, prevYear, prevMonth);
+      
+      // Start with the previous balance or 0 if none exists
+      let balance = 0;
+      if (prevBalance) {
+        balance = parseFloat(prevBalance.currentBalance.toString());
+      }
+      
+      // Get all income for the month
+      const incomes = await this.getIncomesByMonth(year, month);
+      const incomeTotal = incomes.reduce((sum, income) => 
+        sum + parseFloat(income.amount.toString()), 0);
+      
+      // Get all expenses for the month
+      const expenses = await this.getExpensesByMonth(year, month);
+      const expenseTotal = expenses.reduce((sum, expense) => 
+        sum + parseFloat(expense.amount.toString()), 0);
+      
+      // Calculate the current balance
+      return balance + incomeTotal - expenseTotal;
+    } catch (error) {
+      console.error('Error calculating current balance:', error);
+      return 0;
+    }
+  }
+
+  async updateBalanceAfterExpense(userId: number, expenseAmount: number): Promise<Balance | undefined> {
+    try {
+      // Get the current month and year
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      
+      // Get the current balance
+      let balance = await this.getBalance(userId, year, month);
+      
+      if (!balance) {
+        // If no balance exists for current month, calculate it and create a new record
+        const currentBalance = await this.calculateCurrentBalance(userId, year, month);
+        
+        balance = await this.createBalance({
+          userId,
+          beginningBalance: currentBalance.toString(),
+          currentBalance: (currentBalance - expenseAmount).toString(),
+          year,
+          month
+        });
+      } else {
+        // Update existing balance
+        const newBalance = parseFloat(balance.currentBalance.toString()) - expenseAmount;
+        
+        balance = await this.updateBalance(balance.id, {
+          currentBalance: newBalance.toString()
+        });
+      }
+      
+      return balance;
+    } catch (error) {
+      console.error('Error updating balance after expense:', error);
+      return undefined;
+    }
+  }
+
+  async updateBalanceAfterIncome(userId: number, incomeAmount: number): Promise<Balance | undefined> {
+    try {
+      // Get the current month and year
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      
+      // Get the current balance
+      let balance = await this.getBalance(userId, year, month);
+      
+      if (!balance) {
+        // If no balance exists for current month, calculate it and create a new record
+        const currentBalance = await this.calculateCurrentBalance(userId, year, month);
+        
+        balance = await this.createBalance({
+          userId,
+          beginningBalance: currentBalance.toString(),
+          currentBalance: (currentBalance + incomeAmount).toString(),
+          year,
+          month
+        });
+      } else {
+        // Update existing balance
+        const newBalance = parseFloat(balance.currentBalance.toString()) + incomeAmount;
+        
+        balance = await this.updateBalance(balance.id, {
+          currentBalance: newBalance.toString()
+        });
+      }
+      
+      return balance;
+    } catch (error) {
+      console.error('Error updating balance after income:', error);
       return undefined;
     }
   }
