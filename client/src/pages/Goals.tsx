@@ -77,17 +77,29 @@ export default function Goals() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-6">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6">Financial Goals</h1>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold">Financial Goals</h1>
+          <div className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto" disabled>
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Add New Goal
+            </Button>
+          </div>
+        </div>
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
-              <CardHeader className="bg-muted/20 h-24" />
-              <CardContent className="pt-4">
+              <CardHeader className="bg-muted/20 h-24 px-4 py-4" />
+              <CardContent className="pt-4 px-4">
                 <div className="h-4 bg-muted/40 rounded w-3/4 mb-2" />
                 <div className="h-4 bg-muted/40 rounded w-1/2" />
-                <div className="h-6 bg-muted/30 rounded mt-4" />
+                <div className="h-8 bg-muted/30 rounded mt-4 mb-2" />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="h-16 bg-muted/30 rounded" />
+                  <div className="h-16 bg-muted/30 rounded" />
+                </div>
               </CardContent>
-              <CardFooter className="pt-4 border-t border-gray-100">
+              <CardFooter className="pt-4 px-4 border-t border-gray-100">
                 <div className="w-full">
                   <div className="flex justify-between">
                     <div className="h-4 bg-muted/40 rounded w-1/4" />
@@ -105,13 +117,24 @@ export default function Goals() {
   if (error) {
     return (
       <div className="container mx-auto px-4 py-6">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6">Financial Goals</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold">Financial Goals</h1>
+          <div className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto" onClick={() => setIsGoalModalOpen(true)}>
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Add New Goal
+            </Button>
+          </div>
+        </div>
         <Alert className="bg-destructive/10 border-destructive text-destructive">
           <div className="flex items-center gap-2">
             <AlertCircleIcon className="h-4 w-4 shrink-0" />
             <AlertDescription>Failed to load goals. Please try again.</AlertDescription>
           </div>
         </Alert>
+        {isGoalModalOpen && (
+          <DirectGoalModal onClose={() => setIsGoalModalOpen(false)} />
+        )}
       </div>
     );
   }
@@ -119,11 +142,21 @@ export default function Goals() {
   if (goals.length === 0) {
     return (
       <div className="container mx-auto px-4 py-6">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6">Financial Goals</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold">Financial Goals</h1>
+          <div className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto" onClick={() => setIsGoalModalOpen(true)}>
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Add New Goal
+            </Button>
+          </div>
+        </div>
         <Card>
           <CardContent className="pt-6 text-center px-4 py-8 sm:py-12">
             <div className="flex flex-col items-center space-y-4">
-              <TargetIcon className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground" />
+              <div className="p-3 rounded-full bg-primary/10 mb-2">
+                <TargetIcon className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+              </div>
               <h3 className="text-lg font-medium">No goals added yet</h3>
               <p className="text-sm text-muted-foreground max-w-xs sm:max-w-sm mx-auto">
                 Track your progress by setting financial goals aligned with your 40/30/30 strategy.
@@ -146,22 +179,24 @@ export default function Goals() {
     <div className="container mx-auto px-4 py-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl md:text-3xl font-bold">Financial Goals</h1>
-        <Button onClick={() => setIsGoalModalOpen(true)}>
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Add New Goal
-        </Button>
+        <div className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto" onClick={() => setIsGoalModalOpen(true)}>
+            <PlusIcon className="h-4 w-4 mr-2" />
+            Add New Goal
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid grid-cols-2 sm:grid-cols-4 mb-6">
-          <TabsTrigger value="all">All Goals</TabsTrigger>
-          <TabsTrigger value="income">Income</TabsTrigger>
-          <TabsTrigger value="savings">Savings</TabsTrigger>
-          <TabsTrigger value="investments">Investments</TabsTrigger>
+          <TabsTrigger value="all" className="text-xs sm:text-sm">All Goals</TabsTrigger>
+          <TabsTrigger value="income" className="text-xs sm:text-sm">Income</TabsTrigger>
+          <TabsTrigger value="savings" className="text-xs sm:text-sm">Savings</TabsTrigger>
+          <TabsTrigger value="investments" className="text-xs sm:text-sm">Investments</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {goals.map((goal) => (
               <GoalCard key={goal.id} goal={goal} />
             ))}
@@ -170,14 +205,28 @@ export default function Goals() {
 
         {['income', 'savings', 'investments'].map((type) => (
           <TabsContent key={type} value={type}>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {(goalsByType[type] || []).map((goal) => (
                 <GoalCard key={goal.id} goal={goal} />
               ))}
               {!goalsByType[type]?.length && (
                 <Card className="col-span-full">
-                  <CardContent className="pt-6 text-center">
-                    <p className="text-muted-foreground">No {type} goals found</p>
+                  <CardContent className="pt-6 pb-6 text-center">
+                    <div className="flex flex-col items-center py-4">
+                      <div className="p-3 rounded-full bg-gray-100 mb-2">
+                        {type === 'income' && <TargetIcon className="h-6 w-6 text-gray-400" />}
+                        {type === 'savings' && <PiggyBankIcon className="h-6 w-6 text-gray-400" />}
+                        {type === 'investments' && <TrendingUpIcon className="h-6 w-6 text-gray-400" />}
+                      </div>
+                      <p className="text-muted-foreground">No {type} goals found</p>
+                      <Button 
+                        variant="link" 
+                        className="mt-2" 
+                        onClick={() => setIsGoalModalOpen(true)}
+                      >
+                        Add a {type} goal
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -244,49 +293,51 @@ function GoalCard({ goal }: GoalCardProps) {
   }
 
   return (
-    <Card className={`overflow-hidden ${isCompleted ? 'border-green-300 bg-green-50' : ''}`}>
-      <CardHeader className="px-4 sm:px-6">
-        <div className="flex flex-wrap justify-between items-start gap-2">
-          <div className="flex flex-wrap items-center gap-2">
+    <Card className={`overflow-hidden h-full ${isCompleted ? 'border-green-300 bg-green-50' : ''}`}>
+      <CardHeader className="px-4 py-4 sm:px-6 sm:py-5">
+        <div className="flex justify-between items-start gap-2 mb-2">
+          <div className="flex items-center gap-2">
             <div className={`p-2 rounded-full ${typeColor.split(' ')[0]}`}>
-              {goal.type === 'income' && <TargetIcon className="h-5 w-5" />}
-              {goal.type === 'savings' && <PiggyBankIcon className="h-5 w-5" />}
-              {goal.type === 'investments' && <TrendingUpIcon className="h-5 w-5" />}
-              {!goal.type && <TargetIcon className="h-5 w-5" />}
+              {goal.type === 'income' && <TargetIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
+              {goal.type === 'savings' && <PiggyBankIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
+              {goal.type === 'investments' && <TrendingUpIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
+              {!goal.type && <TargetIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
             </div>
-            <Badge variant="outline" className={typeColor}>
+            <Badge variant="outline" className={`${typeColor} text-xs sm:text-sm whitespace-nowrap`}>
               {goal.type?.charAt(0).toUpperCase() + goal.type?.slice(1) || 'Other'}
             </Badge>
           </div>
           
           {isCompleted && (
-            <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
+            <Badge className="bg-green-100 text-green-800 hover:bg-green-200 text-xs sm:text-sm whitespace-nowrap">
               Completed
             </Badge>
           )}
         </div>
-        <CardTitle className="mt-2 text-lg sm:text-xl">{goal.name}</CardTitle>
-        <CardDescription className="line-clamp-2">{goal.description}</CardDescription>
+        <CardTitle className="text-base sm:text-lg md:text-xl mb-1 line-clamp-2">{goal.name}</CardTitle>
+        {goal.description && (
+          <CardDescription className="text-xs sm:text-sm line-clamp-2">{goal.description}</CardDescription>
+        )}
       </CardHeader>
       
-      <CardContent className="px-4 sm:px-6">
+      <CardContent className="px-4 sm:px-6 py-2 sm:py-3">
         <div className="space-y-4">
           <div>
-            <div className="flex justify-between mb-1">
-              <span className="text-sm font-medium">Progress</span>
-              <span className="text-sm font-medium">{formatPercentage(progress)}</span>
+            <div className="flex justify-between mb-1 items-center">
+              <span className="text-xs sm:text-sm font-medium">Progress</span>
+              <span className="text-xs sm:text-sm font-medium">{formatPercentage(progress)}</span>
             </div>
-            <Progress value={progress} className="h-2" />
+            <Progress value={progress} className="h-2.5 sm:h-3" />
           </div>
           
-          <div className="grid grid-cols-2 gap-2 sm:gap-4">
-            <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Current</p>
-              <p className="text-base sm:text-xl font-bold">{formatCurrency(goal.currentAmount)}</p>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="bg-gray-50 p-2 sm:p-3 rounded-md">
+              <p className="text-xs text-muted-foreground mb-0.5">Current</p>
+              <p className="text-sm sm:text-base md:text-lg font-bold">{formatCurrency(goal.currentAmount)}</p>
             </div>
-            <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Target</p>
-              <p className="text-base sm:text-xl font-bold">{formatCurrency(goal.targetAmount)}</p>
+            <div className="bg-gray-50 p-2 sm:p-3 rounded-md">
+              <p className="text-xs text-muted-foreground mb-0.5">Target</p>
+              <p className="text-sm sm:text-base md:text-lg font-bold">{formatCurrency(goal.targetAmount)}</p>
             </div>
           </div>
         </div>
@@ -294,26 +345,28 @@ function GoalCard({ goal }: GoalCardProps) {
       
       <Separator />
       
-      <CardFooter className="pt-4 px-4 sm:px-6">
+      <CardFooter className="px-4 py-3 sm:px-6 sm:py-4 bg-gray-50">
         <div className="w-full">
-          <div className="flex flex-wrap justify-between items-start sm:items-center gap-2">
+          <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs text-muted-foreground">Started</p>
-              <p className="text-xs sm:text-sm">{format(new Date(goal.startDate), "MMM d, yyyy")}</p>
+              <p className="text-xs text-muted-foreground mb-0.5">Started</p>
+              <p className="text-xs sm:text-sm font-medium">{format(new Date(goal.startDate), "MMM d, yyyy")}</p>
             </div>
             {goal.deadline && (
               <div className="text-right">
-                <p className="text-xs text-muted-foreground">Deadline</p>
-                <p className={`text-xs sm:text-sm ${getDeadlineColor(goal.deadline)}`}>
+                <p className="text-xs text-muted-foreground mb-0.5">Deadline</p>
+                <p className={`text-xs sm:text-sm font-medium ${getDeadlineColor(goal.deadline)}`}>
                   {format(new Date(goal.deadline), "MMM d, yyyy")}
                 </p>
               </div>
             )}
           </div>
           {goal.deadline && (
-            <p className={`text-xs mt-2 ${getDeadlineColor(goal.deadline)}`}>
-              {getTimeRemaining(goal.deadline)}
-            </p>
+            <div className={`flex items-center mt-2 ${getDeadlineColor(goal.deadline)}`}>
+              <p className="text-xs font-medium">
+                {getTimeRemaining(goal.deadline)}
+              </p>
+            </div>
           )}
         </div>
       </CardFooter>
