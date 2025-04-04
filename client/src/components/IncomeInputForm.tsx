@@ -87,11 +87,11 @@ export default function IncomeInputForm() {
   };
 
   return (
-    <Card className="border border-gray-100">
-      <CardContent className="p-6">
+    <Card className="border border-gray-100 overflow-hidden">
+      <CardContent className="p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Add New Income</h3>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
             <FormField
               control={form.control}
               name="description"
@@ -102,10 +102,10 @@ export default function IncomeInputForm() {
                     <Input
                       placeholder="e.g., Emergency lockout service"
                       {...field}
-                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                      className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs sm:text-sm" />
                 </FormItem>
               )}
             />
@@ -122,11 +122,12 @@ export default function IncomeInputForm() {
                       placeholder="0.00"
                       min="0"
                       step="0.01"
+                      inputMode="decimal"
                       {...field}
-                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                      className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs sm:text-sm" />
                 </FormItem>
               )}
             />
@@ -141,10 +142,10 @@ export default function IncomeInputForm() {
                     <Input
                       type="date"
                       {...field}
-                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                      className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs sm:text-sm" />
                 </FormItem>
               )}
             />
