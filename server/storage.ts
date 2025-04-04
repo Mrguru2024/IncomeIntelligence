@@ -3,7 +3,12 @@ import { users, type User, type InsertUser, incomes, type Income, type InsertInc
   bankAccounts, type BankAccount, type InsertBankAccount,
   bankTransactions, type BankTransaction, type InsertBankTransaction,
   expenses, type Expense, type InsertExpense,
-  balances, type Balance, type InsertBalance } from "@shared/schema";
+  balances, type Balance, type InsertBalance,
+  achievements, type Achievement, type InsertAchievement,
+  userAchievements, type UserAchievement, type InsertUserAchievement,
+  gamificationProfiles, type GamificationProfile, type InsertGamificationProfile,
+  pointTransactions, type PointTransaction, type InsertPointTransaction
+ } from "@shared/schema";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -75,6 +80,40 @@ export interface IStorage {
   calculateCurrentBalance(userId: number, year: number, month: number): Promise<number>;
   updateBalanceAfterExpense(userId: number, expenseAmount: number): Promise<Balance | undefined>;
   updateBalanceAfterIncome(userId: number, incomeAmount: number): Promise<Balance | undefined>;
+  
+  // Gamification methods
+  
+  // Achievement methods
+  getAchievements(): Promise<Achievement[]>; 
+  getAchievementById(id: number): Promise<Achievement | undefined>;
+  getAchievementsByCategory(category: string): Promise<Achievement[]>;
+  createAchievement(achievement: InsertAchievement): Promise<Achievement>;
+  updateAchievement(id: number, achievement: Partial<InsertAchievement>): Promise<Achievement | undefined>;
+  deleteAchievement(id: number): Promise<boolean>;
+  
+  // User Achievement methods
+  getUserAchievements(userId: number): Promise<UserAchievement[]>;
+  getUserAchievementById(id: number): Promise<UserAchievement | undefined>;
+  createUserAchievement(userAchievement: InsertUserAchievement): Promise<UserAchievement>;
+  updateUserAchievement(id: number, userAchievement: Partial<InsertUserAchievement>): Promise<UserAchievement | undefined>;
+  deleteUserAchievement(id: number): Promise<boolean>;
+  checkAchievementEligibility(userId: number, achievementId: number): Promise<boolean>;
+  awardAchievement(userId: number, achievementId: number): Promise<UserAchievement | undefined>;
+  
+  // Gamification Profile methods
+  getGamificationProfile(userId: number): Promise<GamificationProfile | undefined>;
+  createGamificationProfile(profile: InsertGamificationProfile): Promise<GamificationProfile>;
+  updateGamificationProfile(userId: number, profile: Partial<InsertGamificationProfile>): Promise<GamificationProfile | undefined>;
+  incrementUserStreak(userId: number): Promise<GamificationProfile | undefined>;
+  resetUserStreak(userId: number): Promise<GamificationProfile | undefined>;
+  addPointsToUser(userId: number, points: number, reason: string, source: string, sourceId?: number): Promise<GamificationProfile | undefined>;
+  checkAndUpdateUserLevel(userId: number): Promise<GamificationProfile | undefined>;
+  
+  // Point Transaction methods
+  getPointTransactions(userId: number): Promise<PointTransaction[]>;
+  getPointTransactionById(id: number): Promise<PointTransaction | undefined>;
+  createPointTransaction(transaction: InsertPointTransaction): Promise<PointTransaction>;
+  getRecentPointTransactions(userId: number, limit: number): Promise<PointTransaction[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -86,6 +125,10 @@ export class MemStorage implements IStorage {
   private bankTransactions: Map<number, BankTransaction>;
   private expenses: Map<number, Expense>;
   private balances: Map<number, Balance>;
+  private achievements: Map<number, Achievement>;
+  private userAchievements: Map<number, UserAchievement>;
+  private gamificationProfiles: Map<number, GamificationProfile>;
+  private pointTransactions: Map<number, PointTransaction>;
   private userCurrentId: number;
   private incomeCurrentId: number;
   private goalCurrentId: number;
@@ -94,6 +137,10 @@ export class MemStorage implements IStorage {
   private bankTransactionCurrentId: number;
   private expenseCurrentId: number;
   private balanceCurrentId: number;
+  private achievementCurrentId: number;
+  private userAchievementCurrentId: number;
+  private gamificationProfileCurrentId: number;
+  private pointTransactionCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -104,6 +151,11 @@ export class MemStorage implements IStorage {
     this.bankTransactions = new Map();
     this.expenses = new Map();
     this.balances = new Map();
+    this.achievements = new Map();
+    this.userAchievements = new Map();
+    this.gamificationProfiles = new Map();
+    this.pointTransactions = new Map();
+    
     this.userCurrentId = 1;
     this.incomeCurrentId = 1;
     this.goalCurrentId = 1;
@@ -112,6 +164,10 @@ export class MemStorage implements IStorage {
     this.bankTransactionCurrentId = 1;
     this.expenseCurrentId = 1;
     this.balanceCurrentId = 1;
+    this.achievementCurrentId = 1;
+    this.userAchievementCurrentId = 1;
+    this.gamificationProfileCurrentId = 1;
+    this.pointTransactionCurrentId = 1;
     
     // Add some initial data
     this.setupInitialData();
@@ -207,6 +263,108 @@ export class MemStorage implements IStorage {
       id: this.balanceCurrentId,
       lastUpdated: new Date()
     });
+    
+    // Add initial achievements
+    const achievements: InsertAchievement[] = [
+      {
+        name: "First Income",
+        description: "Record your first income",
+        category: "income",
+        pointsValue: 10,
+        icon: "trophy",
+        level: 1,
+        criteria: { incomeCount: 1 }
+      },
+      {
+        name: "Income Milestone: $1,000",
+        description: "Record a total of $1,000 in income",
+        category: "income",
+        pointsValue: 25,
+        icon: "award",
+        level: 2,
+        criteria: { minIncome: 1000 }
+      },
+      {
+        name: "First Savings Goal",
+        description: "Create your first savings goal",
+        category: "savings",
+        pointsValue: 15,
+        icon: "piggyBank",
+        level: 1,
+        criteria: { goalCount: 1 }
+      },
+      {
+        name: "Goal Achieved",
+        description: "Complete any financial goal",
+        category: "goals",
+        pointsValue: 50,
+        icon: "check",
+        level: 2,
+        criteria: { completedGoals: 1 }
+      },
+      {
+        name: "Expense Tracker",
+        description: "Record 5 expenses",
+        category: "expense",
+        pointsValue: 20,
+        icon: "receipt",
+        level: 1,
+        criteria: { expenseCount: 5 }
+      },
+      {
+        name: "3-Day Streak",
+        description: "Login for 3 days in a row",
+        category: "streak",
+        pointsValue: 15,
+        icon: "flame",
+        level: 1,
+        criteria: { minStreak: 3 }
+      },
+      {
+        name: "Connected Account",
+        description: "Connect your first bank account",
+        category: "milestone",
+        pointsValue: 30,
+        icon: "link",
+        level: 1,
+        criteria: { connectionCount: 1 }
+      }
+    ];
+    
+    achievements.forEach(achievement => {
+      const id = this.achievementCurrentId++;
+      const achievementObj: Achievement = {
+        id,
+        name: achievement.name,
+        description: achievement.description,
+        category: achievement.category,
+        pointsValue: achievement.pointsValue || 10,
+        icon: achievement.icon || null,
+        level: achievement.level || 1,
+        criteria: achievement.criteria || {},
+        createdAt: new Date()
+      };
+      this.achievements.set(id, achievementObj);
+    });
+    
+    // Create initial gamification profile for user 1
+    const profileId = this.gamificationProfileCurrentId++;
+    const now = new Date();
+    
+    const initialProfile: GamificationProfile = {
+      id: profileId,
+      userId: 1,
+      points: 0,
+      level: 1,
+      streak: 0,
+      lastActive: now,
+      totalPointsEarned: 0,
+      milestones: [],
+      achievements: {},
+      updatedAt: now
+    };
+    
+    this.gamificationProfiles.set(profileId, initialProfile);
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -863,6 +1021,373 @@ export class MemStorage implements IStorage {
     return this.updateBalance(balance.id, {
       currentBalance: newAmount.toString()
     });
+  }
+
+  // Gamification methods 
+
+  // Achievement methods
+  async getAchievements(): Promise<Achievement[]> {
+    return Array.from(this.achievements.values())
+      .sort((a, b) => a.level - b.level);
+  }
+
+  async getAchievementById(id: number): Promise<Achievement | undefined> {
+    return this.achievements.get(id);
+  }
+
+  async getAchievementsByCategory(category: string): Promise<Achievement[]> {
+    return Array.from(this.achievements.values())
+      .filter(achievement => achievement.category === category)
+      .sort((a, b) => a.level - b.level);
+  }
+
+  async createAchievement(achievement: InsertAchievement): Promise<Achievement> {
+    const id = this.achievementCurrentId++;
+    const createdAt = new Date();
+    
+    const newAchievement: Achievement = {
+      id,
+      name: achievement.name,
+      description: achievement.description,
+      category: achievement.category,
+      pointsValue: achievement.pointsValue || 10,
+      icon: achievement.icon || null,
+      level: achievement.level || 1,
+      criteria: achievement.criteria || {},
+      createdAt
+    };
+    
+    this.achievements.set(id, newAchievement);
+    return newAchievement;
+  }
+
+  async updateAchievement(id: number, achievement: Partial<InsertAchievement>): Promise<Achievement | undefined> {
+    const existingAchievement = this.achievements.get(id);
+    if (!existingAchievement) return undefined;
+    
+    const updatedAchievement: Achievement = {
+      ...existingAchievement,
+      ...achievement,
+    };
+    
+    this.achievements.set(id, updatedAchievement);
+    return updatedAchievement;
+  }
+
+  async deleteAchievement(id: number): Promise<boolean> {
+    return this.achievements.delete(id);
+  }
+
+  // User Achievement methods
+  async getUserAchievements(userId: number): Promise<UserAchievement[]> {
+    return Array.from(this.userAchievements.values())
+      .filter(ua => ua.userId === userId)
+      .sort((a, b) => new Date(b.dateEarned).getTime() - new Date(a.dateEarned).getTime());
+  }
+
+  async getUserAchievementById(id: number): Promise<UserAchievement | undefined> {
+    return this.userAchievements.get(id);
+  }
+
+  async createUserAchievement(userAchievement: InsertUserAchievement): Promise<UserAchievement> {
+    const id = this.userAchievementCurrentId++;
+    const dateEarned = new Date();
+    
+    const newUserAchievement: UserAchievement = {
+      id,
+      userId: userAchievement.userId,
+      achievementId: userAchievement.achievementId,
+      dateEarned,
+      progress: userAchievement.progress || null
+    };
+    
+    this.userAchievements.set(id, newUserAchievement);
+    return newUserAchievement;
+  }
+
+  async updateUserAchievement(id: number, userAchievement: Partial<InsertUserAchievement>): Promise<UserAchievement | undefined> {
+    const existingUA = this.userAchievements.get(id);
+    if (!existingUA) return undefined;
+    
+    const updatedUA: UserAchievement = {
+      ...existingUA,
+      ...userAchievement,
+    };
+    
+    this.userAchievements.set(id, updatedUA);
+    return updatedUA;
+  }
+
+  async deleteUserAchievement(id: number): Promise<boolean> {
+    return this.userAchievements.delete(id);
+  }
+
+  async checkAchievementEligibility(userId: number, achievementId: number): Promise<boolean> {
+    // Check if achievement exists
+    const achievement = await this.getAchievementById(achievementId);
+    if (!achievement) return false;
+    
+    // Check if user already has this achievement
+    const existingAchievements = await this.getUserAchievements(userId);
+    const alreadyEarned = existingAchievements.some(ua => ua.achievementId === achievementId);
+    
+    if (alreadyEarned) return false;
+    
+    // Check criteria based on achievement category
+    switch(achievement.category) {
+      case 'income':
+        // Check income-related criteria
+        const incomes = await this.getIncomesByUserId(userId);
+        const totalIncome = incomes.reduce((sum, income) => sum + parseFloat(income.amount.toString()), 0);
+        const criteria = achievement.criteria as { minIncome?: number, incomeCount?: number };
+        
+        if (criteria.minIncome && totalIncome < criteria.minIncome) return false;
+        if (criteria.incomeCount && incomes.length < criteria.incomeCount) return false;
+        break;
+        
+      case 'savings':
+        // Check savings-related criteria
+        const savingsGoals = await this.getGoalsByType('savings');
+        const userSavingsGoals = savingsGoals.filter(goal => goal.userId === userId);
+        const criteria2 = achievement.criteria as { goalCount?: number, goalCompletion?: number };
+        
+        if (criteria2.goalCount && userSavingsGoals.length < criteria2.goalCount) return false;
+        if (criteria2.goalCompletion) {
+          const completedGoals = userSavingsGoals.filter(goal => goal.isCompleted).length;
+          if ((completedGoals / userSavingsGoals.length) < criteria2.goalCompletion) return false;
+        }
+        break;
+        
+      case 'streak':
+        // Check streak-related criteria
+        const profile = await this.getGamificationProfile(userId);
+        if (!profile) return false;
+        
+        const criteria3 = achievement.criteria as { minStreak?: number };
+        if (criteria3.minStreak && profile.streak < criteria3.minStreak) return false;
+        break;
+        
+      // Add more criteria checks for other categories
+    }
+    
+    return true;
+  }
+
+  async awardAchievement(userId: number, achievementId: number): Promise<UserAchievement | undefined> {
+    // Check eligibility
+    const isEligible = await this.checkAchievementEligibility(userId, achievementId);
+    if (!isEligible) return undefined;
+    
+    // Get achievement details
+    const achievement = await this.getAchievementById(achievementId);
+    if (!achievement) return undefined;
+    
+    // Award the achievement
+    const userAchievement = await this.createUserAchievement({
+      userId,
+      achievementId
+    });
+    
+    // Award points
+    await this.addPointsToUser(
+      userId, 
+      achievement.pointsValue, 
+      `Earned achievement: ${achievement.name}`,
+      'achievement',
+      achievement.id
+    );
+    
+    return userAchievement;
+  }
+
+  // Gamification Profile methods
+  async getGamificationProfile(userId: number): Promise<GamificationProfile | undefined> {
+    return Array.from(this.gamificationProfiles.values())
+      .find(profile => profile.userId === userId);
+  }
+
+  async createGamificationProfile(profile: InsertGamificationProfile): Promise<GamificationProfile> {
+    const id = this.gamificationProfileCurrentId++;
+    const now = new Date();
+    
+    const newProfile: GamificationProfile = {
+      id,
+      userId: profile.userId,
+      points: profile.points || 0,
+      level: profile.level || 1,
+      streak: profile.streak || 0,
+      lastActive: profile.lastActive || now,
+      totalPointsEarned: profile.totalPointsEarned || 0,
+      milestones: profile.milestones || [],
+      achievements: profile.achievements || {},
+      updatedAt: now
+    };
+    
+    this.gamificationProfiles.set(id, newProfile);
+    return newProfile;
+  }
+
+  async updateGamificationProfile(userId: number, profileUpdate: Partial<InsertGamificationProfile>): Promise<GamificationProfile | undefined> {
+    let profile = await this.getGamificationProfile(userId);
+    
+    if (!profile) {
+      // Create new profile if it doesn't exist
+      profile = await this.createGamificationProfile({
+        userId,
+        points: profileUpdate.points || 0,
+        level: profileUpdate.level || 1,
+        streak: profileUpdate.streak || 0,
+        lastActive: profileUpdate.lastActive || new Date(),
+        totalPointsEarned: profileUpdate.totalPointsEarned || 0,
+        milestones: profileUpdate.milestones || [],
+        achievements: profileUpdate.achievements || {}
+      });
+      return profile;
+    }
+    
+    const updatedProfile: GamificationProfile = {
+      ...profile,
+      ...profileUpdate,
+      updatedAt: new Date()
+    };
+    
+    this.gamificationProfiles.set(profile.id, updatedProfile);
+    return updatedProfile;
+  }
+
+  async incrementUserStreak(userId: number): Promise<GamificationProfile | undefined> {
+    let profile = await this.getGamificationProfile(userId);
+    
+    if (!profile) {
+      profile = await this.createGamificationProfile({
+        userId,
+        streak: 1,
+        lastActive: new Date(),
+        points: 0,
+        level: 1,
+        totalPointsEarned: 0,
+        milestones: [],
+        achievements: {}
+      });
+      return profile;
+    }
+    
+    // Increment streak and update last active date
+    const updatedProfile = await this.updateGamificationProfile(userId, {
+      streak: profile.streak + 1,
+      lastActive: new Date()
+    });
+    
+    return updatedProfile;
+  }
+
+  async resetUserStreak(userId: number): Promise<GamificationProfile | undefined> {
+    const profile = await this.getGamificationProfile(userId);
+    if (!profile) return undefined;
+    
+    // Reset streak to 0 and update last active date
+    const updatedProfile = await this.updateGamificationProfile(userId, {
+      streak: 0,
+      lastActive: new Date()
+    });
+    
+    return updatedProfile;
+  }
+
+  async addPointsToUser(userId: number, points: number, reason: string, source: string, sourceId?: number): Promise<GamificationProfile | undefined> {
+    // Get or create user profile
+    let profile = await this.getGamificationProfile(userId);
+    
+    if (!profile) {
+      profile = await this.createGamificationProfile({
+        userId,
+        points: 0,
+        level: 1,
+        streak: 0,
+        lastActive: new Date(),
+        totalPointsEarned: 0,
+        milestones: [],
+        achievements: {}
+      });
+    }
+    
+    // Create point transaction
+    await this.createPointTransaction({
+      userId,
+      amount: points,
+      reason,
+      source,
+      sourceId
+    });
+    
+    // Update profile with new points
+    const updatedProfile = await this.updateGamificationProfile(userId, {
+      points: profile.points + points,
+      totalPointsEarned: profile.totalPointsEarned + (points > 0 ? points : 0)
+    });
+    
+    // Check if user should level up
+    return this.checkAndUpdateUserLevel(userId);
+  }
+
+  async checkAndUpdateUserLevel(userId: number): Promise<GamificationProfile | undefined> {
+    const profile = await this.getGamificationProfile(userId);
+    if (!profile) return undefined;
+    
+    // Level up algorithm: level = sqrt(points/100) + 1
+    const calculatedLevel = Math.floor(Math.sqrt(profile.points / 100)) + 1;
+    
+    if (calculatedLevel > profile.level) {
+      // Level up!
+      const updatedProfile = await this.updateGamificationProfile(userId, {
+        level: calculatedLevel
+      });
+      
+      // Add level-up record to point transactions
+      await this.createPointTransaction({
+        userId,
+        amount: 0, // No points awarded for leveling up
+        reason: `Reached level ${calculatedLevel}`,
+        source: 'level_up'
+      });
+      
+      return updatedProfile;
+    }
+    
+    return profile;
+  }
+
+  // Point Transaction methods
+  async getPointTransactions(userId: number): Promise<PointTransaction[]> {
+    return Array.from(this.pointTransactions.values())
+      .filter(transaction => transaction.userId === userId)
+      .sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime());
+  }
+
+  async getPointTransactionById(id: number): Promise<PointTransaction | undefined> {
+    return this.pointTransactions.get(id);
+  }
+
+  async createPointTransaction(transaction: InsertPointTransaction): Promise<PointTransaction> {
+    const id = this.pointTransactionCurrentId++;
+    const transactionDate = new Date();
+    
+    const newTransaction: PointTransaction = {
+      id,
+      userId: transaction.userId,
+      amount: transaction.amount,
+      reason: transaction.reason,
+      source: transaction.source,
+      sourceId: transaction.sourceId || null,
+      transactionDate
+    };
+    
+    this.pointTransactions.set(id, newTransaction);
+    return newTransaction;
+  }
+
+  async getRecentPointTransactions(userId: number, limit: number): Promise<PointTransaction[]> {
+    return (await this.getPointTransactions(userId)).slice(0, limit);
   }
 }
 
