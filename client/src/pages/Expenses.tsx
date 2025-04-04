@@ -35,13 +35,13 @@ export default function Expenses() {
         url = `/api/expenses/month/${currentYear}/${currentMonth}`;
       }
       
-      return apiRequest<Expense[]>(url);
+      return apiRequest(url) as Promise<Expense[]>;
     }
   });
 
   // Current month's total expenses
   const totalExpenses = expenses?.reduce(
-    (sum, expense) => sum + parseFloat(expense.amount.toString()), 
+    (sum: number, expense: Expense) => sum + parseFloat(expense.amount.toString()), 
     0
   ) || 0;
 
@@ -62,15 +62,15 @@ export default function Expenses() {
   };
 
   return (
-    <div className="container mx-auto py-6 px-4 md:px-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <div className="container mx-auto py-6 px-4 sm:px-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Expenses</h1>
           <p className="text-gray-500 mt-1">
             Track and manage your spending
           </p>
         </div>
-        <div className="mt-4 md:mt-0">
+        <div className="mt-4 sm:mt-0">
           <Button 
             onClick={() => setShowExpenseForm(!showExpenseForm)}
             className="bg-primary hover:bg-primary/90"
@@ -94,7 +94,7 @@ export default function Expenses() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
