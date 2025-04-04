@@ -9,6 +9,38 @@ html {
   overflow-x: hidden;
 }
 
+/* Light mode colors - default */
+:root {
+  --background: #f9fafb;
+  --foreground: #111827;
+  --card-background: #ffffff;
+  --card-foreground: #111827;
+  --primary-foreground: #ffffff;
+  --muted-background: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent-background: #f3f4f6;
+  --accent-foreground: #111827;
+  --border: #e5e7eb;
+  --input-background: #ffffff;
+  --ring: rgba(59, 130, 246, 0.5);
+}
+
+/* Dark mode colors */
+.dark {
+  --background: #0f172a;
+  --foreground: #e1e7ef;
+  --card-background: #1e293b;
+  --card-foreground: #e1e7ef;
+  --primary-foreground: #ffffff;
+  --muted-background: #334155;
+  --muted-foreground: #94a3b8;
+  --accent-background: #1e293b;
+  --accent-foreground: #e1e7ef;
+  --border: #2a3649;
+  --input-background: #1e293b;
+  --ring: rgba(59, 130, 246, 0.3);
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -16,12 +48,13 @@ body {
   text-rendering: optimizeLegibility;
   width: 100%;
   overflow-x: hidden;
-  background-color: #f9fafb;
-  color: #111827;
+  background-color: var(--background);
+  color: var(--foreground);
   padding: 0;
   margin: 0;
   -webkit-overflow-scrolling: touch;
   position: relative;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
 @layer base {
