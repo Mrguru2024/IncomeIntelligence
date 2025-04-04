@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 
@@ -76,6 +77,22 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
     },
   ];
 
+  // Handle body scroll lock when menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      // Prevent background scrolling when menu is open
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Allow scrolling when menu is closed
+      document.body.style.overflow = '';
+    }
+    
+    // Cleanup function
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+  
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
   };
@@ -123,17 +140,23 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
       {/* Mobile sidebar overlay */}
       {mobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden touch-manipulation"
           onClick={closeMobileMenu}
+          onTouchEnd={closeMobileMenu}
+          role="button"
+          tabIndex={-1}
+          aria-label="Close menu overlay"
         />
       )}
 
       {/* Mobile sidebar */}
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out transform lg:hidden overflow-y-auto",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out transform lg:hidden overflow-y-auto shadow-lg",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
+        aria-hidden={!mobileMenuOpen}
+        aria-label="Mobile navigation"
       >
         <div className="p-6 border-b border-gray-200 flex justify-between items-center">
           <div>
@@ -142,8 +165,10 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
           </div>
           <button 
             onClick={closeMobileMenu}
-            className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 flex items-center justify-center cursor-pointer"
+            className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 flex items-center justify-center cursor-pointer active:bg-gray-200 touch-manipulation"
             aria-label="Close menu"
+            role="button"
+            tabIndex={0}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -158,12 +183,20 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
                 <Link 
                   href={item.path}
                   className={cn(
-                    "flex items-center px-4 py-3 rounded-lg font-medium",
+                    "flex items-center px-4 py-3 rounded-lg font-medium w-full touch-manipulation",
                     location === item.path
                       ? "text-primary bg-blue-50"
-                      : "text-gray-700 hover:bg-gray-100"
+                      : "text-gray-700 hover:bg-gray-100 active:bg-gray-200"
                   )}
-                  onClick={closeMobileMenu}
+                  onClick={() => {
+                    closeMobileMenu();
+                    // Add a small delay to ensure the page transition happens after menu closes
+                    if (window.innerWidth < 1024) {
+                      setTimeout(() => {
+                        document.body.style.overflow = '';
+                      }, 300);
+                    }
+                  }}
                 >
                   <span className="mr-3">{item.icon}</span>
                   {item.name}
