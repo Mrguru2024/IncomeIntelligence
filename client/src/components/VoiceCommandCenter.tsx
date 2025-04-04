@@ -143,26 +143,29 @@ const VoiceCommandCenter: React.FC = () => {
 
   return (
     <Card className="w-full relative">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className="p-4 sm:p-6 pb-0 sm:pb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <CardTitle>Voice Command Center</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-base sm:text-lg">Voice Command Center</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Speak commands to navigate and control the app
             </CardDescription>
           </div>
-          <Badge variant={isListening ? "default" : "outline"} className="ml-2">
+          <Badge 
+            variant={isListening ? "default" : "outline"} 
+            className="self-start sm:self-auto sm:ml-2 text-xs sm:text-sm py-0.5 px-1.5 sm:px-2"
+          >
             {isListening ? "Listening" : "Paused"}
           </Badge>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-col space-y-4">
-          <div className="p-3 bg-muted rounded-md min-h-[60px] flex items-center">
+      <CardContent className="p-4 sm:p-6 pt-3 sm:pt-4">
+        <div className="flex flex-col space-y-3 sm:space-y-4">
+          <div className="p-2 sm:p-3 bg-muted rounded-md min-h-[50px] sm:min-h-[60px] flex items-center">
             {transcript ? (
-              <p className="text-md">{transcript}</p>
+              <p className="text-sm sm:text-base">{transcript}</p>
             ) : (
-              <p className="text-md text-muted-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 {isListening 
                   ? "Listening... Say 'help' for available commands." 
                   : "Click the microphone to start listening."}
@@ -171,15 +174,15 @@ const VoiceCommandCenter: React.FC = () => {
           </div>
 
           {isShowingCommands && (
-            <div className="border rounded-md p-3 mt-2">
-              <h3 className="text-sm font-medium mb-2">Available Commands:</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="border rounded-md p-2 sm:p-3 mt-1 sm:mt-2">
+              <h3 className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">Available Commands:</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
                 {availableCommands.map((cmd, index) => (
-                  <div key={index} className="flex items-start space-x-2">
-                    <span className="text-xs font-semibold bg-primary/10 p-1 rounded">
+                  <div key={index} className="flex items-start space-x-1.5 sm:space-x-2">
+                    <span className="text-[10px] sm:text-xs font-semibold bg-primary/10 p-0.5 sm:p-1 rounded">
                       {cmd.command}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">
                       {cmd.description}
                     </span>
                   </div>
@@ -189,26 +192,32 @@ const VoiceCommandCenter: React.FC = () => {
           )}
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between">
+      <CardFooter className="p-4 sm:p-6 pt-2 sm:pt-3 flex flex-wrap sm:flex-nowrap justify-between gap-2">
         <Button
           variant="outline"
           size="icon"
+          className="h-7 w-7 sm:h-9 sm:w-9"
           onClick={() => setIsShowingCommands(!isShowingCommands)}
         >
-          {isShowingCommands ? <StopCircle className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          {isShowingCommands ? 
+            <StopCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : 
+            <Play className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          }
         </Button>
         <Button
           onClick={toggleListening}
           variant={isListening ? "destructive" : "default"}
-          className={isListening ? "animate-pulse" : ""}
+          className={`text-xs sm:text-sm h-7 sm:h-9 ${isListening ? "animate-pulse" : ""}`}
         >
           {isListening ? (
             <>
-              <MicOff className="mr-2 h-4 w-4" /> Stop Listening
+              <MicOff className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> 
+              <span className="hidden xs:inline">Stop</span> Listening
             </>
           ) : (
             <>
-              <Mic className="mr-2 h-4 w-4" /> Start Listening
+              <Mic className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> 
+              <span className="hidden xs:inline">Start</span> Listening
             </>
           )}
         </Button>

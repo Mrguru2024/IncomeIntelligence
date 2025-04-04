@@ -3,11 +3,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BankConnectionModal from "./BankConnectionModal";
 
+interface BankConnection {
+  id: number;
+  name: string;
+  status: string;
+}
+
 export default function ConnectedAccounts() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // This would be populated from real bank connections in a production app
-  const connections = [];
+  const connections: BankConnection[] = [];
 
   return (
     <Card className="border border-gray-100">
