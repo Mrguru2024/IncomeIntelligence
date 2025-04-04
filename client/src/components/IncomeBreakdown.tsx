@@ -71,23 +71,23 @@ export default function IncomeBreakdown() {
 
   return (
     <Card className="border border-gray-100">
-      <CardContent className="p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Income Breakdown</h3>
-        <p className="text-sm text-gray-500 mb-4">
+      <CardContent className="p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-1 sm:mb-2">Income Breakdown</h3>
+        <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
           {breakdown.needs > 0 || breakdown.investments > 0 || breakdown.savings > 0 
             ? `Total income: ${formatCurrency(breakdown.needs + breakdown.investments + breakdown.savings)}`
             : `Add income to see your ${needsPercentage}/${investmentsPercentage}/${savingsPercentage} breakdown`}
         </p>
         <div className="flex flex-col h-full">
-          <div className="mb-4 h-64">
+          <div className="mb-3 sm:mb-4 h-48 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={chartData}
                   cx="50%"
                   cy="50%"
-                  innerRadius="60%"
-                  outerRadius="80%"
+                  innerRadius="50%"
+                  outerRadius="70%"
                   paddingAngle={5}
                   dataKey="value"
                 >
@@ -99,37 +99,40 @@ export default function IncomeBreakdown() {
                   layout="horizontal"
                   verticalAlign="bottom"
                   align="center"
+                  iconSize={8}
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-600">Needs</span>
-                <span className="bg-primary text-white text-xs font-bold px-2 py-1 rounded">{needsPercentage}%</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
+              <div className="flex items-center justify-between mb-1 sm:mb-2">
+                <span className="text-xs sm:text-sm font-medium text-gray-600">Needs</span>
+                <span className="bg-primary text-white text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">{needsPercentage}%</span>
               </div>
-              <div className="text-xl font-semibold text-gray-800">{formatCurrency(breakdown.needs)}</div>
-              <div className="text-xs text-gray-500 mt-1">Daily expenses, rent, bills</div>
+              <div className="text-base sm:text-xl font-semibold text-gray-800">{formatCurrency(breakdown.needs)}</div>
+              <div className="text-xs text-gray-500 mt-0.5 sm:mt-1">Daily expenses, rent, bills</div>
             </div>
 
-            <div className="bg-purple-50 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-600">Investments</span>
-                <span className="bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded">{investmentsPercentage}%</span>
+            <div className="bg-purple-50 rounded-lg p-3 sm:p-4">
+              <div className="flex items-center justify-between mb-1 sm:mb-2">
+                <span className="text-xs sm:text-sm font-medium text-gray-600">Investments</span>
+                <span className="bg-purple-600 text-white text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">{investmentsPercentage}%</span>
               </div>
-              <div className="text-xl font-semibold text-gray-800">{formatCurrency(breakdown.investments)}</div>
-              <div className="text-xs text-gray-500 mt-1">Long-term growth, business</div>
+              <div className="text-base sm:text-xl font-semibold text-gray-800">{formatCurrency(breakdown.investments)}</div>
+              <div className="text-xs text-gray-500 mt-0.5 sm:mt-1">Long-term growth, business</div>
             </div>
 
-            <div className="bg-green-50 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-600">Savings</span>
-                <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">{savingsPercentage}%</span>
+            <div className="bg-green-50 rounded-lg p-3 sm:p-4">
+              <div className="flex items-center justify-between mb-1 sm:mb-2">
+                <span className="text-xs sm:text-sm font-medium text-gray-600">Savings</span>
+                <span className="bg-green-600 text-white text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">{savingsPercentage}%</span>
               </div>
-              <div className="text-xl font-semibold text-gray-800">{formatCurrency(breakdown.savings)}</div>
-              <div className="text-xs text-gray-500 mt-1">Emergency fund, future goals</div>
+              <div className="text-base sm:text-xl font-semibold text-gray-800">{formatCurrency(breakdown.savings)}</div>
+              <div className="text-xs text-gray-500 mt-0.5 sm:mt-1">Emergency fund, future goals</div>
             </div>
           </div>
         </div>

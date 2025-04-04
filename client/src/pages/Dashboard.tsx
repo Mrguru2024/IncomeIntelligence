@@ -31,58 +31,61 @@ export default function Dashboard() {
   const savingsTotal = totalMonthlyIncome * 0.3;
 
   return (
-    <main className="p-4 md:p-6 lg:p-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-800">Dashboard</h2>
-          <p className="text-gray-500 mt-1">Track and manage your income distribution</p>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <main className="py-4 sm:py-6 lg:py-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">Dashboard</h2>
+            <p className="text-sm sm:text-base text-gray-500 mt-1">Track and manage your income distribution</p>
+          </div>
         </div>
-      </div>
 
-      {/* Overview Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <StatCard 
-          title="Total Income (This Month)"
-          value={formatCurrency(totalMonthlyIncome)}
-          icon="dollar-sign"
-          iconColor="primary"
-          iconBgColor="blue-50"
-          changeValue={12}
-          changeText="vs last month"
-        />
-        
-        <StatCard 
-          title="Jobs Completed"
-          value={totalJobs.toString()}
-          icon="briefcase"
-          iconColor="investments"
-          iconBgColor="purple-50"
-          changeValue={8}
-          changeText="vs last month"
-        />
-        
-        <StatCard 
-          title="Savings Growth"
-          value={formatCurrency(savingsTotal)}
-          icon="piggy-bank"
-          iconColor="savings"
-          iconBgColor="green-50"
-          changeValue={15}
-          changeText="vs last month"
-        />
-      </div>
+        {/* Overview Section */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <StatCard 
+            title="Total Income (This Month)"
+            value={formatCurrency(totalMonthlyIncome)}
+            icon="dollar-sign"
+            iconColor="primary"
+            iconBgColor="blue-50"
+            changeValue={12}
+            changeText="vs last month"
+          />
+          
+          <StatCard 
+            title="Jobs Completed"
+            value={totalJobs.toString()}
+            icon="briefcase"
+            iconColor="investments"
+            iconBgColor="purple-50"
+            changeValue={8}
+            changeText="vs last month"
+          />
+          
+          <StatCard 
+            title="Savings Growth"
+            value={formatCurrency(savingsTotal)}
+            icon="piggy-bank"
+            iconColor="savings"
+            iconBgColor="green-50"
+            changeValue={15}
+            changeText="vs last month"
+            className="sm:col-span-2 lg:col-span-1"
+          />
+        </div>
 
-      {/* Income Input and Breakdown Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <IncomeInputForm />
-        <IncomeBreakdown />
-      </div>
+        {/* Income Input and Breakdown Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <IncomeInputForm />
+          <IncomeBreakdown />
+        </div>
 
-      {/* Recent Income Section */}
-      <RecentIncome incomes={incomes || []} isLoading={isLoading} />
+        {/* Recent Income Section */}
+        <RecentIncome incomes={incomes || []} isLoading={isLoading} />
 
-      {/* Connected Accounts Section */}
-      <ConnectedAccounts />
-    </main>
+        {/* Connected Accounts Section */}
+        <ConnectedAccounts />
+      </main>
+    </div>
   );
 }
