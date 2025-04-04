@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface SidebarProps {
   mobileMenuOpen: boolean;
@@ -130,10 +131,10 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 min-h-screen">
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-2xl font-semibold text-gray-800">40/30/30</h1>
-          <p className="text-sm text-gray-500 mt-1">Income Tracker</p>
+      <aside className="hidden lg:flex flex-col w-64 bg-card-background border-r border-border min-h-screen">
+        <div className="p-6 border-b border-border">
+          <h1 className="text-2xl font-semibold text-foreground">40/30/30</h1>
+          <p className="text-sm text-muted-foreground mt-1">Income Tracker</p>
         </div>
         <nav className="flex-1 p-4">
           <ul className="space-y-1">
@@ -144,8 +145,8 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
                   className={cn(
                     "flex items-center px-4 py-3 rounded-lg font-medium",
                     location === item.path
-                      ? "text-primary bg-blue-50"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "text-primary bg-accent-background"
+                      : "text-foreground hover:bg-muted-background"
                   )}
                 >
                   <span className="mr-3">{item.icon}</span>
@@ -155,8 +156,8 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
             ))}
           </ul>
         </nav>
-        <div className="p-4 border-t border-gray-200">
-          <button className="flex items-center text-gray-700 hover:text-gray-900">
+        <div className="p-4 border-t border-border flex justify-between items-center">
+          <button className="flex items-center text-foreground hover:text-foreground">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
               <polyline points="16 17 21 12 16 7"></polyline>
@@ -164,6 +165,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
             </svg>
             Logout
           </button>
+          <ThemeToggle />
         </div>
       </aside>
 
@@ -182,20 +184,20 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
       {/* Mobile sidebar */}
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-[200] w-64 bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out transform lg:hidden overflow-y-auto shadow-lg",
+          "fixed inset-y-0 left-0 z-[200] w-64 bg-card-background border-r border-border transition-transform duration-300 ease-in-out transform lg:hidden overflow-y-auto shadow-lg",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
         aria-hidden={!mobileMenuOpen}
         aria-label="Mobile navigation"
       >
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+        <div className="p-6 border-b border-border flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-800">40/30/30</h1>
-            <p className="text-sm text-gray-500 mt-1">Income Tracker</p>
+            <h1 className="text-2xl font-semibold text-foreground">40/30/30</h1>
+            <p className="text-sm text-muted-foreground mt-1">Income Tracker</p>
           </div>
           <button 
             onClick={closeMobileMenu}
-            className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 flex items-center justify-center cursor-pointer active:bg-gray-200 touch-manipulation"
+            className="text-foreground p-2 rounded-full hover:bg-muted-background flex items-center justify-center cursor-pointer touch-manipulation"
             aria-label="Close menu"
             role="button"
             tabIndex={0}
@@ -215,8 +217,8 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
                   className={cn(
                     "flex items-center px-4 py-3 rounded-lg font-medium w-full touch-manipulation",
                     location === item.path
-                      ? "text-primary bg-blue-50"
-                      : "text-gray-700 hover:bg-gray-100 active:bg-gray-200"
+                      ? "text-primary bg-accent-background"
+                      : "text-foreground hover:bg-muted-background active:bg-muted"
                   )}
                   onClick={() => {
                     closeMobileMenu();
@@ -235,8 +237,8 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
             ))}
           </ul>
         </nav>
-        <div className="p-4 border-t border-gray-200">
-          <button className="flex items-center text-gray-700 hover:text-gray-900">
+        <div className="p-4 border-t border-border flex justify-between items-center">
+          <button className="flex items-center text-foreground">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
               <polyline points="16 17 21 12 16 7"></polyline>
@@ -244,6 +246,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
             </svg>
             Logout
           </button>
+          <ThemeToggle />
         </div>
       </aside>
     </>
