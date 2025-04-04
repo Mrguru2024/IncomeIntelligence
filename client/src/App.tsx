@@ -53,20 +53,25 @@ function App() {
               <div className="flex items-center space-x-2">
                 <ThemeToggle />
                 <button 
-                  className="text-foreground hover:text-foreground p-3 rounded-md bg-muted-background flex items-center justify-center cursor-pointer active:bg-muted relative z-[300]"
+                  className="text-foreground hover:bg-accent active:bg-muted p-2 rounded-md bg-muted-background flex items-center justify-center cursor-pointer relative z-[300] transition-colors duration-200"
                   onClick={() => {
                     console.log("Hamburger menu clicked");
                     setMobileMenuOpen(true);
                   }}
                   type="button"
-                  style={{ touchAction: "manipulation" }}
+                  style={{ 
+                    touchAction: "manipulation",
+                    WebkitTapHighlightColor: "transparent" // Remove tap highlight on mobile
+                  }}
                   aria-label="Open menu"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                  </svg>
+                  <div className="p-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="3" y1="12" x2="21" y2="12"></line>
+                      <line x1="3" y1="6" x2="21" y2="6"></line>
+                      <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                  </div>
                 </button>
               </div>
             </header>

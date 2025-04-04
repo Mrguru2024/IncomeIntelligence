@@ -144,8 +144,21 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
     };
   }, [mobileMenuOpen]);
   
-  const closeMobileMenu = () => {
-    setMobileMenuOpen(false);
+  const closeMobileMenu = (e?: React.MouseEvent | React.TouchEvent) => {
+    // If there's an event, prevent it from bubbling up
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Close the menu with a slight delay to ensure smooth transitions
+    setTimeout(() => {
+      setMobileMenuOpen(false);
+      // Restore scrolling after a short delay
+      setTimeout(() => {
+        document.body.style.overflow = '';
+      }, 100);
+    }, 50);
   };
 
   return (
@@ -190,16 +203,18 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
       </aside>
 
       {/* Mobile sidebar overlay */}
-      {mobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-[150] lg:hidden touch-manipulation"
-          onClick={closeMobileMenu}
-          onTouchEnd={closeMobileMenu}
-          role="button"
-          tabIndex={-1}
-          aria-label="Close menu overlay"
-        />
-      )}
+      <div 
+        className={cn(
+          "fixed inset-0 bg-black bg-opacity-50 z-[150] lg:hidden touch-manipulation transition-opacity duration-300",
+          mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        onClick={closeMobileMenu}
+        onTouchEnd={closeMobileMenu}
+        role="button"
+        tabIndex={-1}
+        aria-label="Close menu overlay"
+        aria-hidden={!mobileMenuOpen}
+      />
 
       {/* Mobile sidebar */}
       <aside 
@@ -207,6 +222,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
           "fixed inset-y-0 left-0 z-[200] w-64 bg-opacity-100 bg-[var(--card-background)] border-r border-border transition-transform duration-300 ease-in-out transform lg:hidden overflow-y-auto shadow-lg",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
+        style={{ pointerEvents: mobileMenuOpen ? 'auto' : 'none' }}
         aria-hidden={!mobileMenuOpen}
         aria-label="Mobile navigation"
       >
@@ -240,14 +256,17 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
                       ? "text-primary bg-accent-background"
                       : "text-foreground hover:bg-muted-background active:bg-muted"
                   )}
-                  onClick={() => {
-                    closeMobileMenu();
-                    // Add a small delay to ensure the page transition happens after menu closes
-                    if (window.innerWidth < 1024) {
-                      setTimeout(() => {
-                        document.body.style.overflow = '';
-                      }, 300);
-                    }
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent default link behavior temporarily
+                    closeMobileMenu(); // Close the menu first
+                    
+                    // Navigate to the link after the menu animation completes
+                    const href = item.path;
+                    setTimeout(() => {
+                      window.history.pushState({}, '', href);
+                      const navEvent = new PopStateEvent('popstate');
+                      window.dispatchEvent(navEvent);
+                    }, 300);
                   }}
                 >
                   <span className="mr-3">{item.icon}</span>
