@@ -8,6 +8,7 @@ import IncomeHistory from "@/pages/IncomeHistory";
 import BankConnections from "@/pages/BankConnections";
 import Goals from "@/pages/Goals";
 import Settings from "@/pages/Settings";
+import BudgetPlanner from "@/pages/BudgetPlanner";
 import Sidebar from "@/components/Sidebar";
 import { useState } from "react";
 
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/income-history" component={IncomeHistory} />
       <Route path="/bank-connections" component={BankConnections} />
       <Route path="/goals" component={Goals} />
+      <Route path="/budget-planner" component={BudgetPlanner} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>

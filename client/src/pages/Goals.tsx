@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { formatCurrency, formatDate, formatPercentage } from "@/lib/utils/format";
+import { formatCurrency, formatPercentage } from "@/lib/utils/format";
+import { format } from "date-fns";
 import { TargetIcon, PiggyBankIcon, TrendingUpIcon, AlertCircleIcon, PlusIcon } from "lucide-react";
 import DirectGoalModal from "@/components/DirectGoalModal";
 
@@ -288,13 +289,13 @@ function GoalCard({ goal }: GoalCardProps) {
           <div className="flex justify-between items-center">
             <div>
               <p className="text-xs text-muted-foreground">Started</p>
-              <p className="text-sm">{formatDate(goal.startDate)}</p>
+              <p className="text-sm">{format(new Date(goal.startDate), "MMM d, yyyy")}</p>
             </div>
             {goal.deadline && (
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">Deadline</p>
                 <p className={`text-sm ${getDeadlineColor(goal.deadline)}`}>
-                  {formatDate(goal.deadline)}
+                  {format(new Date(goal.deadline), "MMM d, yyyy")}
                 </p>
               </div>
             )}
