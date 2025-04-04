@@ -151,7 +151,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-card-background border-r border-border min-h-screen">
+      <aside className="hidden lg:flex flex-col w-64 bg-opacity-100 bg-[var(--card-background)] border-r border-border min-h-screen">
         <div className="p-6 border-b border-border">
           <h1 className="text-2xl font-semibold text-foreground">40/30/30</h1>
           <p className="text-sm text-muted-foreground mt-1">Income Tracker</p>
@@ -204,7 +204,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
       {/* Mobile sidebar */}
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-[200] w-64 bg-card-background border-r border-border transition-transform duration-300 ease-in-out transform lg:hidden overflow-y-auto shadow-lg",
+          "fixed inset-y-0 left-0 z-[200] w-64 bg-opacity-100 bg-[var(--card-background)] border-r border-border transition-transform duration-300 ease-in-out transform lg:hidden overflow-y-auto shadow-lg",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
         aria-hidden={!mobileMenuOpen}
