@@ -34,7 +34,7 @@ function App() {
       <div className="flex min-h-screen">
         <Sidebar mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
         <div className="flex-1 flex flex-col">
-          <header className="lg:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-30 w-full">
+          <header className="lg:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-[100] w-full">
             <h1 className="text-xl font-semibold text-gray-800">40/30/30</h1>
             <button 
               className="text-gray-600 hover:text-gray-900 p-2 rounded-md bg-gray-100 flex items-center justify-center cursor-pointer active:bg-gray-200 touch-manipulation"
