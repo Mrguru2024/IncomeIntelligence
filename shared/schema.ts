@@ -67,6 +67,8 @@ export const userProfiles = pgTable("user_profiles", {
   preferredContactMethod: text("preferred_contact_method"), // email, phone, app
   widgetEnabled: boolean("widget_enabled").notNull().default(false),
   remindersEnabled: boolean("reminders_enabled").notNull().default(true),
+  notificationsEmail: boolean("notifications_email").notNull().default(true),
+  notificationsPush: boolean("notifications_push").notNull().default(true),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
@@ -87,6 +89,8 @@ export const insertUserProfileSchema = createInsertSchema(userProfiles).pick({
   preferredContactMethod: true,
   widgetEnabled: true,
   remindersEnabled: true,
+  notificationsEmail: true,
+  notificationsPush: true,
 });
 
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
@@ -598,6 +602,41 @@ export const insertReminderSchema = baseInsertReminderSchema.extend({
 
 export type InsertReminder = z.infer<typeof insertReminderSchema>;
 export type Reminder = typeof reminders.$inferSelect;
+
+// Notification Types
+export const notificationTypes = [
+  { id: "info", name: "Information", icon: "info", color: "blue" },
+  { id: "success", name: "Success", icon: "checkCircle", color: "green" },
+  { id: "warning", name: "Warning", icon: "alertTriangle", color: "amber" },
+  { id: "reminder", name: "Reminder", icon: "bell", color: "purple" }
+];
+
+// Notifications schema
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull().default("info"),
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  metadata: json("metadata"),
+});
+
+// Create the notifications schema
+const baseInsertNotificationSchema = createInsertSchema(notifications).pick({
+  userId: true,
+  title: true,
+  message: true,
+  type: true,
+  isRead: true,
+  metadata: true,
+});
+
+export const insertNotificationSchema = baseInsertNotificationSchema;
+
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = typeof notifications.$inferSelect;
 
 // Widget settings
 export const widgetSettings = pgTable("widget_settings", {

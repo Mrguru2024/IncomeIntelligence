@@ -4,7 +4,8 @@ import {
   InsertBankConnection, BankConnection, InsertBankAccount, BankAccount,
   InsertBankTransaction, BankTransaction, InsertExpense, Expense, expenses,
   InsertBalance, Balance, balances, UserProfile, InsertUserProfile, userProfiles,
-  Reminder, InsertReminder, reminders, WidgetSettings, InsertWidgetSettings, widgetSettings
+  Reminder, InsertReminder, reminders, WidgetSettings, InsertWidgetSettings, widgetSettings,
+  Notification, InsertNotification, notifications
 } from '@shared/schema';
 import { IStorage } from './storage';
 import { db, pool } from './db';
@@ -1358,6 +1359,122 @@ export class DbStorage implements IStorage {
     } catch (error) {
       console.error('Error toggling widget enabled state:', error);
       return undefined;
+    }
+  }
+  
+  // Notification methods
+  async getNotifications(userId: number): Promise<Notification[]> {
+    try {
+      return await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, userId))
+        .orderBy(desc(notifications.createdAt));
+    } catch (error) {
+      console.error('Error getting notifications:', error);
+      return [];
+    }
+  }
+
+  async getNotificationById(id: number): Promise<Notification | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.id, id));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting notification by id:', error);
+      return undefined;
+    }
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    try {
+      const result = await db
+        .insert(notifications)
+        .values({
+          ...notification,
+          createdAt: new Date(),
+        })
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      throw error;
+    }
+  }
+
+  async updateNotification(id: number, notification: Partial<InsertNotification>): Promise<Notification | undefined> {
+    try {
+      const result = await db
+        .update(notifications)
+        .set(notification)
+        .where(eq(notifications.id, id))
+        .returning();
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating notification:', error);
+      return undefined;
+    }
+  }
+
+  async markNotificationAsRead(id: number): Promise<Notification | undefined> {
+    try {
+      const result = await db
+        .update(notifications)
+        .set({ isRead: true })
+        .where(eq(notifications.id, id))
+        .returning();
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      return undefined;
+    }
+  }
+
+  async markAllNotificationsAsRead(userId: number): Promise<boolean> {
+    try {
+      const result = await db
+        .update(notifications)
+        .set({ isRead: true })
+        .where(eq(notifications.userId, userId))
+        .returning({ id: notifications.id });
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      return false;
+    }
+  }
+
+  async deleteNotification(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(notifications)
+        .where(eq(notifications.id, id))
+        .returning({ id: notifications.id });
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      return false;
+    }
+  }
+
+  async getUnreadNotifications(userId: number): Promise<Notification[]> {
+    try {
+      return await db
+        .select()
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.userId, userId),
+            eq(notifications.isRead, false)
+          )
+        )
+        .orderBy(desc(notifications.createdAt));
+    } catch (error) {
+      console.error('Error getting unread notifications:', error);
+      return [];
     }
   }
 }
