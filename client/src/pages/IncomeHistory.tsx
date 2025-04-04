@@ -88,6 +88,8 @@ import { apiRequest } from "@/lib/queryClient";
 import * as LucideIcons from "lucide-react";
 import IncomeCategorySelector from "@/components/IncomeCategorySelector";
 import IncomeCategoryIcon from "@/components/IncomeCategoryIcon";
+import ExportDataButton from "@/components/ExportDataButton";
+import { formatIncomeData } from "@/lib/exportUtils";
 
 // Colors for the pie chart
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#8DD1E1', '#A4DE6C', '#D0ED57', '#F7C59F', '#F38181'];
@@ -605,6 +607,15 @@ export default function IncomeHistory() {
               />
             </div>
             <div className="flex flex-wrap gap-2">
+              <ExportDataButton
+                data={formatIncomeData(filteredIncomes)}
+                options={{
+                  title: "Income History",
+                  subtitle: `Total: ${formatCurrency(totalIncome)} - ${filteredIncomes.length} entries`,
+                  includeDate: true
+                }}
+                fileNamePrefix="income_history"
+              />
               <Select value={filterSource} onValueChange={setFilterSource}>
                 <SelectTrigger className="w-[130px]">
                   <FilterIcon className="mr-2 h-4 w-4" />
