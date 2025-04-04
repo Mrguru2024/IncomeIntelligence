@@ -11,6 +11,8 @@ import { formatCurrency, formatPercentage } from "@/lib/utils/format";
 import { format } from "date-fns";
 import { TargetIcon, PiggyBankIcon, TrendingUpIcon, AlertCircleIcon, PlusIcon } from "lucide-react";
 import DirectGoalModal from "@/components/DirectGoalModal";
+import ExportDataButton from "@/components/ExportDataButton";
+import { formatGoalsData } from "@/lib/exportUtils";
 
 export default function Goals() {
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
@@ -79,7 +81,7 @@ export default function Goals() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h1 className="text-2xl md:text-3xl font-bold">Financial Goals</h1>
-          <div className="w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button className="w-full sm:w-auto" disabled>
               <PlusIcon className="h-4 w-4 mr-2" />
               Add New Goal
@@ -119,7 +121,7 @@ export default function Goals() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h1 className="text-2xl md:text-3xl font-bold">Financial Goals</h1>
-          <div className="w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button className="w-full sm:w-auto" onClick={() => setIsGoalModalOpen(true)}>
               <PlusIcon className="h-4 w-4 mr-2" />
               Add New Goal
@@ -141,7 +143,7 @@ export default function Goals() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h1 className="text-2xl md:text-3xl font-bold">Financial Goals</h1>
-          <div className="w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button className="w-full sm:w-auto" onClick={() => setIsGoalModalOpen(true)}>
               <PlusIcon className="h-4 w-4 mr-2" />
               Add New Goal
@@ -172,16 +174,27 @@ export default function Goals() {
     <div className="container mx-auto px-4 py-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl md:text-3xl font-bold">Financial Goals</h1>
-        <div className="w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button className="w-full sm:w-auto" onClick={() => setIsGoalModalOpen(true)}>
             <PlusIcon className="h-4 w-4 mr-2" />
             Add New Goal
           </Button>
+          {goals.length > 0 && (
+            <ExportDataButton
+              data={formatGoalsData(goals)}
+              options={{
+                title: "Financial Goals Summary",
+                subtitle: `Total Goals: ${goals.length}`,
+                includeDate: true
+              }}
+              fileNamePrefix="financial_goals"
+            />
+          )}
         </div>
       </div>
 
       {/* Goal Categories */}
-      <div className="sticky top-0 z-[50] bg-white shadow-md pb-4 border-b mb-8">
+      <div className="sticky top-0 z-[50] bg-background shadow-md pb-4 border-b mb-8">
         <h2 className="text-xl font-bold mb-3">Goal Categories</h2>
         <div className="flex flex-wrap gap-2">
           <Button

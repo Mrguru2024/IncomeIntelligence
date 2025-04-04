@@ -12,6 +12,8 @@ import VoiceExpenseEntry from "@/components/VoiceExpenseEntry";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
+import ExportDataButton from "@/components/ExportDataButton";
+import { formatExpenseData } from "@/lib/exportUtils";
 
 export default function Expenses() {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
@@ -165,6 +167,18 @@ export default function Expenses() {
             </TabsTrigger>
             <TabsTrigger value="category">By Category</TabsTrigger>
           </TabsList>
+          
+          {expenses && expenses.length > 0 && (
+            <ExportDataButton
+              data={formatExpenseData(expenses)}
+              options={{
+                title: "Expense Report",
+                subtitle: `Total: $${totalExpenses.toFixed(2)} - ${expenses.length} entries`,
+                includeDate: true
+              }}
+              fileNamePrefix="expense_report"
+            />
+          )}
         </div>
         
         <TabsContent value="all" className="mt-0">
