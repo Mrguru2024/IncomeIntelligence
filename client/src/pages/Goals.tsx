@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatCurrency, formatDate, formatPercentage } from "@/lib/utils/format";
 import { TargetIcon, PiggyBankIcon, TrendingUpIcon, AlertCircleIcon, PlusIcon } from "lucide-react";
-import SimpleGoalModal from "@/components/SimpleGoalModal";
+import TestGoalModal from "@/components/TestGoalModal";
 
 export default function Goals() {
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
@@ -172,7 +172,7 @@ export default function Goals() {
       </Tabs>
       
       {/* Goal Form Modal */}
-      <SimpleGoalModal 
+      <TestGoalModal 
         isOpen={isGoalModalOpen} 
         onClose={() => setIsGoalModalOpen(false)} 
       />
