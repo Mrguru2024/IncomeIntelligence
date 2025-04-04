@@ -4,7 +4,6 @@ import { Goal } from "@shared/schema";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -15,6 +14,7 @@ import DirectGoalModal from "@/components/DirectGoalModal";
 
 export default function Goals() {
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
   
   const {
     data: goals = [] as Goal[],
@@ -187,55 +187,83 @@ export default function Goals() {
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="w-full relative">
-        <div className="sticky top-0 z-50 bg-white pb-3 border-b mb-4 shadow-lg">
-          <TabsList className="grid grid-cols-2 sm:grid-cols-4 mb-2 mt-1 px-1 py-1 relative z-50 bg-slate-50">
-            <TabsTrigger value="all" className="text-xs sm:text-sm font-medium">All Goals</TabsTrigger>
-            <TabsTrigger value="income" className="text-xs sm:text-sm font-medium">Income</TabsTrigger>
-            <TabsTrigger value="savings" className="text-xs sm:text-sm font-medium">Savings</TabsTrigger>
-            <TabsTrigger value="investments" className="text-xs sm:text-sm font-medium">Investments</TabsTrigger>
-          </TabsList>
+      {/* Goal Categories */}
+      <div className="sticky top-0 z-[100] bg-white shadow-md pb-4 border-b mb-8">
+        <h2 className="text-xl font-bold mb-3">Goal Categories</h2>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={activeTab === 'all' ? 'default' : 'outline'}
+            className={`mb-1 ${activeTab === 'all' ? 'bg-primary text-white' : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            All Goals
+          </Button>
+          <Button
+            variant={activeTab === 'income' ? 'default' : 'outline'}
+            className={`mb-1 ${activeTab === 'income' ? 'bg-blue-600 text-white' : ''}`}
+            onClick={() => setActiveTab('income')}
+          >
+            <TargetIcon className="h-4 w-4 mr-1" />
+            Income
+          </Button>
+          <Button
+            variant={activeTab === 'savings' ? 'default' : 'outline'}
+            className={`mb-1 ${activeTab === 'savings' ? 'bg-emerald-600 text-white' : ''}`}
+            onClick={() => setActiveTab('savings')}
+          >
+            <PiggyBankIcon className="h-4 w-4 mr-1" />
+            Savings
+          </Button>
+          <Button
+            variant={activeTab === 'investments' ? 'default' : 'outline'}
+            className={`mb-1 ${activeTab === 'investments' ? 'bg-purple-600 text-white' : ''}`}
+            onClick={() => setActiveTab('investments')}
+          >
+            <TrendingUpIcon className="h-4 w-4 mr-1" />
+            Investments
+          </Button>
         </div>
-
-        <TabsContent value="all" className="mt-6 pt-2">
+      </div>
+      
+      {/* Goal Content */}
+      <div className="mt-6">
+        {activeTab === 'all' && (
           <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {goals.map((goal) => (
               <GoalCard key={goal.id} goal={goal} />
             ))}
           </div>
-        </TabsContent>
-
-        {['income', 'savings', 'investments'].map((type) => (
-          <TabsContent key={type} value={type} className="mt-6 pt-2">
-            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {(goalsByType[type] || []).map((goal) => (
-                <GoalCard key={goal.id} goal={goal} />
-              ))}
-              {!goalsByType[type]?.length && (
-                <Card className="col-span-full">
-                  <CardContent className="pt-6 pb-6 text-center">
-                    <div className="flex flex-col items-center py-4">
-                      <div className="p-3 rounded-full bg-gray-100 mb-2">
-                        {type === 'income' && <TargetIcon className="h-6 w-6 text-gray-400" />}
-                        {type === 'savings' && <PiggyBankIcon className="h-6 w-6 text-gray-400" />}
-                        {type === 'investments' && <TrendingUpIcon className="h-6 w-6 text-gray-400" />}
-                      </div>
-                      <p className="text-muted-foreground">No {type} goals found</p>
-                      <Button 
-                        variant="link" 
-                        className="mt-2" 
-                        onClick={() => setIsGoalModalOpen(true)}
-                      >
-                        Add a {type} goal
-                      </Button>
+        )}
+        
+        {activeTab !== 'all' && (
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {(goalsByType[activeTab] || []).map((goal) => (
+              <GoalCard key={goal.id} goal={goal} />
+            ))}
+            {!goalsByType[activeTab]?.length && (
+              <Card className="col-span-full">
+                <CardContent className="pt-6 pb-6 text-center">
+                  <div className="flex flex-col items-center py-4">
+                    <div className="p-3 rounded-full bg-gray-100 mb-2">
+                      {activeTab === 'income' && <TargetIcon className="h-6 w-6 text-gray-400" />}
+                      {activeTab === 'savings' && <PiggyBankIcon className="h-6 w-6 text-gray-400" />}
+                      {activeTab === 'investments' && <TrendingUpIcon className="h-6 w-6 text-gray-400" />}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </TabsContent>
-        ))}
-      </Tabs>
+                    <p className="text-muted-foreground">No {activeTab} goals found</p>
+                    <Button 
+                      variant="link" 
+                      className="mt-2" 
+                      onClick={() => setIsGoalModalOpen(true)}
+                    >
+                      Add a {activeTab} goal
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+      </div>
       
       {/* Goal Form Modal */}
       {isGoalModalOpen && (
