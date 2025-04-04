@@ -45,8 +45,24 @@ export default function Reminders() {
   const [editingReminderId, setEditingReminderId] = useState<number | null>(null);
   const [tab, setTab] = useState('all');
 
+  // Define Reminder interface
+  interface ReminderData {
+    id: number;
+    userId: number;
+    title: string;
+    message: string;
+    type: string;
+    frequency: string;
+    nextRemindAt: string | Date;
+    lastSentAt: string | Date | null;
+    isActive: boolean;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+    metadata: any | null;
+  }
+
   // Get all reminders
-  const { data: reminders = [], isLoading, refetch } = useQuery({
+  const { data: reminders = [], isLoading, refetch } = useQuery<ReminderData[]>({
     queryKey: ['/api/reminders'],
   });
 
@@ -221,7 +237,7 @@ export default function Reminders() {
   };
 
   // Open edit dialog with reminder data
-  const handleEdit = (reminder: any) => {
+  const handleEdit = (reminder: ReminderData) => {
     setEditingReminderId(reminder.id);
     form.reset({
       title: reminder.title,
@@ -281,11 +297,16 @@ export default function Reminders() {
   const filteredReminders = tab === 'all' 
     ? reminders 
     : tab === 'active' 
-      ? reminders.filter((r: any) => r.isActive) 
-      : reminders.filter((r: any) => !r.isActive);
+      ? reminders.filter((r: ReminderData) => r.isActive) 
+      : reminders.filter((r: ReminderData) => !r.isActive);
+
+  // Define type for grouped reminders
+  interface GroupedReminders {
+    [date: string]: ReminderData[];
+  }
 
   // Group reminders by date
-  const groupedReminders = filteredReminders.reduce((groups: any, reminder: any) => {
+  const groupedReminders = filteredReminders.reduce((groups: GroupedReminders, reminder: ReminderData) => {
     const date = new Date(reminder.nextRemindAt).toDateString();
     if (!groups[date]) {
       groups[date] = [];
@@ -588,7 +609,7 @@ export default function Reminders() {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {groupedReminders[date].map((reminder: any) => {
+                  {groupedReminders[date].map((reminder: ReminderData) => {
                     const reminderType = getReminderType(reminder.type);
                     
                     return (
