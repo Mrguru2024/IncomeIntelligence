@@ -36,19 +36,23 @@ function App() {
         <div className="flex-1 flex flex-col">
           <header className="lg:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-[100] w-full">
             <h1 className="text-xl font-semibold text-gray-800">40/30/30</h1>
-            <button 
-              className="text-gray-600 hover:text-gray-900 p-2 rounded-md bg-gray-100 flex items-center justify-center cursor-pointer active:bg-gray-200 touch-manipulation"
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open menu"
+            <div 
+              className="text-gray-600 hover:text-gray-900 p-3 rounded-md bg-gray-100 flex items-center justify-center cursor-pointer active:bg-gray-200 touch-manipulation relative z-[300]"
+              onClick={() => {
+                console.log("Hamburger menu clicked");
+                setMobileMenuOpen(true);
+              }}
               role="button"
               tabIndex={0}
+              style={{ touchAction: "manipulation" }}
+              aria-label="Open menu"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="3" y1="12" x2="21" y2="12"></line>
                 <line x1="3" y1="6" x2="21" y2="6"></line>
                 <line x1="3" y1="18" x2="21" y2="18"></line>
               </svg>
-            </button>
+            </div>
           </header>
           <main className="flex-1">
             <Router />
