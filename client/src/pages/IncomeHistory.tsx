@@ -592,7 +592,7 @@ export default function IncomeHistory() {
         </CardHeader>
         <CardContent>
           {/* Filters and Search */}
-          <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
             <div className="flex-1 relative">
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               <Input
@@ -651,9 +651,9 @@ export default function IncomeHistory() {
             </div>
           </div>
 
-          {/* Income Table and Cards View - Responsive */}
+          {/* Responsive Content */}
           {/* Desktop Table View (Hidden on mobile) */}
-          <div className="hidden md:block overflow-x-auto">
+          <div className="hidden sm:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-muted/50">
                 <tr>
@@ -811,7 +811,7 @@ export default function IncomeHistory() {
           </div>
 
           {/* Mobile Card View (Hidden on desktop) */}
-          <div className="md:hidden space-y-4">
+          <div className="sm:hidden space-y-4">
             {isLoading ? (
               <div className="flex justify-center items-center py-10">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>

@@ -10,4 +10,27 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+  
+  /* Improved mobile responsiveness */
+  html, body {
+    width: 100%;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix for small screens */
+  @media (max-width: 640px) {
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    
+    h1 {
+      font-size: 1.5rem !important;
+    }
+    
+    h2 {
+      font-size: 1.25rem !important;
+    }
+  }
 }
