@@ -187,15 +187,17 @@ export default function Goals() {
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-4 mb-6">
-          <TabsTrigger value="all" className="text-xs sm:text-sm">All Goals</TabsTrigger>
-          <TabsTrigger value="income" className="text-xs sm:text-sm">Income</TabsTrigger>
-          <TabsTrigger value="savings" className="text-xs sm:text-sm">Savings</TabsTrigger>
-          <TabsTrigger value="investments" className="text-xs sm:text-sm">Investments</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="all" className="w-full relative">
+        <div className="sticky top-0 z-20 bg-white pb-2">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-4 mb-6 relative z-10 shadow-sm">
+            <TabsTrigger value="all" className="text-xs sm:text-sm font-medium">All Goals</TabsTrigger>
+            <TabsTrigger value="income" className="text-xs sm:text-sm font-medium">Income</TabsTrigger>
+            <TabsTrigger value="savings" className="text-xs sm:text-sm font-medium">Savings</TabsTrigger>
+            <TabsTrigger value="investments" className="text-xs sm:text-sm font-medium">Investments</TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="all">
+        <TabsContent value="all" className="mt-4">
           <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {goals.map((goal) => (
               <GoalCard key={goal.id} goal={goal} />
@@ -204,7 +206,7 @@ export default function Goals() {
         </TabsContent>
 
         {['income', 'savings', 'investments'].map((type) => (
-          <TabsContent key={type} value={type}>
+          <TabsContent key={type} value={type} className="mt-4">
             <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {(goalsByType[type] || []).map((goal) => (
                 <GoalCard key={goal.id} goal={goal} />
