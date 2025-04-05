@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { occupationTypes, financialHealthStatuses } from '@shared/schema';
+import SmartRulesEngine from "@/components/SmartRulesEngine"; //Import added here
 
 // Form validation schema
 const profileFormSchema = z.object({
@@ -61,7 +62,7 @@ type WidgetFormValues = z.infer<typeof widgetFormSchema>;
 export default function Profile() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('personal');
-  
+
   // Define user data interface
   interface UserProfileData {
     id: number;
@@ -208,11 +209,11 @@ export default function Profile() {
         },
         body: JSON.stringify(data)
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update profile');
       }
-      
+
       return await response.json();
     },
     onSuccess: () => {
@@ -241,11 +242,11 @@ export default function Profile() {
         },
         body: JSON.stringify(data)
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update widget settings');
       }
-      
+
       return await response.json();
     },
     onSuccess: () => {
@@ -896,6 +897,10 @@ export default function Profile() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <div className="mt-6"> {/* Added div for SmartRulesEngine */}
+        <SmartRulesEngine />
+      </div>
     </main>
   );
 }
