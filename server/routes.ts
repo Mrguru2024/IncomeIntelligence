@@ -1661,6 +1661,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to add quiz question" });
     }
   });
+  
+  // Subscription Management Routes
+  
+  // Get user subscription info
+  app.get("/api/subscription/:userId", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Check if user is requesting their own subscription info
+      if (req.user?.id !== userId && req.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Unauthorized to view this subscription" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Return only subscription-related fields
+      res.json({
+        subscriptionTier: user.subscriptionTier,
+        subscriptionActive: user.subscriptionActive,
+        subscriptionStartDate: user.subscriptionStartDate,
+        subscriptionEndDate: user.subscriptionEndDate,
+      });
+    } catch (error) {
+      console.error('Error getting subscription info:', error);
+      res.status(500).json({ message: "Failed to get subscription information" });
+    }
+  });
+  
+  // Update user subscription (manual update for testing/admin purposes)
+  app.patch("/api/subscription/:userId", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const schema = z.object({
+        subscriptionTier: z.enum(['free', 'pro', 'lifetime']),
+        subscriptionActive: z.boolean(),
+        subscriptionStartDate: z.string().optional().transform(val => val ? new Date(val) : undefined),
+        subscriptionEndDate: z.string().optional().nullable().transform(val => val ? new Date(val) : null),
+      });
+      
+      const validatedData = schema.parse(req.body);
+      
+      const user = await storage.updateUserSubscription(
+        userId,
+        validatedData.subscriptionTier,
+        validatedData.subscriptionActive,
+        validatedData.subscriptionStartDate,
+        validatedData.subscriptionEndDate
+      );
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({
+        subscriptionTier: user.subscriptionTier,
+        subscriptionActive: user.subscriptionActive,
+        subscriptionStartDate: user.subscriptionStartDate,
+        subscriptionEndDate: user.subscriptionEndDate,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating subscription:', error);
+      res.status(500).json({ message: "Failed to update subscription" });
+    }
+  });
 
   const httpServer = createServer(app);
 

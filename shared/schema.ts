@@ -48,6 +48,13 @@ export const users = pgTable("users", {
   twoFactorSecret: text("two_factor_secret"),
   twoFactorBackupCodes: json("two_factor_backup_codes"),
   twoFactorVerified: boolean("two_factor_verified").notNull().default(false),
+  // Subscription fields for Stackr Pro
+  subscriptionTier: text("subscription_tier").notNull().default("free"), // 'free', 'pro', 'lifetime'
+  subscriptionActive: boolean("subscription_active").notNull().default(false),
+  subscriptionStartDate: timestamp("subscription_start_date"),
+  subscriptionEndDate: timestamp("subscription_end_date"),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -69,6 +76,13 @@ export const insertUserSchema = createInsertSchema(users).pick({
   twoFactorSecret: true,
   twoFactorBackupCodes: true,
   twoFactorVerified: true,
+  // Subscription-related fields
+  subscriptionTier: true,
+  subscriptionActive: true,
+  subscriptionStartDate: true,
+  subscriptionEndDate: true,
+  stripeCustomerId: true,
+  stripeSubscriptionId: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

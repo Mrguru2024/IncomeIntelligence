@@ -87,9 +87,14 @@ export default function AuthPage() {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginFormValues) => {
+      // Convert username to identifier field expected by backend
+      const loginData = {
+        identifier: credentials.username,
+        password: credentials.password
+      };
       const res = await apiRequest('/api/auth/login', {
         method: 'POST',
-        body: credentials,
+        body: loginData,
       });
       return res;
     },

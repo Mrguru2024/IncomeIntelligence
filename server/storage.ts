@@ -33,6 +33,15 @@ export interface IStorage {
   setPasswordReset(id: number, token: string, expires: Date): Promise<User | undefined>;
   resetPassword(id: number, newPassword: string): Promise<User | undefined>;
   
+  // Subscription methods
+  updateUserSubscription(userId: number, tier: string, active: boolean, startDate?: Date, endDate?: Date): Promise<User | undefined>;
+  updateStripeCustomerId(userId: number, customerId: string): Promise<User | undefined>;
+  updateStripeSubscriptionId(userId: number, subscriptionId: string): Promise<User | undefined>;
+  updateUserStripeInfo(userId: number, stripeInfo: { 
+    customerId: string, 
+    subscriptionId: string 
+  }): Promise<User | undefined>;
+  
   // User Profile methods
   getUserProfile(userId: number): Promise<UserProfile | undefined>;
   createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
@@ -603,6 +612,8 @@ export class MemStorage implements IStorage {
       createdAt: now,
       lastLogin: null,
       profileCompleted: false,
+      onboardingCompleted: false,
+      onboardingStep: "welcome",
       verified: false,
       verificationToken: insertUser.verificationToken || null,
       resetPasswordToken: null,
@@ -610,7 +621,18 @@ export class MemStorage implements IStorage {
       provider: insertUser.provider || 'local',
       providerId: insertUser.providerId || null,
       role: insertUser.role || 'user',
-      accountStatus: insertUser.accountStatus || 'pending'
+      accountStatus: insertUser.accountStatus || 'pending',
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      twoFactorBackupCodes: null,
+      twoFactorVerified: false,
+      // Subscription fields
+      subscriptionTier: 'free',
+      subscriptionActive: false,
+      subscriptionStartDate: null,
+      subscriptionEndDate: null,
+      stripeCustomerId: null,
+      stripeSubscriptionId: null
     };
     
     this.users.set(id, user);
@@ -684,6 +706,63 @@ export class MemStorage implements IStorage {
     };
     
     this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+  
+  // Subscription methods
+  async updateUserSubscription(userId: number, tier: string, active: boolean, startDate?: Date, endDate?: Date): Promise<User | undefined> {
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+    
+    const updatedUser: User = {
+      ...user,
+      subscriptionTier: tier,
+      subscriptionActive: active,
+      subscriptionStartDate: startDate || null,
+      subscriptionEndDate: endDate || null,
+    };
+    
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateStripeCustomerId(userId: number, customerId: string): Promise<User | undefined> {
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+    
+    const updatedUser: User = {
+      ...user,
+      stripeCustomerId: customerId
+    };
+    
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateStripeSubscriptionId(userId: number, subscriptionId: string): Promise<User | undefined> {
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+    
+    const updatedUser: User = {
+      ...user,
+      stripeSubscriptionId: subscriptionId
+    };
+    
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateUserStripeInfo(userId: number, stripeInfo: { customerId: string, subscriptionId: string }): Promise<User | undefined> {
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+    
+    const updatedUser: User = {
+      ...user,
+      stripeCustomerId: stripeInfo.customerId,
+      stripeSubscriptionId: stripeInfo.subscriptionId
+    };
+    
+    this.users.set(userId, updatedUser);
     return updatedUser;
   }
   
