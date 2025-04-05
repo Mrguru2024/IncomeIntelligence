@@ -108,18 +108,18 @@ export default function BudgetPlanner() {
         </div>
 
         <Tabs defaultValue="calendar" className="w-full">
-          <TabsList className="w-full grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-0 mb-6">
-            <TabsTrigger value="calendar" className="w-full">
-              <Calendar className="h-4 w-4 mr-2" />
-              Calendar
+          <TabsList className="w-full grid grid-cols-1 sm:grid-cols-3 gap-2 mb-6">
+            <TabsTrigger value="calendar" className="w-full flex items-center justify-center p-2">
+              <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">Calendar</span>
             </TabsTrigger>
-            <TabsTrigger value="allocation" className="w-full">
-              <PieChart className="h-4 w-4 mr-2" />
-              Budget
+            <TabsTrigger value="allocation" className="w-full flex items-center justify-center p-2">
+              <PieChart className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">Budget</span>
             </TabsTrigger>
-            <TabsTrigger value="goals" className="w-full">
-              <BarChart className="h-4 w-4 mr-2" />
-              Goals
+            <TabsTrigger value="goals" className="w-full flex items-center justify-center p-2">
+              <BarChart className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">Goals</span>
             </TabsTrigger>
           </TabsList>
 
