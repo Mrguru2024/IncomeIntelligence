@@ -26,7 +26,8 @@ export type Rule = {
     dates?: Date[];
     selectedDays?: number[];
     roundTo?: number;
-    season?: string;
+    season?: 'high' | 'low';
+    challengeType?: 'login' | 'subscription-cancel';
     threshold?: number;
     recurringDate?: Date;
     startDate?: Date;
@@ -35,8 +36,9 @@ export type Rule = {
   action: {
     type: 'save' | 'invest';
     amount: number;
-    amountType: 'fixed' | 'percentage';
+    amountType: 'fixed' | 'percentage' | 'round-up';
     destination: string;
+    roundUpTo?: number;
   };
 };
 
@@ -130,9 +132,9 @@ export default function SmartRulesEngine() {
       case 'time-based':
         return `Save ${rule.action.amount} on specific dates`;
       case 'round-up':
-        return `Round up transactions to nearest ${rule.conditions.roundTo || 1}`;
+        return `Round up transactions to nearest ${rule.action.roundUpTo || 1}`;
       case 'challenge':
-        return `Save ${rule.action.amount} on specific actions`;
+        return `Save ${rule.action.amount} on ${rule.conditions.challengeType || 'specific'} actions`;
       case 'seasonal':
         return `Adjust savings during ${rule.conditions.season || 'specific'} season`;
       default:
@@ -221,7 +223,7 @@ export default function SmartRulesEngine() {
                         <Label>Amount Type</Label>
                         <Select
                           value={newRule.action?.amountType || 'fixed'}
-                          onValueChange={(value: 'fixed' | 'percentage') => setNewRule({
+                          onValueChange={(value: 'fixed' | 'percentage' | 'round-up') => setNewRule({
                             ...newRule,
                             action: { ...newRule.action!, amountType: value }
                           })}
@@ -232,6 +234,7 @@ export default function SmartRulesEngine() {
                           <SelectContent>
                             <SelectItem value="fixed">Fixed Amount</SelectItem>
                             <SelectItem value="percentage">Percentage</SelectItem>
+                            <SelectItem value="round-up">Round Up</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -250,6 +253,22 @@ export default function SmartRulesEngine() {
                           })}
                         />
                       </div>
+                      {newRule.action?.amountType === 'round-up' && (
+                        <div>
+                          <Label>Round Up To</Label>
+                          <Input
+                            type="number"
+                            placeholder="Enter round up amount"
+                            value={newRule.action?.roundUpTo || ''}
+                            min={0}
+                            step={0.01}
+                            onChange={(e) => setNewRule({
+                              ...newRule,
+                              action: { ...newRule.action!, roundUpTo: parseFloat(e.target.value) }
+                            })}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -368,6 +387,49 @@ export default function SmartRulesEngine() {
                       )}
                     </div>
                   )}
+
+                  {newRule.type === 'seasonal' && (
+                    <div>
+                      <Label>Season</Label>
+                      <Select
+                        value={newRule.conditions?.season}
+                        onValueChange={(value: 'high' | 'low') => setNewRule({
+                          ...newRule,
+                          conditions: { ...newRule.conditions, season: value }
+                        })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select season" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="low">Low</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {newRule.type === 'challenge' && (
+                    <div>
+                      <Label>Challenge Type</Label>
+                      <Select
+                        value={newRule.conditions?.challengeType}
+                        onValueChange={(value: 'login' | 'subscription-cancel') => setNewRule({
+                          ...newRule,
+                          conditions: { ...newRule.conditions, challengeType: value }
+                        })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select challenge type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="login">Login</SelectItem>
+                          <SelectItem value="subscription-cancel">Subscription Cancel</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
 
                   <div className="space-y-4">
                     <div>
