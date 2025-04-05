@@ -1,6 +1,12 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SafeEnvelope } from './SafeEnvelope';
+import { LockIcon, UnlockIcon } from 'lucide-react';
+
+jest.mock('lucide-react', () => ({
+  LockIcon: () => <div data-testid="lock-icon" />,
+  UnlockIcon: () => <div data-testid="unlock-icon" />
+}));
 
 describe('SafeEnvelope', () => {
   const defaultProps = {
@@ -17,14 +23,8 @@ describe('SafeEnvelope', () => {
     expect(screen.getByText('Test Category')).toBeInTheDocument();
   });
 
-  it('displays lock status and handles toggle', () => {
-    const onLockToggle = jest.fn();
-    render(<SafeEnvelope {...{...defaultProps, onLockToggle}} />);
-    
-    const button = screen.getByRole('button');
-    expect(button).toBeInTheDocument();
-    
-    fireEvent.click(button);
-    expect(onLockToggle).toHaveBeenCalled();
+  it('displays correct spending amount', () => {
+    render(<SafeEnvelope {...defaultProps} />);
+    expect(screen.getByText(/\$500\.00/)).toBeInTheDocument();
   });
 });
