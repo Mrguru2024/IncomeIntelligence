@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { useLocation } from "wouter";
 import ExportDataButton from "@/components/ExportDataButton";
 import { formatExpenseData } from "@/lib/exportUtils";
+import ReceiptScanner from "@/components/ReceiptScanner"; // Added import for ReceiptScanner
 
 export default function Expenses() {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
@@ -27,20 +28,20 @@ export default function Expenses() {
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth() + 1; // +1 because getMonth() returns 0-11
-  
+
   // Process URL parameters for opening forms
   useEffect(() => {
     const url = new URL(window.location.href);
     const openExpenseForm = url.searchParams.get('openExpenseForm');
     const openVoiceExpense = url.searchParams.get('openVoiceExpense');
-    
+
     if (openExpenseForm === 'true') {
       setShowExpenseForm(true);
       setShowVoiceExpense(false);
       // Clean up the URL
       window.history.replaceState({}, document.title, '/expenses');
     }
-    
+
     if (openVoiceExpense === 'true') {
       setShowVoiceExpense(true);
       setShowExpenseForm(false);
@@ -48,20 +49,20 @@ export default function Expenses() {
       window.history.replaceState({}, document.title, '/expenses');
     }
   }, [location]);
-  
+
   // Get all expenses, with optional category filter
   const { data: expenses, isLoading, error } = useQuery({
     queryKey: ['expenses', selectedCategoryFilter, currentYear, currentMonth],
     queryFn: async () => {
       let url = '/api/expenses';
-      
+
       if (selectedCategoryFilter) {
         url = `/api/expenses/category/${selectedCategoryFilter}`;
       } else {
         // Default to current month if no category filter
         url = `/api/expenses/month/${currentYear}/${currentMonth}`;
       }
-      
+
       return apiRequest(url) as Promise<Expense[]>;
     }
   });
@@ -76,10 +77,10 @@ export default function Expenses() {
   const handleExpenseAdded = () => {
     // Close form
     setShowExpenseForm(false);
-    
+
     // Invalidate expenses query to refresh the list
     queryClient.invalidateQueries({ queryKey: ['expenses'] });
-    
+
     // Show success toast
     toast({
       title: "Expense added successfully",
@@ -133,7 +134,7 @@ export default function Expenses() {
           </CardContent>
         </Card>
       )}
-      
+
       {showVoiceExpense && (
         <div className="mb-4 sm:mb-6">
           <VoiceExpenseEntry onSuccess={() => {
@@ -166,8 +167,10 @@ export default function Expenses() {
               All Expenses
             </TabsTrigger>
             <TabsTrigger value="category">By Category</TabsTrigger>
+            <TabsTrigger value="receipt">Receipt Scanner</TabsTrigger> {/* Added Receipt Scanner tab */}
+            <TabsTrigger value="voice">Voice Entry</TabsTrigger> {/* Moved Voice Entry tab */}
           </TabsList>
-          
+
           {expenses && expenses.length > 0 && (
             <ExportDataButton
               data={formatExpenseData(expenses)}
@@ -180,7 +183,7 @@ export default function Expenses() {
             />
           )}
         </div>
-        
+
         <TabsContent value="all" className="mt-0">
           {isLoading ? (
             <div className="flex justify-center items-center h-40">
@@ -201,7 +204,7 @@ export default function Expenses() {
             </div>
           )}
         </TabsContent>
-        
+
         <TabsContent value="category" className="mt-0">
           <div className="mb-6">
             <ExpenseCategorySelector 
@@ -209,7 +212,7 @@ export default function Expenses() {
               onSelectCategory={setSelectedCategoryFilter}
             />
           </div>
-          
+
           {isLoading ? (
             <div className="flex justify-center items-center h-40">
               <p>Loading expenses...</p>
@@ -232,6 +235,15 @@ export default function Expenses() {
               </p>
             </div>
           )}
+        </TabsContent>
+        <TabsContent value="receipt" className="mt-0 border-0 p-0"> {/* Added Receipt Scanner Content */}
+          <ReceiptScanner />
+        </TabsContent>
+        <TabsContent value="voice" className="mt-0 border-0 p-0"> {/* Moved Voice Entry Content */}
+          <VoiceExpenseEntry onSuccess={() => {
+            setShowVoiceExpense(false);
+            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+          }} />
         </TabsContent>
       </Tabs>
     </div>
