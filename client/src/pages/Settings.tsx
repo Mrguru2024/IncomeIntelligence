@@ -93,7 +93,7 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <div className="overflow-x-auto horizontal-scroll -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
+        <div className="overflow-x-auto horizontal-scroll w-full -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
           <TabsList className="horizontal-scroll scrollbar-none flex pb-1 min-w-[320px] xxs:min-w-[380px] sm:min-w-0 inline-flex w-full">
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="split-ratio">Split Ratio</TabsTrigger>

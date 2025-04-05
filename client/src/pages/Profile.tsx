@@ -303,7 +303,7 @@ export default function Profile() {
       </div>
 
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <div className="overflow-x-auto horizontal-scroll -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
+        <div className="overflow-x-auto horizontal-scroll w-full -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
           <TabsList className="horizontal-scroll scrollbar-none flex pb-1 gap-2 p-1 mb-2 sm:mb-6 bg-card/50 rounded-lg min-w-[300px] xxs:min-w-[380px] sm:min-w-0 inline-flex w-full">
             <TabsTrigger value="personal" className="flex-shrink-0 px-3 py-1.5">
               <i className="fas fa-user mr-2 hidden sm:inline-block" />

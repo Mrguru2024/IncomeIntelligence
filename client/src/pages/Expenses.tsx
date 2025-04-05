@@ -162,28 +162,32 @@ export default function Expenses() {
       </div>
 
       <Tabs defaultValue="all" className="w-full">
-        <div className="flex justify-between items-center mb-4">
-          <TabsList className="horizontal-scroll scrollbar-none pb-1">
-            <TabsTrigger value="all" onClick={() => setSelectedCategoryFilter(null)}>
-              All Expenses
-            </TabsTrigger>
-            <TabsTrigger value="category">By Category</TabsTrigger>
-            <TabsTrigger value="receipt">Receipt Scanner</TabsTrigger>
-            <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
-            <TabsTrigger value="voice">Voice Entry</TabsTrigger>
-          </TabsList>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
+          <div className="overflow-x-auto horizontal-scroll w-full -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
+            <TabsList className="horizontal-scroll scrollbar-none flex pb-1 min-w-[280px] xxs:min-w-[360px] sm:min-w-0 inline-flex w-full">
+              <TabsTrigger value="all" onClick={() => setSelectedCategoryFilter(null)}>
+                All Expenses
+              </TabsTrigger>
+              <TabsTrigger value="category">By Category</TabsTrigger>
+              <TabsTrigger value="receipt">Receipt Scanner</TabsTrigger>
+              <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
+              <TabsTrigger value="voice">Voice Entry</TabsTrigger>
+            </TabsList>
+          </div>
 
-          {expenses && expenses.length > 0 && (
-            <ExportDataButton
-              data={formatExpenseData(expenses)}
-              options={{
-                title: "Expense Report",
-                subtitle: `Total: $${totalExpenses.toFixed(2)} - ${expenses.length} entries`,
-                includeDate: true
-              }}
-              fileNamePrefix="expense_report"
-            />
-          )}
+          <div className="mt-2 md:mt-0">
+            {expenses && expenses.length > 0 && (
+              <ExportDataButton
+                data={formatExpenseData(expenses)}
+                options={{
+                  title: "Expense Report",
+                  subtitle: `Total: $${totalExpenses.toFixed(2)} - ${expenses.length} entries`,
+                  includeDate: true
+                }}
+                fileNamePrefix="expense_report"
+              />
+            )}
+          </div>
         </div>
 
         <TabsContent value="all" className="mt-0">

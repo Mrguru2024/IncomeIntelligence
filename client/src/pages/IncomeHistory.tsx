@@ -242,36 +242,6 @@ export default function IncomeHistory() {
 
   // Filter and sort incomes
   const filteredIncomes = useMemo(() => {
-
-{/* Income Forecasting Section */}
-<Card className="mt-6">
-  <CardHeader>
-    <CardTitle>Income Forecast</CardTitle>
-    <CardDescription>AI-powered income predictions based on your historical data</CardDescription>
-  </CardHeader>
-  <CardContent>
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 border rounded-lg">
-          <h4 className="font-semibold mb-2">Next Month</h4>
-          <p className="text-2xl font-bold text-primary">{formatCurrency(totalIncome * 1.1)}</p>
-          <p className="text-sm text-muted-foreground">Projected Income</p>
-        </div>
-        <div className="p-4 border rounded-lg">
-          <h4 className="font-semibold mb-2">3 Month Trend</h4>
-          <p className="text-2xl font-bold text-primary">{formatCurrency(totalIncome * 1.15)}</p>
-          <p className="text-sm text-muted-foreground">Average Projection</p>
-        </div>
-        <div className="p-4 border rounded-lg">
-          <h4 className="font-semibold mb-2">Yearly Outlook</h4>
-          <p className="text-2xl font-bold text-primary">{formatCurrency(totalIncome * 12.5)}</p>
-          <p className="text-sm text-muted-foreground">Annual Estimate</p>
-        </div>
-      </div>
-    </div>
-  </CardContent>
-</Card>
-
     return incomes.filter(income => {
       // Filter by search term
       const matchesSearch = income.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -466,6 +436,35 @@ export default function IncomeHistory() {
               <p className="text-sm font-medium text-gray-500">Savings (30%)</p>
               <p className="text-2xl font-bold text-green-500">{formatCurrency(totalIncome * 0.3)}</p>
               <p className="text-sm text-gray-500 mt-1">Future security</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Income Forecasting Section */}
+      <Card className="mt-6 mb-6">
+        <CardHeader>
+          <CardTitle>Income Forecast</CardTitle>
+          <CardDescription>AI-powered income predictions based on your historical data</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 border rounded-lg">
+                <h4 className="font-semibold mb-2">Next Month</h4>
+                <p className="text-2xl font-bold text-primary">{formatCurrency(totalIncome * 1.1)}</p>
+                <p className="text-sm text-muted-foreground">Projected Income</p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h4 className="font-semibold mb-2">3 Month Trend</h4>
+                <p className="text-2xl font-bold text-primary">{formatCurrency(totalIncome * 1.15)}</p>
+                <p className="text-sm text-muted-foreground">Average Projection</p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h4 className="font-semibold mb-2">Yearly Outlook</h4>
+                <p className="text-2xl font-bold text-primary">{formatCurrency(totalIncome * 12.5)}</p>
+                <p className="text-sm text-muted-foreground">Annual Estimate</p>
+              </div>
             </div>
           </div>
         </CardContent>
