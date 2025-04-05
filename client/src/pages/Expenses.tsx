@@ -14,7 +14,8 @@ import { format } from "date-fns";
 import { useLocation } from "wouter";
 import ExportDataButton from "@/components/ExportDataButton";
 import { formatExpenseData } from "@/lib/exportUtils";
-import ReceiptScanner from "@/components/ReceiptScanner"; // Added import for ReceiptScanner
+import ReceiptScanner from "@/components/ReceiptScanner";
+import SubscriptionSniper from "@/components/SubscriptionSniper";
 
 export default function Expenses() {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
@@ -167,8 +168,9 @@ export default function Expenses() {
               All Expenses
             </TabsTrigger>
             <TabsTrigger value="category">By Category</TabsTrigger>
-            <TabsTrigger value="receipt">Receipt Scanner</TabsTrigger> {/* Added Receipt Scanner tab */}
-            <TabsTrigger value="voice">Voice Entry</TabsTrigger> {/* Moved Voice Entry tab */}
+            <TabsTrigger value="receipt">Receipt Scanner</TabsTrigger>
+            <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
+            <TabsTrigger value="voice">Voice Entry</TabsTrigger>
           </TabsList>
 
           {expenses && expenses.length > 0 && (
@@ -239,7 +241,10 @@ export default function Expenses() {
         <TabsContent value="receipt" className="mt-0 border-0 p-0"> {/* Added Receipt Scanner Content */}
           <ReceiptScanner />
         </TabsContent>
-        <TabsContent value="voice" className="mt-0 border-0 p-0"> {/* Moved Voice Entry Content */}
+        <TabsContent value="subscriptions" className="mt-0 border-0 p-0">
+          <SubscriptionSniper />
+        </TabsContent>
+        <TabsContent value="voice" className="mt-0 border-0 p-0">
           <VoiceExpenseEntry onSuccess={() => {
             setShowVoiceExpense(false);
             queryClient.invalidateQueries({ queryKey: ['expenses'] });
