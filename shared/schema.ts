@@ -410,6 +410,18 @@ export function getExpenseCategoryById(categoryId: string) {
   return expenseCategories.find(cat => cat.id === categoryId) || expenseCategories[expenseCategories.length - 1]; // Default to "Other"
 }
 
+// Spending Personality Types
+export const spendingPersonalityTypes = [
+  { id: "saver", name: "The Saver", description: "Cautious with money, focused on security and future stability", traits: ["thrifty", "patient", "methodical", "security-focused"] },
+  { id: "investor", name: "The Investor", description: "Strategic with money, sees finances as tools for growth", traits: ["analytical", "strategic", "growth-oriented", "calculated risk-taker"] },
+  { id: "spender", name: "The Spender", description: "Lives in the moment, uses money for experiences and enjoyment", traits: ["spontaneous", "experience-driven", "generous", "present-focused"] },
+  { id: "debtor", name: "The Debtor", description: "Struggles with managing credit, often spends beyond means", traits: ["impulsive", "optimistic", "comfort-seeking", "pressure-sensitive"] },
+  { id: "avoider", name: "The Avoider", description: "Prefers not to think about finances and money management", traits: ["inattentive", "anxious", "procrastinating", "overwhelmed"] },
+  { id: "security_seeker", name: "The Security Seeker", description: "Plans extensively to protect against financial risks", traits: ["cautious", "protective", "detail-oriented", "conservative"] },
+  { id: "status_focused", name: "The Status Focused", description: "Uses money to signal achievement and social position", traits: ["image-conscious", "ambitious", "competitive", "quality-focused"] },
+  { id: "minimalist", name: "The Minimalist", description: "Values simplicity and reduced consumption", traits: ["intentional", "quality-focused", "frugal", "values-driven"] },
+];
+
 // Balance tracking schema
 export const balances = pgTable("balances", {
   id: serial("id").primaryKey(),
@@ -683,3 +695,53 @@ export const insertWidgetSettingsSchema = baseInsertWidgetSettingsSchema;
 
 export type InsertWidgetSettings = z.infer<typeof insertWidgetSettingsSchema>;
 export type WidgetSettings = typeof widgetSettings.$inferSelect;
+
+// Spending Personality Quiz System
+
+// Quiz Result Schema
+export const spendingPersonalityResults = pgTable("spending_personality_results", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  personalityType: text("personality_type").notNull(),
+  score: json("score").notNull(), // Score breakdown by personality type
+  answers: json("answers").notNull(), // Record of user's answers
+  takenAt: timestamp("taken_at").notNull().defaultNow(),
+  recommendations: json("recommendations"), // Personalized recommendations based on results
+});
+
+const baseInsertSpendingPersonalityResultSchema = createInsertSchema(spendingPersonalityResults).pick({
+  userId: true,
+  personalityType: true,
+  score: true,
+  answers: true,
+  recommendations: true,
+});
+
+export const insertSpendingPersonalityResultSchema = baseInsertSpendingPersonalityResultSchema;
+
+export type InsertSpendingPersonalityResult = z.infer<typeof insertSpendingPersonalityResultSchema>;
+export type SpendingPersonalityResult = typeof spendingPersonalityResults.$inferSelect;
+
+// Quiz Questions Schema
+export const spendingPersonalityQuestions = pgTable("spending_personality_questions", {
+  id: serial("id").primaryKey(),
+  questionText: text("question_text").notNull(),
+  options: json("options").notNull(), // Array of possible answers
+  category: text("category").notNull(), // For grouping related questions
+  weight: integer("weight").notNull().default(1), // Importance of this question
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+const baseInsertSpendingPersonalityQuestionSchema = createInsertSchema(spendingPersonalityQuestions).pick({
+  questionText: true,
+  options: true,
+  category: true,
+  weight: true,
+  active: true,
+});
+
+export const insertSpendingPersonalityQuestionSchema = baseInsertSpendingPersonalityQuestionSchema;
+
+export type InsertSpendingPersonalityQuestion = z.infer<typeof insertSpendingPersonalityQuestionSchema>;
+export type SpendingPersonalityQuestion = typeof spendingPersonalityQuestions.$inferSelect;

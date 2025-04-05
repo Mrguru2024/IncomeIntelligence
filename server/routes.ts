@@ -9,7 +9,8 @@ import {
   insertBalanceSchema,
   insertReminderSchema,
   insertWidgetSettingsSchema,
-  insertUserProfileSchema
+  insertUserProfileSchema,
+  insertSpendingPersonalityQuestionSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -26,7 +27,9 @@ import {
 import { notificationService } from "./notification-service";
 import { insertNotificationSchema } from "@shared/schema";
 import { requireAuth, checkUserMatch } from "./middleware/authMiddleware";
+import { requireAdmin } from "./middleware/adminMiddleware";
 import { setupAuth } from "./auth";
+import { spendingPersonalityService } from "./spending-personality-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -1444,6 +1447,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error('Error updating AI settings:', error);
       res.status(500).json({ message: "Failed to update AI settings" });
+    }
+  });
+
+  // SPENDING PERSONALITY QUIZ ENDPOINTS
+  
+  // Initialize the quiz system
+  app.post("/api/spending-personality/initialize", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      await spendingPersonalityService.initializeQuiz();
+      res.json({ success: true, message: "Quiz system initialized successfully" });
+    } catch (error) {
+      console.error('Error initializing quiz system:', error);
+      res.status(500).json({ message: "Failed to initialize quiz system" });
+    }
+  });
+  
+  // Get quiz questions for a user
+  app.get("/api/spending-personality/questions", requireAuth, async (req, res) => {
+    try {
+      const questions = await spendingPersonalityService.getQuizQuestions();
+      res.json(questions);
+    } catch (error) {
+      console.error('Error getting quiz questions:', error);
+      res.status(500).json({ message: "Failed to get quiz questions" });
+    }
+  });
+  
+  // Submit quiz answers and get results
+  app.post("/api/spending-personality/submit", requireAuth, async (req, res) => {
+    try {
+      const { quizAnswersSchema } = spendingPersonalityService;
+      const validatedData = quizAnswersSchema.parse(req.body);
+      
+      const results = await spendingPersonalityService.calculateQuizResults(validatedData);
+      res.json(results);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error submitting quiz answers:', error);
+      res.status(500).json({ message: "Failed to submit quiz answers" });
+    }
+  });
+  
+  // Get the user's most recent quiz result
+  app.get("/api/spending-personality/results/:userId", requireAuth, checkUserMatch, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const result = await spendingPersonalityService.getUserQuizResult(userId);
+      if (!result) {
+        return res.status(404).json({ message: "No quiz results found for this user" });
+      }
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Error getting quiz results:', error);
+      res.status(500).json({ message: "Failed to get quiz results" });
+    }
+  });
+  
+  // ADMIN ENDPOINTS FOR QUIZ MANAGEMENT
+  
+  // Add a new quiz question (admin only)
+  app.post("/api/spending-personality/questions", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertSpendingPersonalityQuestionSchema.parse(req.body);
+      
+      const question = await spendingPersonalityService.addQuizQuestion(validatedData);
+      res.status(201).json(question);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error adding quiz question:', error);
+      res.status(500).json({ message: "Failed to add quiz question" });
+    }
+  });
+  
+  // Update a quiz question (admin only)
+  app.patch("/api/spending-personality/questions/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid question ID" });
+      }
+      
+      const validatedData = insertSpendingPersonalityQuestionSchema.partial().parse(req.body);
+      
+      const question = await spendingPersonalityService.updateQuizQuestion(id, validatedData);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      res.json(question);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating quiz question:', error);
+      res.status(500).json({ message: "Failed to update quiz question" });
+    }
+  });
+  
+  // Delete a quiz question (admin only)
+  app.delete("/api/spending-personality/questions/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid question ID" });
+      }
+      
+      const success = await spendingPersonalityService.deleteQuizQuestion(id);
+      if (!success) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting quiz question:', error);
+      res.status(500).json({ message: "Failed to delete quiz question" });
     }
   });
 

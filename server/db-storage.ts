@@ -5,7 +5,9 @@ import {
   InsertBankTransaction, BankTransaction, InsertExpense, Expense, expenses,
   InsertBalance, Balance, balances, UserProfile, InsertUserProfile, userProfiles,
   Reminder, InsertReminder, reminders, WidgetSettings, InsertWidgetSettings, widgetSettings,
-  Notification, InsertNotification, notifications
+  Notification, InsertNotification, notifications,
+  SpendingPersonalityQuestion, InsertSpendingPersonalityQuestion, spendingPersonalityQuestions,
+  SpendingPersonalityResult, InsertSpendingPersonalityResult, spendingPersonalityResults
 } from '@shared/schema';
 import { IStorage } from './storage';
 import { db, pool } from './db';
@@ -1475,6 +1477,151 @@ export class DbStorage implements IStorage {
     } catch (error) {
       console.error('Error getting unread notifications:', error);
       return [];
+    }
+  }
+
+  // Spending Personality Quiz Methods
+  async getSpendingPersonalityQuestions(): Promise<SpendingPersonalityQuestion[]> {
+    try {
+      return await db
+        .select()
+        .from(spendingPersonalityQuestions);
+    } catch (error) {
+      console.error('Error getting spending personality questions:', error);
+      return [];
+    }
+  }
+  
+  async getActiveSpendingPersonalityQuestions(): Promise<SpendingPersonalityQuestion[]> {
+    try {
+      return await db
+        .select()
+        .from(spendingPersonalityQuestions)
+        .where(eq(spendingPersonalityQuestions.active, true));
+    } catch (error) {
+      console.error('Error getting active spending personality questions:', error);
+      return [];
+    }
+  }
+  
+  async getSpendingPersonalityQuestionById(id: number): Promise<SpendingPersonalityQuestion | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(spendingPersonalityQuestions)
+        .where(eq(spendingPersonalityQuestions.id, id));
+        
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting spending personality question by id:', error);
+      return undefined;
+    }
+  }
+  
+  async createSpendingPersonalityQuestion(question: InsertSpendingPersonalityQuestion): Promise<SpendingPersonalityQuestion> {
+    try {
+      const result = await db
+        .insert(spendingPersonalityQuestions)
+        .values({
+          ...question,
+          createdAt: new Date()
+        })
+        .returning();
+        
+      return result[0];
+    } catch (error) {
+      console.error('Error creating spending personality question:', error);
+      throw error;
+    }
+  }
+  
+  async updateSpendingPersonalityQuestion(id: number, question: Partial<InsertSpendingPersonalityQuestion>): Promise<SpendingPersonalityQuestion | undefined> {
+    try {
+      const result = await db
+        .update(spendingPersonalityQuestions)
+        .set(question)
+        .where(eq(spendingPersonalityQuestions.id, id))
+        .returning();
+        
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating spending personality question:', error);
+      return undefined;
+    }
+  }
+  
+  async deleteSpendingPersonalityQuestion(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(spendingPersonalityQuestions)
+        .where(eq(spendingPersonalityQuestions.id, id))
+        .returning({ id: spendingPersonalityQuestions.id });
+        
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting spending personality question:', error);
+      return false;
+    }
+  }
+  
+  // Spending Personality Result methods
+  async getSpendingPersonalityResults(userId: number): Promise<SpendingPersonalityResult[]> {
+    try {
+      return await db
+        .select()
+        .from(spendingPersonalityResults)
+        .where(eq(spendingPersonalityResults.userId, userId))
+        .orderBy(desc(spendingPersonalityResults.takenAt));
+    } catch (error) {
+      console.error('Error getting spending personality results:', error);
+      return [];
+    }
+  }
+  
+  async getSpendingPersonalityResultById(id: number): Promise<SpendingPersonalityResult | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(spendingPersonalityResults)
+        .where(eq(spendingPersonalityResults.id, id));
+        
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting spending personality result by id:', error);
+      return undefined;
+    }
+  }
+  
+  async createSpendingPersonalityResult(result: InsertSpendingPersonalityResult): Promise<SpendingPersonalityResult> {
+    try {
+      const dbResult = await db
+        .insert(spendingPersonalityResults)
+        .values({
+          ...result,
+          takenAt: new Date()
+        })
+        .returning();
+        
+      return dbResult[0];
+    } catch (error) {
+      console.error('Error creating spending personality result:', error);
+      throw error;
+    }
+  }
+  
+  async getLatestSpendingPersonalityResult(userId: number): Promise<SpendingPersonalityResult | undefined> {
+    try {
+      const results = await db
+        .select()
+        .from(spendingPersonalityResults)
+        .where(eq(spendingPersonalityResults.userId, userId))
+        .orderBy(desc(spendingPersonalityResults.takenAt))
+        .limit(1);
+        
+      return results.length > 0 ? results[0] : undefined;
+    } catch (error) {
+      console.error('Error getting latest spending personality result:', error);
+      return undefined;
     }
   }
 }
