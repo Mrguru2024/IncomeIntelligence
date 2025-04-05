@@ -22,8 +22,22 @@ jest.mock('lucide-react', () => ({
   Lightbulb: () => <div data-testid="lightbulb-icon" />
 }));
 
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQuery: () => ({
+    data: {
+      patterns: [
+        { category: 'Restaurants', amount: 450, trend: 'up' },
+        { category: 'Groceries', amount: 380, trend: 'down' }
+      ]
+    },
+    isLoading: false,
+    error: null
+  })
+}));
+
 describe('CashFlowCoach', () => {
-  it('renders spending patterns heading', () => {
+  it('renders spending patterns section', () => {
     render(<CashFlowCoach />, { wrapper });
     expect(screen.getByText(/Spending Patterns/i)).toBeInTheDocument();
   });

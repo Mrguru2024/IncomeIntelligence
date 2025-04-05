@@ -1,7 +1,6 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeToggle } from './ThemeToggle';
-import { Moon, Sun } from 'lucide-react';
 
 const mockSetTheme = jest.fn();
 
