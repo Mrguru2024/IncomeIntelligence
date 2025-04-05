@@ -85,8 +85,8 @@ export default function BudgetPlanner() {
     <div className="container mx-auto p-3 sm:p-6 max-w-full">
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 sm:mb-6">Budget Planner</h1>
 
-      <div className="grid gap-4 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <StatCard 
             title="Monthly Budget" 
             value={formatCurrency(totalIncome)}
@@ -108,7 +108,7 @@ export default function BudgetPlanner() {
         </div>
 
         <Tabs defaultValue="calendar" className="w-full">
-          <TabsList className="w-full grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-0 mb-4">
+          <TabsList className="w-full grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-0 mb-6">
             <TabsTrigger value="calendar" className="w-full">
               <Calendar className="h-4 w-4 mr-2" />
               Calendar
@@ -123,7 +123,7 @@ export default function BudgetPlanner() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="calendar" className="mt-4">
+          <TabsContent value="calendar" className="mt-6">
             <Card>
               <CardContent className="p-0 sm:p-6">
                 <BudgetCalendar />
