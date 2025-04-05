@@ -507,7 +507,11 @@ export default function Settings() {
                       <div className="space-y-1">
                         <p className="text-sm font-medium">Primary Provider</p>
                         <p className="text-lg font-bold">
-                          {aiSettings?.DEFAULT_PROVIDER === 'openai' ? 'OpenAI GPT-4o' : 'Anthropic Claude'}
+                          {aiSettings?.DEFAULT_PROVIDER === 'openai' 
+                            ? 'OpenAI GPT-4o' 
+                            : aiSettings?.DEFAULT_PROVIDER === 'anthropic'
+                            ? 'Anthropic Claude'
+                            : 'Perplexity AI'}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -556,6 +560,12 @@ export default function Settings() {
                           <RadioGroupItem value="anthropic" id="anthropic" />
                           <Label htmlFor="anthropic" className="font-normal">
                             Anthropic Claude (Newer model, may be better for certain queries)
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="perplexity" id="perplexity" />
+                          <Label htmlFor="perplexity" className="font-normal">
+                            Perplexity AI (Free model specialized in financial analysis)
                           </Label>
                         </div>
                       </RadioGroup>
@@ -639,6 +649,8 @@ export default function Settings() {
                         <strong>OpenAI GPT-4o</strong>: Latest model from OpenAI with strong financial analysis capabilities.
                         <br />
                         <strong>Anthropic Claude</strong>: Alternative provider that may offer different insights and perspectives.
+                        <br />
+                        <strong>Perplexity AI</strong>: Free alternative model specialized in searching and analyzing financial information.
                       </p>
                     </AlertDescription>
                   </Alert>

@@ -8,11 +8,18 @@ import { createHash } from 'crypto';
 export enum AIProvider {
   OPENAI = 'openai',
   ANTHROPIC = 'anthropic',
+  PERPLEXITY = 'perplexity',
 }
 
 // AI provider instances
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// Custom Perplexity client (using OpenAI's client with a different baseURL)
+const perplexity = new OpenAI({
+  baseURL: "https://api.perplexity.ai",
+  apiKey: process.env.PERPLEXITY_API_KEY
+});
 
 // Service settings
 const AI_SETTINGS = {
@@ -128,13 +135,22 @@ function isRetryableError(error: any): boolean {
 async function executeWithFallback<T>(
   openAIFn: () => Promise<T>,
   anthropicFn: () => Promise<T>,
+  perplexityFn: () => Promise<T>,
   preferredProvider = AI_SETTINGS.DEFAULT_PROVIDER
 ): Promise<{ data: T, provider: AIProvider }> {
   // Check if auto fallback is disabled
   if (!AI_SETTINGS.AUTO_FALLBACK) {
     // If fallback is disabled, just use the preferred provider
     try {
-      const fn = preferredProvider === AIProvider.OPENAI ? openAIFn : anthropicFn;
+      let fn;
+      if (preferredProvider === AIProvider.OPENAI) {
+        fn = openAIFn;
+      } else if (preferredProvider === AIProvider.ANTHROPIC) {
+        fn = anthropicFn;
+      } else {
+        fn = perplexityFn;
+      }
+      
       const result = await withRetry(fn);
       return { data: result, provider: preferredProvider };
     } catch (error) {
@@ -143,16 +159,31 @@ async function executeWithFallback<T>(
     }
   }
 
-  // If fallback is enabled, try providers in sequence
-  const providers = preferredProvider === AIProvider.OPENAI 
-    ? [AIProvider.OPENAI, AIProvider.ANTHROPIC]
-    : [AIProvider.ANTHROPIC, AIProvider.OPENAI];
+  // If fallback is enabled, determine the provider sequence
+  // We prioritize free providers (Perplexity) first to save quota on paid providers
+  let providers: AIProvider[] = [];
+  
+  if (preferredProvider === AIProvider.PERPLEXITY) {
+    providers = [AIProvider.PERPLEXITY, AIProvider.OPENAI, AIProvider.ANTHROPIC];
+  } else if (preferredProvider === AIProvider.OPENAI) {
+    providers = [AIProvider.OPENAI, AIProvider.PERPLEXITY, AIProvider.ANTHROPIC];
+  } else {
+    providers = [AIProvider.ANTHROPIC, AIProvider.PERPLEXITY, AIProvider.OPENAI];
+  }
   
   let lastError: any;
   
   for (const provider of providers) {
     try {
-      const fn = provider === AIProvider.OPENAI ? openAIFn : anthropicFn;
+      let fn;
+      if (provider === AIProvider.OPENAI) {
+        fn = openAIFn;
+      } else if (provider === AIProvider.ANTHROPIC) {
+        fn = anthropicFn;
+      } else {
+        fn = perplexityFn;
+      }
+      
       const result = await withRetry(fn);
       return { data: result, provider };
     } catch (error: any) {
@@ -250,7 +281,30 @@ export async function getFinancialAdvice(
         }
         
         return JSON.parse(responseText || '{}');
-      }
+      },
+      // Perplexity function (using the same API format as OpenAI)
+      async () => {
+        const completion = await perplexity.chat.completions.create({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a financial advisor specialized in personal finance. Provide thoughtful, detailed advice based on the user's financial situation.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.1, // Lower temperature for more deterministic financial advice
+        });
+        
+        const responseText = completion.choices[0].message.content;
+        return JSON.parse(responseText || '{}');
+      },
+      AI_SETTINGS.DEFAULT_PROVIDER
     );
     
     // Format the response
@@ -358,7 +412,29 @@ export async function suggestFinancialGoals(
         }
         
         return JSON.parse(responseText || '{}');
-      }
+      },
+      // Perplexity function
+      async () => {
+        const completion = await perplexity.chat.completions.create({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            {
+              role: "system",
+              content: "You are a financial goals expert. Generate realistic, achievable financial goals based on income data.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.1,
+        });
+        
+        const responseText = completion.choices[0].message.content;
+        return JSON.parse(responseText || '{}');
+      },
+      AI_SETTINGS.DEFAULT_PROVIDER
     );
     
     // Save to cache for future use
@@ -466,7 +542,29 @@ export async function analyzeExpenses(
         }
         
         return JSON.parse(responseText || '{}');
-      }
+      },
+      // Perplexity function
+      async () => {
+        const completion = await perplexity.chat.completions.create({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            {
+              role: "system",
+              content: "You are a financial analyst specializing in personal expense optimization. Analyze expense data and provide actionable insights.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.1,
+        });
+        
+        const responseText = completion.choices[0].message.content;
+        return JSON.parse(responseText || '{}');
+      },
+      AI_SETTINGS.DEFAULT_PROVIDER
     );
     
     // Save to cache for future use

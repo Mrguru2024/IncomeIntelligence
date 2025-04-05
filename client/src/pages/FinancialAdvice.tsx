@@ -530,6 +530,18 @@ const FinancialAdvice = () => {
                       </Alert>
                     )}
                     
+                    {adviceData.provider && (
+                      <div className="flex items-center justify-end space-x-2 text-xs text-muted-foreground italic">
+                        <span>Powered by:</span>
+                        <Badge variant="outline" className="font-normal">
+                          {adviceData.provider === 'openai' ? 'OpenAI GPT-4o' : 
+                           adviceData.provider === 'anthropic' ? 'Anthropic Claude' :
+                           adviceData.provider === 'perplexity' ? 'Perplexity AI' : 
+                           'AI Assistant'}
+                        </Badge>
+                      </div>
+                    )}
+                    
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <h3 className="text-lg font-semibold">Detailed Advice</h3>
@@ -612,6 +624,17 @@ const FinancialAdvice = () => {
               
               {goalSuggestions && goalSuggestions.goals && (
                 <div className="space-y-4 sm:space-y-6">
+                  {goalSuggestions.provider && (
+                    <div className="flex items-center justify-end space-x-2 text-xs text-muted-foreground italic">
+                      <span>Powered by:</span>
+                      <Badge variant="outline" className="font-normal">
+                        {goalSuggestions.provider === 'openai' ? 'OpenAI GPT-4o' : 
+                         goalSuggestions.provider === 'anthropic' ? 'Anthropic Claude' :
+                         goalSuggestions.provider === 'perplexity' ? 'Perplexity AI' : 
+                         'AI Assistant'}
+                      </Badge>
+                    </div>
+                  )}
                   {goalSuggestions.goals.map((goal: any, index: number) => (
                     <Card key={index} className="overflow-hidden border-gray-100">
                       <div className="bg-primary/10 px-3 sm:px-4 py-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
@@ -741,6 +764,18 @@ const FinancialAdvice = () => {
                           {expenseAnalysis.summary}
                         </AlertDescription>
                       </Alert>
+                    )}
+                    
+                    {expenseAnalysis.provider && (
+                      <div className="flex items-center justify-end space-x-2 text-xs text-muted-foreground italic">
+                        <span>Powered by:</span>
+                        <Badge variant="outline" className="font-normal">
+                          {expenseAnalysis.provider === 'openai' ? 'OpenAI GPT-4o' : 
+                           expenseAnalysis.provider === 'anthropic' ? 'Anthropic Claude' :
+                           expenseAnalysis.provider === 'perplexity' ? 'Perplexity AI' : 
+                           'AI Assistant'}
+                        </Badge>
+                      </div>
                     )}
                     
                     {expenseAnalysis.topCategories && (
