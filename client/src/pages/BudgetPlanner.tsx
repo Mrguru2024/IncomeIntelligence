@@ -1,22 +1,22 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from "@/components/ui/tabs";
-import { 
-  Calculator, 
-  Calendar, 
-  BarChart, 
+import {
+  Calculator,
+  Calendar,
+  BarChart,
   PieChart,
   DollarSign,
   ArrowDown,
@@ -27,6 +27,9 @@ import {
 import BudgetCalendar from "@/components/BudgetCalendar";
 import { Income, Goal } from "@shared/schema";
 import { formatCurrency, formatPercentage } from "@/lib/utils/format";
+import SafeEnvelope from "@/components/SafeEnvelope"; // Added import
+import CashFlowCoach from "@/components/CashFlowCoach"; // Added import
+
 
 export default function BudgetPlanner() {
   const { data: incomes = [] } = useQuery<Income[]>({
@@ -82,25 +85,33 @@ export default function BudgetPlanner() {
   });
 
   return (
-    <div className="container mx-auto p-2 sm:p-6 max-w-full">
-      <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight mb-3 sm:mb-6">Budget Planner</h1>
+    <div className="w-full max-w-full overflow-x-hidden px-3 sm:px-6 py-4 sm:py-6">
+      <h1 className="text-2xl font-bold mb-6">Budget Planner</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <SafeEnvelope category="Groceries" allocated={400} spent={250} total={400} />
+        <SafeEnvelope category="Entertainment" allocated={200} spent={150} total={200} />
+        <SafeEnvelope category="Transportation" allocated={300} spent={200} total={300} />
+      </div>
+
+      <CashFlowCoach />
 
       <div className="grid gap-3 sm:gap-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-          <StatCard 
-            title="Monthly Budget" 
+          <StatCard
+            title="Monthly Budget"
             value={formatCurrency(totalIncome)}
             icon={<DollarSign className="h-5 w-5 text-primary" />}
             color="bg-primary/10"
           />
-          <StatCard 
-            title="Active Goals" 
+          <StatCard
+            title="Active Goals"
             value={goals.length.toString()}
             icon={<Target className="h-5 w-5 text-blue-600" />}
             color="bg-blue-100"
           />
-          <StatCard 
-            title="Upcoming Deadlines" 
+          <StatCard
+            title="Upcoming Deadlines"
             value={upcomingGoals.length.toString()}
             icon={<Calendar className="h-5 w-5 text-purple-600" />}
             color="bg-purple-100"
@@ -133,22 +144,22 @@ export default function BudgetPlanner() {
 
           <TabsContent value="allocation" className="mt-3 sm:mt-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
-              <AllocationCard 
-                title="Needs (40%)" 
+              <AllocationCard
+                title="Needs (40%)"
                 value={formatCurrency(needsAllocation)}
                 description="Essential expenses like rent, groceries, utilities"
                 color="border-l-4 border-l-blue-500"
                 icon={<ArrowDown className="h-4 w-4 text-blue-500" />}
               />
-              <AllocationCard 
-                title="Savings (30%)" 
+              <AllocationCard
+                title="Savings (30%)"
                 value={formatCurrency(savingsAllocation)}
                 description="Emergency fund and short-term goals"
                 color="border-l-4 border-l-green-500"
                 icon={<ArrowUp className="h-4 w-4 text-green-500" />}
               />
-              <AllocationCard 
-                title="Investments (30%)" 
+              <AllocationCard
+                title="Investments (30%)"
                 value={formatCurrency(investmentsAllocation)}
                 description="Long-term wealth building"
                 color="border-l-4 border-l-purple-500"
@@ -159,24 +170,24 @@ export default function BudgetPlanner() {
 
           <TabsContent value="goals" className="mt-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <GoalProgressCard 
-                title="Income Goals" 
+              <GoalProgressCard
+                title="Income Goals"
                 current={incomeGoalsProgress.current}
                 target={incomeGoalsProgress.target}
                 percentage={incomeGoalsProgress.percentage}
                 count={incomeGoals.length}
                 color=""
               />
-              <GoalProgressCard 
-                title="Savings Goals" 
+              <GoalProgressCard
+                title="Savings Goals"
                 current={savingsGoalsProgress.current}
                 target={savingsGoalsProgress.target}
                 percentage={savingsGoalsProgress.percentage}
                 count={savingsGoals.length}
                 color=""
               />
-              <GoalProgressCard 
-                title="Investment Goals" 
+              <GoalProgressCard
+                title="Investment Goals"
                 current={investmentGoalsProgress.current}
                 target={investmentGoalsProgress.target}
                 percentage={investmentGoalsProgress.percentage}
@@ -260,9 +271,9 @@ function GoalProgressCard({ title, current, target, percentage, count, color }: 
       <CardContent>
         <div className="space-y-3">
           <div className="w-full bg-gray-100 rounded-full h-2">
-            <div 
-              className={`bg-primary h-2 rounded-full`} 
-              style={{ width: `${Math.min(percentage, 100)}%` }} 
+            <div
+              className={`bg-primary h-2 rounded-full`}
+              style={{ width: `${Math.min(percentage, 100)}%` }}
             />
           </div>
           <div className="flex justify-between text-sm">
