@@ -27,6 +27,7 @@ export type Rule = {
   action: {
     type: 'save' | 'invest';
     amount: number;
+    amountType: 'fixed' | 'percentage';
     destination: string;
   };
 };
@@ -115,7 +116,7 @@ export default function SmartRulesEngine() {
   const getRuleDescription = (rule: Rule): string => {
     switch (rule.type) {
       case 'recurring':
-        return `Save ${rule.action.amount} every ${rule.conditions.frequency || 'month'}`;
+        return `Save ${rule.action.amountType === 'percentage' ? rule.action.amount + '%' : '$' + rule.action.amount} every ${rule.conditions.frequency || 'month'}`;
       case 'income-based':
         return `Save ${rule.action.amount}% when income exceeds ${rule.conditions.threshold || 0}`;
       case 'time-based':
@@ -207,17 +208,40 @@ export default function SmartRulesEngine() {
                       </Select>
                     </div>
 
-                    <div>
-                      <Label>Amount</Label>
-                      <Input 
-                        type="number"
-                        placeholder="Enter amount"
-                        value={newRule.action?.amount || ''}
-                        onChange={(e) => setNewRule({
-                          ...newRule,
-                          action: { ...newRule.action!, amount: parseFloat(e.target.value) }
-                        })}
-                      />
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Amount Type</Label>
+                        <Select
+                          value={newRule.action?.amountType || 'fixed'}
+                          onValueChange={(value: 'fixed' | 'percentage') => setNewRule({
+                            ...newRule,
+                            action: { ...newRule.action!, amountType: value }
+                          })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select amount type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="fixed">Fixed Amount</SelectItem>
+                            <SelectItem value="percentage">Percentage</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Amount {newRule.action?.amountType === 'percentage' ? '(%)' : '($)'}</Label>
+                        <Input 
+                          type="number"
+                          placeholder={newRule.action?.amountType === 'percentage' ? 'Enter percentage' : 'Enter amount'}
+                          value={newRule.action?.amount || ''}
+                          min={0}
+                          max={newRule.action?.amountType === 'percentage' ? 100 : undefined}
+                          step={newRule.action?.amountType === 'percentage' ? 1 : 0.01}
+                          onChange={(e) => setNewRule({
+                            ...newRule,
+                            action: { ...newRule.action!, amount: parseFloat(e.target.value) }
+                          })}
+                        />
+                      </div>
                     </div>
                   </div>
 
