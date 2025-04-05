@@ -1416,7 +1416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/ai/settings", (req, res) => {
     try {
       const schema = z.object({
-        DEFAULT_PROVIDER: z.enum([AIProvider.OPENAI, AIProvider.ANTHROPIC]).optional(),
+        DEFAULT_PROVIDER: z.nativeEnum(AIProvider).optional(),
         AUTO_FALLBACK: z.boolean().optional(),
         MAX_RETRIES: z.number().int().min(1).max(10).optional(),
         CACHE_ENABLED: z.boolean().optional(),
