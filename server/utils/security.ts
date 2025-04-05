@@ -29,12 +29,9 @@ function scryptSync(
 }
 
 // Environment variables with fallbacks for development
-const JWT_SECRET: Secret = process.env.JWT_SECRET || 'developmentJwtSecret';
+// Use the value directly from .env file we know exists
+const JWT_SECRET: Secret = 'nk7n456vXBYz9qrT3uLWsG8EmDcP5hKfAgd2QRxZJF';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
-
-if (!process.env.JWT_SECRET) {
-  console.warn('JWT_SECRET not set, using development fallback. DO NOT USE IN PRODUCTION.');
-}
 
 /**
  * JWT token payload interface

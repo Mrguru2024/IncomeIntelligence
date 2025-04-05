@@ -1589,8 +1589,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized to submit quiz for this user" });
       }
       
+      // Import the schema directly
+      const { quizAnswersSchema } = await import('@shared/schema'); 
+      
       // Validate quiz answers
-      const validatedAnswers = spendingPersonalityService.quizAnswersSchema.parse(answers);
+      const validatedAnswers = quizAnswersSchema.parse(answers);
       
       // Submit the quiz and get results
       const result = await spendingPersonalityService.submitQuiz(userId, validatedAnswers);
