@@ -9,6 +9,37 @@ html {
   overflow-x: hidden;
 }
 
+/* Samsung Z Fold specific breakpoints */
+@media screen and (min-width: 280px) and (max-width: 511px) {
+  /* Folded state */
+  .container {
+    max-width: 100%;
+    padding: 0.5rem;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+  }
+  
+  .card {
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media screen and (min-width: 512px) and (max-width: 717px) {
+  /* Unfolded state */
+  .container {
+    max-width: 100%;
+    padding: 1rem;
+  }
+  
+  .grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+}
+
 /* Light mode colors - default */
 :root {
   --background: #f9fafb;

@@ -85,8 +85,8 @@ export default function BudgetPlanner() {
     <div className="container mx-auto p-3 sm:p-6 max-w-full">
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 sm:mb-6">Budget Planner</h1>
 
-      <div className="grid gap-4 sm:gap-6 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           <StatCard 
             title="Monthly Budget" 
             value={formatCurrency(totalIncome)}
