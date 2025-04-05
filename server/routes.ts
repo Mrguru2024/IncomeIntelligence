@@ -26,8 +26,12 @@ import {
 import { notificationService } from "./notification-service";
 import { insertNotificationSchema } from "@shared/schema";
 import { requireAuth, checkUserMatch } from "./middleware/authMiddleware";
+import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication routes
+  setupAuth(app);
+  
   // Get all incomes
   app.get("/api/incomes", async (req, res) => {
     try {

@@ -467,7 +467,7 @@ const FinancialAdvice = () => {
   return (
     <div className="w-full max-w-full overflow-x-hidden px-3 sm:px-6 py-4 sm:py-6">
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 sm:mb-6">
-        AI-Powered Financial Advice
+        AI-Powered Stackr Advice
       </h1>
       
       <div className="space-y-4">
@@ -478,7 +478,7 @@ const FinancialAdvice = () => {
             onClick={() => setActiveTab("advice")}
           >
             <BrainCircuit className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-            <span className="whitespace-nowrap">Financial Advice</span>
+            <span className="whitespace-nowrap">Stackr Advice</span>
           </Button>
           
           <Button
@@ -504,7 +504,7 @@ const FinancialAdvice = () => {
         <TabPanel value="advice" activeTab={activeTab}>
           <Card className="overflow-hidden border-gray-200">
             <CardHeader className="px-4 py-4 sm:px-6 sm:py-6">
-              <CardTitle className="text-lg sm:text-xl mb-2">Get Personalized Financial Advice</CardTitle>
+              <CardTitle className="text-lg sm:text-xl mb-2">Get Personalized Stackr Advice</CardTitle>
               <CardDescription className="text-xs sm:text-sm max-w-full whitespace-normal break-words">
                 Our AI will provide customized financial advice based on your income, expenses, and goals.
               </CardDescription>
@@ -632,7 +632,7 @@ const FinancialAdvice = () => {
                   </>
                 ) : (
                   <>
-                    {adviceData ? "Refresh Advice" : "Get Financial Advice"}
+                    {adviceData ? "Refresh Advice" : "Get Stackr Advice"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}

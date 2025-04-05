@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/hooks/use-auth";
 
 interface SidebarProps {
   mobileMenuOpen: boolean;
@@ -10,6 +11,7 @@ interface SidebarProps {
 
 export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
   const [location] = useLocation();
+  const { logoutMutation } = useAuth();
   
   const navItems = [
     { 
@@ -76,7 +78,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
       )
     },
     {
-      name: "Financial Advice",
+      name: "Stackr Advice",
       path: "/financial-advice",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -166,8 +168,8 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-opacity-100 bg-[var(--card-background)] border-r border-border min-h-screen">
         <div className="p-6 border-b border-border">
-          <h1 className="text-2xl font-semibold text-foreground">40/30/30</h1>
-          <p className="text-sm text-muted-foreground mt-1">Income Tracker</p>
+          <h1 className="text-2xl font-semibold text-foreground">Stackr</h1>
+          <p className="text-sm text-muted-foreground mt-1">40/30/30 Income Manager</p>
         </div>
         <nav className="flex-1 p-4">
           <ul className="space-y-1">
@@ -190,7 +192,12 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
           </ul>
         </nav>
         <div className="p-4 border-t border-border flex justify-between items-center">
-          <button className="flex items-center text-foreground hover:text-foreground">
+          <button 
+            className="flex items-center text-foreground hover:text-foreground"
+            onClick={() => {
+              logoutMutation.mutate();
+            }}
+          >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
               <polyline points="16 17 21 12 16 7"></polyline>
@@ -228,8 +235,8 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
       >
         <div className="p-3 xxs:p-4 xs:p-6 border-b border-border flex justify-between items-center">
           <div>
-            <h1 className="text-xl xxs:text-2xl font-semibold text-foreground">40/30/30</h1>
-            <p className="text-xs xxs:text-sm text-muted-foreground mt-1">Income Tracker</p>
+            <h1 className="text-xl xxs:text-2xl font-semibold text-foreground">Stackr</h1>
+            <p className="text-xs xxs:text-sm text-muted-foreground mt-1">40/30/30 Income Manager</p>
           </div>
           <button 
             onClick={closeMobileMenu}
@@ -277,7 +284,12 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
           </ul>
         </nav>
         <div className="p-2 xxs:p-3 xs:p-4 border-t border-border flex justify-between items-center">
-          <button className="flex items-center text-foreground text-xs xxs:text-sm xs:text-base">
+          <button 
+            className="flex items-center text-foreground text-xs xxs:text-sm xs:text-base"
+            onClick={() => {
+              logoutMutation.mutate();
+            }}
+          >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 xxs:mr-1.5 xs:mr-2">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
               <polyline points="16 17 21 12 16 7"></polyline>
