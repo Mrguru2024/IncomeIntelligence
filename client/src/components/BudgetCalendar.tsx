@@ -401,11 +401,22 @@ export default function BudgetCalendar() {
       
       {/* Day Detail Modal */}
       <Dialog open={isDayModalOpen} onOpenChange={setIsDayModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-background border-2 shadow-lg dark:bg-gray-900">
           {selectedDay && (
             <>
-              <DialogHeader>
-                <DialogTitle className="text-center text-xl">
+              <div className="absolute right-4 top-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsDayModalOpen(false)}
+                  className="h-6 w-6 rounded-full opacity-70 hover:opacity-100"
+                  aria-label="Close dialog"
+                >
+                  <XCircle className="h-4 w-4" />
+                </Button>
+              </div>
+              <DialogHeader className="border-b pb-3">
+                <DialogTitle className="text-center text-xl font-bold">
                   {format(selectedDay, "EEEE, MMMM d, yyyy")}
                   {isToday(selectedDay) && (
                     <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
@@ -413,12 +424,12 @@ export default function BudgetCalendar() {
                     </span>
                   )}
                 </DialogTitle>
-                <DialogDescription className="text-center">
+                <DialogDescription className="text-center pt-1">
                   Financial activity for this day
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="space-y-4 my-2 max-h-[300px] overflow-y-auto px-1">
+              <div className="space-y-4 my-4 max-h-[300px] overflow-y-auto px-1 bg-white/50 dark:bg-gray-800/50 p-3 rounded-lg">
                 {/* Incomes Section */}
                 <div>
                   <h3 className="font-medium text-base mb-2 flex items-center">
@@ -496,7 +507,7 @@ export default function BudgetCalendar() {
                 </div>
               </div>
               
-              <DialogFooter className="flex sm:justify-between gap-2">
+              <DialogFooter className="flex sm:justify-between gap-2 border-t pt-4 mt-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -506,7 +517,7 @@ export default function BudgetCalendar() {
                     previousDay.setDate(previousDay.getDate() - 1);
                     setSelectedDay(previousDay);
                   }}
-                  className="flex-1"
+                  className="flex-1 bg-white dark:bg-gray-800 hover:bg-primary/10"
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Previous Day
@@ -520,7 +531,7 @@ export default function BudgetCalendar() {
                     nextDay.setDate(nextDay.getDate() + 1);
                     setSelectedDay(nextDay);
                   }}
-                  className="flex-1"
+                  className="flex-1 bg-white dark:bg-gray-800 hover:bg-primary/10"
                 >
                   Next Day
                   <ChevronRight className="h-4 w-4 ml-1" />
