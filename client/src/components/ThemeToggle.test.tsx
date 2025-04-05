@@ -17,10 +17,19 @@ jest.mock('@/hooks/useTheme', () => ({
 }));
 
 describe('ThemeToggle', () => {
+  beforeEach(() => {
+    mockSetTheme.mockClear();
+  });
+
   it('renders theme toggle button', () => {
     render(<ThemeToggle />);
     const button = screen.getByRole('button');
     expect(button).toBeInTheDocument();
+  });
+
+  it('shows sun icon in light mode', () => {
+    render(<ThemeToggle />);
+    expect(screen.getByTestId('sun-icon')).toBeInTheDocument();
   });
 
   it('calls setTheme when clicked', () => {
