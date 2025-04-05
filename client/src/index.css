@@ -1,3 +1,29 @@
+
+/* Tab responsive styles */
+.tabs-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .tabs-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .tab-trigger {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.5rem;
+  }
+}
+
+@media (min-width: 641px) {
+  .tabs-list {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.25rem;
+  }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
