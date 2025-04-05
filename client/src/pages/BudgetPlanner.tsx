@@ -22,13 +22,17 @@ import {
   ArrowDown,
   ArrowUp,
   Target,
-  TrendingUp
+  TrendingUp,
+  Settings as SettingsIcon
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import BudgetCalendar from "@/components/BudgetCalendar";
 import { Income, Goal } from "@shared/schema";
 import { formatCurrency, formatPercentage } from "@/lib/utils/format";
 import SafeEnvelope from "@/components/SafeEnvelope"; // Added import
 import CashFlowCoach from "@/components/CashFlowCoach"; // Added import
+import { useIncomeStore } from "@/hooks/useIncomeStore"; // Import store
 
 
 export default function BudgetPlanner() {
@@ -40,13 +44,20 @@ export default function BudgetPlanner() {
     queryKey: ['/api/goals'],
   });
 
+  // Get allocation percentages from the store
+  const { 
+    needsPercentage, 
+    investmentsPercentage, 
+    savingsPercentage 
+  } = useIncomeStore();
+
   // Calculate total income
   const totalIncome = incomes.reduce((sum, income) => sum + parseFloat(income.amount.toString()), 0);
 
-  // Calculate budget allocation based on 40/30/30 rule
-  const needsAllocation = totalIncome * 0.4;
-  const savingsAllocation = totalIncome * 0.3;
-  const investmentsAllocation = totalIncome * 0.3;
+  // Calculate budget allocation based on custom percentages
+  const needsAllocation = totalIncome * (needsPercentage / 100);
+  const savingsAllocation = totalIncome * (savingsPercentage / 100);
+  const investmentsAllocation = totalIncome * (investmentsPercentage / 100);
 
   // Calculate progress toward goals by type
   const incomeGoals = goals.filter(goal => goal.type === 'income');
@@ -145,23 +156,32 @@ export default function BudgetPlanner() {
           </TabsContent>
 
           <TabsContent value="allocation" className="mt-3 sm:mt-4">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-sm sm:text-base font-medium">Allocation Overview</h3>
+              <Link href="/settings">
+                <Button variant="outline" size="sm" className="text-xs flex items-center gap-1">
+                  <SettingsIcon className="h-3 w-3" />
+                  Edit Budget Settings
+                </Button>
+              </Link>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
               <AllocationCard
-                title="Needs (40%)"
+                title={`Needs (${needsPercentage}%)`}
                 value={formatCurrency(needsAllocation)}
                 description="Essential expenses like rent, groceries, utilities"
                 color="border-l-4 border-l-blue-500"
                 icon={<ArrowDown className="h-4 w-4 text-blue-500" />}
               />
               <AllocationCard
-                title="Savings (30%)"
+                title={`Savings (${savingsPercentage}%)`}
                 value={formatCurrency(savingsAllocation)}
                 description="Emergency fund and short-term goals"
                 color="border-l-4 border-l-green-500"
                 icon={<ArrowUp className="h-4 w-4 text-green-500" />}
               />
               <AllocationCard
-                title="Investments (30%)"
+                title={`Investments (${investmentsPercentage}%)`}
                 value={formatCurrency(investmentsAllocation)}
                 description="Long-term wealth building"
                 color="border-l-4 border-l-purple-500"
