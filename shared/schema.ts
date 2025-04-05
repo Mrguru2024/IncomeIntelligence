@@ -27,13 +27,21 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  email: text("email"),
+  email: text("email").notNull().unique(),
   firstName: text("first_name"),
   lastName: text("last_name"),
   phone: text("phone"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   lastLogin: timestamp("last_login"),
   profileCompleted: boolean("profile_completed").notNull().default(false),
+  verified: boolean("verified").notNull().default(false),
+  verificationToken: text("verification_token"),
+  resetPasswordToken: text("reset_password_token"),
+  resetPasswordExpires: timestamp("reset_password_expires"),
+  provider: text("provider").default("local"), // 'local', 'google', 'github', etc.
+  providerId: text("provider_id"),
+  role: text("role").notNull().default("user"), // 'user', 'admin'
+  accountStatus: text("account_status").notNull().default("active"), // 'active', 'suspended', 'inactive'
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -43,6 +51,12 @@ export const insertUserSchema = createInsertSchema(users).pick({
   firstName: true,
   lastName: true,
   phone: true,
+  provider: true,
+  providerId: true,
+  verificationToken: true,
+  role: true,
+  accountStatus: true,
+  verified: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
