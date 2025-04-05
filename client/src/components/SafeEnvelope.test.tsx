@@ -39,8 +39,13 @@ describe('SafeEnvelope', () => {
 
   it('calls onLockToggle when clicked', () => {
     render(<SafeEnvelope {...defaultProps} />);
-    const lockButton = screen.getByRole('button');
+    const lockButton = screen.getByRole('button', { name: /toggle lock/i });
     fireEvent.click(lockButton);
-    expect(mockLockToggle).toHaveBeenCalled();
+    expect(mockLockToggle).toHaveBeenCalledWith(!defaultProps.isLocked);
+  });
+
+  it('shows locked state correctly', () => {
+    render(<SafeEnvelope {...defaultProps} isLocked={true} />);
+    expect(screen.getByTestId('lock-icon')).toBeInTheDocument();
   });
 });

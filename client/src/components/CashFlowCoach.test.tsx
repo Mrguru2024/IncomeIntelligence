@@ -24,7 +24,7 @@ jest.mock('lucide-react', () => ({
 
 jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
-  useQuery: () => ({
+  useQuery: jest.fn().mockReturnValue({
     data: {
       patterns: [
         { category: 'Restaurants', amount: 450, trend: 'up' },

@@ -9,11 +9,13 @@ jest.mock('lucide-react', () => ({
   Sun: () => <div data-testid="sun-icon" />
 }));
 
+const mockUseTheme = jest.fn().mockReturnValue({
+  theme: 'light',
+  setTheme: mockSetTheme
+});
+
 jest.mock('@/hooks/useTheme', () => ({
-  useTheme: () => ({
-    theme: 'light',
-    setTheme: mockSetTheme
-  })
+  useTheme: () => mockUseTheme()
 }));
 
 describe('ThemeToggle', () => {
