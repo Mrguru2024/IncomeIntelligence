@@ -199,10 +199,12 @@ export default function AuthPage() {
           </div>
 
           <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="login" className="text-base py-2">Sign In</TabsTrigger>
-              <TabsTrigger value="register" className="text-base py-2">Create Account</TabsTrigger>
-            </TabsList>
+            <div className="flex justify-center mb-6">
+              <TabsList className="grid grid-cols-2 w-64">
+                <TabsTrigger value="login" className="text-base py-2">Sign In</TabsTrigger>
+                <TabsTrigger value="register" className="text-base py-2">Create Account</TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="login" className="space-y-4">
               <Card className="border-border/40 shadow-md">
