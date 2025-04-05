@@ -214,13 +214,13 @@ interface StatCardProps {
 function StatCard({ title, value, icon, color }: StatCardProps) {
   return (
     <Card>
-      <CardContent className="p-4 sm:p-6">
+      <CardContent className="p-2 xs:p-3 sm:p-6">
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold mt-1">{value}</p>
+            <p className="text-xs xs:text-sm font-medium text-muted-foreground">{title}</p>
+            <p className="text-base xs:text-xl sm:text-2xl font-bold mt-1">{value}</p>
           </div>
-          <div className={`p-2 rounded-full ${color}`}>
+          <div className={`p-1.5 xs:p-2 rounded-full ${color}`}>
             {icon}
           </div>
         </div>
@@ -240,13 +240,15 @@ interface AllocationCardProps {
 function AllocationCard({ title, value, description, color, icon }: AllocationCardProps) {
   return (
     <Card className={color}>
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-medium">{title}</h3>
-          {icon}
+      <CardContent className="p-2 xs:p-3 sm:p-4">
+        <div className="flex items-center justify-between mb-1 xs:mb-2">
+          <h3 className="font-medium text-xs xs:text-sm">{title}</h3>
+          <div className="transform scale-75 xs:scale-90 sm:scale-100 origin-right">
+            {icon}
+          </div>
         </div>
-        <p className="text-2xl font-bold">{value}</p>
-        <p className="text-sm text-muted-foreground mt-2">
+        <p className="text-base xs:text-xl sm:text-2xl font-bold">{value}</p>
+        <p className="text-[10px] xs:text-xs sm:text-sm text-muted-foreground mt-1 xs:mt-2 line-clamp-2 xs:line-clamp-none">
           {description}
         </p>
       </CardContent>
@@ -266,19 +268,19 @@ interface GoalProgressCardProps {
 function GoalProgressCard({ title, current, target, percentage, count, color }: GoalProgressCardProps) {
   return (
     <Card className={color}>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{count} {count === 1 ? 'goal' : 'goals'}</CardDescription>
+      <CardHeader className="px-2 xs:px-3 sm:px-6 py-2 xs:py-3 sm:py-6">
+        <CardTitle className="text-sm xs:text-base sm:text-lg">{title}</CardTitle>
+        <CardDescription className="text-xs xs:text-sm">{count} {count === 1 ? 'goal' : 'goals'}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="w-full bg-gray-100 rounded-full h-2">
+      <CardContent className="px-2 xs:px-3 sm:px-6 pb-3 xs:pb-4 sm:pb-6">
+        <div className="space-y-2 xs:space-y-3">
+          <div className="w-full bg-gray-100 rounded-full h-1.5 xs:h-2">
             <div
-              className={`bg-primary h-2 rounded-full`}
+              className={`bg-primary h-1.5 xs:h-2 rounded-full`}
               style={{ width: `${Math.min(percentage, 100)}%` }}
             />
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-[10px] xs:text-xs sm:text-sm">
             <span>{formatCurrency(current)}</span>
             <span>{formatCurrency(target)}</span>
           </div>
