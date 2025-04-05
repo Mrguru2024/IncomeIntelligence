@@ -5,12 +5,13 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     screens: {
-      'xs': '375px',
-      'sm': '640px',
-      'md': '768px',
-      'lg': '1024px',
-      'xl': '1280px',
-      '2xl': '1536px',
+      'xxs': '280px',  // Samsung Z Fold folded (~280-290px)
+      'xs': '375px',   // Smaller phones
+      'sm': '640px',   // Larger phones, small tablets
+      'md': '768px',   // Tablets
+      'lg': '1024px',  // Laptops
+      'xl': '1280px',  // Desktops
+      '2xl': '1536px', // Large screens
     },
     extend: {
       borderRadius: {

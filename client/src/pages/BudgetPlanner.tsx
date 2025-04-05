@@ -96,10 +96,10 @@ export default function BudgetPlanner() {
   });
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden px-3 sm:px-6 py-4 sm:py-6">
-      <h1 className="text-2xl font-bold mb-6">Budget Planner</h1>
+    <div className="w-full max-w-full overflow-x-hidden px-2 xxs:px-3 sm:px-6 py-3 xxs:py-4 sm:py-6">
+      <h1 className="text-xl xxs:text-2xl font-bold mb-4 xxs:mb-6">Budget Planner</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 xxs:gap-3 sm:gap-4 mb-4 xxs:mb-6">
         <SafeEnvelope category="Groceries" allocated={400} spent={250} total={400} />
         <SafeEnvelope category="Entertainment" allocated={200} spent={150} total={200} />
         <SafeEnvelope category="Transportation" allocated={300} spent={200} total={300} />
@@ -130,18 +130,18 @@ export default function BudgetPlanner() {
         </div>
 
         <Tabs defaultValue="calendar" className="w-full">
-          <div className="overflow-x-auto -mx-3 px-3 pb-2">
-            <TabsList className="flex w-full justify-start gap-1 max-w-none mb-4 sm:mb-6 min-w-[320px]">
-              <TabsTrigger value="calendar" className="flex-1 flex items-center justify-center py-1.5 px-2 sm:p-2 text-xs sm:text-sm">
-                <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+          <div className="overflow-x-auto -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
+            <TabsList className="flex w-full justify-start gap-0.5 xxs:gap-1 max-w-none mb-2 xxs:mb-3 sm:mb-6 min-w-[240px] xxs:min-w-[280px] sm:min-w-[320px]">
+              <TabsTrigger value="calendar" className="flex-1 flex items-center justify-center py-1 xxs:py-1.5 px-1 xxs:px-2 sm:p-2 text-[10px] xxs:text-xs sm:text-sm">
+                <Calendar className="h-2.5 w-2.5 xxs:h-3 xxs:w-3 sm:h-4 sm:w-4 mr-0.5 xxs:mr-1 sm:mr-2 flex-shrink-0" />
                 <span className="truncate">Calendar</span>
               </TabsTrigger>
-              <TabsTrigger value="allocation" className="flex-1 flex items-center justify-center py-1.5 px-2 sm:p-2 text-xs sm:text-sm">
-                <PieChart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <TabsTrigger value="allocation" className="flex-1 flex items-center justify-center py-1 xxs:py-1.5 px-1 xxs:px-2 sm:p-2 text-[10px] xxs:text-xs sm:text-sm">
+                <PieChart className="h-2.5 w-2.5 xxs:h-3 xxs:w-3 sm:h-4 sm:w-4 mr-0.5 xxs:mr-1 sm:mr-2 flex-shrink-0" />
                 <span className="truncate">Budget</span>
               </TabsTrigger>
-              <TabsTrigger value="goals" className="flex-1 flex items-center justify-center py-1.5 px-2 sm:p-2 text-xs sm:text-sm">
-                <BarChart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <TabsTrigger value="goals" className="flex-1 flex items-center justify-center py-1 xxs:py-1.5 px-1 xxs:px-2 sm:p-2 text-[10px] xxs:text-xs sm:text-sm">
+                <BarChart className="h-2.5 w-2.5 xxs:h-3 xxs:w-3 sm:h-4 sm:w-4 mr-0.5 xxs:mr-1 sm:mr-2 flex-shrink-0" />
                 <span className="truncate">Goals</span>
               </TabsTrigger>
             </TabsList>
@@ -155,12 +155,12 @@ export default function BudgetPlanner() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="allocation" className="mt-3 sm:mt-4">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm sm:text-base font-medium">Allocation Overview</h3>
+          <TabsContent value="allocation" className="mt-2 xxs:mt-3 sm:mt-4">
+            <div className="flex flex-col xxs:flex-row justify-between items-start xxs:items-center gap-2 xxs:gap-0 mb-2 xxs:mb-3">
+              <h3 className="text-xs xxs:text-sm sm:text-base font-medium">Allocation Overview</h3>
               <Link href="/settings">
-                <Button variant="outline" size="sm" className="text-xs flex items-center gap-1">
-                  <SettingsIcon className="h-3 w-3" />
+                <Button variant="outline" size="sm" className="text-[10px] xxs:text-xs flex items-center gap-0.5 xxs:gap-1 py-1 px-1.5 xxs:px-2 h-7 xxs:h-8">
+                  <SettingsIcon className="h-2.5 w-2.5 xxs:h-3 xxs:w-3" />
                   Edit Budget Settings
                 </Button>
               </Link>
