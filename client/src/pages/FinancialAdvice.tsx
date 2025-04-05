@@ -241,10 +241,15 @@ const FinancialAdvice = () => {
         // Handle specific API error responses
         if (error.response.status === 429) {
           if (error.response.data?.errorType === "quota_exceeded") {
-            errorMessage = "OpenAI API quota has been exceeded. Please update the API key or billing plan.";
+            errorMessage = "AI API quota has been exceeded. The system will automatically try another AI provider.";
           } else if (error.response.data?.errorType === "rate_limited") {
             errorMessage = "Too many requests to the AI service. Please try again in a few minutes.";
           }
+        }
+        
+        // Use the message from the server if available
+        if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
         }
       }
       
@@ -308,10 +313,15 @@ const FinancialAdvice = () => {
         // Handle specific API error responses
         if (error.response.status === 429) {
           if (error.response.data?.errorType === "quota_exceeded") {
-            errorMessage = "OpenAI API quota has been exceeded. Please update the API key or billing plan.";
+            errorMessage = "AI API quota has been exceeded. The system will automatically try another AI provider.";
           } else if (error.response.data?.errorType === "rate_limited") {
             errorMessage = "Too many requests to the AI service. Please try again in a few minutes.";
           }
+        }
+        
+        // Use the message from the server if available
+        if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
         }
       }
       
@@ -376,10 +386,15 @@ const FinancialAdvice = () => {
         // Handle specific API error responses
         if (error.response.status === 429) {
           if (error.response.data?.errorType === "quota_exceeded") {
-            errorMessage = "OpenAI API quota has been exceeded. Please update the API key or billing plan.";
+            errorMessage = "AI API quota has been exceeded. The system will automatically try another AI provider.";
           } else if (error.response.data?.errorType === "rate_limited") {
             errorMessage = "Too many requests to the AI service. Please try again in a few minutes.";
           }
+        }
+        
+        // Use the message from the server if available
+        if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
         }
       }
       
@@ -498,7 +513,7 @@ const FinancialAdvice = () => {
                     <AlertTitle>Error</AlertTitle>
                     <AlertDescription>
                       {adviceData?.errorType === "quota_exceeded" 
-                        ? "OpenAI API quota has been exceeded. Please update the API key or billing plan."
+                        ? "AI API quota has been exceeded. The system will automatically try another AI provider."
                         : adviceData?.errorType === "rate_limited"
                         ? "Too many requests to the AI service. Please try again in a few minutes."
                         : "Unable to generate financial advice at this time. Please try again later."}
@@ -587,7 +602,7 @@ const FinancialAdvice = () => {
                   <AlertTitle className="text-xs sm:text-sm font-medium">Error</AlertTitle>
                   <AlertDescription className="text-xs sm:text-sm">
                     {goalSuggestions?.errorType === "quota_exceeded" 
-                      ? "OpenAI API quota has been exceeded. Please update the API key or billing plan."
+                      ? "AI API quota has been exceeded. The system will automatically try another AI provider."
                       : goalSuggestions?.errorType === "rate_limited"
                       ? "Too many requests to the AI service. Please try again in a few minutes."
                       : "Unable to generate goal suggestions at this time. Please try again later."}
@@ -709,7 +724,7 @@ const FinancialAdvice = () => {
                     <AlertTitle className="text-xs sm:text-sm font-medium">Error</AlertTitle>
                     <AlertDescription className="text-xs sm:text-sm">
                       {expenseAnalysis?.errorType === "quota_exceeded" 
-                        ? "OpenAI API quota has been exceeded. Please update the API key or billing plan."
+                        ? "AI API quota has been exceeded. The system will automatically try another AI provider."
                         : expenseAnalysis?.errorType === "rate_limited"
                         ? "Too many requests to the AI service. Please try again in a few minutes."
                         : "Unable to analyze expenses at this time. Please try again later."}
