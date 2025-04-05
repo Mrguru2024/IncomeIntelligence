@@ -11,7 +11,9 @@ import { users, type User, type InsertUser, incomes, type Income, type InsertInc
   userProfiles, type UserProfile, type InsertUserProfile,
   reminders, type Reminder, type InsertReminder,
   widgetSettings, type WidgetSettings, type InsertWidgetSettings,
-  notifications, type Notification, type InsertNotification
+  notifications, type Notification, type InsertNotification,
+  spendingPersonalityQuestions, type SpendingPersonalityQuestion, type InsertSpendingPersonalityQuestion,
+  spendingPersonalityResults, type SpendingPersonalityResult, type InsertSpendingPersonalityResult
  } from "@shared/schema";
 
 // modify the interface with any CRUD methods
@@ -161,6 +163,20 @@ export interface IStorage {
   markAllNotificationsAsRead(userId: number): Promise<boolean>;
   deleteNotification(id: number): Promise<boolean>;
   getUnreadNotifications(userId: number): Promise<Notification[]>;
+  
+  // Spending Personality Quiz methods
+  getSpendingPersonalityQuestions(): Promise<SpendingPersonalityQuestion[]>;
+  getActiveSpendingPersonalityQuestions(): Promise<SpendingPersonalityQuestion[]>;
+  getSpendingPersonalityQuestionById(id: number): Promise<SpendingPersonalityQuestion | undefined>;
+  createSpendingPersonalityQuestion(question: InsertSpendingPersonalityQuestion): Promise<SpendingPersonalityQuestion>;
+  updateSpendingPersonalityQuestion(id: number, question: Partial<InsertSpendingPersonalityQuestion>): Promise<SpendingPersonalityQuestion | undefined>;
+  deleteSpendingPersonalityQuestion(id: number): Promise<boolean>;
+  
+  // Spending Personality Results methods
+  getSpendingPersonalityResults(userId: number): Promise<SpendingPersonalityResult[]>;
+  getSpendingPersonalityResultById(id: number): Promise<SpendingPersonalityResult | undefined>;
+  createSpendingPersonalityResult(result: InsertSpendingPersonalityResult): Promise<SpendingPersonalityResult>;
+  getLatestSpendingPersonalityResult(userId: number): Promise<SpendingPersonalityResult | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -180,6 +196,8 @@ export class MemStorage implements IStorage {
   private gamificationProfiles: Map<number, GamificationProfile>;
   private pointTransactions: Map<number, PointTransaction>;
   private notifications: Map<number, Notification>;
+  private spendingPersonalityQuestions: Map<number, SpendingPersonalityQuestion>;
+  private spendingPersonalityResults: Map<number, SpendingPersonalityResult>;
   
   private userCurrentId: number;
   private userProfileCurrentId: number;
@@ -197,6 +215,8 @@ export class MemStorage implements IStorage {
   private gamificationProfileCurrentId: number;
   private pointTransactionCurrentId: number;
   private notificationCurrentId: number;
+  private spendingPersonalityQuestionCurrentId: number;
+  private spendingPersonalityResultCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -215,6 +235,8 @@ export class MemStorage implements IStorage {
     this.gamificationProfiles = new Map();
     this.pointTransactions = new Map();
     this.notifications = new Map();
+    this.spendingPersonalityQuestions = new Map();
+    this.spendingPersonalityResults = new Map();
     
     this.userCurrentId = 1;
     this.userProfileCurrentId = 1;
@@ -232,6 +254,8 @@ export class MemStorage implements IStorage {
     this.gamificationProfileCurrentId = 1;
     this.pointTransactionCurrentId = 1;
     this.notificationCurrentId = 1;
+    this.spendingPersonalityQuestionCurrentId = 1;
+    this.spendingPersonalityResultCurrentId = 1;
     
     // Add some initial data
     this.setupInitialData();
@@ -2027,6 +2051,92 @@ export class MemStorage implements IStorage {
     return Array.from(this.notifications.values())
       .filter(notification => notification.userId === userId && !notification.isRead)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  
+  // Spending Personality Quiz Methods
+  async getSpendingPersonalityQuestions(): Promise<SpendingPersonalityQuestion[]> {
+    return Array.from(this.spendingPersonalityQuestions.values());
+  }
+  
+  async getActiveSpendingPersonalityQuestions(): Promise<SpendingPersonalityQuestion[]> {
+    return Array.from(this.spendingPersonalityQuestions.values())
+      .filter(q => q.active);
+  }
+  
+  async getSpendingPersonalityQuestionById(id: number): Promise<SpendingPersonalityQuestion | undefined> {
+    return this.spendingPersonalityQuestions.get(id);
+  }
+  
+  async createSpendingPersonalityQuestion(question: InsertSpendingPersonalityQuestion): Promise<SpendingPersonalityQuestion> {
+    const id = this.spendingPersonalityQuestionCurrentId++;
+    const now = new Date();
+    
+    const newQuestion: SpendingPersonalityQuestion = {
+      id,
+      questionText: question.questionText,
+      options: question.options,
+      category: question.category,
+      weight: question.weight || 1,
+      active: question.active !== undefined ? question.active : true,
+      createdAt: now
+    };
+    
+    this.spendingPersonalityQuestions.set(id, newQuestion);
+    return newQuestion;
+  }
+  
+  async updateSpendingPersonalityQuestion(id: number, question: Partial<InsertSpendingPersonalityQuestion>): Promise<SpendingPersonalityQuestion | undefined> {
+    const existingQuestion = this.spendingPersonalityQuestions.get(id);
+    if (!existingQuestion) return undefined;
+    
+    const updatedQuestion: SpendingPersonalityQuestion = {
+      ...existingQuestion,
+      ...question
+    };
+    
+    this.spendingPersonalityQuestions.set(id, updatedQuestion);
+    return updatedQuestion;
+  }
+  
+  async deleteSpendingPersonalityQuestion(id: number): Promise<boolean> {
+    if (!this.spendingPersonalityQuestions.has(id)) return false;
+    return this.spendingPersonalityQuestions.delete(id);
+  }
+  
+  // Spending Personality Result methods
+  async getSpendingPersonalityResults(userId: number): Promise<SpendingPersonalityResult[]> {
+    return Array.from(this.spendingPersonalityResults.values())
+      .filter(result => result.userId === userId)
+      .sort((a, b) => new Date(b.takenAt).getTime() - new Date(a.takenAt).getTime()); // Most recent first
+  }
+  
+  async getSpendingPersonalityResultById(id: number): Promise<SpendingPersonalityResult | undefined> {
+    return this.spendingPersonalityResults.get(id);
+  }
+  
+  async createSpendingPersonalityResult(result: InsertSpendingPersonalityResult): Promise<SpendingPersonalityResult> {
+    const id = this.spendingPersonalityResultCurrentId++;
+    const now = new Date();
+    
+    const newResult: SpendingPersonalityResult = {
+      id,
+      userId: result.userId,
+      personalityType: result.personalityType,
+      score: result.score,
+      answers: result.answers,
+      takenAt: now,
+      recommendations: result.recommendations || null
+    };
+    
+    this.spendingPersonalityResults.set(id, newResult);
+    return newResult;
+  }
+  
+  async getLatestSpendingPersonalityResult(userId: number): Promise<SpendingPersonalityResult | undefined> {
+    const userResults = await this.getSpendingPersonalityResults(userId);
+    if (userResults.length === 0) return undefined;
+    
+    return userResults[0]; // Already sorted by takenAt desc
   }
 }
 
