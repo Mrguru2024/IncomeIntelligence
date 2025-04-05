@@ -82,11 +82,11 @@ export default function BudgetPlanner() {
   });
 
   return (
-    <div className="container mx-auto p-3 sm:p-6 max-w-full">
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 sm:mb-6">Budget Planner</h1>
+    <div className="container mx-auto p-2 sm:p-6 max-w-full">
+      <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight mb-3 sm:mb-6">Budget Planner</h1>
 
-      <div className="grid gap-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid gap-3 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
           <StatCard 
             title="Monthly Budget" 
             value={formatCurrency(totalIncome)}
@@ -108,9 +108,9 @@ export default function BudgetPlanner() {
         </div>
 
         <Tabs defaultValue="calendar" className="w-full">
-          <TabsList className="w-full grid grid-cols-1 sm:grid-cols-3 gap-2 mb-6">
-            <TabsTrigger value="calendar" className="w-full flex items-center justify-center p-2">
-              <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+          <TabsList className="w-full grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 mb-4 sm:mb-6">
+            <TabsTrigger value="calendar" className="w-full flex items-center justify-center py-1.5 px-2 sm:p-2 text-sm sm:text-base">
+              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
               <span className="truncate">Calendar</span>
             </TabsTrigger>
             <TabsTrigger value="allocation" className="w-full flex items-center justify-center p-2">
@@ -131,8 +131,8 @@ export default function BudgetPlanner() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="allocation" className="mt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <TabsContent value="allocation" className="mt-3 sm:mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
               <AllocationCard 
                 title="Needs (40%)" 
                 value={formatCurrency(needsAllocation)}
@@ -227,7 +227,7 @@ interface AllocationCardProps {
 function AllocationCard({ title, value, description, color, icon }: AllocationCardProps) {
   return (
     <Card className={color}>
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-medium">{title}</h3>
           {icon}
