@@ -18,6 +18,10 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 describe('CashFlowCoach', () => {
+  beforeEach(() => {
+    queryClient.clear();
+  });
+
   it('renders spending patterns section', () => {
     render(<CashFlowCoach />, { wrapper });
     expect(screen.getByText('Spending Patterns')).toBeInTheDocument();
