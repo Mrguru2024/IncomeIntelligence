@@ -15,8 +15,10 @@ import FinancialAdvice from "@/pages/FinancialAdvice";
 import Profile from "@/pages/Profile";
 import Reminders from "@/pages/Reminders";
 import AuthPage from "@/pages/auth-page";
+import OnboardingPage from "@/pages/onboarding-page";
 import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
+import AppTutorial from "@/components/AppTutorial";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { useState } from "react";
@@ -39,6 +41,7 @@ function Router() {
       <ProtectedRoute path="/reminders" component={Reminders} />
       <ProtectedRoute path="/settings" component={Settings} />
       <ProtectedRoute path="/voice-commands" component={() => <VoiceCommands />} />
+      <ProtectedRoute path="/onboarding" component={OnboardingPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
@@ -49,12 +52,14 @@ function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [location] = useLocation();
   const isAuthPage = location === "/auth";
+  const isOnboardingPage = location === "/onboarding";
+  const isFullScreenPage = isAuthPage || isOnboardingPage;
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider>
-          {isAuthPage ? (
+          {isFullScreenPage ? (
             <main className="w-full">
               <Router />
             </main>
@@ -93,6 +98,7 @@ function App() {
                 </main>
               </div>
               <VoiceCommandWidget />
+              <AppTutorial />
             </div>
           )}
           <Toaster />
