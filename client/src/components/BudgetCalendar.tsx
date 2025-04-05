@@ -155,12 +155,12 @@ export default function BudgetCalendar() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader className="pb-2">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
-            <CardTitle className="text-lg sm:text-2xl">Budget Calendar</CardTitle>
-            <div className="w-full sm:w-auto">
+        <CardHeader className="pb-1 px-2 xs:px-4 sm:px-6">
+          <div className="flex flex-col justify-between items-start gap-1 xs:gap-2">
+            <CardTitle className="text-base xs:text-lg sm:text-2xl">Budget Calendar</CardTitle>
+            <div className="w-full">
               <Select value={view} onValueChange={(val: CalendarView) => setView(val)}>
-                <SelectTrigger className="w-full sm:w-[160px]">
+                <SelectTrigger className="w-full text-[11px] xs:text-xs sm:text-sm h-8 xs:h-9">
                   <SelectValue placeholder="View" />
                 </SelectTrigger>
                 <SelectContent>
@@ -173,9 +173,9 @@ export default function BudgetCalendar() {
           </div>
         </CardHeader>
         
-        <CardContent className="px-2 sm:px-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-4">
-            <h3 className="text-base sm:text-lg font-medium">
+        <CardContent className="px-1 xs:px-2 sm:px-6 pt-1 pb-0">
+          <div className="flex flex-col justify-between items-start gap-1 xs:gap-2 mb-2 xs:mb-3">
+            <h3 className="text-xs xs:text-sm sm:text-lg font-medium truncate w-full">
               {view === "month" 
                 ? format(currentDate, "MMMM yyyy")
                 : view === "biweek"
@@ -183,30 +183,30 @@ export default function BudgetCalendar() {
                 : `Week ${getWeek(currentDate)}, ${format(currentDate, "yyyy")}`
               }
             </h3>
-            <div className="flex space-x-1 sm:space-x-2 w-full sm:w-auto justify-end">
-              <Button variant="outline" size="sm" onClick={goToPrevious} className="p-0 sm:p-2 h-8 w-8 sm:h-9 sm:w-auto">
-                <ChevronLeft className="h-4 w-4" />
+            <div className="flex space-x-1 xs:space-x-2 w-full justify-between xs:justify-start">
+              <Button variant="outline" size="sm" onClick={goToPrevious} className="p-0 h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9">
+                <ChevronLeft className="h-3 w-3 xs:h-4 xs:w-4" />
               </Button>
-              <Button variant="outline" size="sm" onClick={goToToday} className="h-8 sm:h-9 px-2 sm:px-3">
+              <Button variant="outline" size="sm" onClick={goToToday} className="h-7 xs:h-8 sm:h-9 px-1 xs:px-2 sm:px-3 text-[10px] xs:text-xs">
                 Today
               </Button>
-              <Button variant="outline" size="sm" onClick={goToNext} className="p-0 sm:p-2 h-8 w-8 sm:h-9 sm:w-auto">
-                <ChevronRight className="h-4 w-4" />
+              <Button variant="outline" size="sm" onClick={goToNext} className="p-0 h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9">
+                <ChevronRight className="h-3 w-3 xs:h-4 xs:w-4" />
               </Button>
             </div>
           </div>
           
-          <div className="overflow-x-auto -mx-2 px-2">
-            <div className="min-w-[500px]"> {/* Ensure minimum width for small screens */}
-              <div className="grid grid-cols-7 gap-1 text-center text-xs sm:text-sm font-medium">
-                {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day, idx) => (
-                  <div key={idx} className="py-1 sm:py-2">
+          <div className="overflow-x-auto -mx-2 px-2 pb-2">
+            <div className="min-w-[280px] md:min-w-[500px]"> {/* Support for ultra-narrow (Z Fold) screens */}
+              <div className="grid grid-cols-7 gap-0.5 xs:gap-1 text-center text-[8px] xs:text-xs sm:text-sm font-medium">
+                {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
+                  <div key={idx} className="py-0.5 xs:py-1 sm:py-2">
                     {day}
                   </div>
                 ))}
               </div>
               
-              <div className="grid grid-cols-7 gap-1 mt-1">
+              <div className="grid grid-cols-7 gap-0.5 xs:gap-1 mt-0.5 xs:mt-1">
                 {days.map((day, i) => {
                   const dayIncomes = getIncomesForDate(day);
                   const dayGoals = getGoalsForDate(day);
@@ -215,24 +215,24 @@ export default function BudgetCalendar() {
                   return (
                     <div
                       key={i}
-                      className={`h-[70px] sm:min-h-[80px] border rounded-md p-0.5 sm:p-1 overflow-hidden ${
+                      className={`h-[40px] xs:h-[60px] sm:min-h-[80px] border rounded-md p-0.5 overflow-hidden ${
                         isToday(day) ? "bg-primary/5 border-primary" : ""
                       }`}
                     >
-                      <div className="text-right p-0.5 sm:p-1 font-medium text-xs">
+                      <div className="text-right p-0 xs:p-0.5 sm:p-1 font-medium text-[8px] xs:text-xs">
                         {format(day, "d")}
                       </div>
                       
-                      <div className="text-[10px] sm:text-xs space-y-0.5 sm:space-y-1">
+                      <div className="text-[8px] xs:text-[10px] sm:text-xs space-y-0.5 sm:space-y-1">
                         {dayIncomes.length > 0 && (
-                          <div className="bg-green-50 p-0.5 rounded text-green-800 flex items-center text-[9px] sm:text-xs">
-                            <DollarSign className="h-2 w-2 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 flex-shrink-0" />
+                          <div className="bg-green-50 p-0.5 rounded text-green-800 flex items-center text-[7px] xs:text-[9px] sm:text-xs">
+                            <DollarSign className="h-1.5 w-1.5 xs:h-2 xs:w-2 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 flex-shrink-0" />
                             <span className="truncate">{formatCurrency(dayIncomesTotal)}</span>
                           </div>
                         )}
                         
                         {dayGoals.map((goal) => (
-                          <div key={goal.id} className="bg-blue-50 p-0.5 rounded text-blue-800 text-[9px] truncate">
+                          <div key={goal.id} className="bg-blue-50 p-0.5 rounded text-blue-800 text-[7px] xs:text-[9px] truncate">
                             {goal.name}
                           </div>
                         ))}
@@ -245,15 +245,15 @@ export default function BudgetCalendar() {
           </div>
         </CardContent>
         
-        <CardFooter className="border-t px-2 sm:px-6 py-3 sm:py-4">
-          <div className="w-full grid grid-cols-2 gap-2 sm:gap-4">
+        <CardFooter className="border-t px-1 xs:px-2 sm:px-6 py-2 xs:py-3 sm:py-4">
+          <div className="w-full grid grid-cols-2 gap-1 xs:gap-2 sm:gap-4">
             <div className="text-center">
-              <h4 className="text-xs sm:text-sm font-medium text-muted-foreground">Total Income</h4>
-              <p className="text-lg sm:text-2xl font-bold text-green-600">{formatCurrency(calculateTotalIncome())}</p>
+              <h4 className="text-[10px] xs:text-xs sm:text-sm font-medium text-muted-foreground">Total Income</h4>
+              <p className="text-sm xs:text-lg sm:text-2xl font-bold text-green-600">{formatCurrency(calculateTotalIncome())}</p>
             </div>
             <div className="text-center">
-              <h4 className="text-xs sm:text-sm font-medium text-muted-foreground">Goal Payments Due</h4>
-              <p className="text-lg sm:text-2xl font-bold text-blue-600">{formatCurrency(calculateGoalsAmount())}</p>
+              <h4 className="text-[10px] xs:text-xs sm:text-sm font-medium text-muted-foreground">Goals Due</h4>
+              <p className="text-sm xs:text-lg sm:text-2xl font-bold text-blue-600">{formatCurrency(calculateGoalsAmount())}</p>
             </div>
           </div>
         </CardFooter>

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { LockIcon, UnlockIcon } from 'lucide-react';
+import { Lock, Unlock } from 'lucide-react';
 import { formatCurrency } from "@/lib/utils/format";
 
 interface SafeEnvelopeProps {
@@ -20,34 +20,34 @@ export default function SafeEnvelope({ category, allocated, spent, total }: Safe
   
   return (
     <Card className={isLocked ? 'border-2 border-primary' : ''}>
-      <CardHeader className="pb-2 flex flex-row justify-between items-center">
-        <CardTitle className="text-sm font-medium">{category}</CardTitle>
+      <CardHeader className="pb-1 xs:pb-2 pt-2 xs:pt-3 px-2 xs:px-4 flex flex-row justify-between items-center">
+        <CardTitle className="text-xs xs:text-sm font-medium">{category}</CardTitle>
         <Button 
           variant="ghost" 
           size="sm"
           onClick={() => setIsLocked(!isLocked)}
-          className="h-8 w-8 p-0"
+          className="h-6 w-6 xs:h-8 xs:w-8 p-0"
         >
           {isLocked ? (
-            <LockIcon className="h-4 w-4 text-primary" />
+            <Lock className="h-3 w-3 xs:h-4 xs:w-4 text-primary" />
           ) : (
-            <UnlockIcon className="h-4 w-4 text-muted-foreground" />
+            <Unlock className="h-3 w-3 xs:h-4 xs:w-4 text-muted-foreground" />
           )}
         </Button>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <Progress value={progress} className="h-2" />
-          <div className="flex justify-between text-xs">
-            <span>Spent: {formatCurrency(spent)}</span>
-            <span>Allocated: {formatCurrency(allocated)}</span>
+      <CardContent className="p-2 xs:p-4">
+        <div className="space-y-1 xs:space-y-2">
+          <Progress value={progress} className="h-1.5 xs:h-2" />
+          <div className="flex justify-between text-[9px] xs:text-xs">
+            <span className="truncate pr-1">Spent: {formatCurrency(spent)}</span>
+            <span className="truncate pl-1">Budget: {formatCurrency(allocated)}</span>
           </div>
-          <div className={`text-xs ${remaining < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
-            {formatCurrency(Math.abs(remaining))} {remaining < 0 ? 'over budget' : 'remaining'}
+          <div className={`text-[9px] xs:text-xs ${remaining < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+            {formatCurrency(Math.abs(remaining))} {remaining < 0 ? 'over' : 'left'}
           </div>
           {isLocked && (
-            <div className="text-xs text-primary mt-2">
-              🔒 Envelope locked - Protect your budget
+            <div className="text-[9px] xs:text-xs text-primary mt-1 xs:mt-2 truncate">
+              🔒 Envelope locked
             </div>
           )}
         </div>
