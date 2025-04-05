@@ -11,8 +11,15 @@ import cookieParser from "cookie-parser";
 import csrf from "csurf";
 import { preventApiAbuse, sanitizeQueryParams, setSecurityHeaders } from "./middleware/apiProtection";
 import { optionalAuth } from "./middleware/authMiddleware";
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
 
 const app = express();
+
+// Trust the Replit proxy
+app.set('trust proxy', 1);
 
 // Security Headers using helmet with additional security options
 app.use(helmet({

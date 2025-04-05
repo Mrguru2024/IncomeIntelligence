@@ -749,3 +749,14 @@ export const insertSpendingPersonalityQuestionSchema = baseInsertSpendingPersona
 
 export type InsertSpendingPersonalityQuestion = z.infer<typeof insertSpendingPersonalityQuestionSchema>;
 export type SpendingPersonalityQuestion = typeof spendingPersonalityQuestions.$inferSelect;
+
+// Quiz answer schema for validation
+export const quizAnswerSchema = z.object({
+  questionId: z.number(),
+  optionId: z.string(),
+  personalityType: z.string(),
+  value: z.number()
+});
+
+export const quizAnswersSchema = z.array(quizAnswerSchema);
+export type QuizAnswer = z.infer<typeof quizAnswerSchema>;
