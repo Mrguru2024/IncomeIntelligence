@@ -25,6 +25,7 @@ import {
 } from "./ai-service";
 import { notificationService } from "./notification-service";
 import { insertNotificationSchema } from "@shared/schema";
+import { requireAuth, checkUserMatch } from "./middleware/authMiddleware";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all incomes
@@ -685,8 +686,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // AI FINANCIAL ADVICE ENDPOINTS
   
-  // Get personalized financial advice
-  app.post("/api/ai/financial-advice", async (req, res) => {
+  // Get personalized financial advice - Protected by authentication
+  app.post("/api/ai/financial-advice", requireAuth, async (req, res) => {
     try {
       const schema = z.object({
         userId: z.number().int().positive(),
