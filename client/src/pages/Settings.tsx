@@ -550,23 +550,88 @@ export default function Settings() {
                         onValueChange={handleAIProviderChange}
                         className="gap-4"
                       >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="openai" id="openai" />
-                          <Label htmlFor="openai" className="font-normal">
-                            OpenAI GPT-4o (More advanced, may require more tokens)
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="anthropic" id="anthropic" />
-                          <Label htmlFor="anthropic" className="font-normal">
-                            Anthropic Claude (Newer model, may be better for certain queries)
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="perplexity" id="perplexity" />
-                          <Label htmlFor="perplexity" className="font-normal">
-                            Perplexity AI (Free model specialized in financial analysis)
-                          </Label>
+                        <div className="flex flex-col space-y-4">
+                          <h4 className="text-base font-medium text-primary">Financial Advice AI Models</h4>
+                          <p className="text-xs text-muted-foreground">These models are great for generating financial suggestions, answering money questions, and assisting with user education.</p>
+                          
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="openai" id="openai" />
+                            <Label htmlFor="openai" className="font-normal">
+                              OpenAI GPT-4o (Advanced financial reasoning, may require more tokens)
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="anthropic" id="anthropic" />
+                            <Label htmlFor="anthropic" className="font-normal">
+                              Anthropic Claude (Strong dialogue and financial advice capabilities)
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="perplexity" id="perplexity" />
+                            <Label htmlFor="perplexity" className="font-normal">
+                              Perplexity AI (Free model specialized in searching and analyzing financial information)
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="mistral" id="mistral" />
+                            <Label htmlFor="mistral" className="font-normal">
+                              Mistral 7B/Mixtral (Handles logic, planning, summarization, financial Q&A)
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="llama" id="llama" />
+                            <Label htmlFor="llama" className="font-normal">
+                              LLaMA 2 (Meta's model for reasoning and dialogue generation)
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="open-assistant" id="open-assistant" />
+                            <Label htmlFor="open-assistant" className="font-normal">
+                              Open-Assistant (Chatbot focused on real conversation-style interaction)
+                            </Label>
+                          </div>
+
+                          <h4 className="text-base font-medium text-primary mt-4">Voice & Text Processing</h4>
+                          <p className="text-xs text-muted-foreground">Models for voice commands and expense categorization</p>
+
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="whisper" id="whisper" />
+                            <Label htmlFor="whisper" className="font-normal">
+                              Whisper (OpenAI's high-accuracy speech-to-text)
+                            </Label>
+                          </div>
+
+                          <h4 className="text-base font-medium text-primary mt-4">Expense Categorization</h4>
+                          <p className="text-xs text-muted-foreground">Models for automatic expense tagging and categorization</p>
+
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="scikit-learn" id="scikit-learn" />
+                            <Label htmlFor="scikit-learn" className="font-normal">
+                              scikit-learn (Basic models for expense classification)
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="fasttext" id="fasttext" />
+                            <Label htmlFor="fasttext" className="font-normal">
+                              fastText (Lightweight NLP for text-based merchant categorization)
+                            </Label>
+                          </div>
+
+                          <h4 className="text-base font-medium text-primary mt-4">Rules & Summarization</h4>
+                          <p className="text-xs text-muted-foreground">Models for automation logic and generating summaries</p>
+
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="json-logic" id="json-logic" />
+                            <Label htmlFor="json-logic" className="font-normal">
+                              JSON Logic (Rules engine for savings automation)
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="t5" id="t5" />
+                            <Label htmlFor="t5" className="font-normal">
+                              T5 (Text-To-Text Transformer for generating summaries and feedback)
+                            </Label>
+                          </div>
                         </div>
                       </RadioGroup>
                     </div>
@@ -645,13 +710,35 @@ export default function Settings() {
                       <p className="text-sm">
                         This application uses advanced AI models to generate financial advice and analysis. You can configure which provider to use as the default and whether to automatically fall back to an alternative if the first one fails.
                       </p>
-                      <p className="text-sm mt-2">
-                        <strong>OpenAI GPT-4o</strong>: Latest model from OpenAI with strong financial analysis capabilities.
-                        <br />
-                        <strong>Anthropic Claude</strong>: Alternative provider that may offer different insights and perspectives.
-                        <br />
-                        <strong>Perplexity AI</strong>: Free alternative model specialized in searching and analyzing financial information.
-                      </p>
+                      
+                      <div className="text-sm mt-3 space-y-3">
+                        <h4 className="font-medium">Financial Advice Models:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li><strong>OpenAI GPT-4o</strong>: Latest model from OpenAI with strong financial analysis capabilities.</li>
+                          <li><strong>Anthropic Claude</strong>: Alternative provider that may offer different insights and perspectives.</li>
+                          <li><strong>Perplexity AI</strong>: Free alternative specialized in searching and analyzing financial information.</li>
+                          <li><strong>Mistral 7B/Mixtral</strong>: Apache 2.0 licensed model good for logic, planning, and summarization.</li>
+                          <li><strong>LLaMA 2</strong>: Meta's model for reasoning and dialogue generation.</li>
+                          <li><strong>Open-Assistant</strong>: Apache 2.0 licensed chatbot focused on conversation-style interaction.</li>
+                        </ul>
+                        
+                        <h4 className="font-medium">Voice & Text Processing:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li><strong>Whisper</strong>: OpenAI's MIT-licensed high-accuracy speech-to-text for voice commands.</li>
+                        </ul>
+                        
+                        <h4 className="font-medium">Expense Categorization:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li><strong>scikit-learn</strong>: Basic ML models for expense classification and prediction.</li>
+                          <li><strong>fastText</strong>: Lightweight NLP for text-based merchant categorization.</li>
+                        </ul>
+                        
+                        <h4 className="font-medium">Rules & Summarization:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li><strong>JSON Logic</strong>: Rules engine for defining savings rules and automation.</li>
+                          <li><strong>T5</strong>: Text-To-Text Transformer for generating summaries and user feedback.</li>
+                        </ul>
+                      </div>
                     </AlertDescription>
                   </Alert>
                 </div>

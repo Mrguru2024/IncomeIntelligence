@@ -6,9 +6,17 @@ import { createHash } from 'crypto';
 
 // Define AI providers enum first
 export enum AIProvider {
-  OPENAI = 'openai',
-  ANTHROPIC = 'anthropic',
-  PERPLEXITY = 'perplexity',
+  OPENAI = 'openai',           // OpenAI GPT models
+  ANTHROPIC = 'anthropic',     // Anthropic Claude models
+  PERPLEXITY = 'perplexity',   // Perplexity AI
+  MISTRAL = 'mistral',         // Mistral 7B/Mixtral
+  LLAMA = 'llama',             // LLaMA 2
+  OPEN_ASSISTANT = 'open-assistant', // Open-Assistant
+  WHISPER = 'whisper',         // Whisper (voice-to-text)
+  SCIKIT = 'scikit-learn',     // scikit-learn for expense categorization
+  FASTTEXT = 'fasttext',       // fastText for text categorization
+  JSON_LOGIC = 'json-logic',   // Rules engine
+  T5 = 't5'                    // T5 for text summarization
 }
 
 // AI provider instances
