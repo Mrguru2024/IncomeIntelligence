@@ -122,7 +122,11 @@ export async function getFinancialAdvice(requestData: FinancialAdviceRequest): P
       
       // Handle specific OpenAI API errors
       if (error.status === 429) {
-        throw new Error("OpenAI rate limit exceeded. Please try again later.");
+        if (error.error?.code === 'insufficient_quota') {
+          throw new Error("OpenAI API quota exceeded. Please update your billing plan or try again later.");
+        } else {
+          throw new Error("OpenAI rate limit exceeded. Please try again later.");
+        }
       } else if (error.status === 401) {
         throw new Error("OpenAI authentication error. Please check your API key.");
       } else if (error.status === 500) {
