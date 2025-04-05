@@ -13,10 +13,31 @@ interface SafeEnvelopeProps {
   total: number;
 }
 
-export default function SafeEnvelope({ category, allocated, spent, total }: SafeEnvelopeProps) {
-  const [isLocked, setIsLocked] = useState(false);
+export default function SafeEnvelope({ 
+  category, 
+  allocated, 
+  spent, 
+  total, 
+  isLocked: propIsLocked, 
+  onLockToggle 
+}: SafeEnvelopeProps & { 
+  isLocked?: boolean;
+  onLockToggle?: (isLocked: boolean) => void;
+}) {
+  const [isLockedState, setIsLockedState] = useState(false);
+  
+  // Use either the prop or the state
+  const isLocked = propIsLocked !== undefined ? propIsLocked : isLockedState;
   const progress = (spent / allocated) * 100;
   const remaining = allocated - spent;
+  
+  const handleLockToggle = () => {
+    if (onLockToggle) {
+      onLockToggle(!isLocked);
+    } else {
+      setIsLockedState(!isLocked);
+    }
+  };
   
   return (
     <Card className={isLocked ? 'border-2 border-primary' : ''}>
@@ -25,8 +46,9 @@ export default function SafeEnvelope({ category, allocated, spent, total }: Safe
         <Button 
           variant="ghost" 
           size="sm"
-          onClick={() => setIsLocked(!isLocked)}
+          onClick={handleLockToggle}
           className="h-6 w-6 xs:h-8 xs:w-8 p-0"
+          aria-label="Toggle lock"
         >
           {isLocked ? (
             <Lock className="h-3 w-3 xs:h-4 xs:w-4 text-primary" />

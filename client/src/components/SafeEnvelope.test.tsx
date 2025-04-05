@@ -1,10 +1,10 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import { SafeEnvelope } from './SafeEnvelope';
+import SafeEnvelope from './SafeEnvelope';
 
 jest.mock('lucide-react', () => ({
-  LockIcon: () => <div data-testid="lock-icon" />,
-  UnlockIcon: () => <div data-testid="unlock-icon" />
+  Lock: () => <div data-testid="lock-icon" />,
+  Unlock: () => <div data-testid="unlock-icon" />
 }));
 
 describe('SafeEnvelope', () => {

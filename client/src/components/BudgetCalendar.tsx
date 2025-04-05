@@ -9,6 +9,7 @@ import {
   startOfWeek,
   endOfWeek,
   addWeeks,
+  addMonths,
   getWeek,
   isWithinInterval,
   isToday,
@@ -17,9 +18,17 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Calendar, DollarSign } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, DollarSign, XCircle } from "lucide-react";
 import { Income, Goal } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils/format";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
+} from "@/components/ui/dialog";
 
 // Define view types
 type CalendarView = "month" | "week" | "biweek";
@@ -28,6 +37,10 @@ export default function BudgetCalendar() {
   // State for calendar
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<CalendarView>("month");
+  
+  // State for day detail modal
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [isDayModalOpen, setIsDayModalOpen] = useState(false);
   
   // Get incomes and goals from API
   const { data: incomes = [] } = useQuery<Income[]>({
@@ -292,8 +305,8 @@ export default function BudgetCalendar() {
                         ${dayIncomes.length > 0 || dayGoals.length > 0 ? "shadow-sm hover:shadow" : ""}
                       `}
                       onClick={() => {
-                        /* Could open a modal showing details for this day */
-                        console.log(`Selected date: ${format(day, 'yyyy-MM-dd')}`);
+                        setSelectedDay(day);
+                        setIsDayModalOpen(true);
                       }}
                       title={`${format(day, 'EEEE, MMMM d, yyyy')}${dayIncomes.length > 0 ? ` - ${dayIncomes.length} income(s)` : ''}${dayGoals.length > 0 ? ` - ${dayGoals.length} goal(s)` : ''}`}
                       role="button"
@@ -302,7 +315,8 @@ export default function BudgetCalendar() {
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          console.log(`Selected date via keyboard: ${format(day, 'yyyy-MM-dd')}`);
+                          setSelectedDay(day);
+                          setIsDayModalOpen(true);
                         }
                       }}
                     >
@@ -384,6 +398,138 @@ export default function BudgetCalendar() {
           </div>
         </CardFooter>
       </Card>
+      
+      {/* Day Detail Modal */}
+      <Dialog open={isDayModalOpen} onOpenChange={setIsDayModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          {selectedDay && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-center text-xl">
+                  {format(selectedDay, "EEEE, MMMM d, yyyy")}
+                  {isToday(selectedDay) && (
+                    <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                      Today
+                    </span>
+                  )}
+                </DialogTitle>
+                <DialogDescription className="text-center">
+                  Financial activity for this day
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 my-2 max-h-[300px] overflow-y-auto px-1">
+                {/* Incomes Section */}
+                <div>
+                  <h3 className="font-medium text-base mb-2 flex items-center">
+                    <DollarSign className="h-4 w-4 mr-1 text-green-600" />
+                    Income
+                  </h3>
+                  
+                  {getIncomesForDate(selectedDay).length > 0 ? (
+                    <div className="space-y-2">
+                      {getIncomesForDate(selectedDay).map(income => (
+                        <div 
+                          key={income.id} 
+                          className="p-2 border rounded-md bg-green-50/50 dark:bg-green-950/20"
+                        >
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="font-medium">{income.description}</span>
+                            <span className="text-green-600 font-bold">{formatCurrency(parseFloat(income.amount.toString()))}</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Category: {income.category || "Uncategorized"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground italic">
+                      No income recorded for this day.
+                    </div>
+                  )}
+                </div>
+                
+                {/* Goals Section */}
+                <div>
+                  <h3 className="font-medium text-base mb-2 flex items-center">
+                    <Calendar className="h-4 w-4 mr-1 text-blue-600" />
+                    Goals Due
+                  </h3>
+                  
+                  {getGoalsForDate(selectedDay).length > 0 ? (
+                    <div className="space-y-2">
+                      {getGoalsForDate(selectedDay).map(goal => {
+                        const remaining = parseFloat(goal.targetAmount.toString()) - parseFloat(goal.currentAmount.toString());
+                        const progress = (parseFloat(goal.currentAmount.toString()) / parseFloat(goal.targetAmount.toString())) * 100;
+                        
+                        return (
+                          <div 
+                            key={goal.id} 
+                            className="p-2 border rounded-md bg-blue-50/50 dark:bg-blue-950/20"
+                          >
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-medium">{goal.name}</span>
+                              <span className={remaining <= 0 ? "text-green-600 font-bold" : "text-blue-600 font-bold"}>
+                                {remaining <= 0 ? "Completed!" : `${formatCurrency(remaining)} needed`}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full mb-1">
+                              <div 
+                                className={`h-2 rounded-full ${remaining <= 0 ? "bg-green-500" : "bg-blue-500"}`}
+                                style={{ width: `${Math.min(100, progress)}%` }}
+                              ></div>
+                            </div>
+                            <div className="text-xs text-muted-foreground flex justify-between">
+                              <span>Progress: {progress.toFixed(0)}%</span>
+                              <span>{formatCurrency(parseFloat(goal.currentAmount.toString()))} / {formatCurrency(parseFloat(goal.targetAmount.toString()))}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground italic">
+                      No goals due on this day.
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <DialogFooter className="flex sm:justify-between gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    // Navigate to previous day
+                    const previousDay = new Date(selectedDay);
+                    previousDay.setDate(previousDay.getDate() - 1);
+                    setSelectedDay(previousDay);
+                  }}
+                  className="flex-1"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous Day
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    // Navigate to next day
+                    const nextDay = new Date(selectedDay);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    setSelectedDay(nextDay);
+                  }}
+                  className="flex-1"
+                >
+                  Next Day
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
