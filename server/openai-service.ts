@@ -102,7 +102,13 @@ export async function getFinancialAdvice(requestData: FinancialAdviceRequest): P
       throw new Error("No content returned from OpenAI");
     }
 
-    const parsedResponse = JSON.parse(content);
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(content);
+    } catch (parseError) {
+      console.error("Error parsing OpenAI response:", parseError);
+      throw new Error("Invalid response format received from AI service.");
+    }
     return {
       advice: parsedResponse.advice,
       suggestions: parsedResponse.suggestions,
@@ -110,7 +116,22 @@ export async function getFinancialAdvice(requestData: FinancialAdviceRequest): P
     };
   } catch (error) {
     console.error("Error generating financial advice:", error);
-    throw error;
+    
+    if (error instanceof OpenAI.APIError) {
+      console.error(`OpenAI API Error: ${error.status} - ${error.message}`);
+      
+      // Handle specific OpenAI API errors
+      if (error.status === 429) {
+        throw new Error("OpenAI rate limit exceeded. Please try again later.");
+      } else if (error.status === 401) {
+        throw new Error("OpenAI authentication error. Please check your API key.");
+      } else if (error.status === 500) {
+        throw new Error("OpenAI server error. Please try again later.");
+      }
+    }
+    
+    // Generic error message for users
+    throw new Error("Failed to generate financial advice. Please try again later.");
   }
 }
 
@@ -168,10 +189,30 @@ export async function suggestFinancialGoals(incomeData: any[]): Promise<any[]> {
       throw new Error("No content returned from OpenAI");
     }
 
-    return JSON.parse(content);
+    try {
+      return JSON.parse(content);
+    } catch (parseError) {
+      console.error("Error parsing OpenAI response:", parseError);
+      throw new Error("Invalid response format received from AI service.");
+    }
   } catch (error) {
     console.error("Error suggesting financial goals:", error);
-    throw error;
+    
+    if (error instanceof OpenAI.APIError) {
+      console.error(`OpenAI API Error: ${error.status} - ${error.message}`);
+      
+      // Handle specific OpenAI API errors
+      if (error.status === 429) {
+        throw new Error("OpenAI rate limit exceeded. Please try again later.");
+      } else if (error.status === 401) {
+        throw new Error("OpenAI authentication error. Please check your API key.");
+      } else if (error.status === 500) {
+        throw new Error("OpenAI server error. Please try again later.");
+      }
+    }
+    
+    // Generic error message for users
+    throw new Error("Failed to generate goal suggestions. Please try again later.");
   }
 }
 
@@ -246,6 +287,21 @@ export async function analyzeExpenses(expenseData: any[]): Promise<any> {
     return JSON.parse(content);
   } catch (error) {
     console.error("Error analyzing expenses:", error);
-    throw error;
+    
+    if (error instanceof OpenAI.APIError) {
+      console.error(`OpenAI API Error: ${error.status} - ${error.message}`);
+      
+      // Handle specific OpenAI API errors
+      if (error.status === 429) {
+        throw new Error("OpenAI rate limit exceeded. Please try again later.");
+      } else if (error.status === 401) {
+        throw new Error("OpenAI authentication error. Please check your API key.");
+      } else if (error.status === 500) {
+        throw new Error("OpenAI server error. Please try again later.");
+      }
+    }
+    
+    // Generic error message for users
+    throw new Error("Failed to analyze expenses. Please try again later.");
   }
 }

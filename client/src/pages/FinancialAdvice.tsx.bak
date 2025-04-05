@@ -32,35 +32,24 @@ const FinancialAdvice = () => {
   } = useQuery({
     queryKey: ['/api/ai/financial-advice', question],
     queryFn: async () => {
-      try {
-        const response = await apiRequest('/api/ai/financial-advice', {
-          method: 'POST',
-          body: JSON.stringify({ 
-            userId: DEMO_USER_ID, 
-            question: question || undefined 
-          })
-        });
-        
-        // Record that the user used AI advice
-        await apiRequest('/api/ai/mark-advice-used', {
-          method: 'POST',
-          body: JSON.stringify({ 
-            userId: DEMO_USER_ID,
-            adviceType: 'financial_advice'
-          })
-        }).catch(err => {
-          // Log but don't fail the main request if tracking fails
-          console.error('Error tracking advice usage:', err);
-        });
-        
-        return response;
-      } catch (error) {
-        console.error('Error fetching financial advice:', error);
-        throw error; // Re-throw to let React Query handle it
-      }
+      const response = await apiRequest('/api/ai/financial-advice', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          userId: DEMO_USER_ID, 
+          question: question || undefined 
+        })
+      });
+      // Record that the user used AI advice
+      apiRequest('/api/ai/mark-advice-used', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          userId: DEMO_USER_ID,
+          adviceType: 'financial_advice'
+        })
+      });
+      return response;
     },
     enabled: false, // We'll manually trigger this
-    retry: 1,      // Only retry once on failure
   });
 
   // Fetch AI suggested goals
@@ -72,34 +61,23 @@ const FinancialAdvice = () => {
   } = useQuery({
     queryKey: ['/api/ai/suggest-goals'],
     queryFn: async () => {
-      try {
-        const response = await apiRequest('/api/ai/suggest-goals', {
-          method: 'POST',
-          body: JSON.stringify({ 
-            userId: DEMO_USER_ID
-          })
-        });
-        
-        // Record that the user used AI goal suggestions
-        await apiRequest('/api/ai/mark-advice-used', {
-          method: 'POST',
-          body: JSON.stringify({ 
-            userId: DEMO_USER_ID,
-            adviceType: 'goal_suggestion'
-          })
-        }).catch(err => {
-          // Log but don't fail the main request if tracking fails
-          console.error('Error tracking goal suggestion usage:', err);
-        });
-        
-        return response;
-      } catch (error) {
-        console.error('Error fetching goal suggestions:', error);
-        throw error; // Re-throw to let React Query handle it
-      }
+      const response = await apiRequest('/api/ai/suggest-goals', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          userId: DEMO_USER_ID
+        })
+      });
+      // Record that the user used AI goal suggestions
+      apiRequest('/api/ai/mark-advice-used', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          userId: DEMO_USER_ID,
+          adviceType: 'goal_suggestion'
+        })
+      });
+      return response;
     },
     enabled: false, // We'll manually trigger this
-    retry: 1,      // Only retry once on failure
   });
   
   // Fetch expense analysis
@@ -111,35 +89,24 @@ const FinancialAdvice = () => {
   } = useQuery({
     queryKey: ['/api/ai/analyze-expenses', expensePeriod],
     queryFn: async () => {
-      try {
-        const response = await apiRequest('/api/ai/analyze-expenses', {
-          method: 'POST',
-          body: JSON.stringify({ 
-            userId: DEMO_USER_ID,
-            period: expensePeriod
-          })
-        });
-        
-        // Record that the user used AI expense analysis
-        await apiRequest('/api/ai/mark-advice-used', {
-          method: 'POST',
-          body: JSON.stringify({ 
-            userId: DEMO_USER_ID,
-            adviceType: 'expense_analysis'
-          })
-        }).catch(err => {
-          // Log but don't fail the main request if tracking fails
-          console.error('Error tracking expense analysis usage:', err);
-        });
-        
-        return response;
-      } catch (error) {
-        console.error('Error analyzing expenses:', error);
-        throw error; // Re-throw to let React Query handle it
-      }
+      const response = await apiRequest('/api/ai/analyze-expenses', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          userId: DEMO_USER_ID,
+          period: expensePeriod
+        })
+      });
+      // Record that the user used AI expense analysis
+      apiRequest('/api/ai/mark-advice-used', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          userId: DEMO_USER_ID,
+          adviceType: 'expense_analysis'
+        })
+      });
+      return response;
     },
     enabled: false, // We'll manually trigger this
-    retry: 1,      // Only retry once on failure
   });
   
   // Create goal from suggestion mutation

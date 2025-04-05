@@ -197,7 +197,7 @@ export default function Goals() {
       {/* Goal Categories and Content */}
       <div className="sticky top-0 z-[50] bg-background shadow-md pb-4 border-b mb-8">
         <h2 className="text-xl font-bold mb-3">Goal Categories</h2>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="overflow-x-auto horizontal-scroll w-full -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
             <TabsList className="horizontal-scroll scrollbar-none flex pb-1 min-w-[280px] xxs:min-w-[360px] sm:min-w-0 inline-flex w-full">
               <TabsTrigger value="all" className="text-sm sm:text-base flex items-center justify-center">
@@ -217,99 +217,96 @@ export default function Goals() {
               </TabsTrigger>
             </TabsList>
           </div>
+          
+          <TabsContent value="all" className="mt-6">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {goals.map((goal) => (
+                <GoalCard key={goal.id} goal={goal} />
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="income" className="mt-6">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {(goalsByType['income'] || []).map((goal) => (
+                <GoalCard key={goal.id} goal={goal} />
+              ))}
+              {!goalsByType['income']?.length && (
+                <Card className="col-span-full">
+                  <CardContent className="pt-6 pb-6 text-center">
+                    <div className="flex flex-col items-center py-4">
+                      <div className="p-3 rounded-full bg-gray-100 mb-2">
+                        <TargetIcon className="h-6 w-6 text-gray-400" />
+                      </div>
+                      <p className="text-muted-foreground">No income goals found</p>
+                      <Button 
+                        variant="link" 
+                        className="mt-2" 
+                        onClick={() => setIsGoalModalOpen(true)}
+                      >
+                        Add an income goal
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="savings" className="mt-6">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {(goalsByType['savings'] || []).map((goal) => (
+                <GoalCard key={goal.id} goal={goal} />
+              ))}
+              {!goalsByType['savings']?.length && (
+                <Card className="col-span-full">
+                  <CardContent className="pt-6 pb-6 text-center">
+                    <div className="flex flex-col items-center py-4">
+                      <div className="p-3 rounded-full bg-gray-100 mb-2">
+                        <PiggyBankIcon className="h-6 w-6 text-gray-400" />
+                      </div>
+                      <p className="text-muted-foreground">No savings goals found</p>
+                      <Button 
+                        variant="link" 
+                        className="mt-2" 
+                        onClick={() => setIsGoalModalOpen(true)}
+                      >
+                        Add a savings goal
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="investments" className="mt-6">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {(goalsByType['investments'] || []).map((goal) => (
+                <GoalCard key={goal.id} goal={goal} />
+              ))}
+              {!goalsByType['investments']?.length && (
+                <Card className="col-span-full">
+                  <CardContent className="pt-6 pb-6 text-center">
+                    <div className="flex flex-col items-center py-4">
+                      <div className="p-3 rounded-full bg-gray-100 mb-2">
+                        <TrendingUpIcon className="h-6 w-6 text-gray-400" />
+                      </div>
+                      <p className="text-muted-foreground">No investment goals found</p>
+                      <Button 
+                        variant="link" 
+                        className="mt-2" 
+                        onClick={() => setIsGoalModalOpen(true)}
+                      >
+                        Add an investment goal
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
-      </div>
-      
-      {/* Goal Content */}
-      <div className="mt-6">
-        <TabsContent value="all" className="mt-0">
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {goals.map((goal) => (
-              <GoalCard key={goal.id} goal={goal} />
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="income" className="mt-0">
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {(goalsByType['income'] || []).map((goal) => (
-              <GoalCard key={goal.id} goal={goal} />
-            ))}
-            {!goalsByType['income']?.length && (
-              <Card className="col-span-full">
-                <CardContent className="pt-6 pb-6 text-center">
-                  <div className="flex flex-col items-center py-4">
-                    <div className="p-3 rounded-full bg-gray-100 mb-2">
-                      <TargetIcon className="h-6 w-6 text-gray-400" />
-                    </div>
-                    <p className="text-muted-foreground">No income goals found</p>
-                    <Button 
-                      variant="link" 
-                      className="mt-2" 
-                      onClick={() => setIsGoalModalOpen(true)}
-                    >
-                      Add an income goal
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="savings" className="mt-0">
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {(goalsByType['savings'] || []).map((goal) => (
-              <GoalCard key={goal.id} goal={goal} />
-            ))}
-            {!goalsByType['savings']?.length && (
-              <Card className="col-span-full">
-                <CardContent className="pt-6 pb-6 text-center">
-                  <div className="flex flex-col items-center py-4">
-                    <div className="p-3 rounded-full bg-gray-100 mb-2">
-                      <PiggyBankIcon className="h-6 w-6 text-gray-400" />
-                    </div>
-                    <p className="text-muted-foreground">No savings goals found</p>
-                    <Button 
-                      variant="link" 
-                      className="mt-2" 
-                      onClick={() => setIsGoalModalOpen(true)}
-                    >
-                      Add a savings goal
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="investments" className="mt-0">
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {(goalsByType['investments'] || []).map((goal) => (
-              <GoalCard key={goal.id} goal={goal} />
-            ))}
-            {!goalsByType['investments']?.length && (
-              <Card className="col-span-full">
-                <CardContent className="pt-6 pb-6 text-center">
-                  <div className="flex flex-col items-center py-4">
-                    <div className="p-3 rounded-full bg-gray-100 mb-2">
-                      <TrendingUpIcon className="h-6 w-6 text-gray-400" />
-                    </div>
-                    <p className="text-muted-foreground">No investment goals found</p>
-                    <Button 
-                      variant="link" 
-                      className="mt-2" 
-                      onClick={() => setIsGoalModalOpen(true)}
-                    >
-                      Add an investment goal
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </TabsContent>
       </div>
       
       {/* Goal Form Modal */}
