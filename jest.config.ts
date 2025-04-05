@@ -17,7 +17,13 @@ const config: Config = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testEnvironmentOptions: {
     customExportConditions: ['']
-  }
+  },
+  // Adding these options to make tests run faster
+  maxWorkers: 1,
+  testTimeout: 10000,
+  verbose: true,
+  forceExit: true,
+  detectOpenHandles: true
 };
 
 export default config;
