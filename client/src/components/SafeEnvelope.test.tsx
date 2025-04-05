@@ -1,5 +1,5 @@
 
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { SafeEnvelope } from './SafeEnvelope';
 
 jest.mock('lucide-react', () => ({
@@ -8,14 +8,19 @@ jest.mock('lucide-react', () => ({
 }));
 
 describe('SafeEnvelope', () => {
+  const mockLockToggle = jest.fn();
   const defaultProps = {
     category: 'Test Category',
     allocated: 1000,
     spent: 500,
     total: 1000,
     isLocked: false,
-    onLockToggle: jest.fn()
+    onLockToggle: mockLockToggle
   };
+
+  beforeEach(() => {
+    mockLockToggle.mockClear();
+  });
 
   it('renders category name', () => {
     render(<SafeEnvelope {...defaultProps} />);
@@ -25,5 +30,17 @@ describe('SafeEnvelope', () => {
   it('displays correct spending amount', () => {
     render(<SafeEnvelope {...defaultProps} />);
     expect(screen.getByText(/\$500\.00/)).toBeInTheDocument();
+  });
+
+  it('shows lock icon when unlocked', () => {
+    render(<SafeEnvelope {...defaultProps} />);
+    expect(screen.getByTestId('unlock-icon')).toBeInTheDocument();
+  });
+
+  it('calls onLockToggle when clicked', () => {
+    render(<SafeEnvelope {...defaultProps} />);
+    const lockButton = screen.getByRole('button');
+    fireEvent.click(lockButton);
+    expect(mockLockToggle).toHaveBeenCalled();
   });
 });

@@ -37,8 +37,21 @@ jest.mock('@tanstack/react-query', () => ({
 }));
 
 describe('CashFlowCoach', () => {
-  it('renders spending patterns section', () => {
+  beforeEach(() => {
     render(<CashFlowCoach />, { wrapper });
+  });
+
+  it('renders spending patterns section', () => {
     expect(screen.getByText(/Spending Patterns/i)).toBeInTheDocument();
+  });
+
+  it('displays spending categories', () => {
+    expect(screen.getByText('Restaurants')).toBeInTheDocument();
+    expect(screen.getByText('Groceries')).toBeInTheDocument();
+  });
+
+  it('shows spending amounts', () => {
+    expect(screen.getByText(/\$450/)).toBeInTheDocument();
+    expect(screen.getByText(/\$380/)).toBeInTheDocument();
   });
 });
