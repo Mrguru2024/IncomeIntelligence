@@ -64,18 +64,18 @@ export default function BankConnections() {
 
   // Fetch bank connections for the user
   const { 
-    data: connections,
+    data: connections = [] as BankConnection[],
     isLoading: isLoadingConnections,
     error: connectionsError
-  } = useQuery({
+  } = useQuery<BankConnection[]>({
     queryKey: ['/api/bank-connections/user/' + userId],
   });
 
   // Fetch accounts for the selected connection
   const {
-    data: accounts,
+    data: accounts = [] as BankAccount[],
     isLoading: isLoadingAccounts
-  } = useQuery({
+  } = useQuery<BankAccount[]>({
     queryKey: ['/api/bank-connections/' + selectedConnection + '/accounts'],
     enabled: !!selectedConnection
   });
