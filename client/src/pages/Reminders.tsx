@@ -539,11 +539,13 @@ export default function Reminders() {
             <PopoverContent className="w-56 p-0" align="end">
               <div className="p-2">
                 <Tabs value={tab} onValueChange={setTab} className="w-full">
-                  <TabsList className="horizontal-scroll scrollbar-none flex pb-1 w-full">
-                    <TabsTrigger value="all">All</TabsTrigger>
-                    <TabsTrigger value="active">Active</TabsTrigger>
-                    <TabsTrigger value="inactive">Paused</TabsTrigger>
-                  </TabsList>
+                  <div className="overflow-x-auto horizontal-scroll w-full -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
+                    <TabsList className="horizontal-scroll scrollbar-none flex pb-1 min-w-[280px] xxs:min-w-[360px] sm:min-w-0 inline-flex w-full">
+                      <TabsTrigger value="all">All</TabsTrigger>
+                      <TabsTrigger value="active">Active</TabsTrigger>
+                      <TabsTrigger value="inactive">Paused</TabsTrigger>
+                    </TabsList>
+                  </div>
                 </Tabs>
               </div>
             </PopoverContent>

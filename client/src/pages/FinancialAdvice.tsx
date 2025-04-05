@@ -192,7 +192,7 @@ const FinancialAdvice = () => {
       </h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <div className="overflow-x-auto horizontal-scroll -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
+        <div className="overflow-x-auto horizontal-scroll w-full -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
           <TabsList className="horizontal-scroll scrollbar-none flex pb-1 min-w-[280px] xxs:min-w-[360px] sm:min-w-0 inline-flex w-full">
             <TabsTrigger value="advice" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
               <BrainCircuit className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />

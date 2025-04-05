@@ -47,10 +47,12 @@ const VoiceCommandsPage: React.FC = () => {
         
         <div>
           <Tabs defaultValue="commands">
-            <TabsList className="horizontal-scroll scrollbar-none flex pb-1">
-              <TabsTrigger value="commands" className="text-xs sm:text-sm py-1.5 sm:py-2">Commands</TabsTrigger>
-              <TabsTrigger value="examples" className="text-xs sm:text-sm py-1.5 sm:py-2">Example Phrases</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto horizontal-scroll w-full -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
+              <TabsList className="horizontal-scroll scrollbar-none flex pb-1 min-w-[280px] xxs:min-w-[360px] sm:min-w-0 inline-flex w-full">
+                <TabsTrigger value="commands" className="text-xs sm:text-sm py-1.5 sm:py-2">Commands</TabsTrigger>
+                <TabsTrigger value="examples" className="text-xs sm:text-sm py-1.5 sm:py-2">Example Phrases</TabsTrigger>
+              </TabsList>
+            </div>
             <TabsContent value="commands" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
               <Card>
                 <CardHeader className="p-3 sm:p-4 pb-0 sm:pb-0">

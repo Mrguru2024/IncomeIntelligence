@@ -196,7 +196,8 @@ export default function Goals() {
       {/* Goal Categories */}
       <div className="sticky top-0 z-[50] bg-background shadow-md pb-4 border-b mb-8">
         <h2 className="text-xl font-bold mb-3">Goal Categories</h2>
-        <div className="horizontal-scroll scrollbar-none flex gap-2 pb-1">
+        <div className="overflow-x-auto horizontal-scroll w-full -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
+          <div className="horizontal-scroll scrollbar-none flex gap-2 pb-1 min-w-[280px] xxs:min-w-[360px] sm:min-w-0 inline-flex w-full">
           <Button
             variant={activeTab === 'all' ? 'default' : 'outline'}
             className={`mb-1 ${activeTab === 'all' ? 'bg-primary text-white' : ''}`}
@@ -228,6 +229,7 @@ export default function Goals() {
             <TrendingUpIcon className="h-4 w-4 mr-1" />
             Investments
           </Button>
+          </div>
         </div>
       </div>
       
