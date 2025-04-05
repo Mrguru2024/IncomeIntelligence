@@ -6,6 +6,12 @@ if (!process.env.RESEND_API_KEY) {
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Application constants
+const APP_NAME = 'Financial Tracker';
+const APP_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://financial-tracker.com' 
+  : 'http://localhost:3000';
+
 interface EmailParams {
   to: string | string[];
   from: string;
@@ -79,6 +85,114 @@ export async function sendReminderEmail(
     subject: `Reminder: ${title}`,
     html,
     text: `${title}\n\n${message}\n\nDate: ${formattedDate}\n\nThis is an automated reminder from your financial management application.`
+  });
+}
+
+/**
+ * Send email verification link
+ */
+export async function sendVerificationEmail(
+  email: string,
+  username: string,
+  verificationToken: string
+): Promise<boolean> {
+  const verificationUrl = `${APP_URL}/verify-email/${verificationToken}`;
+  
+  const subject = `${APP_NAME} - Verify Your Email Address`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+      <h2 style="color: #4f46e5; margin-bottom: 20px;">Welcome to ${APP_NAME}!</h2>
+      <p>Hello ${username},</p>
+      <p>Thank you for creating an account with us. Please verify your email address by clicking the button below:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${verificationUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Verify Email Address</a>
+      </div>
+      <p>If you didn't create an account, you can safely ignore this email.</p>
+      <p>This link will expire in 24 hours.</p>
+      <p>If the button doesn't work, copy and paste the following link into your browser:</p>
+      <p style="word-break: break-all;">${verificationUrl}</p>
+      <p>Thank you,<br>${APP_NAME} Team</p>
+    </div>
+  `;
+  
+  const text = `
+    Welcome to ${APP_NAME}!
+    
+    Hello ${username},
+    
+    Thank you for creating an account with us. Please verify your email address by visiting the link below:
+    
+    ${verificationUrl}
+    
+    If you didn't create an account, you can safely ignore this email.
+    
+    This link will expire in 24 hours.
+    
+    Thank you,
+    ${APP_NAME} Team
+  `;
+  
+  return sendEmail({
+    to: email,
+    from: 'notifications@yourdomain.com',
+    subject,
+    html,
+    text
+  });
+}
+
+/**
+ * Send password reset link
+ */
+export async function sendPasswordResetEmail(
+  email: string,
+  username: string,
+  resetToken: string
+): Promise<boolean> {
+  const resetUrl = `${APP_URL}/reset-password/${resetToken}`;
+  
+  const subject = `${APP_NAME} - Reset Your Password`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+      <h2 style="color: #4f46e5; margin-bottom: 20px;">Reset Your Password</h2>
+      <p>Hello ${username},</p>
+      <p>We received a request to reset your password. Please click the button below to set a new password:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Password</a>
+      </div>
+      <p>If you didn't request a password reset, you can safely ignore this email.</p>
+      <p>This link will expire in 1 hour.</p>
+      <p>If the button doesn't work, copy and paste the following link into your browser:</p>
+      <p style="word-break: break-all;">${resetUrl}</p>
+      <p>Thank you,<br>${APP_NAME} Team</p>
+    </div>
+  `;
+  
+  const text = `
+    Reset Your Password
+    
+    Hello ${username},
+    
+    We received a request to reset your password. Please visit the link below to set a new password:
+    
+    ${resetUrl}
+    
+    If you didn't request a password reset, you can safely ignore this email.
+    
+    This link will expire in 1 hour.
+    
+    Thank you,
+    ${APP_NAME} Team
+  `;
+  
+  return sendEmail({
+    to: email,
+    from: 'notifications@yourdomain.com',
+    subject,
+    html,
+    text
   });
 }
 

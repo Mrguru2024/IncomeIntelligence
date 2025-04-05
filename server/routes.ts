@@ -766,8 +766,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Suggest AI-generated financial goals
-  app.post("/api/ai/suggest-goals", async (req, res) => {
+  // Suggest AI-generated financial goals - Protected by authentication
+  app.post("/api/ai/suggest-goals", requireAuth, async (req, res) => {
     try {
       const schema = z.object({
         userId: z.number().int().positive()
@@ -808,8 +808,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Analyze expenses and provide optimization suggestions
-  app.post("/api/ai/analyze-expenses", async (req, res) => {
+  // Analyze expenses and provide optimization suggestions - Protected by authentication
+  app.post("/api/ai/analyze-expenses", requireAuth, async (req, res) => {
     try {
       const schema = z.object({
         userId: z.number().int().positive(),
@@ -880,8 +880,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Check and record when user has used AI advice
-  app.post("/api/ai/mark-advice-used", async (req, res) => {
+  // Check and record when user has used AI advice - Protected by authentication
+  app.post("/api/ai/mark-advice-used", requireAuth, async (req, res) => {
     try {
       const schema = z.object({
         userId: z.number().int().positive(),

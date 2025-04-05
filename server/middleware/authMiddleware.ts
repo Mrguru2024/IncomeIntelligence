@@ -1,12 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../utils/security';
+import { verifyToken, JwtPayload } from '../utils/security';
+import { storage } from '../storage';
 
-// Extend Express Request interface to add user property
+// Extend Express Request interface to include user property
 declare global {
   namespace Express {
     interface Request {
       user?: {
         id: number;
+        username: string;
+        email: string;
+        role: string;
         [key: string]: any;
       };
     }
@@ -14,102 +18,110 @@ declare global {
 }
 
 /**
- * Middleware to protect routes - verifies and extracts JWT token
+ * Middleware to authenticate JWT token from Authorization header
+ * Adds the decoded user data to the request object as req.user
  */
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  try {
-    // Get token from authorization header
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Authentication required'
-      });
-    }
-    
-    // Extract and verify token
-    const token = authHeader.split(' ')[1];
-    const decoded = verifyToken(token);
-    
-    if (!decoded) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid or expired token'
-      });
-    }
-    
-    // Add user data to request for use in route handlers
-    req.user = decoded;
-    
-    next();
-  } catch (error) {
-    return res.status(401).json({
-      status: 'error',
-      message: 'Authentication failed'
-    });
+export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+  // Get authorization header
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN format
+  
+  if (!token) {
+    return next(); // Allow request to proceed without user
   }
-}
+  
+  // Verify token
+  const payload = verifyToken(token);
+  if (!payload) {
+    return next(); // Invalid token, proceed without user
+  }
+  
+  // Set user data in request
+  req.user = {
+    id: payload.id,
+    username: payload.username,
+    email: payload.email,
+    role: payload.role || 'user'
+  };
+  
+  next();
+};
 
 /**
- * Check if the requesting user matches the user ID from the route parameter
- * Used to ensure users can only access their own resources
+ * Middleware to require authentication
+ * Must be used after authenticateToken middleware
  */
-export function checkUserMatch(req: Request, res: Response, next: NextFunction) {
-  // Check if user exists in request (set by requireAuth middleware)
+export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   if (!req.user) {
-    return res.status(401).json({
-      status: 'error',
-      message: 'Authentication required'
-    });
-  }
-  
-  // Get user ID from route parameter
-  const userIdParam = req.params.userId || req.params.id;
-  
-  if (!userIdParam) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'User ID parameter missing from route'
-    });
-  }
-  
-  const paramUserId = parseInt(userIdParam, 10);
-  
-  // Check if the authenticated user matches the requested user
-  if (req.user.id !== paramUserId) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'Access denied: You can only access your own resources'
-    });
+    return res.status(401).json({ message: 'Authentication required' });
   }
   
   next();
-}
+};
 
 /**
- * Optional authentication middleware - populates req.user if token is valid
- * but does not require authentication to continue
+ * Middleware to require admin role
+ * Must be used after authenticateToken middleware
  */
-export function optionalAuth(req: Request, res: Response, next: NextFunction) {
-  try {
-    // Get token from authorization header
-    const authHeader = req.headers.authorization;
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      // Extract and verify token
-      const token = authHeader.split(' ')[1];
-      const decoded = verifyToken(token);
-      
-      if (decoded) {
-        // Add user data to request
-        req.user = decoded;
-      }
-    }
-    
-    next();
-  } catch (error) {
-    // Continue even if token is invalid
-    next();
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
   }
-}
+  
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+  
+  next();
+};
+
+/**
+ * Middleware to check if authenticated user matches requested user ID
+ * or if the user is an admin
+ */
+export const requireSelfOrAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+  
+  const requestedUserId = parseInt(req.params.userId, 10);
+  
+  if (isNaN(requestedUserId)) {
+    return res.status(400).json({ message: 'Invalid user ID' });
+  }
+  
+  // Allow if user ID matches or if user is admin
+  if (req.user.id === requestedUserId || req.user.role === 'admin') {
+    return next();
+  }
+  
+  return res.status(403).json({ message: 'Access denied' });
+};
+
+/**
+ * Optional authentication middleware
+ * Sets user data if token is valid, but doesn't require it
+ */
+export const optionalAuth = authenticateToken;
+
+/**
+ * Middleware to check if authenticated user matches userId in request body
+ */
+export const checkUserMatch = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+  
+  const userId = req.body.userId;
+  
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required' });
+  }
+  
+  // Allow if user ID matches or if user is admin
+  if (req.user.id === userId || req.user.role === 'admin') {
+    return next();
+  }
+  
+  return res.status(403).json({ message: 'Access denied' });
+};
