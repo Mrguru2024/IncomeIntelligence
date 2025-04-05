@@ -19,7 +19,7 @@ import {
   suggestFinancialGoals, 
   analyzeExpenses, 
   type FinancialAdviceRequest 
-} from "./openai-service";
+} from "./ai-service";
 import { notificationService } from "./notification-service";
 import { insertNotificationSchema } from "@shared/schema";
 
@@ -714,6 +714,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const advice = await getFinancialAdvice(adviceRequest);
+      
+      // Direct return of error response if AI service detected an error
+      if (advice.error) {
+        const statusCode = advice.errorType === "quota_exceeded" || advice.errorType === "rate_limited" ? 429 : 500;
+        const message = advice.errorType === "quota_exceeded" 
+          ? "AI API quota exceeded. Please update the API key or billing plan."
+          : advice.errorType === "rate_limited"
+          ? "Too many requests to AI service. Please try again in a few minutes."
+          : "Failed to get financial advice";
+          
+        return res.status(statusCode).json({ ...advice, message });
+      }
+      
       res.json(advice);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -726,18 +739,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof Error) {
         if (error.message.includes("quota exceeded")) {
           return res.status(429).json({ 
-            message: "OpenAI API quota exceeded. Please update the API key or billing plan.",
-            errorType: "quota_exceeded" 
+            message: "AI API quota exceeded. Please update the API key or billing plan.",
+            errorType: "quota_exceeded",
+            error: true
           });
         } else if (error.message.includes("rate limit")) {
           return res.status(429).json({ 
             message: "Too many requests to AI service. Please try again in a few minutes.",
-            errorType: "rate_limited" 
+            errorType: "rate_limited",
+            error: true
           });
         }
       }
       
-      res.status(500).json({ message: "Failed to get financial advice" });
+      res.status(500).json({ 
+        message: "Failed to get financial advice", 
+        error: true, 
+        errorType: "unknown" 
+      });
     }
   });
   
@@ -754,15 +773,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const incomeData = await storage.getIncomesByUserId(userId);
       
       // Get goal suggestions from AI
-      const suggestedGoals = await suggestFinancialGoals(incomeData);
-      res.json({ goals: suggestedGoals });
+      const goalSuggestions = await suggestFinancialGoals(incomeData);
+      
+      // Direct return of error response if AI service detected an error
+      if (goalSuggestions.error) {
+        const statusCode = goalSuggestions.errorType === "quota_exceeded" || goalSuggestions.errorType === "rate_limited" ? 429 : 500;
+        const message = goalSuggestions.errorType === "quota_exceeded" 
+          ? "AI API quota exceeded. Please update the API key or billing plan."
+          : goalSuggestions.errorType === "rate_limited"
+          ? "Too many requests to AI service. Please try again in a few minutes."
+          : "Failed to suggest goals";
+          
+        return res.status(statusCode).json({ ...goalSuggestions, message });
+      }
+      
+      res.json(goalSuggestions);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
       console.error('Error suggesting goals:', error);
-      res.status(500).json({ message: "Failed to suggest goals" });
+      res.status(500).json({ 
+        message: "Failed to suggest goals", 
+        error: true, 
+        errorType: "unknown" 
+      });
     }
   });
   
@@ -810,6 +846,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get expense analysis from AI
       const analysis = await analyzeExpenses(filteredExpenses);
+      
+      // Direct return of error response if AI service detected an error
+      if (analysis.error) {
+        const statusCode = analysis.errorType === "quota_exceeded" || analysis.errorType === "rate_limited" ? 429 : 500;
+        const message = analysis.errorType === "quota_exceeded" 
+          ? "AI API quota exceeded. Please update the API key or billing plan."
+          : analysis.errorType === "rate_limited"
+          ? "Too many requests to AI service. Please try again in a few minutes."
+          : "Failed to analyze expenses";
+          
+        return res.status(statusCode).json({ ...analysis, message });
+      }
+      
       res.json(analysis);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -817,7 +866,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: validationError.message });
       }
       console.error('Error analyzing expenses:', error);
-      res.status(500).json({ message: "Failed to analyze expenses" });
+      res.status(500).json({ 
+        message: "Failed to analyze expenses", 
+        error: true, 
+        errorType: "unknown" 
+      });
     }
   });
   
