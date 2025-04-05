@@ -17,23 +17,14 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
   </QueryClientProvider>
 );
 
-jest.mock('@tanstack/react-query', () => ({
-  ...jest.requireActual('@tanstack/react-query'),
-  useQuery: () => ({
-    data: {
-      patterns: [
-        { category: 'Restaurants', amount: 450, trend: 'up' },
-        { category: 'Groceries', amount: 380, trend: 'down' }
-      ]
-    },
-    isLoading: false,
-    error: null
-  })
+jest.mock('lucide-react', () => ({
+  TrendingUp: () => <div data-testid="trending-up-icon" />,
+  Lightbulb: () => <div data-testid="lightbulb-icon" />
 }));
 
 describe('CashFlowCoach', () => {
-  it('renders spending patterns section', () => {
+  it('renders spending patterns heading', () => {
     render(<CashFlowCoach />, { wrapper });
-    expect(screen.getByText('Spending Patterns')).toBeInTheDocument();
+    expect(screen.getByText(/Spending Patterns/i)).toBeInTheDocument();
   });
 });

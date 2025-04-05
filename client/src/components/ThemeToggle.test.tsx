@@ -1,8 +1,14 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeToggle } from './ThemeToggle';
+import { Moon, Sun } from 'lucide-react';
 
 const mockSetTheme = jest.fn();
+
+jest.mock('lucide-react', () => ({
+  Moon: () => <div data-testid="moon-icon" />,
+  Sun: () => <div data-testid="sun-icon" />
+}));
 
 jest.mock('@/hooks/useTheme', () => ({
   useTheme: () => ({
@@ -14,7 +20,8 @@ jest.mock('@/hooks/useTheme', () => ({
 describe('ThemeToggle', () => {
   it('renders theme toggle button', () => {
     render(<ThemeToggle />);
-    expect(screen.getByRole('button')).toBeInTheDocument();
+    const button = screen.getByRole('button');
+    expect(button).toBeInTheDocument();
   });
 
   it('calls setTheme when clicked', () => {
