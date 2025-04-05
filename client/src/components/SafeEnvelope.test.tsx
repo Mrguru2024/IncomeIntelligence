@@ -1,7 +1,6 @@
 
 import { render, screen } from '@testing-library/react';
 import { SafeEnvelope } from './SafeEnvelope';
-import { formatCurrency } from '@/lib/utils/format';
 
 describe('SafeEnvelope', () => {
   const defaultProps = {
@@ -13,7 +12,7 @@ describe('SafeEnvelope', () => {
   it('renders safe envelope component', () => {
     render(<SafeEnvelope {...defaultProps} />);
     expect(screen.getByText(/Safe Envelope/i)).toBeInTheDocument();
-    expect(screen.getByText(formatCurrency(1000))).toBeInTheDocument();
+    expect(screen.getByText('$1000.00')).toBeInTheDocument();
   });
 
   it('displays lock status', () => {
