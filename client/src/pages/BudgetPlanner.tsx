@@ -130,8 +130,8 @@ export default function BudgetPlanner() {
         </div>
 
         <Tabs defaultValue="calendar" className="w-full">
-          <div className="overflow-x-auto -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
-            <TabsList className="flex w-full justify-start gap-0.5 xxs:gap-1 max-w-none mb-2 xxs:mb-3 sm:mb-6 min-w-[240px] xxs:min-w-[280px] sm:min-w-[320px]">
+          <div className="overflow-x-auto scrollbar-none -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
+            <TabsList className="flex w-full justify-start gap-0.5 xxs:gap-1 max-w-none mb-2 xxs:mb-3 sm:mb-6 min-w-[240px] xxs:min-w-[280px] sm:min-w-[320px] overflow-x-auto">
               <TabsTrigger value="calendar" className="flex-1 flex items-center justify-center py-1 xxs:py-1.5 px-1 xxs:px-2 sm:p-2 text-[10px] xxs:text-xs sm:text-sm">
                 <Calendar className="h-2.5 w-2.5 xxs:h-3 xxs:w-3 sm:h-4 sm:w-4 mr-0.5 xxs:mr-1 sm:mr-2 flex-shrink-0" />
                 <span className="truncate">Calendar</span>

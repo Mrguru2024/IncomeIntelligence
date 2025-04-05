@@ -407,7 +407,7 @@ export default function IncomeHistory() {
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Income History</h1>
           <p className="text-gray-500 mt-1 text-sm sm:text-base">Review, analyze and manage your income</p>
         </div>
-        <div className="flex flex-wrap gap-2 mt-3 sm:mt-0 overflow-x-auto pb-2 -mx-1 px-1">
+        <div className="horizontal-scroll scrollbar-none flex gap-2 mt-3 sm:mt-0 pb-1">
           <Button 
             variant="outline" 
             size="sm" 

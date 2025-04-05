@@ -163,7 +163,7 @@ export default function Expenses() {
 
       <Tabs defaultValue="all" className="w-full">
         <div className="flex justify-between items-center mb-4">
-          <TabsList>
+          <TabsList className="horizontal-scroll scrollbar-none pb-1">
             <TabsTrigger value="all" onClick={() => setSelectedCategoryFilter(null)}>
               All Expenses
             </TabsTrigger>
