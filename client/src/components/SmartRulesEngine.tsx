@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -30,6 +29,8 @@ export type Rule = {
     season?: string;
     threshold?: number;
     recurringDate?: Date;
+    startDate?: Date;
+    endDate?: Date;
   };
   action: {
     type: 'save' | 'invest';
@@ -85,7 +86,7 @@ export default function SmartRulesEngine() {
         destination: 'savings'
       }
     };
-    
+
     setRules([...rules, rule]);
     setIsAddingRule(false);
     setNewRule({
@@ -115,7 +116,7 @@ export default function SmartRulesEngine() {
   };
 
   const handleToggleRule = (id: string) => {
-    setRules(rules.map(rule => 
+    setRules(rules.map(rule =>
       rule.id === id ? { ...rule, enabled: !rule.enabled } : rule
     ));
   };
@@ -148,8 +149,8 @@ export default function SmartRulesEngine() {
               <CardTitle>Smart Rules Engine</CardTitle>
               <CardDescription>Automate your savings with smart rules</CardDescription>
             </div>
-            <Button 
-              onClick={() => setIsAddingRule(true)} 
+            <Button
+              onClick={() => setIsAddingRule(true)}
               className="flex items-center gap-2"
               variant="outline"
             >
@@ -179,7 +180,7 @@ export default function SmartRulesEngine() {
                     </div>
                     <div>
                       <Label>Rule Type</Label>
-                      <Select 
+                      <Select
                         value={newRule.type}
                         onValueChange={(value: any) => setNewRule({ ...newRule, type: value })}
                       >
@@ -198,7 +199,7 @@ export default function SmartRulesEngine() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label>Action Type</Label>
-                      <Select 
+                      <Select
                         value={newRule.action?.type}
                         onValueChange={(value: any) => setNewRule({
                           ...newRule,
@@ -236,7 +237,7 @@ export default function SmartRulesEngine() {
                       </div>
                       <div>
                         <Label>Amount {newRule.action?.amountType === 'percentage' ? '(%)' : '($)'}</Label>
-                        <Input 
+                        <Input
                           type="number"
                           placeholder={newRule.action?.amountType === 'percentage' ? 'Enter percentage' : 'Enter amount'}
                           value={newRule.action?.amount || ''}
@@ -282,9 +283,9 @@ export default function SmartRulesEngine() {
                             value={String(newRule.conditions?.selectedDays?.[0] || 1)}
                             onValueChange={(value) => setNewRule({
                               ...newRule,
-                              conditions: { 
-                                ...newRule.conditions, 
-                                selectedDays: [parseInt(value)] 
+                              conditions: {
+                                ...newRule.conditions,
+                                selectedDays: [parseInt(value)]
                               }
                             })}
                           >
@@ -292,7 +293,7 @@ export default function SmartRulesEngine() {
                               <SelectValue placeholder="Select date" />
                             </SelectTrigger>
                             <SelectContent>
-                              {Array.from({length: 31}, (_, i) => i + 1).map(day => (
+                              {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
                                 <SelectItem key={day} value={String(day)}>
                                   {day}
                                 </SelectItem>
@@ -309,9 +310,9 @@ export default function SmartRulesEngine() {
                             value={String(newRule.conditions?.selectedDays?.[0] || 1)}
                             onValueChange={(value) => setNewRule({
                               ...newRule,
-                              conditions: { 
-                                ...newRule.conditions, 
-                                selectedDays: [parseInt(value)] 
+                              conditions: {
+                                ...newRule.conditions,
+                                selectedDays: [parseInt(value)]
                               }
                             })}
                           >
@@ -367,6 +368,77 @@ export default function SmartRulesEngine() {
                       )}
                     </div>
                   )}
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Start Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !newRule.conditions?.startDate && "text-muted-foreground"
+                            )}
+                          >
+                            {newRule.conditions?.startDate ? (
+                              format(newRule.conditions.startDate, "PPP")
+                            ) : (
+                              <span>Pick a start date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={newRule.conditions?.startDate}
+                            onSelect={(date) => setNewRule({
+                              ...newRule,
+                              conditions: { ...newRule.conditions, startDate: date }
+                            })}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div>
+                      <Label>End Date (Optional)</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !newRule.conditions?.endDate && "text-muted-foreground"
+                            )}
+                          >
+                            {newRule.conditions?.endDate ? (
+                              format(newRule.conditions.endDate, "PPP")
+                            ) : (
+                              <span>Pick an end date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={newRule.conditions?.endDate}
+                            onSelect={(date) => setNewRule({
+                              ...newRule,
+                              conditions: { ...newRule.conditions, endDate: date }
+                            })}
+                            disabled={(date) => (
+                              newRule.conditions?.startDate ? date < newRule.conditions.startDate : false
+                            )}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
 
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setIsAddingRule(false)}>
