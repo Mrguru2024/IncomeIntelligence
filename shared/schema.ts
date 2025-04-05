@@ -44,6 +44,10 @@ export const users = pgTable("users", {
   providerId: text("provider_id"),
   role: text("role").notNull().default("user"), // 'user', 'admin'
   accountStatus: text("account_status").notNull().default("active"), // 'active', 'suspended', 'inactive'
+  twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
+  twoFactorSecret: text("two_factor_secret"),
+  twoFactorBackupCodes: json("two_factor_backup_codes"),
+  twoFactorVerified: boolean("two_factor_verified").notNull().default(false),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -61,6 +65,10 @@ export const insertUserSchema = createInsertSchema(users).pick({
   verified: true,
   onboardingCompleted: true,
   onboardingStep: true,
+  twoFactorEnabled: true,
+  twoFactorSecret: true,
+  twoFactorBackupCodes: true,
+  twoFactorVerified: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

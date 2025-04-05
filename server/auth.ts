@@ -6,6 +6,7 @@ import { InsertUser, insertUserSchema } from '@shared/schema';
 import { generateToken, hashPassword, verifyPassword, generateSecureToken } from './utils/security';
 import { authenticateToken, requireAuth } from './middleware/authMiddleware';
 import { sendVerificationEmail, sendPasswordResetEmail } from './email-service';
+import { twoFactorService } from './services/two-factor-service';
 
 // Add proper validation for registration and login
 const registerSchema = insertUserSchema.extend({
@@ -120,6 +121,16 @@ export function setupAuth(app: Express) {
       
       // Update last login timestamp
       await storage.updateUserLastLogin(user.id);
+      
+      // Check if 2FA is enabled
+      if (user.twoFactorEnabled && user.twoFactorVerified) {
+        // Return only enough information for 2FA verification
+        return res.status(200).json({
+          message: 'Two-factor authentication required',
+          requires2FA: true,
+          userId: user.id
+        });
+      }
       
       // Remove password from response
       const { password: _, ...userWithoutPassword } = user;
@@ -339,6 +350,243 @@ export function setupAuth(app: Express) {
       }
       console.error('Update profile error:', error);
       return res.status(500).json({ message: 'Failed to update profile' });
+    }
+  });
+  
+  // 2FA - Generate setup data
+  app.get('/api/auth/2fa/setup', authenticateToken, requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+      
+      // Generate secret and QR code
+      const setupData = await twoFactorService.generateSecret(req.user.username);
+      
+      // Store secret temporarily - not enabling 2FA yet
+      await storage.updateUser(req.user.id, {
+        twoFactorSecret: setupData.secret,
+        twoFactorVerified: false
+      });
+      
+      return res.status(200).json({
+        qrCodeUrl: setupData.qrCodeUrl,
+        secret: setupData.secret,
+        otpAuthUrl: setupData.otpAuthUrl
+      });
+    } catch (error) {
+      console.error('2FA setup error:', error);
+      return res.status(500).json({ message: 'Failed to setup 2FA' });
+    }
+  });
+  
+  // 2FA - Verify and enable
+  app.post('/api/auth/2fa/enable', authenticateToken, requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+      
+      const { token } = z.object({
+        token: z.string().length(6).regex(/^\d+$/)
+      }).parse(req.body);
+      
+      // Verify token against the stored secret
+      const isValid = await twoFactorService.verifyToken(req.user.id, token);
+      
+      if (!isValid) {
+        return res.status(400).json({ message: 'Invalid verification code' });
+      }
+      
+      // Get the user to access the secret
+      const user = await storage.getUser(req.user.id);
+      if (!user || !user.twoFactorSecret) {
+        return res.status(400).json({ message: 'No 2FA setup found' });
+      }
+      
+      // Enable 2FA
+      const success = await twoFactorService.enable2FA(req.user.id, user.twoFactorSecret);
+      
+      if (!success) {
+        return res.status(500).json({ message: 'Failed to enable 2FA' });
+      }
+      
+      // Generate backup codes
+      const backupCodes = await twoFactorService.generateBackupCodes(req.user.id);
+      
+      return res.status(200).json({
+        message: '2FA enabled successfully',
+        backupCodes
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('2FA enable error:', error);
+      return res.status(500).json({ message: 'Failed to enable 2FA' });
+    }
+  });
+  
+  // 2FA - Verify token for login
+  app.post('/api/auth/2fa/verify', async (req: Request, res: Response) => {
+    try {
+      const { userId, token } = z.object({
+        userId: z.number(),
+        token: z.string().length(6).regex(/^\d+$/)
+      }).parse(req.body);
+      
+      // Verify token against the stored secret
+      const isValid = await twoFactorService.verifyToken(userId, token);
+      
+      if (!isValid) {
+        return res.status(401).json({ message: 'Invalid verification code' });
+      }
+      
+      // Get user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+      
+      // Generate JWT token
+      const jwtToken = generateToken({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      });
+      
+      return res.status(200).json({
+        message: '2FA verification successful',
+        user: userWithoutPassword,
+        token: jwtToken
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('2FA verification error:', error);
+      return res.status(500).json({ message: 'Failed to verify 2FA token' });
+    }
+  });
+  
+  // 2FA - Use backup code
+  app.post('/api/auth/2fa/backup', async (req: Request, res: Response) => {
+    try {
+      const { userId, backupCode } = z.object({
+        userId: z.number(),
+        backupCode: z.string().regex(/^[A-Z0-9]{8}$/)
+      }).parse(req.body);
+      
+      // Verify backup code
+      const isValid = await twoFactorService.verifyBackupCode(userId, backupCode);
+      
+      if (!isValid) {
+        return res.status(401).json({ message: 'Invalid backup code' });
+      }
+      
+      // Get user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+      
+      // Generate JWT token
+      const jwtToken = generateToken({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      });
+      
+      return res.status(200).json({
+        message: 'Backup code verification successful',
+        user: userWithoutPassword,
+        token: jwtToken
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Backup code verification error:', error);
+      return res.status(500).json({ message: 'Failed to verify backup code' });
+    }
+  });
+  
+  // 2FA - Disable
+  app.post('/api/auth/2fa/disable', authenticateToken, requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+      
+      const { password } = z.object({
+        password: z.string().min(1)
+      }).parse(req.body);
+      
+      // Get the full user with password
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Verify password
+      const isPasswordValid = verifyPassword(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: 'Invalid password' });
+      }
+      
+      // Disable 2FA
+      const success = await twoFactorService.disable2FA(req.user.id);
+      
+      if (!success) {
+        return res.status(500).json({ message: 'Failed to disable 2FA' });
+      }
+      
+      return res.status(200).json({
+        message: '2FA disabled successfully'
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('2FA disable error:', error);
+      return res.status(500).json({ message: 'Failed to disable 2FA' });
+    }
+  });
+  
+  // 2FA - Get backup codes
+  app.get('/api/auth/2fa/backup-codes', authenticateToken, requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+      
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      if (!user.twoFactorEnabled || !user.twoFactorBackupCodes) {
+        return res.status(400).json({ message: '2FA is not enabled or backup codes not generated' });
+      }
+      
+      return res.status(200).json({
+        backupCodes: user.twoFactorBackupCodes
+      });
+    } catch (error) {
+      console.error('Get backup codes error:', error);
+      return res.status(500).json({ message: 'Failed to get backup codes' });
     }
   });
 }

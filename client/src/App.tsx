@@ -16,6 +16,7 @@ import Profile from "@/pages/Profile";
 import Reminders from "@/pages/Reminders";
 import AuthPage from "@/pages/auth-page";
 import OnboardingPage from "@/pages/onboarding-page";
+import TwoFactorAuthPage from "@/pages/TwoFactorAuthPage";
 import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import AppTutorial from "@/components/AppTutorial";
@@ -40,6 +41,7 @@ function Router() {
       <ProtectedRoute path="/profile" component={Profile} />
       <ProtectedRoute path="/reminders" component={Reminders} />
       <ProtectedRoute path="/settings" component={Settings} />
+      <ProtectedRoute path="/security" component={TwoFactorAuthPage} />
       <ProtectedRoute path="/voice-commands" component={() => <VoiceCommands />} />
       <ProtectedRoute path="/onboarding" component={OnboardingPage} />
       <Route path="/auth" component={AuthPage} />
