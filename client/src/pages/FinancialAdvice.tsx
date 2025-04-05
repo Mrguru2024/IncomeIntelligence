@@ -201,13 +201,50 @@ const FinancialAdvice = () => {
   const handleGetAdvice = async () => {
     try {
       console.log("Generating advice button clicked");
+      
       // Set our manual loading state to true before starting the request
       setManuallyLoadingAdvice(true);
-      await refetchAdvice();
+      
+      // Make direct API call instead of using refetch
+      const response = await apiRequest('/api/ai/financial-advice', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          userId: DEMO_USER_ID, 
+          question: question || undefined 
+        })
+      });
+      
+      console.log("Manual API response:", response);
+      
+      // Record that the user used AI advice
+      await apiRequest('/api/ai/mark-advice-used', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          userId: DEMO_USER_ID,
+          adviceType: 'financial_advice'
+        })
+      }).catch(err => {
+        // Log but don't fail the main request if tracking fails
+        console.error('Error tracking advice usage:', err);
+      });
+      
+      // Update the local state with response
+      queryClient.setQueryData(['/api/ai/financial-advice', question], response);
+      
+      // Reset loading state
+      setManuallyLoadingAdvice(false);
+      
+      // Show success toast
+      toast({
+        title: "Success!",
+        description: "Financial advice generated successfully.",
+      });
     } catch (error) {
       console.error("Error fetching advice:", error);
+      
       // Make sure to reset loading state on error
       setManuallyLoadingAdvice(false);
+      
       toast({
         title: "Error",
         description: "Failed to generate financial advice. Please try again.",
@@ -219,13 +256,49 @@ const FinancialAdvice = () => {
   const handleGetGoalSuggestions = async () => {
     try {
       console.log("Generating goal suggestions button clicked");
+      
       // Set manual loading state to true before starting the request
       setManuallyLoadingGoals(true);
-      await refetchGoals();
+      
+      // Make direct API call instead of using refetch
+      const response = await apiRequest('/api/ai/suggest-goals', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          userId: DEMO_USER_ID
+        })
+      });
+      
+      console.log("Manual API response (goals):", response);
+      
+      // Record that the user used AI advice
+      await apiRequest('/api/ai/mark-advice-used', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          userId: DEMO_USER_ID,
+          adviceType: 'goal_suggestion'
+        })
+      }).catch(err => {
+        // Log but don't fail the main request if tracking fails
+        console.error('Error tracking goal suggestion usage:', err);
+      });
+      
+      // Update the local state with response
+      queryClient.setQueryData(['/api/ai/suggest-goals'], response);
+      
+      // Reset loading state
+      setManuallyLoadingGoals(false);
+      
+      // Show success toast
+      toast({
+        title: "Success!",
+        description: "Goal suggestions generated successfully.",
+      });
     } catch (error) {
       console.error("Error fetching goal suggestions:", error);
+      
       // Make sure to reset loading state on error
       setManuallyLoadingGoals(false);
+      
       toast({
         title: "Error",
         description: "Failed to generate goal suggestions. Please try again.",
@@ -237,13 +310,50 @@ const FinancialAdvice = () => {
   const handleAnalyzeExpenses = async () => {
     try {
       console.log("Analyzing expenses button clicked");
+      
       // Set manual loading state to true before starting the request
       setManuallyLoadingAnalysis(true);
-      await refetchAnalysis();
+      
+      // Make direct API call instead of using refetch
+      const response = await apiRequest('/api/ai/analyze-expenses', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          userId: DEMO_USER_ID,
+          period: expensePeriod
+        })
+      });
+      
+      console.log("Manual API response (expenses):", response);
+      
+      // Record that the user used AI advice
+      await apiRequest('/api/ai/mark-advice-used', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          userId: DEMO_USER_ID,
+          adviceType: 'expense_analysis'
+        })
+      }).catch(err => {
+        // Log but don't fail the main request if tracking fails
+        console.error('Error tracking expense analysis usage:', err);
+      });
+      
+      // Update the local state with response
+      queryClient.setQueryData(['/api/ai/analyze-expenses', expensePeriod], response);
+      
+      // Reset loading state
+      setManuallyLoadingAnalysis(false);
+      
+      // Show success toast
+      toast({
+        title: "Success!",
+        description: "Expense analysis generated successfully.",
+      });
     } catch (error) {
       console.error("Error analyzing expenses:", error);
+      
       // Make sure to reset loading state on error
       setManuallyLoadingAnalysis(false);
+      
       toast({
         title: "Error",
         description: "Failed to analyze expenses. Please try again.",
