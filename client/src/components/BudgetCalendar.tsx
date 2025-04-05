@@ -159,14 +159,45 @@ export default function BudgetCalendar() {
           <div className="flex flex-col justify-between items-start gap-1 xs:gap-2">
             <CardTitle className="text-base xs:text-lg sm:text-2xl">Budget Calendar</CardTitle>
             <div className="w-full">
-              <Select value={view} onValueChange={(val: CalendarView) => setView(val)}>
-                <SelectTrigger className="w-full text-[11px] xs:text-xs sm:text-sm h-8 xs:h-9">
+              <Select 
+                value={view} 
+                onValueChange={(val: CalendarView) => setView(val)}
+                aria-label="Select calendar view"
+              >
+                <SelectTrigger 
+                  className="w-full text-[11px] xs:text-xs sm:text-sm h-8 xs:h-9 hover:border-primary focus:border-primary transition-colors"
+                  title="Change calendar view"
+                >
                   <SelectValue placeholder="View" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="month">Monthly</SelectItem>
-                  <SelectItem value="biweek">Bi-Weekly</SelectItem>
-                  <SelectItem value="week">Weekly</SelectItem>
+                  <SelectItem 
+                    value="month" 
+                    className="focus:bg-primary/10 cursor-pointer"
+                  >
+                    <div className="flex items-center">
+                      <Calendar className="h-3 w-3 mr-2" />
+                      <span>Monthly</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem 
+                    value="biweek" 
+                    className="focus:bg-primary/10 cursor-pointer"
+                  >
+                    <div className="flex items-center">
+                      <Calendar className="h-3 w-3 mr-2" />
+                      <span>Bi-Weekly</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem 
+                    value="week" 
+                    className="focus:bg-primary/10 cursor-pointer"
+                  >
+                    <div className="flex items-center">
+                      <Calendar className="h-3 w-3 mr-2" />
+                      <span>Weekly</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -184,13 +215,37 @@ export default function BudgetCalendar() {
               }
             </h3>
             <div className="flex space-x-1 xs:space-x-2 w-full justify-between xs:justify-start">
-              <Button variant="outline" size="sm" onClick={goToPrevious} className="p-0 h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={goToPrevious} 
+                className="p-0 h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 hover:bg-primary/10 hover:text-primary transition-colors"
+                aria-label={`Previous ${view}`}
+                title={`View previous ${view}`}
+              >
                 <ChevronLeft className="h-3 w-3 xs:h-4 xs:w-4" />
               </Button>
-              <Button variant="outline" size="sm" onClick={goToToday} className="h-7 xs:h-8 sm:h-9 px-1 xs:px-2 sm:px-3 text-[10px] xs:text-xs">
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={goToToday} 
+                className="h-7 xs:h-8 sm:h-9 px-1 xs:px-2 sm:px-3 text-[10px] xs:text-xs hover:bg-primary/10 hover:text-primary transition-colors flex items-center"
+                aria-label="Go to today"
+                title="Jump to current date"
+              >
+                <Calendar className="h-3 w-3 mr-1 hidden xs:inline-block" />
                 Today
               </Button>
-              <Button variant="outline" size="sm" onClick={goToNext} className="p-0 h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9">
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={goToNext} 
+                className="p-0 h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 hover:bg-primary/10 hover:text-primary transition-colors"
+                aria-label={`Next ${view}`}
+                title={`View next ${view}`}
+              >
                 <ChevronRight className="h-3 w-3 xs:h-4 xs:w-4" />
               </Button>
             </div>
@@ -198,10 +253,26 @@ export default function BudgetCalendar() {
           
           <div className="overflow-x-auto -mx-2 px-2 pb-2">
             <div className="min-w-[280px] md:min-w-[500px]"> {/* Support for ultra-narrow (Z Fold) screens */}
-              <div className="grid grid-cols-7 gap-0.5 xs:gap-1 text-center text-[8px] xs:text-xs sm:text-sm font-medium">
-                {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
-                  <div key={idx} className="py-0.5 xs:py-1 sm:py-2">
-                    {day}
+              <div className="grid grid-cols-7 gap-0.5 xs:gap-1 text-center text-[9px] xs:text-xs sm:text-sm font-medium">
+                {[
+                  { letter: "S", full: "Sunday" },
+                  { letter: "M", full: "Monday" },
+                  { letter: "T", full: "Tuesday" },
+                  { letter: "W", full: "Wednesday" },
+                  { letter: "T", full: "Thursday" },
+                  { letter: "F", full: "Friday" },
+                  { letter: "S", full: "Saturday" }
+                ].map((day, idx) => (
+                  <div 
+                    key={idx} 
+                    className="py-0.5 xs:py-1 sm:py-2 rounded-sm hover:bg-primary/10 cursor-pointer transition-colors duration-200 flex items-center justify-center"
+                    title={day.full}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={day.full}
+                    onClick={() => { /* Could add functionality to filter by day of week */ }}
+                  >
+                    <span className="font-semibold">{day.letter}</span>
                   </div>
                 ))}
               </div>
@@ -215,11 +286,27 @@ export default function BudgetCalendar() {
                   return (
                     <div
                       key={i}
-                      className={`h-[40px] xs:h-[60px] sm:min-h-[80px] border rounded-md p-0.5 overflow-hidden ${
-                        isToday(day) ? "bg-primary/5 border-primary" : ""
-                      }`}
+                      className={`h-[40px] xs:h-[60px] sm:min-h-[80px] border rounded-md p-0.5 overflow-hidden 
+                        ${isToday(day) ? "bg-primary/5 border-primary" : "hover:border-primary/50"} 
+                        transition-colors duration-200 cursor-pointer
+                        ${dayIncomes.length > 0 || dayGoals.length > 0 ? "shadow-sm hover:shadow" : ""}
+                      `}
+                      onClick={() => {
+                        /* Could open a modal showing details for this day */
+                        console.log(`Selected date: ${format(day, 'yyyy-MM-dd')}`);
+                      }}
+                      title={`${format(day, 'EEEE, MMMM d, yyyy')}${dayIncomes.length > 0 ? ` - ${dayIncomes.length} income(s)` : ''}${dayGoals.length > 0 ? ` - ${dayGoals.length} goal(s)` : ''}`}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${format(day, 'EEEE, MMMM d, yyyy')}${dayIncomes.length > 0 ? ` with ${dayIncomes.length} income entries` : ''}${dayGoals.length > 0 ? ` and ${dayGoals.length} goals` : ''}`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          console.log(`Selected date via keyboard: ${format(day, 'yyyy-MM-dd')}`);
+                        }
+                      }}
                     >
-                      <div className="text-right p-0 xs:p-0.5 sm:p-1 font-medium text-[8px] xs:text-xs">
+                      <div className={`text-right p-0 xs:p-0.5 sm:p-1 font-medium text-[8px] xs:text-xs ${isToday(day) ? "text-primary font-bold" : ""}`}>
                         {format(day, "d")}
                       </div>
                       
@@ -247,12 +334,51 @@ export default function BudgetCalendar() {
         
         <CardFooter className="border-t px-1 xs:px-2 sm:px-6 py-2 xs:py-3 sm:py-4">
           <div className="w-full grid grid-cols-2 gap-1 xs:gap-2 sm:gap-4">
-            <div className="text-center">
-              <h4 className="text-[10px] xs:text-xs sm:text-sm font-medium text-muted-foreground">Total Income</h4>
+            <div 
+              className="text-center p-2 rounded-md hover:bg-green-50 dark:hover:bg-green-950/20 transition-colors cursor-pointer"
+              role="button"
+              tabIndex={0}
+              title="View income details"
+              aria-label={`Total income for this period: ${formatCurrency(calculateTotalIncome())}`}
+              onClick={() => {
+                /* Could navigate to incomes page or open income modal */
+                console.log('View income details');
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  console.log('View income details via keyboard');
+                }
+              }}
+            >
+              <h4 className="text-[10px] xs:text-xs sm:text-sm font-medium text-muted-foreground flex items-center justify-center">
+                <DollarSign className="h-3 w-3 mr-1 text-green-600" />
+                Total Income
+              </h4>
               <p className="text-sm xs:text-lg sm:text-2xl font-bold text-green-600">{formatCurrency(calculateTotalIncome())}</p>
             </div>
-            <div className="text-center">
-              <h4 className="text-[10px] xs:text-xs sm:text-sm font-medium text-muted-foreground">Goals Due</h4>
+            
+            <div 
+              className="text-center p-2 rounded-md hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors cursor-pointer"
+              role="button"
+              tabIndex={0}
+              title="View goals details"
+              aria-label={`Total goals due in this period: ${formatCurrency(calculateGoalsAmount())}`}
+              onClick={() => {
+                /* Could navigate to goals page or open goals modal */
+                console.log('View goals details');
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  console.log('View goals details via keyboard');
+                }
+              }}
+            >
+              <h4 className="text-[10px] xs:text-xs sm:text-sm font-medium text-muted-foreground flex items-center justify-center">
+                <Calendar className="h-3 w-3 mr-1 text-blue-600" />
+                Goals Due
+              </h4>
               <p className="text-sm xs:text-lg sm:text-2xl font-bold text-blue-600">{formatCurrency(calculateGoalsAmount())}</p>
             </div>
           </div>
