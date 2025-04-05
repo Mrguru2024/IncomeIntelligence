@@ -18,6 +18,9 @@ import {
   getFinancialAdvice, 
   suggestFinancialGoals, 
   analyzeExpenses, 
+  getAISettings,
+  updateAISettings,
+  AIProvider,
   type FinancialAdviceRequest 
 } from "./ai-service";
 import { notificationService } from "./notification-service";
@@ -1393,6 +1396,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error('Error toggling widget:', error);
       res.status(500).json({ message: "Failed to toggle widget" });
+    }
+  });
+
+  // AI SETTINGS ENDPOINTS
+  
+  // Get current AI settings
+  app.get("/api/ai/settings", (req, res) => {
+    try {
+      const settings = getAISettings();
+      res.json(settings);
+    } catch (error) {
+      console.error('Error getting AI settings:', error);
+      res.status(500).json({ message: "Failed to get AI settings" });
+    }
+  });
+  
+  // Update AI settings
+  app.patch("/api/ai/settings", (req, res) => {
+    try {
+      const schema = z.object({
+        DEFAULT_PROVIDER: z.enum([AIProvider.OPENAI, AIProvider.ANTHROPIC]).optional(),
+        AUTO_FALLBACK: z.boolean().optional(),
+        MAX_RETRIES: z.number().int().min(1).max(10).optional(),
+        CACHE_ENABLED: z.boolean().optional(),
+        CACHE_EXPIRY: z.number().int().min(1000).optional(),
+      });
+      
+      const validatedData = schema.parse(req.body);
+      const settings = updateAISettings(validatedData);
+      
+      res.json({ 
+        settings, 
+        message: "AI settings updated successfully" 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating AI settings:', error);
+      res.status(500).json({ message: "Failed to update AI settings" });
     }
   });
 

@@ -4,24 +4,40 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import { createHash } from 'crypto';
 
-// AI providers
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-// Cache settings
-const CACHE_ENABLED = true;
-const CACHE_EXPIRY = 1000 * 60 * 60 * 24 * 7; // 7 days
-const CACHE_DIR = './.cache';
-
+// Define AI providers enum first
 export enum AIProvider {
   OPENAI = 'openai',
   ANTHROPIC = 'anthropic',
 }
 
+// AI provider instances
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// Service settings
+const AI_SETTINGS = {
+  // Cache settings
+  CACHE_ENABLED: true,
+  CACHE_EXPIRY: 1000 * 60 * 60 * 24 * 7, // 7 days
+  CACHE_DIR: './.cache',
+  
+  // AI provider settings
+  DEFAULT_PROVIDER: "openai" as AIProvider, // Use the string directly to avoid circular reference
+  AUTO_FALLBACK: true, // Automatically try another provider if the first one fails
+  MAX_RETRIES: 3,      // Maximum number of retries per provider
+};
+
+// Export settings for external access
+export const getAISettings = () => ({ ...AI_SETTINGS });
+export const updateAISettings = (settings: Partial<typeof AI_SETTINGS>) => {
+  Object.assign(AI_SETTINGS, settings);
+  return { ...AI_SETTINGS };
+};
+
 // Initialize cache directory
 async function ensureCacheDir() {
   try {
-    await fs.mkdir(CACHE_DIR, { recursive: true });
+    await fs.mkdir(AI_SETTINGS.CACHE_DIR, { recursive: true });
   } catch (error) {
     console.error('Failed to create cache directory:', error);
   }
@@ -37,10 +53,10 @@ function generateCacheKey(data: any, provider: AIProvider): string {
 
 // Cache operations
 async function saveToCache(key: string, data: any): Promise<void> {
-  if (!CACHE_ENABLED) return;
+  if (!AI_SETTINGS.CACHE_ENABLED) return;
   
   try {
-    const cacheFile = join(CACHE_DIR, `${key}.json`);
+    const cacheFile = join(AI_SETTINGS.CACHE_DIR, `${key}.json`);
     await fs.writeFile(
       cacheFile,
       JSON.stringify({
@@ -54,15 +70,15 @@ async function saveToCache(key: string, data: any): Promise<void> {
 }
 
 async function getFromCache(key: string): Promise<any | null> {
-  if (!CACHE_ENABLED) return null;
+  if (!AI_SETTINGS.CACHE_ENABLED) return null;
   
   try {
-    const cacheFile = join(CACHE_DIR, `${key}.json`);
+    const cacheFile = join(AI_SETTINGS.CACHE_DIR, `${key}.json`);
     const data = await fs.readFile(cacheFile, 'utf-8');
     const parsed = JSON.parse(data);
     
     // Check if cache is expired
-    if (Date.now() - parsed.timestamp > CACHE_EXPIRY) {
+    if (Date.now() - parsed.timestamp > AI_SETTINGS.CACHE_EXPIRY) {
       await fs.unlink(cacheFile);
       return null;
     }
@@ -76,7 +92,7 @@ async function getFromCache(key: string): Promise<any | null> {
 // Retry logic with exponential backoff
 async function withRetry<T>(
   fn: () => Promise<T>,
-  maxRetries = 3,
+  maxRetries = AI_SETTINGS.MAX_RETRIES,
   initialDelay = 1000
 ): Promise<T> {
   let retries = 0;
@@ -112,8 +128,22 @@ function isRetryableError(error: any): boolean {
 async function executeWithFallback<T>(
   openAIFn: () => Promise<T>,
   anthropicFn: () => Promise<T>,
-  preferredProvider = AIProvider.OPENAI
+  preferredProvider = AI_SETTINGS.DEFAULT_PROVIDER
 ): Promise<{ data: T, provider: AIProvider }> {
+  // Check if auto fallback is disabled
+  if (!AI_SETTINGS.AUTO_FALLBACK) {
+    // If fallback is disabled, just use the preferred provider
+    try {
+      const fn = preferredProvider === AIProvider.OPENAI ? openAIFn : anthropicFn;
+      const result = await withRetry(fn);
+      return { data: result, provider: preferredProvider };
+    } catch (error) {
+      console.error(`Error with ${preferredProvider} and fallback disabled:`, error);
+      throw error;
+    }
+  }
+
+  // If fallback is enabled, try providers in sequence
   const providers = preferredProvider === AIProvider.OPENAI 
     ? [AIProvider.OPENAI, AIProvider.ANTHROPIC]
     : [AIProvider.ANTHROPIC, AIProvider.OPENAI];
