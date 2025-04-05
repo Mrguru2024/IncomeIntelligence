@@ -64,7 +64,7 @@ export default function Settings() {
   }, [aiSettings]);
   
   // Mutation to update AI settings
-  const updateAISettingsMutation = useMutation({
+  const updateAISettingsMutation = useMutation<void, Error, Partial<AISettings>>({
     mutationFn: (newSettings: Partial<AISettings>) => 
       apiRequest('/api/ai/settings', {
         method: 'PATCH',

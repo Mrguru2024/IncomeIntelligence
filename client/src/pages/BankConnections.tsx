@@ -81,7 +81,7 @@ export default function BankConnections() {
   });
 
   // Delete a bank connection
-  const deleteMutation = useMutation({
+  const deleteMutation = useMutation<void, Error, number>({
     mutationFn: async (connectionId: number) => {
       await fetch(`/api/bank-connections/${connectionId}`, {
         method: 'DELETE'
@@ -106,7 +106,7 @@ export default function BankConnections() {
   });
 
   // Sync transactions for a connection
-  const syncMutation = useMutation({
+  const syncMutation = useMutation<void, Error, number>({
     mutationFn: async (connectionId: number) => {
       await fetch(`/api/bank-connections/${connectionId}/sync`, {
         method: 'POST'
@@ -133,7 +133,7 @@ export default function BankConnections() {
   });
 
   // Import transactions as income
-  const importIncomeMutation = useMutation({
+  const importIncomeMutation = useMutation<void, Error, number>({
     mutationFn: async (connectionId: number) => {
       await fetch(`/api/bank-connections/${connectionId}/import-income`, {
         method: 'POST'
