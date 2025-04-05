@@ -305,26 +305,26 @@ export default function Profile() {
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="overflow-x-auto horizontal-scroll -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
           <TabsList className="horizontal-scroll scrollbar-none flex pb-1 gap-2 p-1 mb-2 sm:mb-6 bg-card/50 rounded-lg min-w-[300px] xxs:min-w-[380px] sm:min-w-0 inline-flex w-full">
-          <TabsTrigger value="personal" className="flex-shrink-0 min-w-fit">
-            <i className="fas fa-user mr-2 hidden sm:inline-block" />
-            Personal Info
-          </TabsTrigger>
-          <TabsTrigger value="business" className="flex-shrink-0 min-w-fit">
-            <i className="fas fa-briefcase mr-2 hidden sm:inline-block" />
-            Business Details
-          </TabsTrigger>
-          <TabsTrigger value="financial" className="flex-shrink-0 min-w-fit">
-            <i className="fas fa-chart-line mr-2 hidden sm:inline-block" />
-            Financial Details
-          </TabsTrigger>
-          <TabsTrigger value="widget" className="flex-shrink-0 min-w-fit">
-            <i className="fas fa-window-maximize mr-2 hidden sm:inline-block" />
-            Widget Settings
-          </TabsTrigger>
-          <TabsTrigger value="account" className="flex-shrink-0 min-w-fit">
-            <i className="fas fa-cog mr-2 hidden sm:inline-block" />
-            Account Settings
-          </TabsTrigger>
+            <TabsTrigger value="personal" className="flex-shrink-0 px-3 py-1.5">
+              <i className="fas fa-user mr-2 hidden sm:inline-block" />
+              <span className="whitespace-nowrap">Personal Info</span>
+            </TabsTrigger>
+            <TabsTrigger value="business" className="flex-shrink-0 px-3 py-1.5">
+              <i className="fas fa-briefcase mr-2 hidden sm:inline-block" />
+              <span className="whitespace-nowrap">Business Details</span>
+            </TabsTrigger>
+            <TabsTrigger value="financial" className="flex-shrink-0 px-3 py-1.5">
+              <i className="fas fa-chart-line mr-2 hidden sm:inline-block" />
+              <span className="whitespace-nowrap">Financial</span>
+            </TabsTrigger>
+            <TabsTrigger value="widget" className="flex-shrink-0 px-3 py-1.5">
+              <i className="fas fa-window-maximize mr-2 hidden sm:inline-block" />
+              <span className="whitespace-nowrap">Widget</span>
+            </TabsTrigger>
+            <TabsTrigger value="account" className="flex-shrink-0 px-3 py-1.5">
+              <i className="fas fa-cog mr-2 hidden sm:inline-block" />
+              <span className="whitespace-nowrap">Account</span>
+            </TabsTrigger>
         </TabsList>
         </div>
 
