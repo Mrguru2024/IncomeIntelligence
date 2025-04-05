@@ -162,10 +162,10 @@ const FinancialAdvice = () => {
     retry: 1,      // Only retry once on failure
   });
   
-  // Combine loading states
-  const isAdviceLoading = isQueryLoading || manuallyLoadingAdvice;
-  const isGoalSuggestionsLoading = isGoalsLoading || manuallyLoadingGoals;
-  const isExpenseAnalysisLoading = isAnalysisLoading || manuallyLoadingAnalysis;
+  // Combine loading states - make sure to default to false if undefined
+  const isAdviceLoading = (isQueryLoading === true) || (manuallyLoadingAdvice === true);
+  const isGoalSuggestionsLoading = (isGoalsLoading === true) || (manuallyLoadingGoals === true);
+  const isExpenseAnalysisLoading = (isAnalysisLoading === true) || (manuallyLoadingAnalysis === true);
   
   // Create goal from suggestion mutation
   const createGoalMutation = useMutation({
@@ -198,168 +198,144 @@ const FinancialAdvice = () => {
     }
   });
   
-  const handleGetAdvice = async () => {
-    try {
-      console.log("Generating advice button clicked");
-      
-      // Set our manual loading state to true before starting the request
-      setManuallyLoadingAdvice(true);
-      
-      // Make direct API call instead of using refetch
-      const response = await apiRequest('/api/ai/financial-advice', {
-        method: 'POST',
-        body: JSON.stringify({ 
-          userId: DEMO_USER_ID, 
-          question: question || undefined 
-        })
-      });
-      
+  const handleGetAdvice = () => {
+    console.log("Generating advice button clicked");
+    
+    setManuallyLoadingAdvice(true);
+    
+    apiRequest('/api/ai/financial-advice', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        userId: DEMO_USER_ID, 
+        question: question || undefined 
+      })
+    })
+    .then(response => {
       console.log("Manual API response:", response);
       
-      // Record that the user used AI advice
-      await apiRequest('/api/ai/mark-advice-used', {
+      // Record usage
+      return apiRequest('/api/ai/mark-advice-used', {
         method: 'POST',
-        body: JSON.stringify({ 
-          userId: DEMO_USER_ID,
-          adviceType: 'financial_advice'
-        })
-      }).catch(err => {
-        // Log but don't fail the main request if tracking fails
-        console.error('Error tracking advice usage:', err);
-      });
-      
-      // Update the local state with response
+        body: JSON.stringify({ userId: DEMO_USER_ID, adviceType: 'financial_advice' })
+      })
+      .catch(() => {}) // Ignore tracking errors
+      .then(() => response); // Return original response
+    })
+    .then(response => {
+      // Update cache
       queryClient.setQueryData(['/api/ai/financial-advice', question], response);
       
-      // Reset loading state
-      setManuallyLoadingAdvice(false);
-      
-      // Show success toast
+      // Show success message
       toast({
         title: "Success!",
         description: "Financial advice generated successfully.",
       });
-    } catch (error) {
+    })
+    .catch(error => {
       console.error("Error fetching advice:", error);
-      
-      // Make sure to reset loading state on error
-      setManuallyLoadingAdvice(false);
-      
       toast({
         title: "Error",
         description: "Failed to generate financial advice. Please try again.",
         variant: "destructive",
       });
-    }
+    })
+    .finally(() => {
+      // Always reset loading state
+      setManuallyLoadingAdvice(false);
+    });
   };
   
-  const handleGetGoalSuggestions = async () => {
-    try {
-      console.log("Generating goal suggestions button clicked");
-      
-      // Set manual loading state to true before starting the request
-      setManuallyLoadingGoals(true);
-      
-      // Make direct API call instead of using refetch
-      const response = await apiRequest('/api/ai/suggest-goals', {
-        method: 'POST',
-        body: JSON.stringify({ 
-          userId: DEMO_USER_ID
-        })
-      });
-      
+  const handleGetGoalSuggestions = () => {
+    console.log("Generating goal suggestions button clicked");
+    
+    setManuallyLoadingGoals(true);
+    
+    apiRequest('/api/ai/suggest-goals', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        userId: DEMO_USER_ID
+      })
+    })
+    .then(response => {
       console.log("Manual API response (goals):", response);
       
-      // Record that the user used AI advice
-      await apiRequest('/api/ai/mark-advice-used', {
+      // Record usage
+      return apiRequest('/api/ai/mark-advice-used', {
         method: 'POST',
-        body: JSON.stringify({ 
-          userId: DEMO_USER_ID,
-          adviceType: 'goal_suggestion'
-        })
-      }).catch(err => {
-        // Log but don't fail the main request if tracking fails
-        console.error('Error tracking goal suggestion usage:', err);
-      });
-      
-      // Update the local state with response
+        body: JSON.stringify({ userId: DEMO_USER_ID, adviceType: 'goal_suggestion' })
+      })
+      .catch(() => {}) // Ignore tracking errors
+      .then(() => response); // Return original response
+    })
+    .then(response => {
+      // Update cache
       queryClient.setQueryData(['/api/ai/suggest-goals'], response);
       
-      // Reset loading state
-      setManuallyLoadingGoals(false);
-      
-      // Show success toast
+      // Show success message
       toast({
         title: "Success!",
         description: "Goal suggestions generated successfully.",
       });
-    } catch (error) {
+    })
+    .catch(error => {
       console.error("Error fetching goal suggestions:", error);
-      
-      // Make sure to reset loading state on error
-      setManuallyLoadingGoals(false);
-      
       toast({
         title: "Error",
         description: "Failed to generate goal suggestions. Please try again.",
         variant: "destructive",
       });
-    }
+    })
+    .finally(() => {
+      // Always reset loading state
+      setManuallyLoadingGoals(false);
+    });
   };
   
-  const handleAnalyzeExpenses = async () => {
-    try {
-      console.log("Analyzing expenses button clicked");
-      
-      // Set manual loading state to true before starting the request
-      setManuallyLoadingAnalysis(true);
-      
-      // Make direct API call instead of using refetch
-      const response = await apiRequest('/api/ai/analyze-expenses', {
-        method: 'POST',
-        body: JSON.stringify({ 
-          userId: DEMO_USER_ID,
-          period: expensePeriod
-        })
-      });
-      
+  const handleAnalyzeExpenses = () => {
+    console.log("Analyzing expenses button clicked");
+    
+    setManuallyLoadingAnalysis(true);
+    
+    apiRequest('/api/ai/analyze-expenses', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        userId: DEMO_USER_ID,
+        period: expensePeriod
+      })
+    })
+    .then(response => {
       console.log("Manual API response (expenses):", response);
       
-      // Record that the user used AI advice
-      await apiRequest('/api/ai/mark-advice-used', {
+      // Record usage
+      return apiRequest('/api/ai/mark-advice-used', {
         method: 'POST',
-        body: JSON.stringify({ 
-          userId: DEMO_USER_ID,
-          adviceType: 'expense_analysis'
-        })
-      }).catch(err => {
-        // Log but don't fail the main request if tracking fails
-        console.error('Error tracking expense analysis usage:', err);
-      });
-      
-      // Update the local state with response
+        body: JSON.stringify({ userId: DEMO_USER_ID, adviceType: 'expense_analysis' })
+      })
+      .catch(() => {}) // Ignore tracking errors
+      .then(() => response); // Return original response
+    })
+    .then(response => {
+      // Update cache
       queryClient.setQueryData(['/api/ai/analyze-expenses', expensePeriod], response);
       
-      // Reset loading state
-      setManuallyLoadingAnalysis(false);
-      
-      // Show success toast
+      // Show success message
       toast({
         title: "Success!",
         description: "Expense analysis generated successfully.",
       });
-    } catch (error) {
+    })
+    .catch(error => {
       console.error("Error analyzing expenses:", error);
-      
-      // Make sure to reset loading state on error
-      setManuallyLoadingAnalysis(false);
-      
       toast({
         title: "Error",
         description: "Failed to analyze expenses. Please try again.",
         variant: "destructive",
       });
-    }
+    })
+    .finally(() => {
+      // Always reset loading state
+      setManuallyLoadingAnalysis(false);
+    });
   };
   
   const handleCreateGoalFromSuggestion = (goal: any) => {
@@ -513,10 +489,10 @@ const FinancialAdvice = () => {
             <CardFooter>
               <Button 
                 onClick={handleGetAdvice} 
-                disabled={isAdviceLoading}
+                disabled={manuallyLoadingAdvice === true}
                 className="w-full"
               >
-                {isAdviceLoading ? (
+                {manuallyLoadingAdvice === true ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Generating Advice...
@@ -598,10 +574,10 @@ const FinancialAdvice = () => {
             <CardFooter className="px-4 py-4 sm:px-6">
               <Button 
                 onClick={handleGetGoalSuggestions} 
-                disabled={isGoalSuggestionsLoading}
+                disabled={manuallyLoadingGoals === true}
                 className="w-full text-sm sm:text-base"
               >
-                {isGoalSuggestionsLoading ? (
+                {manuallyLoadingGoals === true ? (
                   <>
                     <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                     <span className="whitespace-nowrap">Generating Suggestions...</span>
@@ -758,10 +734,10 @@ const FinancialAdvice = () => {
             <CardFooter>
               <Button 
                 onClick={handleAnalyzeExpenses} 
-                disabled={isExpenseAnalysisLoading}
+                disabled={manuallyLoadingAnalysis === true}
                 className="w-full text-sm sm:text-base"
               >
-                {isExpenseAnalysisLoading ? (
+                {manuallyLoadingAnalysis === true ? (
                   <>
                     <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                     <span className="whitespace-nowrap">Analyzing Expenses...</span>
