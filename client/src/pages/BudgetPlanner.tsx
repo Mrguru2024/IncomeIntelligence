@@ -119,20 +119,22 @@ export default function BudgetPlanner() {
         </div>
 
         <Tabs defaultValue="calendar" className="w-full">
-          <TabsList className="w-full grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 mb-4 sm:mb-6">
-            <TabsTrigger value="calendar" className="w-full flex items-center justify-center py-1.5 px-2 sm:p-2 text-sm sm:text-base">
-              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-              <span className="truncate">Calendar</span>
-            </TabsTrigger>
-            <TabsTrigger value="allocation" className="w-full flex items-center justify-center p-2">
-              <PieChart className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span className="truncate">Budget</span>
-            </TabsTrigger>
-            <TabsTrigger value="goals" className="w-full flex items-center justify-center p-2">
-              <BarChart className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span className="truncate">Goals</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-3 px-3 pb-2">
+            <TabsList className="flex w-full justify-start gap-1 max-w-none mb-4 sm:mb-6 min-w-[320px]">
+              <TabsTrigger value="calendar" className="flex-1 flex items-center justify-center py-1.5 px-2 sm:p-2 text-xs sm:text-sm">
+                <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                <span className="truncate">Calendar</span>
+              </TabsTrigger>
+              <TabsTrigger value="allocation" className="flex-1 flex items-center justify-center py-1.5 px-2 sm:p-2 text-xs sm:text-sm">
+                <PieChart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                <span className="truncate">Budget</span>
+              </TabsTrigger>
+              <TabsTrigger value="goals" className="flex-1 flex items-center justify-center py-1.5 px-2 sm:p-2 text-xs sm:text-sm">
+                <BarChart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                <span className="truncate">Goals</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="calendar" className="mt-6">
             <Card>

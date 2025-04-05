@@ -17,7 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon, DollarSignIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, DollarSign } from "lucide-react";
 import { Income, Goal } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils/format";
 
@@ -156,11 +156,11 @@ export default function BudgetCalendar() {
     <div className="space-y-4">
       <Card>
         <CardHeader className="pb-2">
-          <div className="flex justify-between items-center">
-            <CardTitle className="text-2xl">Budget Calendar</CardTitle>
-            <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+            <CardTitle className="text-lg sm:text-2xl">Budget Calendar</CardTitle>
+            <div className="w-full sm:w-auto">
               <Select value={view} onValueChange={(val: CalendarView) => setView(val)}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[160px]">
                   <SelectValue placeholder="View" />
                 </SelectTrigger>
                 <SelectContent>
@@ -173,83 +173,87 @@ export default function BudgetCalendar() {
           </div>
         </CardHeader>
         
-        <CardContent>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium">
+        <CardContent className="px-2 sm:px-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-4">
+            <h3 className="text-base sm:text-lg font-medium">
               {view === "month" 
                 ? format(currentDate, "MMMM yyyy")
                 : view === "biweek"
-                ? `Weeks ${getWeek(dateRange.start)} - ${getWeek(dateRange.end)}, ${format(currentDate, "yyyy")}`
+                ? `Weeks ${getWeek(dateRange.start)}-${getWeek(dateRange.end)}, ${format(currentDate, "yyyy")}`
                 : `Week ${getWeek(currentDate)}, ${format(currentDate, "yyyy")}`
               }
             </h3>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={goToPrevious}>
-                <ChevronLeftIcon className="h-4 w-4" />
+            <div className="flex space-x-1 sm:space-x-2 w-full sm:w-auto justify-end">
+              <Button variant="outline" size="sm" onClick={goToPrevious} className="p-0 sm:p-2 h-8 w-8 sm:h-9 sm:w-auto">
+                <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm" onClick={goToToday}>
+              <Button variant="outline" size="sm" onClick={goToToday} className="h-8 sm:h-9 px-2 sm:px-3">
                 Today
               </Button>
-              <Button variant="outline" size="sm" onClick={goToNext}>
-                <ChevronRightIcon className="h-4 w-4" />
+              <Button variant="outline" size="sm" onClick={goToNext} className="p-0 sm:p-2 h-8 w-8 sm:h-9 sm:w-auto">
+                <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
           
-          <div className="grid grid-cols-7 gap-1 text-center text-sm font-medium">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div key={day} className="py-2">
-                {day}
+          <div className="overflow-x-auto -mx-2 px-2">
+            <div className="min-w-[500px]"> {/* Ensure minimum width for small screens */}
+              <div className="grid grid-cols-7 gap-1 text-center text-xs sm:text-sm font-medium">
+                {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day, idx) => (
+                  <div key={idx} className="py-1 sm:py-2">
+                    {day}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-7 gap-1 mt-1">
-            {days.map((day, i) => {
-              const dayIncomes = getIncomesForDate(day);
-              const dayGoals = getGoalsForDate(day);
-              const dayIncomesTotal = dayIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount.toString()), 0);
               
-              return (
-                <div
-                  key={i}
-                  className={`min-h-[100px] border rounded-md p-1 ${
-                    isToday(day) ? "bg-primary-50 border-primary" : ""
-                  }`}
-                >
-                  <div className="text-right p-1 font-medium">
-                    {format(day, "d")}
-                  </div>
+              <div className="grid grid-cols-7 gap-1 mt-1">
+                {days.map((day, i) => {
+                  const dayIncomes = getIncomesForDate(day);
+                  const dayGoals = getGoalsForDate(day);
+                  const dayIncomesTotal = dayIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount.toString()), 0);
                   
-                  <div className="text-xs space-y-1">
-                    {dayIncomes.length > 0 && (
-                      <div className="bg-green-50 p-1 rounded text-green-800 flex items-center">
-                        <DollarSignIcon className="h-3 w-3 mr-1" />
-                        {formatCurrency(dayIncomesTotal)}
+                  return (
+                    <div
+                      key={i}
+                      className={`h-[70px] sm:min-h-[80px] border rounded-md p-0.5 sm:p-1 overflow-hidden ${
+                        isToday(day) ? "bg-primary/5 border-primary" : ""
+                      }`}
+                    >
+                      <div className="text-right p-0.5 sm:p-1 font-medium text-xs">
+                        {format(day, "d")}
                       </div>
-                    )}
-                    
-                    {dayGoals.map((goal) => (
-                      <div key={goal.id} className="bg-blue-50 p-1 rounded text-blue-800 text-[10px] truncate">
-                        {goal.name}
+                      
+                      <div className="text-[10px] sm:text-xs space-y-0.5 sm:space-y-1">
+                        {dayIncomes.length > 0 && (
+                          <div className="bg-green-50 p-0.5 rounded text-green-800 flex items-center text-[9px] sm:text-xs">
+                            <DollarSign className="h-2 w-2 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 flex-shrink-0" />
+                            <span className="truncate">{formatCurrency(dayIncomesTotal)}</span>
+                          </div>
+                        )}
+                        
+                        {dayGoals.map((goal) => (
+                          <div key={goal.id} className="bg-blue-50 p-0.5 rounded text-blue-800 text-[9px] truncate">
+                            {goal.name}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </CardContent>
         
-        <CardFooter className="border-t">
-          <div className="w-full grid grid-cols-2 gap-4">
+        <CardFooter className="border-t px-2 sm:px-6 py-3 sm:py-4">
+          <div className="w-full grid grid-cols-2 gap-2 sm:gap-4">
             <div className="text-center">
-              <h4 className="text-sm font-medium text-muted-foreground">Total Income</h4>
-              <p className="text-2xl font-bold text-green-600">{formatCurrency(calculateTotalIncome())}</p>
+              <h4 className="text-xs sm:text-sm font-medium text-muted-foreground">Total Income</h4>
+              <p className="text-lg sm:text-2xl font-bold text-green-600">{formatCurrency(calculateTotalIncome())}</p>
             </div>
             <div className="text-center">
-              <h4 className="text-sm font-medium text-muted-foreground">Goal Payments Due</h4>
-              <p className="text-2xl font-bold text-blue-600">{formatCurrency(calculateGoalsAmount())}</p>
+              <h4 className="text-xs sm:text-sm font-medium text-muted-foreground">Goal Payments Due</h4>
+              <p className="text-lg sm:text-2xl font-bold text-blue-600">{formatCurrency(calculateGoalsAmount())}</p>
             </div>
           </div>
         </CardFooter>
