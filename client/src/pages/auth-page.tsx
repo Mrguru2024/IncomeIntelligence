@@ -6,18 +6,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, setAuthToken, queryClient } from "@/lib/queryClient";
-import { Loader2 } from "lucide-react";
+import { Loader2, CircleDollarSign } from "lucide-react";
 
 // Login validation schema
 const loginSchema = z.object({
-  username: z.string().min(1, "Username/Email is required"),
+  username: z.string().min(1, "Username or email is required"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -46,14 +45,21 @@ export default function AuthPage() {
 
   // Check if user is logged in
   const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ['/api/auth/user'],
-    queryFn: ({ queryKey }) => {
-      return fetch(queryKey[0], { credentials: "include" })
-        .then((res) => {
-          if (res.ok) return res.json();
-          return null;
-        })
-        .catch(() => null);
+    queryKey: ['/api/user'],
+    queryFn: async ({ queryKey }) => {
+      try {
+        const res = await fetch(queryKey[0], { 
+          credentials: "include",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        if (res.ok) return res.json();
+        return null;
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        return null;
+      }
     },
   });
 
@@ -87,32 +93,30 @@ export default function AuthPage() {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginFormValues) => {
-      // Convert username to identifier field expected by backend
-      const loginData = {
-        identifier: credentials.username,
+      const res = await apiRequest('POST', '/api/login', {
+        username: credentials.username,
         password: credentials.password
-      };
-      const res = await apiRequest('/api/auth/login', {
-        method: 'POST',
-        body: loginData,
       });
-      return res;
-    },
-    onSuccess: (data) => {
-      if (data.token) {
-        setAuthToken(data.token);
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Login failed. Please check your credentials.");
       }
+      
+      return res.json();
+    },
+    onSuccess: () => {
       toast({
         title: "Login successful",
         description: "Welcome back to Stackr!",
       });
-      queryClient.setQueryData(['/api/auth/user'], data.user);
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       setTimeout(() => setLocation('/'), 500);
     },
     onError: (error: Error) => {
       toast({
         title: "Login failed",
-        description: error.message,
+        description: error.message || "There was an error logging in. Please try again.",
         variant: "destructive",
       });
     },
@@ -121,27 +125,34 @@ export default function AuthPage() {
   // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (userData: RegisterFormValues) => {
-      const res = await apiRequest('/api/auth/register', {
-        method: 'POST',
-        body: userData,
+      const res = await apiRequest('POST', '/api/register', {
+        username: userData.username,
+        email: userData.email,
+        password: userData.password
       });
-      return res;
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Registration failed. Please try again.");
+      }
+      
+      return res.json();
     },
     onSuccess: (data) => {
-      if (data.token) {
-        setAuthToken(data.token);
-      }
       toast({
         title: "Registration successful",
-        description: "Your account has been created. Please check your email for verification.",
+        description: "Your account has been created! You can now log in.",
       });
       setActiveTab("login");
       registerForm.reset();
+      
+      // Pre-fill login form with registered username
+      loginForm.setValue("username", registerForm.getValues("username"));
     },
     onError: (error: Error) => {
       toast({
         title: "Registration failed",
-        description: error.message,
+        description: error.message || "There was an error creating your account. Please try again.",
         variant: "destructive",
       });
     },
@@ -158,8 +169,11 @@ export default function AuthPage() {
   // If user is already logged in, redirect to home page
   if (userLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading your account...</p>
+        </div>
       </div>
     );
   }
@@ -170,43 +184,50 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
+    <div className="flex min-h-screen flex-col lg:flex-row bg-background">
       {/* Auth Form Section */}
-      <div className="flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 lg:w-1/2">
-        <div className="w-full max-w-md mx-auto space-y-6">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold tracking-tight mb-2">Welcome to Stackr</h1>
-            <p className="text-muted-foreground">The smart income management platform</p>
+      <div className="flex flex-col justify-center items-center p-6 lg:p-12 lg:w-1/2">
+        <div className="w-full max-w-md mx-auto space-y-8">
+          <div className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-primary to-primary/70 flex items-center justify-center shadow-lg">
+                <CircleDollarSign className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight mb-2 text-foreground">Stackr</h1>
+            <p className="text-muted-foreground">Take control of your finances</p>
           </div>
 
           <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="login" className="text-base py-2">Sign In</TabsTrigger>
+              <TabsTrigger value="register" className="text-base py-2">Create Account</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Login to your account</CardTitle>
+              <Card className="border-border/40 shadow-md">
+                <CardHeader className="space-y-1">
+                  <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
                   <CardDescription>
-                    Enter your username/email and password to access your account
+                    Enter your credentials to access your account
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Form {...loginForm}>
-                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-5">
                       <FormField
                         control={loginForm.control}
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Username or Email</FormLabel>
+                            <FormLabel className="text-base">Username or Email</FormLabel>
                             <FormControl>
                               <Input 
+                                className="h-11"
                                 placeholder="Enter your username or email" 
                                 {...field} 
                                 disabled={loginMutation.isPending}
+                                autoComplete="username"
                               />
                             </FormControl>
                             <FormMessage />
@@ -219,13 +240,15 @@ export default function AuthPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel className="text-base">Password</FormLabel>
                             <FormControl>
                               <Input 
+                                className="h-11"
                                 type="password" 
                                 placeholder="Enter your password" 
                                 {...field} 
                                 disabled={loginMutation.isPending}
+                                autoComplete="current-password"
                               />
                             </FormControl>
                             <FormMessage />
@@ -235,34 +258,33 @@ export default function AuthPage() {
 
                       <Button 
                         type="submit" 
-                        className="w-full mt-2" 
+                        className="w-full h-11 text-base font-medium mt-2" 
                         disabled={loginMutation.isPending}
                       >
                         {loginMutation.isPending ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
-                            Logging in...
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> 
+                            Signing in...
                           </>
                         ) : (
-                          "Login"
+                          "Sign In"
                         )}
                       </Button>
                     </form>
                   </Form>
                 </CardContent>
-                <CardFooter className="flex flex-col space-y-4">
+                <CardFooter className="flex flex-col space-y-6 pb-6">
                   <div className="text-sm text-center text-muted-foreground">
                     <a 
                       href="#" 
                       onClick={(e) => {
                         e.preventDefault();
-                        // Handle forgot password logic here
                         toast({
-                          title: "Password reset",
-                          description: "Please check your email for password reset instructions",
+                          title: "Coming soon",
+                          description: "Password reset functionality will be available soon",
                         });
                       }} 
-                      className="hover:text-primary underline underline-offset-4"
+                      className="hover:text-primary underline underline-offset-4 transition-colors"
                     >
                       Forgot your password?
                     </a>
@@ -273,20 +295,20 @@ export default function AuthPage() {
                       <Separator className="w-full" />
                     </div>
                     <div className="relative flex justify-center text-xs">
-                      <span className="bg-background px-2 text-muted-foreground">
+                      <span className="bg-card px-2 text-muted-foreground">
                         Or continue with
                       </span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 w-full">
-                    <Button variant="outline" className="w-full" onClick={() => {
+                  <div className="grid grid-cols-2 gap-3 w-full">
+                    <Button variant="outline" className="h-11" onClick={() => {
                       toast({
-                        title: "Google Sign In",
+                        title: "Coming soon",
                         description: "Google authentication will be available soon",
                       });
                     }}>
-                      <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                      <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                         <path
                           d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                           fill="#4285F4"
@@ -304,21 +326,21 @@ export default function AuthPage() {
                           fill="#EA4335"
                         />
                       </svg>
-                      Google
+                      <span className="text-sm">Google</span>
                     </Button>
-                    <Button variant="outline" className="w-full" onClick={() => {
+                    <Button variant="outline" className="h-11" onClick={() => {
                       toast({
-                        title: "GitHub Sign In",
+                        title: "Coming soon",
                         description: "GitHub authentication will be available soon",
                       });
                     }}>
-                      <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                      <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                         <path
                           fill="currentColor"
                           d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
                         />
                       </svg>
-                      GitHub
+                      <span className="text-sm">GitHub</span>
                     </Button>
                   </div>
                 </CardFooter>
@@ -326,27 +348,29 @@ export default function AuthPage() {
             </TabsContent>
 
             <TabsContent value="register" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Create a new account</CardTitle>
+              <Card className="border-border/40 shadow-md">
+                <CardHeader className="space-y-1">
+                  <CardTitle className="text-2xl font-semibold">Create an account</CardTitle>
                   <CardDescription>
-                    Enter your details to create your Stackr account
+                    Enter your details to get started with Stackr
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Form {...registerForm}>
-                    <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                    <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-5">
                       <FormField
                         control={registerForm.control}
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Username</FormLabel>
+                            <FormLabel className="text-base">Username</FormLabel>
                             <FormControl>
                               <Input 
+                                className="h-11"
                                 placeholder="Choose a username" 
                                 {...field} 
                                 disabled={registerMutation.isPending}
+                                autoComplete="username"
                               />
                             </FormControl>
                             <FormMessage />
@@ -359,13 +383,15 @@ export default function AuthPage() {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email</FormLabel>
+                            <FormLabel className="text-base">Email</FormLabel>
                             <FormControl>
                               <Input 
+                                className="h-11"
                                 type="email" 
                                 placeholder="Enter your email" 
                                 {...field} 
                                 disabled={registerMutation.isPending}
+                                autoComplete="email"
                               />
                             </FormControl>
                             <FormMessage />
@@ -378,13 +404,15 @@ export default function AuthPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel className="text-base">Password</FormLabel>
                             <FormControl>
                               <Input 
+                                className="h-11"
                                 type="password" 
                                 placeholder="Create a password" 
                                 {...field} 
                                 disabled={registerMutation.isPending}
+                                autoComplete="new-password"
                               />
                             </FormControl>
                             <FormMessage />
@@ -397,13 +425,15 @@ export default function AuthPage() {
                         name="confirmPassword"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
+                            <FormLabel className="text-base">Confirm Password</FormLabel>
                             <FormControl>
                               <Input 
+                                className="h-11"
                                 type="password" 
                                 placeholder="Confirm your password" 
                                 {...field} 
                                 disabled={registerMutation.isPending}
+                                autoComplete="new-password"
                               />
                             </FormControl>
                             <FormMessage />
@@ -413,28 +443,28 @@ export default function AuthPage() {
 
                       <Button 
                         type="submit" 
-                        className="w-full mt-2" 
+                        className="w-full h-11 text-base font-medium mt-2" 
                         disabled={registerMutation.isPending}
                       >
                         {registerMutation.isPending ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> 
                             Creating account...
                           </>
                         ) : (
-                          "Register"
+                          "Create Account"
                         )}
                       </Button>
                     </form>
                   </Form>
                 </CardContent>
-                <CardFooter className="flex flex-col space-y-4">
+                <CardFooter className="flex flex-col space-y-4 pt-2 pb-6">
                   <div className="text-sm text-center text-muted-foreground">
                     By registering, you agree to our 
-                    <a href="#" className="ml-1 hover:text-primary underline underline-offset-4">
+                    <a href="#" className="ml-1 hover:text-primary underline underline-offset-4 transition-colors">
                       Terms of Service
                     </a> and 
-                    <a href="#" className="ml-1 hover:text-primary underline underline-offset-4">
+                    <a href="#" className="ml-1 hover:text-primary underline underline-offset-4 transition-colors">
                       Privacy Policy
                     </a>
                   </div>
@@ -446,23 +476,23 @@ export default function AuthPage() {
       </div>
 
       {/* Hero Section */}
-      <div className="hidden lg:flex flex-col justify-center items-center bg-gradient-to-br from-primary/10 to-primary/5 p-8 lg:w-1/2">
-        <div className="max-w-md mx-auto space-y-6">
+      <div className="hidden lg:flex flex-col justify-center items-center bg-gradient-to-br from-primary/20 via-primary/10 to-background p-12 lg:w-1/2">
+        <div className="max-w-md mx-auto space-y-8">
           <div>
-            <h2 className="text-4xl font-bold tracking-tight mb-4">
-              Smart income management <span className="text-primary">simplified</span>
+            <h2 className="text-4xl font-bold mb-4 tracking-tight">
+              Manage your income the <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">smart way</span>
             </h2>
-            <p className="text-lg text-muted-foreground">
-              Stackr helps you manage your income with the 40/30/30 rule - allocating funds for your needs, investments, and savings automatically.
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Stackr helps service providers manage income with our innovative 40/30/30 rule, allocating funds for needs, investments, and savings automatically.
             </p>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <div className="bg-primary/20 p-2 rounded-full">
+          <div className="space-y-5">
+            <div className="flex items-start space-x-4">
+              <div className="bg-primary/20 p-3 rounded-full">
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5 text-primary" 
+                  className="h-6 w-6 text-primary" 
                   fill="none" 
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
@@ -476,18 +506,18 @@ export default function AuthPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-medium mb-1">Automated Income Allocation</h3>
-                <p className="text-muted-foreground text-sm">
-                  Automatically allocate your income using the 40/30/30 rule or customize your own formula.
+                <h3 className="font-bold text-lg mb-1">Automated Income Allocation</h3>
+                <p className="text-muted-foreground">
+                  Automatically split your income using our 40/30/30 rule or customize your own formula.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="bg-primary/20 p-2 rounded-full">
+            <div className="flex items-start space-x-4">
+              <div className="bg-primary/20 p-3 rounded-full">
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5 text-primary" 
+                  className="h-6 w-6 text-primary" 
                   fill="none" 
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
@@ -501,18 +531,18 @@ export default function AuthPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-medium mb-1">AI-Powered Financial Advice</h3>
-                <p className="text-muted-foreground text-sm">
-                  Get personalized financial advice and goal suggestions based on your spending patterns.
+                <h3 className="font-bold text-lg mb-1">AI-Powered Financial Advice</h3>
+                <p className="text-muted-foreground">
+                  Get personalized financial advice based on your income patterns and spending habits.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="bg-primary/20 p-2 rounded-full">
+            <div className="flex items-start space-x-4">
+              <div className="bg-primary/20 p-3 rounded-full">
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5 text-primary" 
+                  className="h-6 w-6 text-primary" 
                   fill="none" 
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
@@ -526,18 +556,18 @@ export default function AuthPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-medium mb-1">Visual Goal Tracking</h3>
-                <p className="text-muted-foreground text-sm">
-                  Set financial goals and visualize your progress with intuitive dashboards and charts.
+                <h3 className="font-bold text-lg mb-1">Visual Goal Tracking</h3>
+                <p className="text-muted-foreground">
+                  Set financial goals and track your progress with intuitive dashboards and visualizations.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="bg-primary/20 p-2 rounded-full">
+            <div className="flex items-start space-x-4">
+              <div className="bg-primary/20 p-3 rounded-full">
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5 text-primary" 
+                  className="h-6 w-6 text-primary" 
                   fill="none" 
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
@@ -551,9 +581,9 @@ export default function AuthPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-medium mb-1">Bank Account Integration</h3>
-                <p className="text-muted-foreground text-sm">
-                  Connect your bank accounts for automated income tracking and comprehensive financial overview.
+                <h3 className="font-bold text-lg mb-1">Bank Account Integration</h3>
+                <p className="text-muted-foreground">
+                  Connect your bank accounts for automated income tracking and seamless financial management.
                 </p>
               </div>
             </div>
