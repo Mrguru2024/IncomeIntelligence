@@ -95,6 +95,51 @@ html {
   }
 }
 
+/* Profile page custom styles */
+.profile-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.profile-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tab-content-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.tab-content-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Form field animations */
+.form-field-focus {
+  transition: all 0.2s ease;
+}
+
+.form-field-focus:focus-within {
+  transform: scale(1.02);
+}
+
+/* Custom scrollbar for tabs */
+.tabs-list::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tabs-list::-webkit-scrollbar-track {
+  background: var(--background);
+  border-radius: 2px;
+}
+
+.tabs-list::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 2px;
+}
+
 /* Light mode colors - default */
 :root {
   --background: #f9fafb;
