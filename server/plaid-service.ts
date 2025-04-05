@@ -24,7 +24,7 @@ export class PlaidService {
         user: {
           client_user_id: userId.toString(),
         },
-        client_name: 'Financial Tracker',
+        client_name: 'Stackr',
         products: [Products.Transactions],
         country_codes: [CountryCode.Us],
         language: 'en',

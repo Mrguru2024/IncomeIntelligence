@@ -7,10 +7,10 @@ if (!process.env.RESEND_API_KEY) {
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Application constants
-const APP_NAME = 'Financial Tracker';
+const APP_NAME = 'Stackr';
 const APP_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://financial-tracker.com' 
-  : 'http://localhost:3000';
+  ? 'https://stackr.financial' 
+  : 'http://localhost:5000';
 
 interface EmailParams {
   to: string | string[];
@@ -81,7 +81,7 @@ export async function sendReminderEmail(
   
   return sendEmail({
     to,
-    from: 'notifications@yourdomain.com', // Replace with your verified domain in Resend
+    from: 'notifications@stackr.financial', // Replace with your verified domain in Resend
     subject: `Reminder: ${title}`,
     html,
     text: `${title}\n\n${message}\n\nDate: ${formattedDate}\n\nThis is an automated reminder from your financial management application.`
@@ -135,7 +135,7 @@ export async function sendVerificationEmail(
   
   return sendEmail({
     to: email,
-    from: 'notifications@yourdomain.com',
+    from: 'notifications@stackr.financial',
     subject,
     html,
     text
@@ -189,7 +189,7 @@ export async function sendPasswordResetEmail(
   
   return sendEmail({
     to: email,
-    from: 'notifications@yourdomain.com',
+    from: 'notifications@stackr.financial',
     subject,
     html,
     text
@@ -224,7 +224,7 @@ export async function sendNotificationEmail(
   
   return sendEmail({
     to,
-    from: 'notifications@yourdomain.com', // Replace with your verified domain in Resend
+    from: 'notifications@stackr.financial', // Replace with your verified domain in Resend
     subject: `${title}`,
     html,
     text: `${title}\n\n${message}\n\nThis is an automated notification from your financial management application.`
