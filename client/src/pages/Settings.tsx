@@ -10,15 +10,106 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useIncomeStore } from '@/hooks/useIncomeStore';
 import { Slider } from '@/components/ui/slider';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { apiRequest } from '@/lib/queryClient';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, CheckCircle } from 'lucide-react';
+
+type AISettings = {
+  CACHE_ENABLED: boolean;
+  CACHE_EXPIRY: number;
+  CACHE_DIR: string;
+  DEFAULT_PROVIDER: string;
+  AUTO_FALLBACK: boolean;
+  MAX_RETRIES: number;
+};
+
+
 
 export default function Settings() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { 
     needsPercentage, 
     investmentsPercentage, 
     savingsPercentage, 
     updatePercentages 
   } = useIncomeStore();
+  
+  // AI settings
+  const { data: aiSettings, isLoading: isLoadingAISettings, error: aiSettingsError } = useQuery<AISettings>({
+    queryKey: ['/api/ai/settings'],
+    refetchOnWindowFocus: false
+  });
+  
+  // Local state for AI settings form values
+  const [aiFormValues, setAIFormValues] = useState<Partial<AISettings>>({
+    DEFAULT_PROVIDER: '',
+    AUTO_FALLBACK: true,
+    MAX_RETRIES: 3,
+    CACHE_ENABLED: true
+  });
+  
+  // Update AI form values when settings are loaded
+  useEffect(() => {
+    if (aiSettings) {
+      setAIFormValues({
+        DEFAULT_PROVIDER: aiSettings.DEFAULT_PROVIDER,
+        AUTO_FALLBACK: aiSettings.AUTO_FALLBACK,
+        MAX_RETRIES: aiSettings.MAX_RETRIES,
+        CACHE_ENABLED: aiSettings.CACHE_ENABLED
+      });
+    }
+  }, [aiSettings]);
+  
+  // Mutation to update AI settings
+  const updateAISettingsMutation = useMutation({
+    mutationFn: (newSettings: Partial<AISettings>) => 
+      apiRequest('/api/ai/settings', {
+        method: 'PATCH',
+        body: JSON.stringify(newSettings),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }),
+    onSuccess: () => {
+      toast({
+        title: "AI Settings Updated",
+        description: "AI provider settings have been updated successfully."
+      });
+      
+      // Invalidate query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/ai/settings'] });
+    },
+    onError: (error) => {
+      console.error("Failed to update AI settings:", error);
+      toast({
+        title: "Update Failed",
+        description: "Could not update AI provider settings. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  const handleAIProviderChange = (value: string) => {
+    setAIFormValues({ ...aiFormValues, DEFAULT_PROVIDER: value });
+  };
+  
+  const handleAIToggleChange = (setting: keyof AISettings, value: boolean) => {
+    setAIFormValues({ ...aiFormValues, [setting]: value });
+  };
+  
+  const handleAIRetryChange = (value: string) => {
+    const numValue = parseInt(value);
+    if (!isNaN(numValue) && numValue >= 1 && numValue <= 10) {
+      setAIFormValues({ ...aiFormValues, MAX_RETRIES: numValue });
+    }
+  };
+  
+  const handleAISubmit = () => {
+    updateAISettingsMutation.mutate(aiFormValues);
+  };
   
   const [splitRatios, setSplitRatios] = useState({
     needs: needsPercentage,
@@ -98,6 +189,7 @@ export default function Settings() {
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="split-ratio">Split Ratio</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="ai-settings">AI Settings</TabsTrigger>
             <TabsTrigger value="account">Account</TabsTrigger>
           </TabsList>
         </div>
@@ -384,6 +476,174 @@ export default function Settings() {
               </div>
               
               <Button onClick={handleSaveSettings}>Save Notification Settings</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ai-settings" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>AI Provider Settings</CardTitle>
+              <CardDescription>Configure how AI-powered features work in the application</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {isLoadingAISettings ? (
+                <div className="flex justify-center items-center p-6">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="ml-2">Loading AI settings...</span>
+                </div>
+              ) : aiSettingsError ? (
+                <Alert variant="destructive">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>
+                    Failed to load AI provider settings. Please refresh the page or try again later.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <div className="space-y-6">
+                  <div className="bg-muted p-4 rounded-lg mb-4">
+                    <h3 className="font-medium mb-2">Current AI Provider Configuration</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">Primary Provider</p>
+                        <p className="text-lg font-bold">
+                          {aiSettings?.DEFAULT_PROVIDER === 'openai' ? 'OpenAI GPT-4o' : 'Anthropic Claude'}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">Auto Fallback</p>
+                        <div className="flex items-center">
+                          {aiSettings?.AUTO_FALLBACK ? (
+                            <CheckCircle className="h-5 w-5 text-green-500 mr-1" />
+                          ) : null}
+                          <p className="text-lg font-bold">{aiSettings?.AUTO_FALLBACK ? 'Enabled' : 'Disabled'}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">Response Caching</p>
+                        <div className="flex items-center">
+                          {aiSettings?.CACHE_ENABLED ? (
+                            <CheckCircle className="h-5 w-5 text-green-500 mr-1" />
+                          ) : null}
+                          <p className="text-lg font-bold">{aiSettings?.CACHE_ENABLED ? 'Enabled' : 'Disabled'}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">Max Retries</p>
+                        <p className="text-lg font-bold">{aiSettings?.MAX_RETRIES}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <Label>Default AI Provider</Label>
+                      <p className="text-sm text-gray-500">
+                        Select which AI provider to use for financial advice and analysis.
+                      </p>
+                      <RadioGroup 
+                        value={aiFormValues.DEFAULT_PROVIDER} 
+                        onValueChange={handleAIProviderChange}
+                        className="gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="openai" id="openai" />
+                          <Label htmlFor="openai" className="font-normal">
+                            OpenAI GPT-4o (More advanced, may require more tokens)
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="anthropic" id="anthropic" />
+                          <Label htmlFor="anthropic" className="font-normal">
+                            Anthropic Claude (Newer model, may be better for certain queries)
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Auto Fallback</Label>
+                          <p className="text-sm text-gray-500">
+                            Automatically try alternative AI provider if the first one fails
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={aiFormValues.AUTO_FALLBACK} 
+                          onCheckedChange={(checked) => handleAIToggleChange('AUTO_FALLBACK', checked)} 
+                          id="auto-fallback" 
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Cache AI Responses</Label>
+                          <p className="text-sm text-gray-500">
+                            Save AI responses to reduce API calls and improve performance
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={aiFormValues.CACHE_ENABLED} 
+                          onCheckedChange={(checked) => handleAIToggleChange('CACHE_ENABLED', checked)} 
+                          id="cache-enabled" 
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <div className="space-y-0.5">
+                          <Label htmlFor="max-retries">Maximum Retries</Label>
+                          <p className="text-sm text-gray-500">
+                            Number of times to retry API calls if they fail
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Input 
+                            id="max-retries" 
+                            type="number" 
+                            value={aiFormValues.MAX_RETRIES} 
+                            onChange={(e) => handleAIRetryChange(e.target.value)}
+                            min={1}
+                            max={10}
+                            className="w-16 h-8"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={handleAISubmit} 
+                    disabled={updateAISettingsMutation.isPending}
+                    className="mt-4"
+                  >
+                    {updateAISettingsMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Save AI Settings
+                  </Button>
+                  
+                  <Alert className="mt-6 bg-blue-50">
+                    <AlertTitle>About AI Providers</AlertTitle>
+                    <AlertDescription>
+                      <p className="text-sm">
+                        This application uses advanced AI models to generate financial advice and analysis. You can configure which provider to use as the default and whether to automatically fall back to an alternative if the first one fails.
+                      </p>
+                      <p className="text-sm mt-2">
+                        <strong>OpenAI GPT-4o</strong>: Latest model from OpenAI with strong financial analysis capabilities.
+                        <br />
+                        <strong>Anthropic Claude</strong>: Alternative provider that may offer different insights and perspectives.
+                      </p>
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
