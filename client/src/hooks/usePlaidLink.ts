@@ -1,12 +1,16 @@
-import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
-export type PlaidLinkSuccessMetadata = {
+// Define the response type for clarity
+interface LinkTokenResponse {
+  linkToken: string;
+}
+
+export interface PlaidLinkSuccessMetadata {
   institution: {
-    name: string;
     institution_id: string;
+    name: string;
   };
   accounts: Array<{
     id: string;
@@ -15,84 +19,95 @@ export type PlaidLinkSuccessMetadata = {
     type: string;
     subtype: string;
   }>;
-};
+  link_session_id: string;
+}
 
-export function usePlaidLink(userId: number = 1) {
+export interface ExchangeTokenParams {
+  publicToken: string;
+  metadata: PlaidLinkSuccessMetadata;
+}
+
+export interface UsePlaidLinkResult {
+  linkToken: string | null;
+  isLoading: boolean;
+  error: Error | null;
+  createLinkToken: () => Promise<void>;
+  exchangePublicToken: (params: ExchangeTokenParams) => Promise<void>;
+}
+
+export function usePlaidLink(userId: number): UsePlaidLinkResult {
   const [linkToken, setLinkToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
 
-  // Request a link token from our server
-  const createLinkTokenMutation = useMutation({
-    mutationFn: async () => {
-      setIsLoading(true);
-      try {
-        const response = await apiRequest('/api/plaid/create-link-token', {
-          method: 'POST',
-          body: JSON.stringify({ userId }),
-        });
-        return response;
-      } catch (error) {
-        console.error('Error creating link token:', error);
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    onSuccess: (data) => {
-      setLinkToken(data.link_token);
-    },
-    onError: (error) => {
-      console.error('Failed to create link token:', error);
+  // Create a link token
+  const createLinkToken = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Request link token from our server
+      const response = await apiRequest('/api/plaid/create-link-token', {
+        method: 'POST',
+        body: JSON.stringify({ userId })
+      });
+      
+      setLinkToken(response.linkToken);
+    } catch (err) {
+      console.error('Error creating link token:', err);
+      setError(err as Error);
       toast({
         title: 'Error',
-        description: 'Failed to initialize bank connection. Please try again later.',
-        variant: 'destructive',
+        description: 'Failed to initialize bank connection. Please try again.',
+        variant: 'destructive'
       });
-    },
-  });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId, toast]);
 
   // Exchange the public token for an access token
-  const exchangePublicTokenMutation = useMutation({
-    mutationFn: async ({ publicToken, metadata }: { publicToken: string; metadata: PlaidLinkSuccessMetadata }) => {
-      setIsLoading(true);
-      try {
-        const response = await apiRequest('/api/plaid/exchange-token', {
-          method: 'POST',
-          body: JSON.stringify({
-            userId,
-            publicToken,
-            metadata,
-          }),
-        });
-        return response;
-      } catch (error) {
-        console.error('Error exchanging public token:', error);
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    onSuccess: () => {
+  const exchangePublicToken = useCallback(async ({ publicToken, metadata }: ExchangeTokenParams) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Send to our backend to exchange token and save connection
+      await apiRequest('/api/plaid/exchange-token', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId,
+          publicToken,
+          metadata
+        })
+      });
+      
       toast({
         title: 'Success',
-        description: 'Bank account connected successfully!',
+        description: `Successfully connected to ${metadata.institution.name}`,
       });
-    },
-    onError: (error) => {
-      console.error('Failed to exchange token:', error);
+      
+      // Reset link token state after successful connection
+      setLinkToken(null);
+    } catch (err) {
+      console.error('Error exchanging public token:', err);
+      setError(err as Error);
       toast({
-        title: 'Error',
-        description: 'Failed to finalize bank connection. Please try again later.',
-        variant: 'destructive',
+        title: 'Connection Failed',
+        description: 'There was an issue finalizing your bank connection. Please try again.',
+        variant: 'destructive'
       });
-    },
-  });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId, toast]);
 
   return {
     linkToken,
-    isLoading: isLoading || createLinkTokenMutation.isPending || exchangePublicTokenMutation.isPending,
-    createLinkToken: createLinkTokenMutation.mutate,
-    exchangePublicToken: exchangePublicTokenMutation.mutate,
+    isLoading,
+    error,
+    createLinkToken,
+    exchangePublicToken
   };
 }

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { usePlaidLink as useReactPlaidLink, PlaidLinkOnSuccessMetadata } from "react-plaid-link";
 import { usePlaidLink, type PlaidLinkSuccessMetadata } from "@/hooks/usePlaidLink";
-import { BuildingIcon, Loader2Icon } from "lucide-react";
+import { BuildingIcon, Loader2Icon, RefreshCwIcon } from "lucide-react";
 
 interface BankConnectionModalProps {
   isOpen: boolean;

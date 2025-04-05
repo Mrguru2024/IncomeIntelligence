@@ -294,7 +294,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userId } = schema.parse(req.body);
       
       const linkToken = await plaidService.createLinkToken(userId);
-      res.json({ link_token: linkToken });
+      res.json({ linkToken: linkToken });
     } catch (error) {
       console.error('Error creating link token:', error);
       res.status(500).json({ message: "Failed to create link token" });
