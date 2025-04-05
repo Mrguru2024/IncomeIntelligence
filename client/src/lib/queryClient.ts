@@ -2,8 +2,14 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    try {
+      const errorData = await res.json();
+      throw new Error(errorData.message || `${res.status}: ${res.statusText}`);
+    } catch (e) {
+      if (e instanceof Error) throw e;
+      const text = await res.text() || res.statusText;
+      throw new Error(`${res.status}: ${text}`);
+    }
   }
 }
 
@@ -22,21 +28,26 @@ export function removeAuthToken(): void {
   localStorage.removeItem('auth_token');
 }
 
+/**
+ * Makes an API request with proper authentication
+ * @param method HTTP method (GET, POST, PUT, DELETE, etc.)
+ * @param endpoint API endpoint path (e.g. '/api/user')
+ * @param data Optional request body
+ * @returns Response object
+ */
 export async function apiRequest(
-  url: string,
-  options: {
-    method: string;
-    body?: string | object;
-    headers?: Record<string, string>;
-  } = { method: 'GET' }
-): Promise<any> {
+  method: string,
+  endpoint: string,
+  data?: any,
+  customHeaders?: Record<string, string>
+): Promise<Response> {
   // Get token from localStorage if available
   const token = getAuthToken();
   
   // Create headers with auth token if available
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...customHeaders,
   };
   
   // Add Authorization header if token exists
@@ -44,21 +55,20 @@ export async function apiRequest(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  // Convert body to JSON string if it's an object
-  const body = typeof options.body === 'object' 
-    ? JSON.stringify(options.body) 
-    : options.body;
-
-  // Make the request with proper headers
-  const res = await fetch(url, {
-    ...options,
+  // Prepare request options
+  const options: RequestInit = {
+    method,
     headers,
-    body,
     credentials: "include",
-  });
+  };
 
-  await throwIfResNotOk(res);
-  return res.json();
+  // Add body for non-GET requests if data is provided
+  if (method !== 'GET' && data !== undefined) {
+    options.body = JSON.stringify(data);
+  }
+
+  // Make the request
+  return fetch(endpoint, options);
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
