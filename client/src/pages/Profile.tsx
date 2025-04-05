@@ -283,19 +283,46 @@ export default function Profile() {
   }
 
   return (
-    <main className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-foreground">My Profile</h2>
-        <p className="text-muted-foreground mt-1">Manage your account and preferences</p>
+    <main className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-5xl mx-auto">
+      <div className="relative mb-6 sm:mb-8 p-4 sm:p-6 rounded-lg bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/20 flex items-center justify-center text-2xl sm:text-3xl font-semibold text-primary">
+              {userData?.firstName?.[0]?.toUpperCase() || userData?.username?.[0]?.toUpperCase() || '?'}
+            </div>
+            <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-green-500 border-2 border-background"></div>
+          </div>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+              {userData?.firstName ? `${userData.firstName} ${userData.lastName || ''}` : userData?.username}
+            </h2>
+            <p className="text-muted-foreground mt-1">Manage your profile and preferences</p>
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-3 md:grid-cols-5 mb-6">
-          <TabsTrigger value="personal">Personal Info</TabsTrigger>
-          <TabsTrigger value="business">Business Details</TabsTrigger>
-          <TabsTrigger value="financial">Financial Details</TabsTrigger>
-          <TabsTrigger value="widget">Widget Settings</TabsTrigger>
-          <TabsTrigger value="account">Account Settings</TabsTrigger>
+        <TabsList className="flex flex-nowrap overflow-x-auto gap-2 p-1 mb-6 bg-card/50 rounded-lg">
+          <TabsTrigger value="personal" className="flex-shrink-0 min-w-fit">
+            <i className="fas fa-user mr-2 hidden sm:inline-block" />
+            Personal Info
+          </TabsTrigger>
+          <TabsTrigger value="business" className="flex-shrink-0 min-w-fit">
+            <i className="fas fa-briefcase mr-2 hidden sm:inline-block" />
+            Business Details
+          </TabsTrigger>
+          <TabsTrigger value="financial" className="flex-shrink-0 min-w-fit">
+            <i className="fas fa-chart-line mr-2 hidden sm:inline-block" />
+            Financial Details
+          </TabsTrigger>
+          <TabsTrigger value="widget" className="flex-shrink-0 min-w-fit">
+            <i className="fas fa-window-maximize mr-2 hidden sm:inline-block" />
+            Widget Settings
+          </TabsTrigger>
+          <TabsTrigger value="account" className="flex-shrink-0 min-w-fit">
+            <i className="fas fa-cog mr-2 hidden sm:inline-block" />
+            Account Settings
+          </TabsTrigger>
         </TabsList>
 
         {/* Personal Information Tab */}
@@ -305,10 +332,10 @@ export default function Profile() {
               <CardTitle>Personal Information</CardTitle>
               <CardDescription>Update your basic profile information</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <Form {...profileForm}>
                 <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <FormField
                       control={profileForm.control}
                       name="firstName"
