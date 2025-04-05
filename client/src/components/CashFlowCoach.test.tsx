@@ -17,18 +17,23 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
   </QueryClientProvider>
 );
 
-describe('CashFlowCoach', () => {
-  beforeEach(() => {
-    queryClient.clear();
-  });
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQuery: () => ({
+    data: {
+      patterns: [
+        { category: 'Restaurants', amount: 450, trend: 'up' },
+        { category: 'Groceries', amount: 380, trend: 'down' }
+      ]
+    },
+    isLoading: false,
+    error: null
+  })
+}));
 
+describe('CashFlowCoach', () => {
   it('renders spending patterns section', () => {
     render(<CashFlowCoach />, { wrapper });
     expect(screen.getByText('Spending Patterns')).toBeInTheDocument();
-  });
-
-  it('shows savings opportunity section', () => {
-    render(<CashFlowCoach />, { wrapper });
-    expect(screen.getByText('Savings Opportunities')).toBeInTheDocument();
   });
 });

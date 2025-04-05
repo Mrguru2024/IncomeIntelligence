@@ -2,24 +2,25 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeToggle } from './ThemeToggle';
 
+const mockSetTheme = jest.fn();
+
 jest.mock('@/hooks/useTheme', () => ({
   useTheme: () => ({
     theme: 'light',
-    setTheme: jest.fn()
+    setTheme: mockSetTheme
   })
 }));
 
 describe('ThemeToggle', () => {
   it('renders theme toggle button', () => {
     render(<ThemeToggle />);
-    const button = screen.getByRole('button');
-    expect(button).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
-  it('handles theme toggle click', () => {
+  it('calls setTheme when clicked', () => {
     render(<ThemeToggle />);
     const button = screen.getByRole('button');
     fireEvent.click(button);
-    expect(button).toBeInTheDocument();
+    expect(mockSetTheme).toHaveBeenCalledWith('dark');
   });
 });
