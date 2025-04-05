@@ -42,6 +42,9 @@ export default function BudgetCalendar() {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [isDayModalOpen, setIsDayModalOpen] = useState(false);
   
+  // State for day of week filtering
+  const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<number | null>(null);
+  
   // Get incomes and goals from API
   const { data: incomes = [] } = useQuery<Income[]>({
     queryKey: ['/api/incomes'],
@@ -219,14 +222,33 @@ export default function BudgetCalendar() {
         
         <CardContent className="px-1 xs:px-2 sm:px-6 pt-1 pb-0">
           <div className="flex flex-col justify-between items-start gap-1 xs:gap-2 mb-2 xs:mb-3">
-            <h3 className="text-xs xs:text-sm sm:text-lg font-medium truncate w-full">
-              {view === "month" 
-                ? format(currentDate, "MMMM yyyy")
-                : view === "biweek"
-                ? `Weeks ${getWeek(dateRange.start)}-${getWeek(dateRange.end)}, ${format(currentDate, "yyyy")}`
-                : `Week ${getWeek(currentDate)}, ${format(currentDate, "yyyy")}`
-              }
-            </h3>
+            <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center w-full">
+              <h3 className="text-xs xs:text-sm sm:text-lg font-medium truncate">
+                {view === "month" 
+                  ? format(currentDate, "MMMM yyyy")
+                  : view === "biweek"
+                  ? `Weeks ${getWeek(dateRange.start)}-${getWeek(dateRange.end)}, ${format(currentDate, "yyyy")}`
+                  : `Week ${getWeek(currentDate)}, ${format(currentDate, "yyyy")}`
+                }
+              </h3>
+              
+              {selectedDayOfWeek !== null && (
+                <div className="flex items-center">
+                  <span className="text-[10px] xs:text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full flex items-center">
+                    Showing {['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays'][selectedDayOfWeek]} only
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setSelectedDayOfWeek(null)} 
+                      className="h-4 w-4 p-0 ml-1 rounded-full"
+                      aria-label="Clear day filter"
+                    >
+                      <XCircle className="h-3 w-3" />
+                    </Button>
+                  </span>
+                </div>
+              )}
+            </div>
             <div className="flex space-x-1 xs:space-x-2 w-full justify-between xs:justify-start">
               <Button 
                 variant="outline" 
@@ -278,12 +300,21 @@ export default function BudgetCalendar() {
                 ].map((day, idx) => (
                   <div 
                     key={idx} 
-                    className="py-0.5 xs:py-1 sm:py-2 rounded-sm hover:bg-primary/10 cursor-pointer transition-colors duration-200 flex items-center justify-center"
-                    title={day.full}
+                    className={`py-0.5 xs:py-1 sm:py-2 rounded-sm hover:bg-primary/10 cursor-pointer transition-colors duration-200 flex items-center justify-center
+                      ${selectedDayOfWeek === idx ? 'bg-primary/20 text-primary font-bold' : ''}
+                    `}
+                    title={selectedDayOfWeek === idx ? `Clear ${day.full} filter` : `Show only ${day.full}s`}
                     role="button"
                     tabIndex={0}
-                    aria-label={day.full}
-                    onClick={() => { /* Could add functionality to filter by day of week */ }}
+                    aria-label={selectedDayOfWeek === idx ? `Clear ${day.full} filter` : `Show only ${day.full}s`}
+                    onClick={() => {
+                      // Toggle day of week filter
+                      if (selectedDayOfWeek === idx) {
+                        setSelectedDayOfWeek(null); // Clear filter if already selected
+                      } else {
+                        setSelectedDayOfWeek(idx); // Set filter to this day of week
+                      }
+                    }}
                   >
                     <span className="font-semibold">{day.letter}</span>
                   </div>
@@ -292,6 +323,20 @@ export default function BudgetCalendar() {
               
               <div className="grid grid-cols-7 gap-0.5 xs:gap-1 mt-0.5 xs:mt-1">
                 {days.map((day, i) => {
+                  // Filter by day of week if one is selected
+                  if (selectedDayOfWeek !== null && day.getDay() !== selectedDayOfWeek) {
+                    // If filtering and this day doesn't match the selected day of week, show a faded placeholder
+                    return (
+                      <div
+                        key={i}
+                        className="h-[40px] xs:h-[60px] sm:min-h-[80px] border rounded-md p-0.5 overflow-hidden opacity-25"
+                      >
+                        <div className="text-right p-0 xs:p-0.5 sm:p-1 font-medium text-[8px] xs:text-xs text-muted-foreground">
+                          {format(day, "d")}
+                        </div>
+                      </div>
+                    );
+                  }
                   const dayIncomes = getIncomesForDate(day);
                   const dayGoals = getGoalsForDate(day);
                   const dayIncomesTotal = dayIncomes.reduce((sum, inc) => sum + parseFloat(inc.amount.toString()), 0);
