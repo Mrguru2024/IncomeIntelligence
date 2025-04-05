@@ -199,16 +199,16 @@ export default function AuthPage() {
           </div>
 
           <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex justify-center mb-6">
-              <TabsList className="grid grid-cols-2 w-72">
-                <TabsTrigger value="login" className="text-sm py-2 px-1 whitespace-nowrap">Sign In</TabsTrigger>
-                <TabsTrigger value="register" className="text-sm py-2 px-1 whitespace-nowrap">Create Account</TabsTrigger>
+            <div className="flex justify-center mb-8">
+              <TabsList className="grid grid-cols-2 w-80">
+                <TabsTrigger value="login" className="text-sm py-2 px-4 whitespace-nowrap">Sign In</TabsTrigger>
+                <TabsTrigger value="register" className="text-sm py-2 px-4 whitespace-nowrap">Create Account</TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="login" className="space-y-4">
+            <TabsContent value="login" className="space-y-4 pt-2">
               <Card className="border-border/40 shadow-md">
-                <CardHeader className="space-y-1">
+                <CardHeader className="space-y-1 pt-6">
                   <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
                   <CardDescription>
                     Enter your credentials to access your account
@@ -349,9 +349,9 @@ export default function AuthPage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="register" className="space-y-4">
+            <TabsContent value="register" className="space-y-4 pt-2">
               <Card className="border-border/40 shadow-md">
-                <CardHeader className="space-y-1">
+                <CardHeader className="space-y-1 pt-6">
                   <CardTitle className="text-2xl font-semibold">Create an account</CardTitle>
                   <CardDescription>
                     Enter your details to get started with Stackr
