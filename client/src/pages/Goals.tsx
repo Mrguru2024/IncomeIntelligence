@@ -196,7 +196,7 @@ export default function Goals() {
       {/* Goal Categories */}
       <div className="sticky top-0 z-[50] bg-background shadow-md pb-4 border-b mb-8">
         <h2 className="text-xl font-bold mb-3">Goal Categories</h2>
-        <div className="flex flex-wrap gap-2">
+        <div className="horizontal-scroll scrollbar-none flex gap-2 pb-1">
           <Button
             variant={activeTab === 'all' ? 'default' : 'outline'}
             className={`mb-1 ${activeTab === 'all' ? 'bg-primary text-white' : ''}`}

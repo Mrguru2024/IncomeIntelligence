@@ -47,7 +47,7 @@ const VoiceCommandsPage: React.FC = () => {
         
         <div>
           <Tabs defaultValue="commands">
-            <TabsList className="grid grid-cols-2">
+            <TabsList className="horizontal-scroll scrollbar-none flex pb-1">
               <TabsTrigger value="commands" className="text-xs sm:text-sm py-1.5 sm:py-2">Commands</TabsTrigger>
               <TabsTrigger value="examples" className="text-xs sm:text-sm py-1.5 sm:py-2">Example Phrases</TabsTrigger>
             </TabsList>

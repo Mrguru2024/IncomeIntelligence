@@ -28,6 +28,39 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .horizontal-scroll {
+    overflow-x: auto;
+    white-space: nowrap;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 5px;
+  }
+  
+  .horizontal-scroll::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .horizontal-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .horizontal-scroll::-webkit-scrollbar-thumb {
+    background: var(--primary, rgba(59, 130, 246, 0.5));
+    border-radius: 4px;
+  }
+}
+
 /* Custom styles for improved mobile experience */
 
 /* Improved mobile styles */

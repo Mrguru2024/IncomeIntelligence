@@ -192,20 +192,22 @@ const FinancialAdvice = () => {
       </h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="w-full grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-0">
-          <TabsTrigger value="advice" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
-            <BrainCircuit className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-            <span className="whitespace-nowrap">Financial Advice</span>
-          </TabsTrigger>
-          <TabsTrigger value="goals" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
-            <Lightbulb className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-            <span className="whitespace-nowrap">Goal Suggestions</span>
-          </TabsTrigger>
-          <TabsTrigger value="expenses" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
-            <LineChart className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-            <span className="whitespace-nowrap">Expense Analysis</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto horizontal-scroll -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
+          <TabsList className="horizontal-scroll scrollbar-none flex pb-1 min-w-[280px] xxs:min-w-[360px] sm:min-w-0 inline-flex w-full">
+            <TabsTrigger value="advice" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
+              <BrainCircuit className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="whitespace-nowrap">Financial Advice</span>
+            </TabsTrigger>
+            <TabsTrigger value="goals" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
+              <Lightbulb className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="whitespace-nowrap">Goal Suggestions</span>
+            </TabsTrigger>
+            <TabsTrigger value="expenses" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
+              <LineChart className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="whitespace-nowrap">Expense Analysis</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         {/* Financial Advice Tab */}
         <TabsContent value="advice" className="space-y-4">
