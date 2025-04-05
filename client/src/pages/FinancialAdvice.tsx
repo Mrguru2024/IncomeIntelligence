@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Custom component for tab content
 const TabPanel = ({ children, value, activeTab }: { 
@@ -34,11 +35,23 @@ const FinancialAdvice = () => {
   const [activeTab, setActiveTab] = useState('advice');
   const [expensePeriod, setExpensePeriod] = useState<'week' | 'month' | 'year'>('month');
   const [showFullAdvice, setShowFullAdvice] = useState(false);
+  const [preferredProvider, setPreferredProvider] = useState<string>('auto');
   
   // Add local loading states to avoid buttons being stuck
   const [manuallyLoadingAdvice, setManuallyLoadingAdvice] = useState(false);
   const [manuallyLoadingGoals, setManuallyLoadingGoals] = useState(false);
   const [manuallyLoadingAnalysis, setManuallyLoadingAnalysis] = useState(false);
+  
+  // Fetch AI settings to get available providers
+  const { data: aiSettings } = useQuery({
+    queryKey: ['/api/ai/settings'],
+    queryFn: async () => {
+      const response = await apiRequest('/api/ai/settings', {
+        method: 'GET'
+      });
+      return response;
+    }
+  });
   
   // Fetch general financial advice
   const { 
@@ -47,7 +60,7 @@ const FinancialAdvice = () => {
     refetch: refetchAdvice,
     isError: isAdviceError 
   } = useQuery({
-    queryKey: ['/api/ai/financial-advice', question],
+    queryKey: ['/api/ai/financial-advice', question, preferredProvider],
     queryFn: async () => {
       try {
         console.log("Fetching financial advice...");
@@ -55,7 +68,8 @@ const FinancialAdvice = () => {
           method: 'POST',
           body: JSON.stringify({ 
             userId: DEMO_USER_ID, 
-            question: question || undefined 
+            question: question || undefined,
+            preferredProvider: preferredProvider === 'auto' ? undefined : preferredProvider
           })
         });
         
@@ -207,7 +221,8 @@ const FinancialAdvice = () => {
       method: 'POST',
       body: JSON.stringify({ 
         userId: DEMO_USER_ID, 
-        question: question || undefined 
+        question: question || undefined,
+        preferredProvider: preferredProvider === 'auto' ? undefined : preferredProvider
       })
     })
     .then(response => {
@@ -223,7 +238,7 @@ const FinancialAdvice = () => {
     })
     .then(response => {
       // Update cache
-      queryClient.setQueryData(['/api/ai/financial-advice', question], response);
+      queryClient.setQueryData(['/api/ai/financial-advice', question, preferredProvider], response);
       
       // Show success message
       toast({
@@ -260,7 +275,7 @@ const FinancialAdvice = () => {
       });
       
       // Update data cache to include error information if needed
-      queryClient.setQueryData(['/api/ai/financial-advice', question], { 
+      queryClient.setQueryData(['/api/ai/financial-advice', question, preferredProvider], { 
         error: true, 
         errorType: error.response?.data?.errorType || "unknown" 
       });
@@ -507,6 +522,26 @@ const FinancialAdvice = () => {
                   />
                 </div>
                 
+                <div className="space-y-2">
+                  <Label htmlFor="ai-provider" className="text-sm font-medium">Choose AI Provider (Optional)</Label>
+                  <Select value={preferredProvider} onValueChange={setPreferredProvider}>
+                    <SelectTrigger id="ai-provider" className="w-full">
+                      <SelectValue placeholder="Auto (System Default)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">Auto (System Default)</SelectItem>
+                      {aiSettings?.availableProviders?.filter((provider: string) => provider.trim() !== '').map((provider: string) => (
+                        <SelectItem key={provider} value={provider}>
+                          {provider.charAt(0).toUpperCase() + provider.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Select a specific AI provider or leave as "Auto" to use the system default.
+                  </p>
+                </div>
+                
                 {isAdviceError && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
@@ -536,7 +571,15 @@ const FinancialAdvice = () => {
                         <Badge variant="outline" className="font-normal">
                           {adviceData.provider === 'openai' ? 'OpenAI GPT-4o' : 
                            adviceData.provider === 'anthropic' ? 'Anthropic Claude' :
-                           adviceData.provider === 'perplexity' ? 'Perplexity AI' : 
+                           adviceData.provider === 'perplexity' ? 'Perplexity AI' :
+                           adviceData.provider === 'mistral' ? 'Mistral AI' :
+                           adviceData.provider === 'llama' ? 'LLaMA' :
+                           adviceData.provider === 'open-assistant' ? 'Open Assistant' :
+                           adviceData.provider === 'whisper' ? 'Whisper' :
+                           adviceData.provider === 'scikit-learn' ? 'scikit-learn' :
+                           adviceData.provider === 'fasttext' ? 'fastText' :
+                           adviceData.provider === 'json-logic' ? 'JSON Logic' :
+                           adviceData.provider === 't5' ? 'T5' :
                            'AI Assistant'}
                         </Badge>
                       </div>
@@ -630,7 +673,15 @@ const FinancialAdvice = () => {
                       <Badge variant="outline" className="font-normal">
                         {goalSuggestions.provider === 'openai' ? 'OpenAI GPT-4o' : 
                          goalSuggestions.provider === 'anthropic' ? 'Anthropic Claude' :
-                         goalSuggestions.provider === 'perplexity' ? 'Perplexity AI' : 
+                         goalSuggestions.provider === 'perplexity' ? 'Perplexity AI' :
+                         goalSuggestions.provider === 'mistral' ? 'Mistral AI' :
+                         goalSuggestions.provider === 'llama' ? 'LLaMA' :
+                         goalSuggestions.provider === 'open-assistant' ? 'Open Assistant' :
+                         goalSuggestions.provider === 'whisper' ? 'Whisper' :
+                         goalSuggestions.provider === 'scikit-learn' ? 'scikit-learn' :
+                         goalSuggestions.provider === 'fasttext' ? 'fastText' :
+                         goalSuggestions.provider === 'json-logic' ? 'JSON Logic' :
+                         goalSuggestions.provider === 't5' ? 'T5' :
                          'AI Assistant'}
                       </Badge>
                     </div>
@@ -772,7 +823,15 @@ const FinancialAdvice = () => {
                         <Badge variant="outline" className="font-normal">
                           {expenseAnalysis.provider === 'openai' ? 'OpenAI GPT-4o' : 
                            expenseAnalysis.provider === 'anthropic' ? 'Anthropic Claude' :
-                           expenseAnalysis.provider === 'perplexity' ? 'Perplexity AI' : 
+                           expenseAnalysis.provider === 'perplexity' ? 'Perplexity AI' :
+                           expenseAnalysis.provider === 'mistral' ? 'Mistral AI' :
+                           expenseAnalysis.provider === 'llama' ? 'LLaMA' :
+                           expenseAnalysis.provider === 'open-assistant' ? 'Open Assistant' :
+                           expenseAnalysis.provider === 'whisper' ? 'Whisper' :
+                           expenseAnalysis.provider === 'scikit-learn' ? 'scikit-learn' :
+                           expenseAnalysis.provider === 'fasttext' ? 'fastText' :
+                           expenseAnalysis.provider === 'json-logic' ? 'JSON Logic' :
+                           expenseAnalysis.provider === 't5' ? 'T5' :
                            'AI Assistant'}
                         </Badge>
                       </div>

@@ -43,10 +43,20 @@ const AI_SETTINGS = {
 };
 
 // Export settings for external access
-export const getAISettings = () => ({ ...AI_SETTINGS });
+export const getAISettings = () => {
+  // Get all available providers from the AIProvider enum
+  const availableProviders = Object.values(AIProvider);
+  
+  // Return settings with the list of available providers
+  return { 
+    ...AI_SETTINGS,
+    availableProviders
+  };
+};
+
 export const updateAISettings = (settings: Partial<typeof AI_SETTINGS>) => {
   Object.assign(AI_SETTINGS, settings);
-  return { ...AI_SETTINGS };
+  return getAISettings(); // Use getAISettings to get consistent structure
 };
 
 // Initialize cache directory
@@ -220,6 +230,7 @@ export type FinancialAdviceRequest = {
   goalData?: any[]; // User's financial goals
   balanceData?: any; // Current balance information
   question?: string; // Specific financial question (optional)
+  preferredProvider?: AIProvider; // Preferred AI provider to use
 };
 
 export type FinancialAdviceResponse = {
@@ -250,6 +261,9 @@ export async function getFinancialAdvice(
   
   try {
     const prompt = buildFinancialAdvicePrompt(requestData);
+    
+    // Use preferred provider from request or fall back to default setting
+    const providerToUse = requestData.preferredProvider || AI_SETTINGS.DEFAULT_PROVIDER;
     
     const result = await executeWithFallback(
       // OpenAI function
@@ -312,7 +326,7 @@ export async function getFinancialAdvice(
         const responseText = completion.choices[0].message.content;
         return JSON.parse(responseText || '{}');
       },
-      AI_SETTINGS.DEFAULT_PROVIDER
+      providerToUse
     );
     
     // Format the response

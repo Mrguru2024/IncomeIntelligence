@@ -690,10 +690,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const schema = z.object({
         userId: z.number().int().positive(),
-        question: z.string().optional()
+        question: z.string().optional(),
+        preferredProvider: z.string().optional()
       });
       
-      const { userId, question } = schema.parse(req.body);
+      const { userId, question, preferredProvider } = schema.parse(req.body);
       
       // Gather relevant financial data for the user
       const incomeData = await storage.getIncomesByUserId(userId);
@@ -713,7 +714,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expenseData,
         goalData,
         balanceData,
-        question
+        question,
+        preferredProvider: preferredProvider as AIProvider
       };
       
       const advice = await getFinancialAdvice(adviceRequest);
