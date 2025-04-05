@@ -140,16 +140,43 @@ const FinancialAdvice = () => {
     }
   });
   
-  const handleGetAdvice = () => {
-    refetchAdvice();
+  const handleGetAdvice = async () => {
+    try {
+      await refetchAdvice();
+    } catch (error) {
+      console.error("Error fetching advice:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate financial advice. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
-  const handleGetGoalSuggestions = () => {
-    refetchGoals();
+  const handleGetGoalSuggestions = async () => {
+    try {
+      await refetchGoals();
+    } catch (error) {
+      console.error("Error fetching goal suggestions:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate goal suggestions. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
-  const handleAnalyzeExpenses = () => {
-    refetchAnalysis();
+  const handleAnalyzeExpenses = async () => {
+    try {
+      await refetchAnalysis();
+    } catch (error) {
+      console.error("Error analyzing expenses:", error);
+      toast({
+        title: "Error",
+        description: "Failed to analyze expenses. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   const handleCreateGoalFromSuggestion = (goal: any) => {
