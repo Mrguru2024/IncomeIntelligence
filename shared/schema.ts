@@ -34,6 +34,8 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   lastLogin: timestamp("last_login"),
   profileCompleted: boolean("profile_completed").notNull().default(false),
+  onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
+  onboardingStep: text("onboarding_step").default("welcome"), // Current step in the onboarding process
   verified: boolean("verified").notNull().default(false),
   verificationToken: text("verification_token"),
   resetPasswordToken: text("reset_password_token"),
@@ -57,6 +59,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
   role: true,
   accountStatus: true,
   verified: true,
+  onboardingCompleted: true,
+  onboardingStep: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

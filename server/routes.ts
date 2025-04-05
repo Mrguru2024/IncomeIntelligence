@@ -34,6 +34,106 @@ import { spendingPersonalityService } from "./spending-personality-service";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
+
+  // User profile and onboarding routes
+  app.patch("/api/users/:userId/onboarding", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Check if user is updating their own profile
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized to update this user's onboarding status" });
+      }
+
+      const schema = z.object({
+        onboardingCompleted: z.boolean().optional(),
+        onboardingStep: z.string().optional(),
+      });
+      
+      const validatedData = schema.parse(req.body);
+      const user = await storage.updateUser(userId, validatedData);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating user onboarding status:', error);
+      res.status(500).json({ message: "Failed to update user onboarding status" });
+    }
+  });
+
+  // Get user profile
+  app.get("/api/users/:userId/profile", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Check if user is requesting their own profile
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized to view this user profile" });
+      }
+
+      const profile = await storage.getUserProfile(userId);
+      if (!profile) {
+        return res.status(404).json({ message: "User profile not found" });
+      }
+      
+      res.json(profile);
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+      res.status(500).json({ message: "Failed to get user profile" });
+    }
+  });
+
+  // Create or update user profile
+  app.post("/api/users/:userId/profile", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Check if user is updating their own profile
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized to update this user profile" });
+      }
+
+      const validatedData = insertUserProfileSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      // Check if profile already exists
+      const existingProfile = await storage.getUserProfile(userId);
+      
+      let profile;
+      if (existingProfile) {
+        profile = await storage.updateUserProfile(userId, validatedData);
+      } else {
+        profile = await storage.createUserProfile(validatedData);
+      }
+      
+      res.status(201).json(profile);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating/updating user profile:', error);
+      res.status(500).json({ message: "Failed to create/update user profile" });
+    }
+  });
   
   // Get all incomes
   app.get("/api/incomes", async (req, res) => {
@@ -1453,20 +1553,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // SPENDING PERSONALITY QUIZ ENDPOINTS
   
   // Initialize the quiz system
-  app.post("/api/spending-personality/initialize", requireAuth, requireAdmin, async (req, res) => {
+  app.post("/api/spending-personality/seed", requireAuth, requireAdmin, async (req, res) => {
     try {
-      await spendingPersonalityService.initializeQuiz();
-      res.json({ success: true, message: "Quiz system initialized successfully" });
+      await spendingPersonalityService.seedQuestions();
+      res.json({ success: true, message: "Quiz questions seeded successfully" });
     } catch (error) {
-      console.error('Error initializing quiz system:', error);
-      res.status(500).json({ message: "Failed to initialize quiz system" });
+      console.error('Error seeding quiz questions:', error);
+      res.status(500).json({ message: "Failed to seed quiz questions" });
     }
   });
   
   // Get quiz questions for a user
-  app.get("/api/spending-personality/questions", requireAuth, async (req, res) => {
+  app.get("/api/spending-personality/questions", async (req, res) => {
     try {
-      const questions = await spendingPersonalityService.getQuizQuestions();
+      const questions = await spendingPersonalityService.getQuestions();
       res.json(questions);
     } catch (error) {
       console.error('Error getting quiz questions:', error);
@@ -1475,24 +1575,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Submit quiz answers and get results
-  app.post("/api/spending-personality/submit", requireAuth, async (req, res) => {
+  app.post("/api/spending-personality/submit-quiz", requireAuth, async (req, res) => {
     try {
-      const { quizAnswersSchema } = spendingPersonalityService;
-      const validatedData = quizAnswersSchema.parse(req.body);
+      const { userId, answers } = req.body;
       
-      const results = await spendingPersonalityService.calculateQuizResults(validatedData);
-      res.json(results);
+      // Validate user ID
+      if (!userId || isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Check if user is submitting their own quiz
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized to submit quiz for this user" });
+      }
+      
+      // Validate quiz answers
+      const validatedAnswers = spendingPersonalityService.quizAnswersSchema.parse(answers);
+      
+      // Submit the quiz and get results
+      const result = await spendingPersonalityService.submitQuiz(userId, validatedAnswers);
+      
+      res.status(201).json(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      console.error('Error submitting quiz answers:', error);
-      res.status(500).json({ message: "Failed to submit quiz answers" });
+      console.error('Error submitting quiz:', error);
+      res.status(500).json({ message: "Failed to submit quiz" });
     }
   });
   
-  // Get the user's most recent quiz result
+  // Get the user's quiz results
   app.get("/api/spending-personality/results/:userId", requireAuth, checkUserMatch, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
@@ -1500,15 +1614,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid user ID" });
       }
       
-      const result = await spendingPersonalityService.getUserQuizResult(userId);
+      const results = await spendingPersonalityService.getUserResults(userId);
+      res.json(results);
+    } catch (error) {
+      console.error('Error getting quiz results:', error);
+      res.status(500).json({ message: "Failed to get quiz results" });
+    }
+  });
+  
+  // Get the user's most recent quiz result
+  app.get("/api/spending-personality/latest-result/:userId", requireAuth, checkUserMatch, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const result = await spendingPersonalityService.getLatestUserResult(userId);
       if (!result) {
         return res.status(404).json({ message: "No quiz results found for this user" });
       }
       
       res.json(result);
     } catch (error) {
-      console.error('Error getting quiz results:', error);
-      res.status(500).json({ message: "Failed to get quiz results" });
+      console.error('Error getting latest quiz result:', error);
+      res.status(500).json({ message: "Failed to get latest quiz result" });
     }
   });
   
@@ -1517,9 +1647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add a new quiz question (admin only)
   app.post("/api/spending-personality/questions", requireAuth, requireAdmin, async (req, res) => {
     try {
-      const validatedData = insertSpendingPersonalityQuestionSchema.parse(req.body);
-      
-      const question = await spendingPersonalityService.addQuizQuestion(validatedData);
+      const question = await spendingPersonalityService.createQuestion(req.body);
       res.status(201).json(question);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1528,52 +1656,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error('Error adding quiz question:', error);
       res.status(500).json({ message: "Failed to add quiz question" });
-    }
-  });
-  
-  // Update a quiz question (admin only)
-  app.patch("/api/spending-personality/questions/:id", requireAuth, requireAdmin, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid question ID" });
-      }
-      
-      const validatedData = insertSpendingPersonalityQuestionSchema.partial().parse(req.body);
-      
-      const question = await spendingPersonalityService.updateQuizQuestion(id, validatedData);
-      if (!question) {
-        return res.status(404).json({ message: "Question not found" });
-      }
-      
-      res.json(question);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const validationError = fromZodError(error);
-        return res.status(400).json({ message: validationError.message });
-      }
-      console.error('Error updating quiz question:', error);
-      res.status(500).json({ message: "Failed to update quiz question" });
-    }
-  });
-  
-  // Delete a quiz question (admin only)
-  app.delete("/api/spending-personality/questions/:id", requireAuth, requireAdmin, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid question ID" });
-      }
-      
-      const success = await spendingPersonalityService.deleteQuizQuestion(id);
-      if (!success) {
-        return res.status(404).json({ message: "Question not found" });
-      }
-      
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting quiz question:', error);
-      res.status(500).json({ message: "Failed to delete quiz question" });
     }
   });
 
