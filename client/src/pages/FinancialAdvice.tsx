@@ -416,7 +416,7 @@ const FinancialAdvice = () => {
   
   // Render helpers
   const renderAdviceSuggestions = () => {
-    if (!adviceData?.suggestions || adviceData.suggestions.length === 0) {
+    if (!adviceData?.suggestions || adviceData.suggestions.length === 0 || adviceData.error) {
       return <p className="text-muted-foreground">No suggestions available.</p>;
     }
     
@@ -506,7 +506,7 @@ const FinancialAdvice = () => {
                   </Alert>
                 )}
                 
-                {adviceData && (
+                {adviceData && !adviceData.error && adviceData.advice && (
                   <div className="mt-6 space-y-4">
                     {adviceData.summary && (
                       <Alert>
