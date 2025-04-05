@@ -233,10 +233,31 @@ const FinancialAdvice = () => {
     })
     .catch(error => {
       console.error("Error fetching advice:", error);
+      
+      // Display more specific error messages based on the error response
+      let errorMessage = "Failed to generate financial advice. Please try again.";
+      
+      if (error.response) {
+        // Handle specific API error responses
+        if (error.response.status === 429) {
+          if (error.response.data?.errorType === "quota_exceeded") {
+            errorMessage = "OpenAI API quota has been exceeded. Please update the API key or billing plan.";
+          } else if (error.response.data?.errorType === "rate_limited") {
+            errorMessage = "Too many requests to the AI service. Please try again in a few minutes.";
+          }
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to generate financial advice. Please try again.",
+        description: errorMessage,
         variant: "destructive",
+      });
+      
+      // Update data cache to include error information if needed
+      queryClient.setQueryData(['/api/ai/financial-advice', question], { 
+        error: true, 
+        errorType: error.response?.data?.errorType || "unknown" 
       });
     })
     .finally(() => {
@@ -279,10 +300,31 @@ const FinancialAdvice = () => {
     })
     .catch(error => {
       console.error("Error fetching goal suggestions:", error);
+      
+      // Display more specific error messages based on the error response
+      let errorMessage = "Failed to generate goal suggestions. Please try again.";
+      
+      if (error.response) {
+        // Handle specific API error responses
+        if (error.response.status === 429) {
+          if (error.response.data?.errorType === "quota_exceeded") {
+            errorMessage = "OpenAI API quota has been exceeded. Please update the API key or billing plan.";
+          } else if (error.response.data?.errorType === "rate_limited") {
+            errorMessage = "Too many requests to the AI service. Please try again in a few minutes.";
+          }
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to generate goal suggestions. Please try again.",
+        description: errorMessage,
         variant: "destructive",
+      });
+      
+      // Update data cache to include error information if needed
+      queryClient.setQueryData(['/api/ai/suggest-goals'], { 
+        error: true, 
+        errorType: error.response?.data?.errorType || "unknown" 
       });
     })
     .finally(() => {
@@ -326,10 +368,31 @@ const FinancialAdvice = () => {
     })
     .catch(error => {
       console.error("Error analyzing expenses:", error);
+      
+      // Display more specific error messages based on the error response
+      let errorMessage = "Failed to analyze expenses. Please try again.";
+      
+      if (error.response) {
+        // Handle specific API error responses
+        if (error.response.status === 429) {
+          if (error.response.data?.errorType === "quota_exceeded") {
+            errorMessage = "OpenAI API quota has been exceeded. Please update the API key or billing plan.";
+          } else if (error.response.data?.errorType === "rate_limited") {
+            errorMessage = "Too many requests to the AI service. Please try again in a few minutes.";
+          }
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to analyze expenses. Please try again.",
+        description: errorMessage,
         variant: "destructive",
+      });
+      
+      // Update data cache to include error information if needed
+      queryClient.setQueryData(['/api/ai/analyze-expenses', expensePeriod], { 
+        error: true, 
+        errorType: error.response?.data?.errorType || "unknown" 
       });
     })
     .finally(() => {
@@ -523,7 +586,11 @@ const FinancialAdvice = () => {
                   <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                   <AlertTitle className="text-xs sm:text-sm font-medium">Error</AlertTitle>
                   <AlertDescription className="text-xs sm:text-sm">
-                    Unable to generate goal suggestions at this time. Please try again later.
+                    {goalSuggestions?.errorType === "quota_exceeded" 
+                      ? "OpenAI API quota has been exceeded. Please update the API key or billing plan."
+                      : goalSuggestions?.errorType === "rate_limited"
+                      ? "Too many requests to the AI service. Please try again in a few minutes."
+                      : "Unable to generate goal suggestions at this time. Please try again later."}
                   </AlertDescription>
                 </Alert>
               )}
@@ -641,7 +708,11 @@ const FinancialAdvice = () => {
                     <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                     <AlertTitle className="text-xs sm:text-sm font-medium">Error</AlertTitle>
                     <AlertDescription className="text-xs sm:text-sm">
-                      Unable to analyze expenses at this time. Please try again later.
+                      {expenseAnalysis?.errorType === "quota_exceeded" 
+                        ? "OpenAI API quota has been exceeded. Please update the API key or billing plan."
+                        : expenseAnalysis?.errorType === "rate_limited"
+                        ? "Too many requests to the AI service. Please try again in a few minutes."
+                        : "Unable to analyze expenses at this time. Please try again later."}
                     </AlertDescription>
                   </Alert>
                 )}
