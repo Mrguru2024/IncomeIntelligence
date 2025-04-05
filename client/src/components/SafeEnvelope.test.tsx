@@ -1,7 +1,6 @@
 
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { SafeEnvelope } from './SafeEnvelope';
-import { LockIcon, UnlockIcon } from 'lucide-react';
 
 jest.mock('lucide-react', () => ({
   LockIcon: () => <div data-testid="lock-icon" />,
@@ -18,7 +17,7 @@ describe('SafeEnvelope', () => {
     onLockToggle: jest.fn()
   };
 
-  it('renders safe envelope component', () => {
+  it('renders category name', () => {
     render(<SafeEnvelope {...defaultProps} />);
     expect(screen.getByText('Test Category')).toBeInTheDocument();
   });
