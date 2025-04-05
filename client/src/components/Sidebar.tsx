@@ -219,21 +219,21 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
       {/* Mobile sidebar */}
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-[200] w-64 bg-opacity-100 bg-[var(--card-background)] border-r border-border transition-transform duration-300 ease-in-out transform lg:hidden overflow-y-auto shadow-lg",
+          "fixed inset-y-0 left-0 z-[200] w-[85vw] max-w-64 bg-opacity-100 bg-[var(--card-background)] border-r border-border transition-transform duration-300 ease-in-out transform lg:hidden overflow-y-auto shadow-lg",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
         style={{ pointerEvents: mobileMenuOpen ? 'auto' : 'none' }}
         aria-hidden={!mobileMenuOpen}
         aria-label="Mobile navigation"
       >
-        <div className="p-6 border-b border-border flex justify-between items-center">
+        <div className="p-3 xxs:p-4 xs:p-6 border-b border-border flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">40/30/30</h1>
-            <p className="text-sm text-muted-foreground mt-1">Income Tracker</p>
+            <h1 className="text-xl xxs:text-2xl font-semibold text-foreground">40/30/30</h1>
+            <p className="text-xs xxs:text-sm text-muted-foreground mt-1">Income Tracker</p>
           </div>
           <button 
             onClick={closeMobileMenu}
-            className="text-foreground p-2 rounded-full hover:bg-muted-background flex items-center justify-center cursor-pointer touch-manipulation"
+            className="text-foreground p-1.5 xxs:p-2 rounded-full hover:bg-muted-background flex items-center justify-center cursor-pointer touch-manipulation"
             aria-label="Close menu"
             role="button"
             tabIndex={0}
@@ -244,14 +244,14 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
             </svg>
           </button>
         </div>
-        <nav className="flex-1 p-4">
-          <ul className="space-y-1">
+        <nav className="flex-1 p-2 xxs:p-3 xs:p-4">
+          <ul className="space-y-0.5 xxs:space-y-1">
             {navItems.map((item) => (
               <li key={item.path}>
                 <Link 
                   href={item.path}
                   className={cn(
-                    "flex items-center px-4 py-3 rounded-lg font-medium w-full touch-manipulation",
+                    "flex items-center px-2 xxs:px-3 xs:px-4 py-2 xxs:py-2.5 xs:py-3 rounded-lg text-sm xxs:text-base font-medium w-full touch-manipulation",
                     location === item.path
                       ? "text-primary bg-accent-background"
                       : "text-foreground hover:bg-muted-background active:bg-muted"
@@ -269,16 +269,16 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
                     }, 300);
                   }}
                 >
-                  <span className="mr-3">{item.icon}</span>
-                  {item.name}
+                  <span className="mr-1.5 xxs:mr-2 xs:mr-3">{item.icon}</span>
+                  <span className="truncate">{item.name}</span>
                 </Link>
               </li>
             ))}
           </ul>
         </nav>
-        <div className="p-4 border-t border-border flex justify-between items-center">
-          <button className="flex items-center text-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+        <div className="p-2 xxs:p-3 xs:p-4 border-t border-border flex justify-between items-center">
+          <button className="flex items-center text-foreground text-xs xxs:text-sm xs:text-base">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 xxs:mr-1.5 xs:mr-2">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
               <polyline points="16 17 21 12 16 7"></polyline>
               <line x1="21" y1="12" x2="9" y2="12"></line>
