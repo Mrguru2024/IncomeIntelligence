@@ -721,6 +721,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: validationError.message });
       }
       console.error('Error getting financial advice:', error);
+      
+      // Send more specific error message to the frontend
+      if (error instanceof Error) {
+        if (error.message.includes("quota exceeded")) {
+          return res.status(429).json({ 
+            message: "OpenAI API quota exceeded. Please update the API key or billing plan.",
+            errorType: "quota_exceeded" 
+          });
+        } else if (error.message.includes("rate limit")) {
+          return res.status(429).json({ 
+            message: "Too many requests to AI service. Please try again in a few minutes.",
+            errorType: "rate_limited" 
+          });
+        }
+      }
+      
       res.status(500).json({ message: "Failed to get financial advice" });
     }
   });

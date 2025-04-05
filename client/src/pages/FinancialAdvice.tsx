@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -12,6 +11,19 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+
+// Custom component for tab content
+const TabPanel = ({ children, value, activeTab }: { 
+  children: React.ReactNode; 
+  value: string; 
+  activeTab: string;
+}) => {
+  return (
+    <div className={`${activeTab === value ? 'block' : 'hidden'} space-y-4`}>
+      {children}
+    </div>
+  );
+};
 
 // Default userId for demo purposes (would be retrieved from auth context in production)
 const DEMO_USER_ID = 1;
@@ -251,26 +263,38 @@ const FinancialAdvice = () => {
         AI-Powered Financial Advice
       </h1>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <div className="overflow-x-auto horizontal-scroll w-full -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
-          <TabsList className="horizontal-scroll scrollbar-none flex pb-1 min-w-[280px] xxs:min-w-[360px] sm:min-w-0 inline-flex w-full">
-            <TabsTrigger value="advice" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
-              <BrainCircuit className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="whitespace-nowrap">Financial Advice</span>
-            </TabsTrigger>
-            <TabsTrigger value="goals" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
-              <Lightbulb className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="whitespace-nowrap">Goal Suggestions</span>
-            </TabsTrigger>
-            <TabsTrigger value="expenses" className="px-3 py-2 text-sm sm:text-base flex items-center justify-center">
-              <LineChart className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="whitespace-nowrap">Expense Analysis</span>
-            </TabsTrigger>
-          </TabsList>
+      <div className="space-y-4">
+        <div className="flex flex-row gap-2 w-full overflow-x-auto pb-2">
+          <Button
+            variant={activeTab === "advice" ? "default" : "outline"}
+            className="flex items-center whitespace-nowrap"
+            onClick={() => setActiveTab("advice")}
+          >
+            <BrainCircuit className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="whitespace-nowrap">Financial Advice</span>
+          </Button>
+          
+          <Button
+            variant={activeTab === "goals" ? "default" : "outline"}
+            className="flex items-center whitespace-nowrap"
+            onClick={() => setActiveTab("goals")}
+          >
+            <Lightbulb className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="whitespace-nowrap">Goal Suggestions</span>
+          </Button>
+          
+          <Button
+            variant={activeTab === "expenses" ? "default" : "outline"}
+            className="flex items-center whitespace-nowrap"
+            onClick={() => setActiveTab("expenses")}
+          >
+            <LineChart className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="whitespace-nowrap">Expense Analysis</span>
+          </Button>
         </div>
         
         {/* Financial Advice Tab */}
-        <TabsContent value="advice" className="space-y-4">
+        <TabPanel value="advice" activeTab={activeTab}>
           <Card className="overflow-hidden border-gray-200">
             <CardHeader className="px-4 py-4 sm:px-6 sm:py-6">
               <CardTitle className="text-lg sm:text-xl mb-2">Get Personalized Financial Advice</CardTitle>
@@ -296,7 +320,11 @@ const FinancialAdvice = () => {
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Error</AlertTitle>
                     <AlertDescription>
-                      Unable to generate financial advice at this time. Please try again later.
+                      {adviceData?.errorType === "quota_exceeded" 
+                        ? "OpenAI API quota has been exceeded. Please update the API key or billing plan."
+                        : adviceData?.errorType === "rate_limited"
+                        ? "Too many requests to the AI service. Please try again in a few minutes."
+                        : "Unable to generate financial advice at this time. Please try again later."}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -364,10 +392,10 @@ const FinancialAdvice = () => {
               </Button>
             </CardFooter>
           </Card>
-        </TabsContent>
+        </TabPanel>
         
         {/* Goal Suggestions Tab */}
-        <TabsContent value="goals" className="space-y-4">
+        <TabPanel value="goals" activeTab={activeTab}>
           <Card className="overflow-hidden border-gray-200">
             <CardHeader className="px-4 py-4 sm:px-6 sm:py-6">
               <CardTitle className="text-lg sm:text-xl mb-2">AI-Suggested Financial Goals</CardTitle>
@@ -449,10 +477,10 @@ const FinancialAdvice = () => {
               </Button>
             </CardFooter>
           </Card>
-        </TabsContent>
+        </TabPanel>
         
         {/* Expense Analysis Tab */}
-        <TabsContent value="expenses" className="space-y-4">
+        <TabPanel value="expenses" activeTab={activeTab}>
           <Card className="overflow-hidden border-gray-200">
             <CardHeader className="px-4 py-4 sm:px-6 sm:py-6">
               <CardTitle className="text-lg sm:text-xl mb-2">Expense Analysis & Optimization</CardTitle>
@@ -568,8 +596,8 @@ const FinancialAdvice = () => {
               </Button>
             </CardFooter>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </TabPanel>
+      </div>
     </div>
   );
 };
