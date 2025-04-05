@@ -1,7 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,10 +24,12 @@ export type Rule = {
   conditions: {
     amount?: number;
     frequency?: string;
-    dates?: string[];
+    dates?: Date[];
+    selectedDays?: number[];
     roundTo?: number;
     season?: string;
     threshold?: number;
+    recurringDate?: Date;
   };
   action: {
     type: 'save' | 'invest';
@@ -244,6 +251,122 @@ export default function SmartRulesEngine() {
                       </div>
                     </div>
                   </div>
+
+                  {newRule.type === 'recurring' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Recurring Schedule</Label>
+                        <Select
+                          value={newRule.conditions?.frequency || 'monthly'}
+                          onValueChange={(value) => setNewRule({
+                            ...newRule,
+                            conditions: { ...newRule.conditions, frequency: value }
+                          })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select frequency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                            <SelectItem value="yearly">Yearly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {newRule.conditions?.frequency === 'monthly' && (
+                        <div>
+                          <Label>Monthly Date</Label>
+                          <Select
+                            value={String(newRule.conditions?.selectedDays?.[0] || 1)}
+                            onValueChange={(value) => setNewRule({
+                              ...newRule,
+                              conditions: { 
+                                ...newRule.conditions, 
+                                selectedDays: [parseInt(value)] 
+                              }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select date" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({length: 31}, (_, i) => i + 1).map(day => (
+                                <SelectItem key={day} value={String(day)}>
+                                  {day}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
+                      {newRule.conditions?.frequency === 'weekly' && (
+                        <div>
+                          <Label>Day of Week</Label>
+                          <Select
+                            value={String(newRule.conditions?.selectedDays?.[0] || 1)}
+                            onValueChange={(value) => setNewRule({
+                              ...newRule,
+                              conditions: { 
+                                ...newRule.conditions, 
+                                selectedDays: [parseInt(value)] 
+                              }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select day" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">Monday</SelectItem>
+                              <SelectItem value="2">Tuesday</SelectItem>
+                              <SelectItem value="3">Wednesday</SelectItem>
+                              <SelectItem value="4">Thursday</SelectItem>
+                              <SelectItem value="5">Friday</SelectItem>
+                              <SelectItem value="6">Saturday</SelectItem>
+                              <SelectItem value="7">Sunday</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
+                      {newRule.conditions?.frequency === 'yearly' && (
+                        <div>
+                          <Label>Select Date</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full justify-start text-left font-normal",
+                                  !newRule.conditions?.recurringDate && "text-muted-foreground"
+                                )}
+                              >
+                                {newRule.conditions?.recurringDate ? (
+                                  format(newRule.conditions.recurringDate, "MMM dd")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={newRule.conditions?.recurringDate}
+                                onSelect={(date) => setNewRule({
+                                  ...newRule,
+                                  conditions: { ...newRule.conditions, recurringDate: date }
+                                })}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setIsAddingRule(false)}>
