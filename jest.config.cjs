@@ -1,36 +1,28 @@
-
-import type { Config } from 'jest';
-
-const config: Config = {
+module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '@shared/(.*)$': '<rootDir>/shared/$1'
+    '^@shared/(.*)$': '<rootDir>/shared/$1',
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
   },
   testMatch: [
     '<rootDir>/client/src/**/*.test.{ts,tsx}',
     '<rootDir>/server/**/*.test.{ts,tsx}'
   ],
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: 'tsconfig.json',
-    }]
+    '^.+\\.(ts|tsx)$': ['babel-jest', { configFile: './babel.config.cjs' }]
   },
-  globals: {
-    'ts-jest': {
-      isolatedModules: true,
-    },
-  },
+  moduleDirectories: ['node_modules', '<rootDir>'],
+  modulePaths: ['<rootDir>'],
+  roots: ['<rootDir>'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testEnvironmentOptions: {
     customExportConditions: ['']
   },
-  // Adding these options to make tests run faster
   maxWorkers: 1,
-  testTimeout: 10000,
+  testTimeout: 30000,
   verbose: true,
   forceExit: true,
   detectOpenHandles: true,
@@ -40,6 +32,7 @@ const config: Config = {
       displayName: 'client',
       testEnvironment: 'jsdom',
       testMatch: ['<rootDir>/client/src/**/*.test.{ts,tsx}'],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
     },
     {
       displayName: 'server',
@@ -48,5 +41,3 @@ const config: Config = {
     }
   ]
 };
-
-export default config;
