@@ -213,8 +213,8 @@ const FinancialAdvice = () => {
         <TabsContent value="advice" className="space-y-4">
           <Card className="overflow-hidden border-gray-200">
             <CardHeader className="px-4 py-4 sm:px-6 sm:py-6">
-              <CardTitle className="text-lg sm:text-xl">Get Personalized Financial Advice</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
+              <CardTitle className="text-lg sm:text-xl mb-2">Get Personalized Financial Advice</CardTitle>
+              <CardDescription className="text-xs sm:text-sm max-w-full whitespace-normal break-words">
                 Our AI will provide customized financial advice based on your income, expenses, and goals.
               </CardDescription>
             </CardHeader>
@@ -310,8 +310,8 @@ const FinancialAdvice = () => {
         <TabsContent value="goals" className="space-y-4">
           <Card className="overflow-hidden border-gray-200">
             <CardHeader className="px-4 py-4 sm:px-6 sm:py-6">
-              <CardTitle className="text-lg sm:text-xl">AI-Suggested Financial Goals</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
+              <CardTitle className="text-lg sm:text-xl mb-2">AI-Suggested Financial Goals</CardTitle>
+              <CardDescription className="text-xs sm:text-sm max-w-full whitespace-normal break-words">
                 Based on your income patterns, our AI can suggest realistic financial goals to help you succeed.
               </CardDescription>
             </CardHeader>
@@ -395,8 +395,8 @@ const FinancialAdvice = () => {
         <TabsContent value="expenses" className="space-y-4">
           <Card className="overflow-hidden border-gray-200">
             <CardHeader className="px-4 py-4 sm:px-6 sm:py-6">
-              <CardTitle className="text-lg sm:text-xl">Expense Analysis & Optimization</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
+              <CardTitle className="text-lg sm:text-xl mb-2">Expense Analysis & Optimization</CardTitle>
+              <CardDescription className="text-xs sm:text-sm max-w-full whitespace-normal break-words">
                 Let our AI analyze your spending patterns and suggest ways to optimize your expenses.
               </CardDescription>
             </CardHeader>
