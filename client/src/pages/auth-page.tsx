@@ -102,11 +102,16 @@ export default function AuthPage() {
   }, [toast, setLocation]);
   
   // Google Sign In function - uses redirect instead of popup for better compatibility
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     try {
       setIsSocialLoginPending(true);
-      // Using redirect approach instead of popup for better compatibility
-      signInWithRedirect(auth, googleProvider);
+      // Try popup first, fallback to redirect
+      try {
+        await signInWithPopup(auth, googleProvider);
+      } catch (popupError) {
+        console.warn("Popup failed, trying redirect:", popupError);
+        await signInWithRedirect(auth, googleProvider);
+      }
     } catch (error) {
       console.error("Google sign-in initiation error:", error);
       toast({
