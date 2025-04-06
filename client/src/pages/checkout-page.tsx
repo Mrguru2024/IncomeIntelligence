@@ -21,15 +21,16 @@ const getStripePromise = async (): Promise<Stripe | null> => {
       throw new Error('Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)');
     }
 
-    // Preload Stripe.js script
-    await new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://js.stripe.com/v3/';
-      script.async = true;
-      script.onload = resolve;
-      script.onerror = () => reject(new Error('Failed to load Stripe.js script'));
-      document.head.appendChild(script);
-    });
+    // Check if Stripe.js is already loaded
+    if (!window.Stripe) {
+      await new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://js.stripe.com/v3/';
+        script.async = true;
+        script.onload = resolve;
+        document.head.appendChild(script);
+      });
+    }
 
     return await loadStripe(stripeKey);
   } catch (error) {
