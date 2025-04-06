@@ -8,8 +8,6 @@ import {
   browserLocalPersistence,
 } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
-import { getDataConnect } from "firebase/data-connect";
-import { connectorConfig } from "@firebasegen/default-connector";
 
 // Get project ID from environment variables
 const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
@@ -31,13 +29,7 @@ const firebaseConfig = {
 // Initialize Firebase only once
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
-
-// Initialize Data Connect with projectId
-const dataConnect = getDataConnect({
-  ...connectorConfig,
-  projectId: projectId,
-  auth: auth
-});
+const analytics = getAnalytics(app);
 
 // Initialize providers
 const googleProvider = new GoogleAuthProvider();
@@ -59,4 +51,4 @@ auth
 // Configure language
 auth.useDeviceLanguage();
 
-export { app, auth, googleProvider, githubProvider, appleProvider, dataConnect };
+export { app, auth, googleProvider, githubProvider, appleProvider, analytics };
