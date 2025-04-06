@@ -763,7 +763,7 @@ export default function AuthPage() {
           </div>
 
           <div className="space-y-5">
-            <div className`flex items-start space-x-4">
+            <div className="flex items-start space-x-4">
               <div className="bg-primary/20 p-3 rounded-full">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
