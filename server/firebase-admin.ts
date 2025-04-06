@@ -1,3 +1,4 @@
+
 import admin from 'firebase-admin';
 
 let isInitialized = false;
@@ -27,7 +28,6 @@ export function initializeFirebaseAdmin() {
       return true;
     }
 
-  try {
     const serviceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
