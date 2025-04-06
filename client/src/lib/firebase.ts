@@ -35,18 +35,23 @@ const initializeFirebaseWithRetry = async (retries = 3, delay = 1000) => {
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       await auth.setPersistence(browserLocalPersistence);
-      auth.useDeviceLanguage();
-
-      // Configure providers after auth initialization
+      
       const googleProvider = new GoogleAuthProvider();
       googleProvider.setCustomParameters({
-        prompt: 'select_account',
-        auth_type: 'reauthenticate'
+        prompt: 'select_account'
       });
 
       const githubProvider = new GithubAuthProvider();
       const appleProvider = new OAuthProvider('apple.com');
 
+      return { app, auth, googleProvider, githubProvider, appleProvider };
+    } else {
+      const app = getApps()[0];
+      const auth = getAuth(app);
+      const googleProvider = new GoogleAuthProvider();
+      const githubProvider = new GithubAuthProvider();
+      const appleProvider = new OAuthProvider('apple.com');
+      
       return { app, auth, googleProvider, githubProvider, appleProvider };
     }
   } catch (error) {
