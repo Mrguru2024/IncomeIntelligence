@@ -1,9 +1,29 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, ArrowRight, Briefcase, Link, UserPlus, Smartphone, Target, TrendingUp, Package, FileText, Award } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  ArrowRight,
+  Briefcase,
+  Link,
+  UserPlus,
+  Smartphone,
+  Target,
+  TrendingUp,
+  Package,
+  FileText,
+  Award,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -15,8 +35,9 @@ const IncomeHub = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   // Check if user is on Pro subscription
-  const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "lifetime";
-  
+  const isPro =
+    user?.subscriptionTier === "pro" || user?.subscriptionTier === "lifetime";
+
   // Fetch income data
   const { data: incomeData, isLoading: isLoadingIncome } = useQuery({
     queryKey: ["/api/income/total"],
@@ -26,7 +47,10 @@ const IncomeHub = () => {
   // Placeholder until implemented in backend
   const totalMonthlyIncome = incomeData?.total || 0;
   const incomeGoal = 1000; // $1,000 monthly income goal
-  const percentCompleted = Math.min(100, Math.round((totalMonthlyIncome / incomeGoal) * 100));
+  const percentCompleted = Math.min(
+    100,
+    Math.round((totalMonthlyIncome / incomeGoal) * 100),
+  );
 
   const incomeFeatures = [
     {
@@ -36,7 +60,7 @@ const IncomeHub = () => {
       icon: <Briefcase className="h-8 w-8 text-blue-500" />,
       route: "/income/gigs",
       proRequired: false,
-      badge: "Popular"
+      badge: "Popular",
     },
     {
       id: "affiliate-hub",
@@ -45,7 +69,7 @@ const IncomeHub = () => {
       icon: <Link className="h-8 w-8 text-pink-500" />,
       route: "/income/affiliates",
       proRequired: false,
-      badge: null
+      badge: null,
     },
     {
       id: "referral-system",
@@ -54,7 +78,7 @@ const IncomeHub = () => {
       icon: <UserPlus className="h-8 w-8 text-violet-500" />,
       route: "/income/referrals",
       proRequired: false,
-      badge: "Easy Money"
+      badge: "Easy Money",
     },
     {
       id: "digital-services",
@@ -63,7 +87,7 @@ const IncomeHub = () => {
       icon: <Smartphone className="h-8 w-8 text-cyan-500" />,
       route: "/income/services",
       proRequired: false,
-      badge: null
+      badge: null,
     },
     {
       id: "money-challenges",
@@ -72,7 +96,7 @@ const IncomeHub = () => {
       icon: <Target className="h-8 w-8 text-rose-500" />,
       route: "/income/challenges",
       proRequired: true,
-      badge: "Pro Feature"
+      badge: "Pro Feature",
     },
     {
       id: "investment-wizard",
@@ -81,7 +105,7 @@ const IncomeHub = () => {
       icon: <TrendingUp className="h-8 w-8 text-lime-500" />,
       route: "/income/investments",
       proRequired: true,
-      badge: "Pro Feature"
+      badge: "Pro Feature",
     },
     {
       id: "used-gear",
@@ -90,7 +114,7 @@ const IncomeHub = () => {
       icon: <Package className="h-8 w-8 text-orange-500" />,
       route: "/income/gear",
       proRequired: false,
-      badge: null
+      badge: null,
     },
     {
       id: "invoice-builder",
@@ -99,7 +123,7 @@ const IncomeHub = () => {
       icon: <FileText className="h-8 w-8 text-sky-500" />,
       route: "/income/invoices",
       proRequired: false,
-      badge: null
+      badge: null,
     },
     {
       id: "creative-grants",
@@ -108,8 +132,8 @@ const IncomeHub = () => {
       icon: <Award className="h-8 w-8 text-emerald-500" />,
       route: "/income/grants",
       proRequired: true,
-      badge: "Pro Feature"
-    }
+      badge: "Pro Feature",
+    },
   ];
 
   return (
@@ -117,7 +141,9 @@ const IncomeHub = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Income Hub</h1>
-          <p className="text-muted-foreground">Generate extra income with the 40/30/30 method</p>
+          <p className="text-muted-foreground">
+            Generate extra income with the 40/30/30 method
+          </p>
         </div>
         <Button onClick={() => setLocation("/income/new")} className="gap-2">
           <Plus size={16} />
@@ -129,7 +155,9 @@ const IncomeHub = () => {
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border-blue-100 dark:border-blue-900">
         <CardHeader>
           <CardTitle className="text-xl">Income Goal Progress</CardTitle>
-          <CardDescription>Track your progress toward $1,000 monthly income</CardDescription>
+          <CardDescription>
+            Track your progress toward $1,000 monthly income
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoadingIncome ? (
@@ -139,13 +167,17 @@ const IncomeHub = () => {
           ) : (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="font-medium">${totalMonthlyIncome.toFixed(2)} / ${incomeGoal}</span>
-                <span className="text-sm text-muted-foreground">{percentCompleted}% Complete</span>
+                <span className="font-medium">
+                  ${totalMonthlyIncome.toFixed(2)} / ${incomeGoal}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {percentCompleted}% Complete
+                </span>
               </div>
-              
+
               {/* Progress bar */}
               <div className="h-3 bg-blue-100 dark:bg-blue-900 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
                   style={{ width: `${percentCompleted}%` }}
                 ></div>
@@ -154,27 +186,44 @@ const IncomeHub = () => {
           )}
         </CardContent>
         <CardFooter>
-          <Button variant="outline" className="w-full" onClick={() => setLocation("/income/history")}>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setLocation("/income/history")}
+          >
             View Income History
           </Button>
         </CardFooter>
       </Card>
 
       {/* Income Generation Features */}
-      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        defaultValue="overview"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid grid-cols-3 md:w-[400px] w-full">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="free">Free Features</TabsTrigger>
           <TabsTrigger value="pro">Pro Features</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="overview" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {incomeFeatures.map((feature) => (
-              <Card key={feature.id} className="overflow-hidden border hover:shadow-md transition-shadow">
+              <Card
+                key={feature.id}
+                className="overflow-hidden border hover:shadow-md transition-shadow"
+              >
                 <CardHeader className="pb-2">
                   {feature.badge && (
-                    <Badge className="w-fit mb-2" variant={feature.badge === "Pro Feature" ? "default" : "outline"}>
+                    <Badge
+                      className="w-fit mb-2"
+                      variant={
+                        feature.badge === "Pro Feature" ? "default" : "outline"
+                      }
+                    >
                       {feature.badge}
                     </Badge>
                   )}
@@ -187,13 +236,15 @@ const IncomeHub = () => {
                   <p className="text-muted-foreground">{feature.description}</p>
                 </CardContent>
                 <CardFooter className="pt-2">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="w-full justify-between"
                     disabled={feature.proRequired && !isPro}
                     onClick={() => setLocation(feature.route)}
                   >
-                    {feature.proRequired && !isPro ? 'Requires Pro Subscription' : 'Explore'}
+                    {feature.proRequired && !isPro
+                      ? "Requires Pro Subscription"
+                      : "Explore"}
                     <ArrowRight size={16} />
                   </Button>
                 </CardFooter>
@@ -201,13 +252,16 @@ const IncomeHub = () => {
             ))}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="free" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {incomeFeatures
-              .filter(f => !f.proRequired)
+              .filter((f) => !f.proRequired)
               .map((feature) => (
-                <Card key={feature.id} className="overflow-hidden border hover:shadow-md transition-shadow">
+                <Card
+                  key={feature.id}
+                  className="overflow-hidden border hover:shadow-md transition-shadow"
+                >
                   <CardHeader className="pb-2">
                     {feature.badge && (
                       <Badge className="w-fit mb-2" variant="outline">
@@ -220,11 +274,13 @@ const IncomeHub = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground">{feature.description}</p>
+                    <p className="text-muted-foreground">
+                      {feature.description}
+                    </p>
                   </CardContent>
                   <CardFooter className="pt-2">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       className="w-full justify-between"
                       onClick={() => setLocation(feature.route)}
                     >
@@ -236,13 +292,16 @@ const IncomeHub = () => {
               ))}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="pro" className="space-y-6">
           {!isPro ? (
             <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50 border-purple-100 dark:border-purple-900">
               <CardHeader>
                 <CardTitle>Unlock Pro Income Features</CardTitle>
-                <CardDescription>Upgrade to Stackr Pro to access premium income generation tools</CardDescription>
+                <CardDescription>
+                  Upgrade to Stackr Pro to access premium income generation
+                  tools
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p>With Stackr Pro, you'll unlock:</p>
@@ -255,7 +314,10 @@ const IncomeHub = () => {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button onClick={() => setLocation("/subscribe")} className="w-full">
+                <Button
+                  onClick={() => setLocation("/subscribe")}
+                  className="w-full"
+                >
                   Upgrade to Pro
                 </Button>
               </CardFooter>
@@ -263,24 +325,29 @@ const IncomeHub = () => {
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {incomeFeatures
-                .filter(f => f.proRequired)
+                .filter((f) => f.proRequired)
                 .map((feature) => (
-                  <Card key={feature.id} className="overflow-hidden border hover:shadow-md transition-shadow">
+                  <Card
+                    key={feature.id}
+                    className="overflow-hidden border hover:shadow-md transition-shadow"
+                  >
                     <CardHeader className="pb-2">
-                      <Badge className="w-fit mb-2">
-                        Pro Feature
-                      </Badge>
+                      <Badge className="w-fit mb-2">Pro Feature</Badge>
                       <div className="flex justify-between items-start">
-                        <CardTitle className="text-xl">{feature.name}</CardTitle>
+                        <CardTitle className="text-xl">
+                          {feature.name}
+                        </CardTitle>
                         {feature.icon}
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-muted-foreground">{feature.description}</p>
+                      <p className="text-muted-foreground">
+                        {feature.description}
+                      </p>
                     </CardContent>
                     <CardFooter className="pt-2">
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         className="w-full justify-between"
                         onClick={() => setLocation(feature.route)}
                       >

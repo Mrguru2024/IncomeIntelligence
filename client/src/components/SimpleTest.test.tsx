@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from "@testing-library/react";
 
-describe('Simple Test', () => {
-  it('should pass', () => {
+describe("Simple Test", () => {
+  it("should pass", () => {
     render(<div data-testid="test">Test</div>);
-    expect(screen.getByTestId('test')).toHaveTextContent('Test');
+    expect(screen.getByTestId("test")).toHaveTextContent("Test");
   });
 });

@@ -8,7 +8,7 @@ async function throwIfResNotOk(res: Response) {
       throw new Error(errorData.message || `${res.status}: ${res.statusText}`);
     } catch (e) {
       if (e instanceof Error) throw e;
-      const text = await res.text() || res.statusText;
+      const text = (await res.text()) || res.statusText;
       throw new Error(`${res.status}: ${text}`);
     }
   }
@@ -16,17 +16,17 @@ async function throwIfResNotOk(res: Response) {
 
 // Helper function to get auth token from localStorage
 export function getAuthToken(): string | null {
-  return localStorage.getItem('auth_token');
+  return localStorage.getItem("auth_token");
 }
 
 // Helper function to set auth token in localStorage
 export function setAuthToken(token: string): void {
-  localStorage.setItem('auth_token', token);
+  localStorage.setItem("auth_token", token);
 }
 
 // Helper function to remove auth token from localStorage
 export function removeAuthToken(): void {
-  localStorage.removeItem('auth_token');
+  localStorage.removeItem("auth_token");
 }
 
 /**
@@ -40,21 +40,20 @@ export async function apiRequest(
   method: string,
   endpoint: string,
   data?: any,
-  customHeaders?: Record<string, string>
+  customHeaders?: Record<string, string>,
 ): Promise<Response> {
   // Get current Firebase auth token
   const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
 
-
   // Create headers with auth token if available
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...customHeaders,
   };
 
   // Add Authorization header if token exists
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   // Prepare request options
@@ -65,7 +64,7 @@ export async function apiRequest(
   };
 
   // Add body for non-GET requests if data is provided
-  if (method !== 'GET' && data !== undefined) {
+  if (method !== "GET" && data !== undefined) {
     options.body = JSON.stringify(data);
   }
 
@@ -87,7 +86,7 @@ export const getQueryFn: <T>(options: {
 
     // Add Authorization header if token exists
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
     const res = await fetch(queryKey[0] as string, {

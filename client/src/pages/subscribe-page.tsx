@@ -1,30 +1,42 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/use-auth';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { apiRequest } from '@/lib/queryClient';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Check, X, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import { apiRequest } from "@/lib/queryClient";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Check, X, Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Initialize Stripe in a component to make sure it has access to the environment variables
-import type { Stripe } from '@stripe/stripe-js';
+import type { Stripe } from "@stripe/stripe-js";
 
 // Create a lazy-loaded stripePromise that is only instantiated when needed
 const getStripePromise = (): Promise<Stripe | null> => {
   try {
     const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
     if (!stripeKey) {
-      console.error('Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)');
+      console.error("Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)");
       return Promise.resolve(null);
     }
     return loadStripe(stripeKey);
   } catch (error) {
-    console.error('Failed to initialize Stripe:', error);
+    console.error("Failed to initialize Stripe:", error);
     return Promise.resolve(null);
   }
 };
@@ -64,7 +76,8 @@ const SubscribeForm = () => {
     } catch (err) {
       toast({
         title: "Payment Error",
-        description: "An unexpected error occurred while processing your payment.",
+        description:
+          "An unexpected error occurred while processing your payment.",
         variant: "destructive",
       });
     } finally {
@@ -75,9 +88,9 @@ const SubscribeForm = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement />
-      <Button 
-        type="submit" 
-        disabled={!stripe || isLoading} 
+      <Button
+        type="submit"
+        disabled={!stripe || isLoading}
         className="w-full bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white"
         variant="default"
       >
@@ -87,7 +100,7 @@ const SubscribeForm = () => {
             Processing...
           </>
         ) : (
-          'Subscribe Now'
+          "Subscribe Now"
         )}
       </Button>
     </form>
@@ -105,38 +118,40 @@ const SubscribePage = () => {
   useEffect(() => {
     // Redirect if not logged in
     if (user === null) {
-      navigate('/auth');
+      navigate("/auth");
       return;
     }
 
     // Check if user already has active subscription
-    if (user && user.subscriptionActive && user.subscriptionTier === 'pro') {
+    if (user && user.subscriptionActive && user.subscriptionTier === "pro") {
       toast({
         title: "Already Subscribed",
         description: "You already have an active Stackr Pro subscription.",
       });
-      navigate('/dashboard');
+      navigate("/dashboard");
       return;
     }
 
     const getSubscription = async () => {
       setIsLoading(true);
       try {
-        const response = await apiRequest('POST', '/api/create-subscription');
+        const response = await apiRequest("POST", "/api/create-subscription");
         const data = await response.json();
-        
+
         if (!response.ok) {
-          throw new Error(data.message || 'Failed to start subscription process');
+          throw new Error(
+            data.message || "Failed to start subscription process",
+          );
         }
-        
+
         if (data.clientSecret) {
           setClientSecret(data.clientSecret);
         } else {
-          setError('Unable to initialize payment. Please try again later.');
+          setError("Unable to initialize payment. Please try again later.");
         }
       } catch (err) {
-        setError('Error initializing subscription. Please try again later.');
-        console.error('Subscription error:', err);
+        setError("Error initializing subscription. Please try again later.");
+        console.error("Subscription error:", err);
       } finally {
         setIsLoading(false);
       }
@@ -164,7 +179,9 @@ const SubscribePage = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <h2 className="text-2xl font-semibold">Preparing your subscription...</h2>
+        <h2 className="text-2xl font-semibold">
+          Preparing your subscription...
+        </h2>
         <p className="text-muted-foreground">This will only take a moment</p>
       </div>
     );
@@ -177,10 +194,7 @@ const SubscribePage = () => {
           <AlertTitle>Subscription Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-        <Button 
-          onClick={() => navigate('/dashboard')} 
-          className="mt-6"
-        >
+        <Button onClick={() => navigate("/dashboard")} className="mt-6">
           Return to Dashboard
         </Button>
       </div>
@@ -194,7 +208,8 @@ const SubscribePage = () => {
           Upgrade to Stackr Pro
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Take control of your finances with advanced features designed specifically for service providers.
+          Take control of your finances with advanced features designed
+          specifically for service providers.
         </p>
       </div>
 
@@ -202,8 +217,15 @@ const SubscribePage = () => {
         <Card className="border-dashed">
           <CardHeader>
             <CardTitle>Free Plan</CardTitle>
-            <div className="text-3xl font-bold">$0<span className="text-muted-foreground text-sm font-normal">/month</span></div>
-            <CardDescription>Basic income tracking with manual splits</CardDescription>
+            <div className="text-3xl font-bold">
+              $0
+              <span className="text-muted-foreground text-sm font-normal">
+                /month
+              </span>
+            </div>
+            <CardDescription>
+              Basic income tracking with manual splits
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {pricingFeatures.map((feature, index) => (
@@ -220,7 +242,11 @@ const SubscribePage = () => {
             ))}
           </CardContent>
           <CardFooter>
-            <Button variant="outline" className="w-full" onClick={() => navigate('/dashboard')}>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => navigate("/dashboard")}
+            >
               Current Plan
             </Button>
           </CardFooter>
@@ -232,8 +258,15 @@ const SubscribePage = () => {
           </div>
           <CardHeader>
             <CardTitle>Stackr Pro</CardTitle>
-            <div className="text-3xl font-bold">$9.99<span className="text-muted-foreground text-sm font-normal">/month</span></div>
-            <CardDescription>Advanced features for financial growth</CardDescription>
+            <div className="text-3xl font-bold">
+              $9.99
+              <span className="text-muted-foreground text-sm font-normal">
+                /month
+              </span>
+            </div>
+            <CardDescription>
+              Advanced features for financial growth
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {pricingFeatures.map((feature, index) => (
@@ -243,7 +276,11 @@ const SubscribePage = () => {
                 ) : (
                   <X className="h-5 w-5 text-gray-300 mr-2" />
                 )}
-                <span className={feature.pro ? "font-medium" : "text-muted-foreground"}>
+                <span
+                  className={
+                    feature.pro ? "font-medium" : "text-muted-foreground"
+                  }
+                >
                   {feature.name}
                 </span>
               </div>
@@ -267,14 +304,14 @@ const SubscribePage = () => {
           </CardHeader>
           <CardContent>
             {clientSecret ? (
-              <Elements 
-                stripe={getStripePromise()} 
-                options={{ 
+              <Elements
+                stripe={getStripePromise()}
+                options={{
                   clientSecret,
                   appearance: {
-                    theme: 'stripe',
+                    theme: "stripe",
                     variables: {
-                      colorPrimary: '#6366f1',
+                      colorPrimary: "#6366f1",
                     },
                   },
                 }}
@@ -290,7 +327,10 @@ const SubscribePage = () => {
         </Card>
 
         <div className="mt-8 text-center text-sm text-muted-foreground">
-          <p>By subscribing, you agree to our Terms of Service and Privacy Policy.</p>
+          <p>
+            By subscribing, you agree to our Terms of Service and Privacy
+            Policy.
+          </p>
           <p className="mt-2">Questions? Contact support@stackr.finance</p>
         </div>
       </div>

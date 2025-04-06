@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
 // Needed for React 18 compatibility
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -27,16 +27,18 @@ global.sessionStorage = {
 };
 
 // Mock matchMedia
-window.matchMedia = window.matchMedia || function() {
-  return {
-    matches: false,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+window.matchMedia =
+  window.matchMedia ||
+  function () {
+    return {
+      matches: false,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    };
   };
-};
 
 // Mock IntersectionObserver
 class MockIntersectionObserver {
@@ -65,9 +67,9 @@ const originalConsoleError = console.error;
 console.error = (...args) => {
   // Filter out act() warnings
   if (
-    typeof args[0] === 'string' &&
-    args[0].includes('Warning: ReactDOM.render') &&
-    args[0].includes('act(...)')
+    typeof args[0] === "string" &&
+    args[0].includes("Warning: ReactDOM.render") &&
+    args[0].includes("act(...)")
   ) {
     return;
   }

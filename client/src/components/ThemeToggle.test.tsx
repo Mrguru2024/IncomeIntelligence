@@ -1,43 +1,42 @@
-
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ThemeToggle } from './ThemeToggle';
+import { render, screen, fireEvent } from "@testing-library/react";
+import { ThemeToggle } from "./ThemeToggle";
 
 const mockSetTheme = jest.fn();
 
-jest.mock('lucide-react', () => ({
+jest.mock("lucide-react", () => ({
   Moon: () => <div data-testid="moon-icon" />,
-  Sun: () => <div data-testid="sun-icon" />
+  Sun: () => <div data-testid="sun-icon" />,
 }));
 
 const mockUseTheme = jest.fn().mockReturnValue({
-  theme: 'light',
-  setTheme: mockSetTheme
+  theme: "light",
+  setTheme: mockSetTheme,
 });
 
-jest.mock('@/hooks/useTheme', () => ({
-  useTheme: () => mockUseTheme()
+jest.mock("@/hooks/useTheme", () => ({
+  useTheme: () => mockUseTheme(),
 }));
 
-describe('ThemeToggle', () => {
+describe("ThemeToggle", () => {
   beforeEach(() => {
     mockSetTheme.mockClear();
   });
 
-  it('renders theme toggle button', () => {
+  it("renders theme toggle button", () => {
     render(<ThemeToggle />);
-    const button = screen.getByRole('button');
+    const button = screen.getByRole("button");
     expect(button).toBeInTheDocument();
   });
 
-  it('shows sun icon in light mode', () => {
+  it("shows sun icon in light mode", () => {
     render(<ThemeToggle />);
-    expect(screen.getByTestId('sun-icon')).toBeInTheDocument();
+    expect(screen.getByTestId("sun-icon")).toBeInTheDocument();
   });
 
-  it('calls setTheme when clicked', () => {
+  it("calls setTheme when clicked", () => {
     render(<ThemeToggle />);
-    const button = screen.getByRole('button');
+    const button = screen.getByRole("button");
     fireEvent.click(button);
-    expect(mockSetTheme).toHaveBeenCalledWith('dark');
+    expect(mockSetTheme).toHaveBeenCalledWith("dark");
   });
 });

@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { useState, useCallback } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 // Define the response type for clarity
 interface LinkTokenResponse {
@@ -45,22 +45,22 @@ export function usePlaidLink(userId: number): UsePlaidLinkResult {
   const createLinkToken = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Request link token from our server
-      const response = await apiRequest('/api/plaid/create-link-token', {
-        method: 'POST',
-        body: JSON.stringify({ userId })
+      const response = await apiRequest("/api/plaid/create-link-token", {
+        method: "POST",
+        body: JSON.stringify({ userId }),
       });
-      
+
       setLinkToken(response.linkToken);
     } catch (err) {
-      console.error('Error creating link token:', err);
+      console.error("Error creating link token:", err);
       setError(err as Error);
       toast({
-        title: 'Error',
-        description: 'Failed to initialize bank connection. Please try again.',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to initialize bank connection. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -68,46 +68,50 @@ export function usePlaidLink(userId: number): UsePlaidLinkResult {
   }, [userId, toast]);
 
   // Exchange the public token for an access token
-  const exchangePublicToken = useCallback(async ({ publicToken, metadata }: ExchangeTokenParams) => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Send to our backend to exchange token and save connection
-      await apiRequest('/api/plaid/exchange-token', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId,
-          publicToken,
-          metadata
-        })
-      });
-      
-      toast({
-        title: 'Success',
-        description: `Successfully connected to ${metadata.institution.name}`,
-      });
-      
-      // Reset link token state after successful connection
-      setLinkToken(null);
-    } catch (err) {
-      console.error('Error exchanging public token:', err);
-      setError(err as Error);
-      toast({
-        title: 'Connection Failed',
-        description: 'There was an issue finalizing your bank connection. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId, toast]);
+  const exchangePublicToken = useCallback(
+    async ({ publicToken, metadata }: ExchangeTokenParams) => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Send to our backend to exchange token and save connection
+        await apiRequest("/api/plaid/exchange-token", {
+          method: "POST",
+          body: JSON.stringify({
+            userId,
+            publicToken,
+            metadata,
+          }),
+        });
+
+        toast({
+          title: "Success",
+          description: `Successfully connected to ${metadata.institution.name}`,
+        });
+
+        // Reset link token state after successful connection
+        setLinkToken(null);
+      } catch (err) {
+        console.error("Error exchanging public token:", err);
+        setError(err as Error);
+        toast({
+          title: "Connection Failed",
+          description:
+            "There was an issue finalizing your bank connection. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [userId, toast],
+  );
 
   return {
     linkToken,
     isLoading,
     error,
     createLinkToken,
-    exchangePublicToken
+    exchangePublicToken,
   };
 }

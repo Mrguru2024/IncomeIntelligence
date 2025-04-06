@@ -1,12 +1,22 @@
-
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/lib/utils/format';
-import { Expense } from '@shared/schema';
-import { ArrowDownIcon, ArrowUpIcon, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { formatCurrency } from "@/lib/utils/format";
+import { Expense } from "@shared/schema";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  AlertTriangle,
+  CheckCircle,
+} from "lucide-react";
 
 interface SubscriptionGroup {
   name: string;
@@ -14,40 +24,41 @@ interface SubscriptionGroup {
   frequency: string;
   lastCharge: Date;
   nextEstimatedCharge: Date;
-  risk: 'low' | 'medium' | 'high';
+  risk: "low" | "medium" | "high";
   suggestion?: string;
 }
 
 export default function SubscriptionSniper() {
   const { data: expenses } = useQuery<Expense[]>({
-    queryKey: ['expenses'],
+    queryKey: ["expenses"],
   });
 
   // Group recurring expenses and analyze patterns
   const subscriptions = expenses
-    ?.filter(expense => expense.isRecurring)
+    ?.filter((expense) => expense.isRecurring)
     .reduce((groups: { [key: string]: SubscriptionGroup }, expense) => {
       const amount = parseFloat(expense.amount.toString());
       const name = expense.description;
-      
+
       if (!groups[name]) {
         groups[name] = {
           name,
           amount,
-          frequency: expense.recurringPeriod || 'monthly',
+          frequency: expense.recurringPeriod || "monthly",
           lastCharge: new Date(expense.date),
           nextEstimatedCharge: new Date(expense.date),
-          risk: amount > 50 ? 'high' : amount > 20 ? 'medium' : 'low',
-          suggestion: amount > 50 ? 'Consider reviewing this subscription' : undefined
+          risk: amount > 50 ? "high" : amount > 20 ? "medium" : "low",
+          suggestion:
+            amount > 50 ? "Consider reviewing this subscription" : undefined,
         };
       }
-      
+
       return groups;
     }, {});
 
   const totalMonthly = Object.values(subscriptions || {}).reduce(
     (sum, sub) => sum + sub.amount,
-    0
+    0,
   );
 
   return (
@@ -65,7 +76,8 @@ export default function SubscriptionSniper() {
               Monthly Subscription Total: {formatCurrency(totalMonthly)}
             </h3>
             <p className="text-sm text-gray-500">
-              {Object.keys(subscriptions || {}).length} active subscriptions detected
+              {Object.keys(subscriptions || {}).length} active subscriptions
+              detected
             </p>
           </div>
 
@@ -75,20 +87,33 @@ export default function SubscriptionSniper() {
                 <div className="flex items-start justify-between">
                   <div>
                     <h4 className="font-medium">{sub.name}</h4>
-                    <p className="text-sm text-gray-500">{formatCurrency(sub.amount)} / {sub.frequency}</p>
+                    <p className="text-sm text-gray-500">
+                      {formatCurrency(sub.amount)} / {sub.frequency}
+                    </p>
                   </div>
-                  <Badge variant={
-                    sub.risk === 'high' ? 'destructive' :
-                    sub.risk === 'medium' ? 'warning' : 'default'
-                  }>
-                    {sub.risk === 'high' ? <AlertTriangle className="w-4 h-4 mr-1" /> :
-                     sub.risk === 'medium' ? <ArrowUpIcon className="w-4 h-4 mr-1" /> :
-                     <CheckCircle className="w-4 h-4 mr-1" />}
+                  <Badge
+                    variant={
+                      sub.risk === "high"
+                        ? "destructive"
+                        : sub.risk === "medium"
+                          ? "warning"
+                          : "default"
+                    }
+                  >
+                    {sub.risk === "high" ? (
+                      <AlertTriangle className="w-4 h-4 mr-1" />
+                    ) : sub.risk === "medium" ? (
+                      <ArrowUpIcon className="w-4 h-4 mr-1" />
+                    ) : (
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                    )}
                     {sub.risk.toUpperCase()}
                   </Badge>
                 </div>
                 {sub.suggestion && (
-                  <p className="text-sm text-amber-600 mt-2">{sub.suggestion}</p>
+                  <p className="text-sm text-amber-600 mt-2">
+                    {sub.suggestion}
+                  </p>
                 )}
               </Card>
             ))}

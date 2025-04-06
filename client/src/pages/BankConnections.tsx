@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,69 +57,71 @@ interface Transaction {
 
 export default function BankConnections() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedConnection, setSelectedConnection] = useState<number | null>(null);
+  const [selectedConnection, setSelectedConnection] = useState<number | null>(
+    null,
+  );
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const userId = 1; // In a real app, this would come from authentication
 
   // Fetch bank connections for the user
-  const { 
+  const {
     data: connections = [] as BankConnection[],
     isLoading: isLoadingConnections,
-    error: connectionsError
+    error: connectionsError,
   } = useQuery<BankConnection[]>({
-    queryKey: ['/api/bank-connections/user/' + userId],
+    queryKey: ["/api/bank-connections/user/" + userId],
   });
 
   // Fetch accounts for the selected connection
-  const {
-    data: accounts = [] as BankAccount[],
-    isLoading: isLoadingAccounts
-  } = useQuery<BankAccount[]>({
-    queryKey: ['/api/bank-connections/' + selectedConnection + '/accounts'],
-    enabled: !!selectedConnection
-  });
+  const { data: accounts = [] as BankAccount[], isLoading: isLoadingAccounts } =
+    useQuery<BankAccount[]>({
+      queryKey: ["/api/bank-connections/" + selectedConnection + "/accounts"],
+      enabled: !!selectedConnection,
+    });
 
   // Delete a bank connection
   const deleteMutation = useMutation<void, Error, number>({
     mutationFn: async (connectionId: number) => {
       await fetch(`/api/bank-connections/${connectionId}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
     },
     onSuccess: () => {
       toast({
         title: "Connection removed",
-        description: "The bank connection has been successfully removed."
+        description: "The bank connection has been successfully removed.",
       });
       queryClient.invalidateQueries({
-        queryKey: ['/api/bank-connections/user/' + userId],
+        queryKey: ["/api/bank-connections/user/" + userId],
       });
     },
     onError: () => {
       toast({
         title: "Error",
         description: "Failed to remove the bank connection.",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Sync transactions for a connection
   const syncMutation = useMutation<void, Error, number>({
     mutationFn: async (connectionId: number) => {
       await fetch(`/api/bank-connections/${connectionId}/sync`, {
-        method: 'POST'
+        method: "POST",
       });
     },
     onSuccess: () => {
       toast({
         title: "Sync complete",
-        description: "Transactions have been successfully synced."
+        description: "Transactions have been successfully synced.",
       });
       if (selectedConnection) {
         queryClient.invalidateQueries({
-          queryKey: ['/api/bank-connections/' + selectedConnection + '/accounts'],
+          queryKey: [
+            "/api/bank-connections/" + selectedConnection + "/accounts",
+          ],
         });
       }
     },
@@ -127,34 +129,34 @@ export default function BankConnections() {
       toast({
         title: "Sync failed",
         description: "Failed to sync transactions. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Import transactions as income
   const importIncomeMutation = useMutation<void, Error, number>({
     mutationFn: async (connectionId: number) => {
       await fetch(`/api/bank-connections/${connectionId}/import-income`, {
-        method: 'POST'
+        method: "POST",
       });
     },
     onSuccess: () => {
       toast({
         title: "Import complete",
-        description: "Income transactions have been successfully imported."
+        description: "Income transactions have been successfully imported.",
       });
       queryClient.invalidateQueries({
-        queryKey: ['/api/incomes'],
+        queryKey: ["/api/incomes"],
       });
     },
     onError: () => {
       toast({
         title: "Import failed",
         description: "Failed to import income transactions. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Handle connection selection
@@ -164,16 +166,16 @@ export default function BankConnections() {
 
   // Format currency for display
   const formatCurrency = (amount: string | null) => {
-    if (!amount) return 'N/A';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    if (!amount) return "N/A";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(parseFloat(amount));
   };
 
   // Format date for display
   const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'Never';
+    if (!dateString) return "Never";
     return new Date(dateString).toLocaleString();
   };
 
@@ -181,12 +183,17 @@ export default function BankConnections() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Bank Connections</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Bank Connections
+          </h1>
           <p className="text-muted-foreground">
             Connect your bank accounts to automatically track your finances
           </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="w-full md:w-auto">
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          className="w-full md:w-auto"
+        >
           <Plus className="mr-2 h-4 w-4" /> Connect Bank
         </Button>
       </div>
@@ -195,7 +202,9 @@ export default function BankConnections() {
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="text-center p-4">
-              <p className="text-destructive">Failed to load bank connections</p>
+              <p className="text-destructive">
+                Failed to load bank connections
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -223,10 +232,12 @@ export default function BankConnections() {
               ))
             ) : connections?.length > 0 ? (
               connections.map((connection: BankConnection) => (
-                <Card 
-                  key={connection.id} 
+                <Card
+                  key={connection.id}
                   className={`overflow-hidden cursor-pointer transition-all ${
-                    selectedConnection === connection.id ? 'ring-2 ring-primary' : ''
+                    selectedConnection === connection.id
+                      ? "ring-2 ring-primary"
+                      : ""
                   }`}
                   onClick={() => handleSelectConnection(connection.id)}
                 >
@@ -235,7 +246,13 @@ export default function BankConnections() {
                       <CardTitle className="text-lg font-semibold">
                         {connection.institutionName}
                       </CardTitle>
-                      <Badge variant={connection.status === 'active' ? 'default' : 'destructive'}>
+                      <Badge
+                        variant={
+                          connection.status === "active"
+                            ? "default"
+                            : "destructive"
+                        }
+                      >
                         {connection.status}
                       </Badge>
                     </div>
@@ -245,7 +262,8 @@ export default function BankConnections() {
                   </CardHeader>
                   <CardContent className="pb-2">
                     <p className="text-sm">
-                      <span className="font-medium">Institution ID:</span> {connection.institutionId}
+                      <span className="font-medium">Institution ID:</span>{" "}
+                      {connection.institutionId}
                     </p>
                   </CardContent>
                   <CardFooter className="flex justify-between">
@@ -256,9 +274,13 @@ export default function BankConnections() {
                         e.stopPropagation();
                         syncMutation.mutate(connection.id);
                       }}
-                      disabled={syncMutation.isPending && syncMutation.variables === connection.id}
+                      disabled={
+                        syncMutation.isPending &&
+                        syncMutation.variables === connection.id
+                      }
                     >
-                      {syncMutation.isPending && syncMutation.variables === connection.id ? (
+                      {syncMutation.isPending &&
+                      syncMutation.variables === connection.id ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       ) : (
                         <RefreshCw className="mr-2 h-4 w-4" />
@@ -272,9 +294,13 @@ export default function BankConnections() {
                         e.stopPropagation();
                         importIncomeMutation.mutate(connection.id);
                       }}
-                      disabled={importIncomeMutation.isPending && importIncomeMutation.variables === connection.id}
+                      disabled={
+                        importIncomeMutation.isPending &&
+                        importIncomeMutation.variables === connection.id
+                      }
                     >
-                      {importIncomeMutation.isPending && importIncomeMutation.variables === connection.id ? (
+                      {importIncomeMutation.isPending &&
+                      importIncomeMutation.variables === connection.id ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       ) : (
                         <Plus className="mr-2 h-4 w-4" />
@@ -286,13 +312,21 @@ export default function BankConnections() {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (window.confirm("Are you sure you want to remove this connection?")) {
+                        if (
+                          window.confirm(
+                            "Are you sure you want to remove this connection?",
+                          )
+                        ) {
                           deleteMutation.mutate(connection.id);
                         }
                       }}
-                      disabled={deleteMutation.isPending && deleteMutation.variables === connection.id}
+                      disabled={
+                        deleteMutation.isPending &&
+                        deleteMutation.variables === connection.id
+                      }
                     >
-                      {deleteMutation.isPending && deleteMutation.variables === connection.id ? (
+                      {deleteMutation.isPending &&
+                      deleteMutation.variables === connection.id ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       ) : (
                         <Trash2 className="h-4 w-4" />
@@ -305,9 +339,12 @@ export default function BankConnections() {
               <Card className="col-span-full">
                 <CardContent className="flex flex-col items-center justify-center py-8">
                   <Building className="h-16 w-16 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No Bank Connections</h3>
+                  <h3 className="text-lg font-medium mb-2">
+                    No Bank Connections
+                  </h3>
                   <p className="text-center text-muted-foreground mb-4">
-                    Connect your bank accounts to automatically track your finances and import transactions.
+                    Connect your bank accounts to automatically track your
+                    finances and import transactions.
                   </p>
                   <Button onClick={() => setIsModalOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" /> Connect Bank
@@ -341,19 +378,27 @@ export default function BankConnections() {
                         <TableHead>Account Name</TableHead>
                         <TableHead>Type</TableHead>
                         <TableHead>Mask</TableHead>
-                        <TableHead className="text-right">Available Balance</TableHead>
-                        <TableHead className="text-right">Current Balance</TableHead>
+                        <TableHead className="text-right">
+                          Available Balance
+                        </TableHead>
+                        <TableHead className="text-right">
+                          Current Balance
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {accounts.map((account: BankAccount) => (
                         <TableRow key={account.id}>
-                          <TableCell className="font-medium">{account.accountName}</TableCell>
+                          <TableCell className="font-medium">
+                            {account.accountName}
+                          </TableCell>
                           <TableCell>
                             {account.accountType}
-                            {account.accountSubtype ? ` (${account.accountSubtype})` : ''}
+                            {account.accountSubtype
+                              ? ` (${account.accountSubtype})`
+                              : ""}
                           </TableCell>
-                          <TableCell>{account.mask || 'N/A'}</TableCell>
+                          <TableCell>{account.mask || "N/A"}</TableCell>
                           <TableCell className="text-right">
                             {formatCurrency(account.balanceAvailable)}
                           </TableCell>
@@ -366,7 +411,9 @@ export default function BankConnections() {
                   </Table>
                 ) : (
                   <div className="text-center p-4">
-                    <p className="text-muted-foreground">No accounts found for this connection</p>
+                    <p className="text-muted-foreground">
+                      No accounts found for this connection
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -410,7 +457,7 @@ export default function BankConnections() {
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => {
           queryClient.invalidateQueries({
-            queryKey: ['/api/bank-connections/user/' + userId],
+            queryKey: ["/api/bank-connections/user/" + userId],
           });
         }}
         userId={userId}

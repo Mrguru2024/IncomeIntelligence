@@ -5,10 +5,24 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -24,19 +38,25 @@ const loginSchema = z.object({
 });
 
 // Registration validation schema
-const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Please enter a valid email"),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    email: z.string().email("Please enter a valid email"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number")
+      .regex(
+        /[^a-zA-Z0-9]/,
+        "Password must contain at least one special character",
+      ),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -46,19 +66,19 @@ export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isSocialLoginPending, setIsSocialLoginPending] = useState(false);
-  
+
   // Check for redirect result on page load
   useEffect(() => {
     async function checkRedirectResult() {
       try {
         setIsSocialLoginPending(true);
         const result = await getRedirectResult(auth);
-        
+
         if (result) {
           // User successfully signed in with redirect
           const user = result.user;
           const idToken = await user.getIdToken();
-          
+
           // Send token to backend
           const response = await apiRequest("POST", "/api/auth/social-login", {
             idToken,
@@ -66,24 +86,24 @@ export default function AuthPage() {
             uid: user.uid,
             email: user.email,
             displayName: user.displayName,
-            photoURL: user.photoURL
+            photoURL: user.photoURL,
           });
-          
+
           if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || "Google sign-in failed");
           }
-          
+
           const data = await response.json();
-          
+
           // Handle successful login
           toast({
             title: "Google Sign-In Successful",
             description: `Welcome, ${user.displayName || "New User"}!`,
           });
-          
-          queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-          setTimeout(() => setLocation('/'), 500);
+
+          queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+          setTimeout(() => setLocation("/"), 500);
         }
       } catch (error) {
         console.error("Google redirect result error:", error);
@@ -98,61 +118,65 @@ export default function AuthPage() {
         setIsSocialLoginPending(false);
       }
     }
-    
+
     checkRedirectResult();
   }, [toast, setLocation]);
-  
+
   // Google Sign In function - uses redirect instead of popup for better compatibility
   const handleGoogleSignIn = async () => {
     try {
       setIsSocialLoginPending(true);
-      
+
       // Ensure auth and provider are properly initialized
       if (!auth || !googleProvider) {
         throw new Error("Authentication not properly initialized");
       }
 
-      const result = await signInWithPopup(auth, googleProvider)
-        .catch((error) => {
+      const result = await signInWithPopup(auth, googleProvider).catch(
+        (error) => {
           console.error("Detailed sign-in error:", {
             code: error.code,
             message: error.message,
             email: error.email,
-            credential: error.credential
+            credential: error.credential,
           });
           throw error;
-        });
-      
+        },
+      );
+
       if (result) {
         const user = result.user;
         const idToken = await user.getIdToken();
-        
+
         const response = await apiRequest("POST", "/api/auth/social-login", {
           idToken,
           provider: "google",
           uid: user.uid,
           email: user.email,
           displayName: user.displayName,
-          photoURL: user.photoURL
+          photoURL: user.photoURL,
         });
-        
+
         if (!response.ok) {
           throw new Error("Failed to authenticate with backend");
         }
-        
+
         toast({
           title: "Google Sign-In Successful",
           description: `Welcome, ${user.displayName || "New User"}!`,
         });
-        
-        queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-        setTimeout(() => setLocation('/'), 500);
+
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+        setTimeout(() => setLocation("/"), 500);
       }
     } catch (error: any) {
       console.error("Google sign-in error:", error);
       toast({
         title: "Google Sign-In Failed",
-        description: error instanceof Error ? error.message : "Could not complete Google sign-in",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Could not complete Google sign-in",
         variant: "destructive",
       });
     } finally {
@@ -162,14 +186,14 @@ export default function AuthPage() {
 
   // Check if user is logged in
   const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ['/api/auth/user'],
+    queryKey: ["/api/auth/user"],
     queryFn: async ({ queryKey }) => {
       try {
-        const res = await fetch(queryKey[0], { 
+        const res = await fetch(queryKey[0], {
           credentials: "include",
           headers: {
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         });
         if (res.ok) return res.json();
         return null;
@@ -183,7 +207,7 @@ export default function AuthPage() {
   // Redirect to dashboard if logged in
   useEffect(() => {
     if (user && !userLoading) {
-      setLocation('/');
+      setLocation("/");
     }
   }, [user, userLoading, setLocation]);
 
@@ -210,16 +234,18 @@ export default function AuthPage() {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginFormValues) => {
-      const res = await apiRequest('POST', '/api/auth/login', {
+      const res = await apiRequest("POST", "/api/auth/login", {
         identifier: credentials.username,
-        password: credentials.password
+        password: credentials.password,
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || "Login failed. Please check your credentials.");
+        throw new Error(
+          errorData.message || "Login failed. Please check your credentials.",
+        );
       }
-      
+
       return res.json();
     },
     onSuccess: () => {
@@ -227,13 +253,14 @@ export default function AuthPage() {
         title: "Login successful",
         description: "Welcome back to Stackr!",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      setTimeout(() => setLocation('/'), 500);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setTimeout(() => setLocation("/"), 500);
     },
     onError: (error: Error) => {
       toast({
         title: "Login failed",
-        description: error.message || "There was an error logging in. Please try again.",
+        description:
+          error.message || "There was an error logging in. Please try again.",
         variant: "destructive",
       });
     },
@@ -242,17 +269,19 @@ export default function AuthPage() {
   // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (userData: RegisterFormValues) => {
-      const res = await apiRequest('POST', '/api/auth/register', {
+      const res = await apiRequest("POST", "/api/auth/register", {
         username: userData.username,
         email: userData.email,
-        password: userData.password
+        password: userData.password,
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || "Registration failed. Please try again.");
+        throw new Error(
+          errorData.message || "Registration failed. Please try again.",
+        );
       }
-      
+
       return res.json();
     },
     onSuccess: (data) => {
@@ -262,14 +291,16 @@ export default function AuthPage() {
       });
       setActiveTab("login");
       registerForm.reset();
-      
+
       // Pre-fill login form with registered username
       loginForm.setValue("username", registerForm.getValues("username"));
     },
     onError: (error: Error) => {
       toast({
         title: "Registration failed",
-        description: error.message || "There was an error creating your account. Please try again.",
+        description:
+          error.message ||
+          "There was an error creating your account. Please try again.",
         variant: "destructive",
       });
     },
@@ -279,7 +310,7 @@ export default function AuthPage() {
     try {
       loginMutation.mutate(values);
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       toast({
         title: "Login Error",
         description: "Please check your network connection and try again.",
@@ -320,40 +351,66 @@ export default function AuthPage() {
                 <CircleDollarSign className="h-8 w-8 text-white" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold tracking-tight mb-2 text-foreground">Stackr</h1>
-            <p className="text-muted-foreground">Take control of your finances</p>
+            <h1 className="text-4xl font-bold tracking-tight mb-2 text-foreground">
+              Stackr
+            </h1>
+            <p className="text-muted-foreground">
+              Take control of your finances
+            </p>
           </div>
 
-          <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            defaultValue="login"
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <div className="flex justify-center mb-8">
               <TabsList className="grid grid-cols-2 w-80">
-                <TabsTrigger value="login" className="text-sm py-2 px-4 whitespace-nowrap">Sign In</TabsTrigger>
-                <TabsTrigger value="register" className="text-sm py-2 px-4 whitespace-nowrap">Create Account</TabsTrigger>
+                <TabsTrigger
+                  value="login"
+                  className="text-sm py-2 px-4 whitespace-nowrap"
+                >
+                  Sign In
+                </TabsTrigger>
+                <TabsTrigger
+                  value="register"
+                  className="text-sm py-2 px-4 whitespace-nowrap"
+                >
+                  Create Account
+                </TabsTrigger>
               </TabsList>
             </div>
 
             <TabsContent value="login" className="space-y-4 pt-2">
               <Card className="border-border/40 shadow-md">
                 <CardHeader className="space-y-1 pt-6">
-                  <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
+                  <CardTitle className="text-2xl font-semibold">
+                    Welcome back
+                  </CardTitle>
                   <CardDescription>
                     Enter your credentials to access your account
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Form {...loginForm}>
-                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-5">
+                    <form
+                      onSubmit={loginForm.handleSubmit(onLoginSubmit)}
+                      className="space-y-5"
+                    >
                       <FormField
                         control={loginForm.control}
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-base">Username or Email</FormLabel>
+                            <FormLabel className="text-base">
+                              Username or Email
+                            </FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 className="h-11"
-                                placeholder="Enter your username or email" 
-                                {...field} 
+                                placeholder="Enter your username or email"
+                                {...field}
                                 disabled={loginMutation.isPending}
                                 autoComplete="username"
                               />
@@ -368,13 +425,15 @@ export default function AuthPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-base">Password</FormLabel>
+                            <FormLabel className="text-base">
+                              Password
+                            </FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 className="h-11"
-                                type="password" 
-                                placeholder="Enter your password" 
-                                {...field} 
+                                type="password"
+                                placeholder="Enter your password"
+                                {...field}
                                 disabled={loginMutation.isPending}
                                 autoComplete="current-password"
                               />
@@ -384,14 +443,14 @@ export default function AuthPage() {
                         )}
                       />
 
-                      <Button 
-                        type="submit" 
-                        className="w-full h-11 text-base font-medium mt-2" 
+                      <Button
+                        type="submit"
+                        className="w-full h-11 text-base font-medium mt-2"
                         disabled={loginMutation.isPending}
                       >
                         {loginMutation.isPending ? (
                           <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> 
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                             Signing in...
                           </>
                         ) : (
@@ -403,15 +462,16 @@ export default function AuthPage() {
                 </CardContent>
                 <CardFooter className="flex flex-col space-y-6 pb-6">
                   <div className="text-sm text-center text-muted-foreground">
-                    <a 
-                      href="#" 
+                    <a
+                      href="#"
                       onClick={(e) => {
                         e.preventDefault();
                         toast({
                           title: "Coming soon",
-                          description: "Password reset functionality will be available soon",
+                          description:
+                            "Password reset functionality will be available soon",
                         });
-                      }} 
+                      }}
                       className="hover:text-primary underline underline-offset-4 transition-colors"
                     >
                       Forgot your password?
@@ -430,15 +490,15 @@ export default function AuthPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 w-full">
-                    <Button 
-                      variant="outline" 
-                      className="h-11" 
+                    <Button
+                      variant="outline"
+                      className="h-11"
                       onClick={handleGoogleSignIn}
                       disabled={isSocialLoginPending || loginMutation.isPending}
                     >
                       {isSocialLoginPending ? (
                         <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" /> 
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                           <span className="text-sm">Signing in...</span>
                         </>
                       ) : (
@@ -465,12 +525,17 @@ export default function AuthPage() {
                         </>
                       )}
                     </Button>
-                    <Button variant="outline" className="h-11" onClick={() => {
-                      toast({
-                        title: "Coming soon",
-                        description: "GitHub authentication will be available soon",
-                      });
-                    }}>
+                    <Button
+                      variant="outline"
+                      className="h-11"
+                      onClick={() => {
+                        toast({
+                          title: "Coming soon",
+                          description:
+                            "GitHub authentication will be available soon",
+                        });
+                      }}
+                    >
                       <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                         <path
                           fill="currentColor"
@@ -487,25 +552,32 @@ export default function AuthPage() {
             <TabsContent value="register" className="space-y-4 pt-2">
               <Card className="border-border/40 shadow-md">
                 <CardHeader className="space-y-1 pt-6">
-                  <CardTitle className="text-2xl font-semibold">Create an account</CardTitle>
+                  <CardTitle className="text-2xl font-semibold">
+                    Create an account
+                  </CardTitle>
                   <CardDescription>
                     Enter your details to get started with Stackr
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Form {...registerForm}>
-                    <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-5">
+                    <form
+                      onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
+                      className="space-y-5"
+                    >
                       <FormField
                         control={registerForm.control}
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-base">Username</FormLabel>
+                            <FormLabel className="text-base">
+                              Username
+                            </FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 className="h-11"
-                                placeholder="Choose a username" 
-                                {...field} 
+                                placeholder="Choose a username"
+                                {...field}
                                 disabled={registerMutation.isPending}
                                 autoComplete="username"
                               />
@@ -522,11 +594,11 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel className="text-base">Email</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 className="h-11"
-                                type="email" 
-                                placeholder="Enter your email" 
-                                {...field} 
+                                type="email"
+                                placeholder="Enter your email"
+                                {...field}
                                 disabled={registerMutation.isPending}
                                 autoComplete="email"
                               />
@@ -541,13 +613,15 @@ export default function AuthPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-base">Password</FormLabel>
+                            <FormLabel className="text-base">
+                              Password
+                            </FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 className="h-11"
-                                type="password" 
-                                placeholder="Create a password" 
-                                {...field} 
+                                type="password"
+                                placeholder="Create a password"
+                                {...field}
                                 disabled={registerMutation.isPending}
                                 autoComplete="new-password"
                               />
@@ -562,13 +636,15 @@ export default function AuthPage() {
                         name="confirmPassword"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-base">Confirm Password</FormLabel>
+                            <FormLabel className="text-base">
+                              Confirm Password
+                            </FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 className="h-11"
-                                type="password" 
-                                placeholder="Confirm your password" 
-                                {...field} 
+                                type="password"
+                                placeholder="Confirm your password"
+                                {...field}
                                 disabled={registerMutation.isPending}
                                 autoComplete="new-password"
                               />
@@ -578,14 +654,14 @@ export default function AuthPage() {
                         )}
                       />
 
-                      <Button 
-                        type="submit" 
-                        className="w-full h-11 text-base font-medium mt-2" 
+                      <Button
+                        type="submit"
+                        className="w-full h-11 text-base font-medium mt-2"
                         disabled={registerMutation.isPending}
                       >
                         {registerMutation.isPending ? (
                           <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> 
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                             Creating account...
                           </>
                         ) : (
@@ -597,15 +673,22 @@ export default function AuthPage() {
                 </CardContent>
                 <CardFooter className="flex flex-col space-y-6 pt-2 pb-6">
                   <div className="text-sm text-center text-muted-foreground">
-                    By registering, you agree to our 
-                    <a href="#" className="ml-1 hover:text-primary underline underline-offset-4 transition-colors">
+                    By registering, you agree to our
+                    <a
+                      href="#"
+                      className="ml-1 hover:text-primary underline underline-offset-4 transition-colors"
+                    >
                       Terms of Service
-                    </a> and 
-                    <a href="#" className="ml-1 hover:text-primary underline underline-offset-4 transition-colors">
+                    </a>{" "}
+                    and
+                    <a
+                      href="#"
+                      className="ml-1 hover:text-primary underline underline-offset-4 transition-colors"
+                    >
                       Privacy Policy
                     </a>
                   </div>
-                  
+
                   <div className="relative w-full">
                     <div className="absolute inset-0 flex items-center">
                       <Separator className="w-full" />
@@ -616,17 +699,19 @@ export default function AuthPage() {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-3 w-full">
-                    <Button 
-                      variant="outline" 
-                      className="h-11" 
+                    <Button
+                      variant="outline"
+                      className="h-11"
                       onClick={handleGoogleSignIn}
-                      disabled={isSocialLoginPending || registerMutation.isPending}
+                      disabled={
+                        isSocialLoginPending || registerMutation.isPending
+                      }
                     >
                       {isSocialLoginPending ? (
                         <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" /> 
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                           <span className="text-sm">Signing in...</span>
                         </>
                       ) : (
@@ -653,12 +738,17 @@ export default function AuthPage() {
                         </>
                       )}
                     </Button>
-                    <Button variant="outline" className="h-11" onClick={() => {
-                      toast({
-                        title: "Coming soon",
-                        description: "GitHub authentication will be available soon",
-                      });
-                    }}>
+                    <Button
+                      variant="outline"
+                      className="h-11"
+                      onClick={() => {
+                        toast({
+                          title: "Coming soon",
+                          description:
+                            "GitHub authentication will be available soon",
+                        });
+                      }}
+                    >
                       <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                         <path
                           fill="currentColor"
@@ -680,110 +770,125 @@ export default function AuthPage() {
         <div className="max-w-md mx-auto space-y-8">
           <div>
             <h2 className="text-4xl font-bold mb-4 tracking-tight">
-              Manage your income the <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">smart way</span>
+              Manage your income the{" "}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">
+                smart way
+              </span>
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Stackr helps service providers manage income with our innovative 40/30/30 rule, allocating funds for needs, investments, and savings automatically.
+              Stackr helps service providers manage income with our innovative
+              40/30/30 rule, allocating funds for needs, investments, and
+              savings automatically.
             </p>
           </div>
 
           <div className="space-y-5">
             <div className="flex items-start space-x-4">
               <div className="bg-primary/20 p-3 rounded-full">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-6 w-6 text-primary" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-primary"
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-lg mb-1">Automated Income Allocation</h3>
+                <h3 className="font-bold text-lg mb-1">
+                  Automated Income Allocation
+                </h3>
                 <p className="text-muted-foreground">
-                  Automatically split your income using our 40/30/30 rule or customize your own formula.
+                  Automatically split your income using our 40/30/30 rule or
+                  customize your own formula.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
               <div className="bg-primary/20 p-3 rounded-full">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-6 w-6 text-primary" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-primary"
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M13 10V3L4 14h7v7l9-11h-7z" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
                   />
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-lg mb-1">AI-Powered Financial Advice</h3>
+                <h3 className="font-bold text-lg mb-1">
+                  AI-Powered Financial Advice
+                </h3>
                 <p className="text-muted-foreground">
-                  Get personalized financial advice based on your income patterns and spending habits.
+                  Get personalized financial advice based on your income
+                  patterns and spending habits.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
               <div className="bg-primary/20 p-3 rounded-full">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-6 w-6 text-primary" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-primary"
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                   />
                 </svg>
               </div>
               <div>
                 <h3 className="font-bold text-lg mb-1">Visual Goal Tracking</h3>
                 <p className="text-muted-foreground">
-                  Set financial goals and track your progress with intuitive dashboards and visualizations.
+                  Set financial goals and track your progress with intuitive
+                  dashboards and visualizations.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
               <div className="bg-primary/20 p-3 rounded-full">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-6 w-6 text-primary" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-primary"
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
                   />
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-lg mb-1">Bank Account Integration</h3>
+                <h3 className="font-bold text-lg mb-1">
+                  Bank Account Integration
+                </h3>
                 <p className="text-muted-foreground">
-                  Connect your bank accounts for automated income tracking and seamless financial management.
+                  Connect your bank accounts for automated income tracking and
+                  seamless financial management.
                 </p>
               </div>
             </div>

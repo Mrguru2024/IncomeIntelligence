@@ -1,34 +1,47 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/use-auth';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { apiRequest } from '@/lib/queryClient';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2, ShoppingCart, ArrowLeft } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import { apiRequest } from "@/lib/queryClient";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Loader2, ShoppingCart, ArrowLeft } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 // Initialize Stripe in a component to make sure it has access to the environment variables
-import type { Stripe } from '@stripe/stripe-js';
+import type { Stripe } from "@stripe/stripe-js";
 
 // Create a lazy-loaded stripePromise that is only instantiated when needed
 const getStripePromise = async (): Promise<Stripe | null> => {
   try {
     const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
     if (!stripeKey) {
-      console.error('Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)');
+      console.error("Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)");
       return null;
     }
 
     return await loadStripe(stripeKey);
   } catch (error) {
-    console.error('Stripe initialization error:', error);
+    console.error("Stripe initialization error:", error);
     toast({
       title: "Payment System Error",
-      description: "Failed to initialize payment system. Please try again later.",
-      variant: "destructive"
+      description:
+        "Failed to initialize payment system. Please try again later.",
+      variant: "destructive",
     });
     return null;
   }
@@ -40,7 +53,11 @@ interface CheckoutFormProps {
   onSuccess: () => void;
 }
 
-const CheckoutForm = ({ amount, productName, onSuccess }: CheckoutFormProps) => {
+const CheckoutForm = ({
+  amount,
+  productName,
+  onSuccess,
+}: CheckoutFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +79,7 @@ const CheckoutForm = ({ amount, productName, onSuccess }: CheckoutFormProps) => 
         confirmParams: {
           return_url: window.location.origin + "/checkout/success",
         },
-        redirect: 'if_required'
+        redirect: "if_required",
       });
 
       if (error) {
@@ -71,7 +88,7 @@ const CheckoutForm = ({ amount, productName, onSuccess }: CheckoutFormProps) => 
           description: error.message,
           variant: "destructive",
         });
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+      } else if (paymentIntent && paymentIntent.status === "succeeded") {
         toast({
           title: "Payment Successful",
           description: `Thank you for your purchase of ${productName}!`,
@@ -81,7 +98,8 @@ const CheckoutForm = ({ amount, productName, onSuccess }: CheckoutFormProps) => 
     } catch (err) {
       toast({
         title: "Payment Error",
-        description: "An unexpected error occurred while processing your payment.",
+        description:
+          "An unexpected error occurred while processing your payment.",
         variant: "destructive",
       });
     } finally {
@@ -92,11 +110,7 @@ const CheckoutForm = ({ amount, productName, onSuccess }: CheckoutFormProps) => 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement />
-      <Button 
-        type="submit" 
-        disabled={!stripe || isLoading} 
-        className="w-full"
-      >
+      <Button type="submit" disabled={!stripe || isLoading} className="w-full">
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -118,7 +132,7 @@ const CheckoutPage = () => {
     name: "",
     amount: 0,
     description: "",
-    id: ""
+    id: "",
   });
   const { user } = useAuth();
   const [location, navigate] = useLocation();
@@ -126,14 +140,14 @@ const CheckoutPage = () => {
 
   // Extract query params to determine what's being purchased
   useEffect(() => {
-    const params = new URLSearchParams(location.split('?')[1]);
-    const productId = params.get('product') || '';
-    const productName = params.get('name') || 'Stackr Product';
-    const productAmount = Number(params.get('amount')) || 0;
-    const productDescription = params.get('description') || 'One-time purchase';
-    
+    const params = new URLSearchParams(location.split("?")[1]);
+    const productId = params.get("product") || "";
+    const productName = params.get("name") || "Stackr Product";
+    const productAmount = Number(params.get("amount")) || 0;
+    const productDescription = params.get("description") || "One-time purchase";
+
     if (productAmount <= 0) {
-      setError('Invalid product information. Please try again.');
+      setError("Invalid product information. Please try again.");
       return;
     }
 
@@ -141,14 +155,14 @@ const CheckoutPage = () => {
       name: productName,
       amount: productAmount,
       description: productDescription,
-      id: productId
+      id: productId,
     });
   }, [location]);
 
   useEffect(() => {
     // Redirect if not logged in
     if (user === null) {
-      navigate('/auth');
+      navigate("/auth");
       return;
     }
 
@@ -160,28 +174,32 @@ const CheckoutPage = () => {
     const createPaymentIntent = async () => {
       setIsLoading(true);
       try {
-        const response = await apiRequest('POST', '/api/create-payment-intent', {
-          amount: productDetails.amount,
-          description: productDetails.description,
-          metadata: {
-            productId: productDetails.id
-          }
-        });
-        
+        const response = await apiRequest(
+          "POST",
+          "/api/create-payment-intent",
+          {
+            amount: productDetails.amount,
+            description: productDetails.description,
+            metadata: {
+              productId: productDetails.id,
+            },
+          },
+        );
+
         const data = await response.json();
-        
+
         if (!response.ok) {
-          throw new Error(data.message || 'Failed to initialize payment');
+          throw new Error(data.message || "Failed to initialize payment");
         }
-        
+
         if (data.clientSecret) {
           setClientSecret(data.clientSecret);
         } else {
-          setError('Unable to initialize payment. Please try again later.');
+          setError("Unable to initialize payment. Please try again later.");
         }
       } catch (err) {
-        setError('Error initializing payment. Please try again later.');
-        console.error('Payment error:', err);
+        setError("Error initializing payment. Please try again later.");
+        console.error("Payment error:", err);
       } finally {
         setIsLoading(false);
       }
@@ -194,7 +212,7 @@ const CheckoutPage = () => {
 
   const handlePaymentSuccess = () => {
     // Redirect to success page or dashboard
-    navigate('/dashboard');
+    navigate("/dashboard");
   };
 
   if (isLoading && !clientSecret) {
@@ -214,8 +232,8 @@ const CheckoutPage = () => {
           <h2 className="text-2xl font-semibold mb-2">Checkout Error</h2>
           <p>{error || "Invalid product information. Please try again."}</p>
         </div>
-        <Button 
-          onClick={() => navigate('/dashboard')} 
+        <Button
+          onClick={() => navigate("/dashboard")}
           className="mt-6"
           variant="outline"
         >
@@ -228,9 +246,9 @@ const CheckoutPage = () => {
 
   return (
     <div className="container mx-auto py-12 px-4 max-w-3xl">
-      <Button 
-        variant="ghost" 
-        onClick={() => navigate('/dashboard')}
+      <Button
+        variant="ghost"
+        onClick={() => navigate("/dashboard")}
         className="mb-6"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
@@ -258,15 +276,15 @@ const CheckoutPage = () => {
                   options={{
                     clientSecret,
                     appearance: {
-                      theme: 'stripe',
+                      theme: "stripe",
                       variables: {
-                        colorPrimary: '#6366f1',
+                        colorPrimary: "#6366f1",
                       },
                     },
                   }}
                 >
-                  <CheckoutForm 
-                    amount={productDetails.amount} 
+                  <CheckoutForm
+                    amount={productDetails.amount}
                     productName={productDetails.name}
                     onSuccess={handlePaymentSuccess}
                   />
@@ -291,10 +309,14 @@ const CheckoutPage = () => {
                   <ShoppingCart className="mr-3 h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="font-medium">{productDetails.name}</p>
-                    <p className="text-sm text-muted-foreground">{productDetails.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {productDetails.description}
+                    </p>
                   </div>
                 </div>
-                <p className="font-semibold">${productDetails.amount.toFixed(2)}</p>
+                <p className="font-semibold">
+                  ${productDetails.amount.toFixed(2)}
+                </p>
               </div>
 
               <Separator />

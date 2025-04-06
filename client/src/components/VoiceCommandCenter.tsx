@@ -1,12 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import React, { useState, useEffect, useCallback } from "react";
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { Mic, MicOff, Play, StopCircle } from "lucide-react";
-import { useLocation } from 'wouter';
-import { queryClient } from '@/lib/queryClient';
+import { useLocation } from "wouter";
+import { queryClient } from "@/lib/queryClient";
 
 type CommandHandlers = {
   [key: string]: () => void;
@@ -22,7 +31,10 @@ const availableCommands = [
   { command: "Show goals", description: "Navigate to goals page" },
   { command: "Show expenses", description: "Navigate to expenses page" },
   { command: "Show budget", description: "Navigate to budget planner" },
-  { command: "Show bank connections", description: "Navigate to bank connections page" },
+  {
+    command: "Show bank connections",
+    description: "Navigate to bank connections page",
+  },
   { command: "Show settings", description: "Navigate to settings page" },
   { command: "Refresh data", description: "Refresh all data" },
 ];
@@ -36,22 +48,22 @@ const VoiceCommandCenter: React.FC = () => {
     transcript,
     resetTranscript,
     browserSupportsSpeechRecognition,
-    isMicrophoneAvailable
+    isMicrophoneAvailable,
   } = useSpeechRecognition();
 
   // Define commands based on transcript
   const commandHandlers: CommandHandlers = {
-    'show income': () => setLocation('/income-history'),
-    'add income': () => setLocation('/income-form'),
-    'add expense': () => setLocation('/expenses?openExpenseForm=true'),
-    'record expense': () => setLocation('/expenses?openVoiceExpense=true'),
-    'show dashboard': () => setLocation('/'),
-    'show goals': () => setLocation('/goals'),
-    'show expenses': () => setLocation('/expenses'),
-    'show budget': () => setLocation('/budget-planner'),
-    'show bank connections': () => setLocation('/bank-connections'),
-    'show settings': () => setLocation('/settings'),
-    'refresh data': () => {
+    "show income": () => setLocation("/income-history"),
+    "add income": () => setLocation("/income-form"),
+    "add expense": () => setLocation("/expenses?openExpenseForm=true"),
+    "record expense": () => setLocation("/expenses?openVoiceExpense=true"),
+    "show dashboard": () => setLocation("/"),
+    "show goals": () => setLocation("/goals"),
+    "show expenses": () => setLocation("/expenses"),
+    "show budget": () => setLocation("/budget-planner"),
+    "show bank connections": () => setLocation("/bank-connections"),
+    "show settings": () => setLocation("/settings"),
+    "refresh data": () => {
       queryClient.invalidateQueries();
       toast({
         title: "Data Refreshed",
@@ -59,16 +71,16 @@ const VoiceCommandCenter: React.FC = () => {
         variant: "default",
       });
     },
-    'help': () => setIsShowingCommands(true),
-    'hide help': () => setIsShowingCommands(false),
+    help: () => setIsShowingCommands(true),
+    "hide help": () => setIsShowingCommands(false),
   };
 
   // Process the transcript to check for commands
   const processCommand = useCallback(() => {
     if (!transcript) return;
-    
+
     const lowerTranscript = transcript.toLowerCase().trim();
-    
+
     // Check if the transcript matches any of our commands
     for (const [command, handler] of Object.entries(commandHandlers)) {
       if (lowerTranscript.includes(command)) {
@@ -82,7 +94,7 @@ const VoiceCommandCenter: React.FC = () => {
         return;
       }
     }
-    
+
     // If we reach here, no command was recognized
     if (lowerTranscript.length > 0) {
       toast({
@@ -152,13 +164,15 @@ const VoiceCommandCenter: React.FC = () => {
       <CardHeader className="p-4 sm:p-6 pb-0 sm:pb-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <CardTitle className="text-base sm:text-lg">Voice Command Center</CardTitle>
+            <CardTitle className="text-base sm:text-lg">
+              Voice Command Center
+            </CardTitle>
             <CardDescription className="text-xs sm:text-sm">
               Speak commands to navigate and control the app
             </CardDescription>
           </div>
-          <Badge 
-            variant={isListening ? "default" : "outline"} 
+          <Badge
+            variant={isListening ? "default" : "outline"}
             className="self-start sm:self-auto sm:ml-2 text-xs sm:text-sm py-0.5 px-1.5 sm:px-2"
           >
             {isListening ? "Listening" : "Paused"}
@@ -172,8 +186,8 @@ const VoiceCommandCenter: React.FC = () => {
               <p className="text-sm sm:text-base">{transcript}</p>
             ) : (
               <p className="text-sm sm:text-base text-muted-foreground">
-                {isListening 
-                  ? "Listening... Say 'help' for available commands." 
+                {isListening
+                  ? "Listening... Say 'help' for available commands."
                   : "Click the microphone to start listening."}
               </p>
             )}
@@ -181,10 +195,15 @@ const VoiceCommandCenter: React.FC = () => {
 
           {isShowingCommands && (
             <div className="border rounded-md p-2 sm:p-3 mt-1 sm:mt-2">
-              <h3 className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">Available Commands:</h3>
+              <h3 className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">
+                Available Commands:
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
                 {availableCommands.map((cmd, index) => (
-                  <div key={index} className="flex items-start space-x-1.5 sm:space-x-2">
+                  <div
+                    key={index}
+                    className="flex items-start space-x-1.5 sm:space-x-2"
+                  >
                     <span className="text-[10px] sm:text-xs font-semibold bg-primary/10 p-0.5 sm:p-1 rounded">
                       {cmd.command}
                     </span>
@@ -205,10 +224,11 @@ const VoiceCommandCenter: React.FC = () => {
           className="h-7 w-7 sm:h-9 sm:w-9"
           onClick={() => setIsShowingCommands(!isShowingCommands)}
         >
-          {isShowingCommands ? 
-            <StopCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : 
+          {isShowingCommands ? (
+            <StopCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          ) : (
             <Play className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          }
+          )}
         </Button>
         <Button
           onClick={toggleListening}
@@ -217,12 +237,12 @@ const VoiceCommandCenter: React.FC = () => {
         >
           {isListening ? (
             <>
-              <MicOff className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> 
+              <MicOff className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden xs:inline">Stop</span> Listening
             </>
           ) : (
             <>
-              <Mic className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> 
+              <Mic className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden xs:inline">Start</span> Listening
             </>
           )}
