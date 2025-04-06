@@ -29,24 +29,40 @@ console.log("Firebase configuration loaded:", {
   storageBucket: firebaseConfig.storageBucket,
 });
 
-// Initialize Firebase with retry mechanism
-const initializeFirebaseWithRetry = (retries = 3, delay = 1000) => {
+// Initialize Firebase with retry mechanism and network check
+const initializeFirebaseWithRetry = async (retries = 3, delay = 1000) => {
   try {
+    // Check network connectivity first
+    const networkTest = await fetch('https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=' + firebaseConfig.apiKey, {
+      method: 'OPTIONS'
+    }).catch(() => null);
+
+    if (!networkTest) {
+      throw new Error('Network connectivity issue detected');
+    }
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    await auth.setPersistence(browserLocalPersistence);
     auth.useDeviceLanguage();
     
     // Configure providers after auth initialization
     const googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({
+      prompt: 'select_account',
+      auth_type: 'reauthenticate'
+    });
+    
     const githubProvider = new GithubAuthProvider();
     const appleProvider = new OAuthProvider('apple.com');
 
     return { app, auth, googleProvider, githubProvider, appleProvider };
   } catch (error) {
+    console.error('Firebase initialization error:', error);
     if (retries > 0) {
       console.log(`Retrying Firebase initialization in ${delay}ms... (${retries} attempts left)`);
-      return new Promise(resolve => setTimeout(resolve, delay))
-        .then(() => initializeFirebaseWithRetry(retries - 1, delay * 1.5));
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return initializeFirebaseWithRetry(retries - 1, delay * 1.5);
     }
     throw error;
   }
