@@ -106,8 +106,11 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     try {
       setIsSocialLoginPending(true);
-      // Use signInWithPopup instead of redirect for better error handling
-      const result = await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider)
+        .catch((error) => {
+          console.error("Detailed sign-in error:", error);
+          throw error;
+        });
       
       if (result) {
         const user = result.user;
