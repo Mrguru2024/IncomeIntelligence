@@ -30,11 +30,17 @@ try {
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
     console.log('Firebase initialized successfully');
-    analytics = getAnalytics(app);
-    console.log('Firebase Analytics initialized');
+    // Only initialize analytics in production environment
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '0.0.0.0') {
+      analytics = getAnalytics(app);
+      console.log('Firebase Analytics initialized');
+    }
   } else {
     app = getApps()[0];
-    analytics = getAnalytics(app);
+    // Only initialize analytics in production environment
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '0.0.0.0') {
+      analytics = getAnalytics(app);
+    }
     console.log('Using existing Firebase instance');
   }
 
