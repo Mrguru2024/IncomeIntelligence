@@ -29,14 +29,30 @@ console.log("Firebase configuration loaded:", {
   storageBucket: firebaseConfig.storageBucket,
 });
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+// Initialize Firebase with retry mechanism
+const initializeFirebaseWithRetry = (retries = 3, delay = 1000) => {
+  try {
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    auth.useDeviceLanguage();
+    
+    // Configure providers after auth initialization
+    const googleProvider = new GoogleAuthProvider();
+    const githubProvider = new GithubAuthProvider();
+    const appleProvider = new OAuthProvider('apple.com');
 
-// Configure providers after auth initialization
-const googleProvider = new GoogleAuthProvider();
-const githubProvider = new GithubAuthProvider();
-const appleProvider = new OAuthProvider('apple.com');
+    return { app, auth, googleProvider, githubProvider, appleProvider };
+  } catch (error) {
+    if (retries > 0) {
+      console.log(`Retrying Firebase initialization in ${delay}ms... (${retries} attempts left)`);
+      return new Promise(resolve => setTimeout(resolve, delay))
+        .then(() => initializeFirebaseWithRetry(retries - 1, delay * 1.5));
+    }
+    throw error;
+  }
+};
+
+const { app, auth, googleProvider, githubProvider, appleProvider } = await initializeFirebaseWithRetry();
 
 // Configure Google provider with custom parameters
 googleProvider.setCustomParameters({
