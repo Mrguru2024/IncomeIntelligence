@@ -1298,3 +1298,23 @@ export const quizAnswerSchema = z.object({
 
 export const quizAnswersSchema = z.array(quizAnswerSchema);
 export type QuizAnswer = z.infer<typeof quizAnswerSchema>;
+
+// Gig applications
+export const gigApplications = pgTable("gig_applications", {
+  id: serial("id").primaryKey(),
+  gigId: integer("gig_id").notNull(),
+  userId: integer("user_id").notNull(),
+  message: text("message"),
+  status: text("status").notNull().default("pending"), // pending, accepted, rejected
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertGigApplicationSchema = createInsertSchema(gigApplications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export type InsertGigApplication = z.infer<typeof insertGigApplicationSchema>;
+export type GigApplication = typeof gigApplications.$inferSelect;

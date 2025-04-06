@@ -10,7 +10,21 @@ import {
   insertReminderSchema,
   insertWidgetSettingsSchema,
   insertUserProfileSchema,
-  insertSpendingPersonalityQuestionSchema
+  insertSpendingPersonalityQuestionSchema,
+  insertNotificationSchema,
+  insertBudgetSchema,
+  insertStackrGigSchema,
+  insertAffiliateProgramSchema,
+  insertUserAffiliateSchema,
+  insertDigitalProductSchema,
+  insertMoneyChallengeSchema,
+  insertUserChallengeSchema,
+  insertInvestmentStrategySchema,
+  insertUsedGearListingSchema,
+  insertInvoiceSchema,
+  insertCreativeGrantSchema,
+  insertGrantApplicationSchema,
+  insertReferralSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -25,7 +39,6 @@ import {
   type FinancialAdviceRequest 
 } from "./ai-service";
 import { notificationService } from "./notification-service";
-import { insertNotificationSchema } from "@shared/schema";
 import { requireAuth, checkUserMatch } from "./middleware/authMiddleware";
 import { requireAdmin } from "./middleware/adminMiddleware";
 import { requireProSubscription } from "./middleware/proSubscriptionMiddleware";
@@ -35,20 +48,6 @@ import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import Stripe from "stripe";
 import express from "express";
 import dotenv from "dotenv";
-import { 
-  insertStackrGigSchema, 
-  insertAffiliateProgramSchema, 
-  insertUserAffiliateSchema,
-  insertDigitalProductSchema, 
-  insertMoneyChallengeSchema, 
-  insertUserChallengeSchema,
-  insertInvestmentStrategySchema, 
-  insertUsedGearListingSchema, 
-  insertInvoiceSchema,
-  insertCreativeGrantSchema, 
-  insertGrantApplicationSchema, 
-  insertReferralSchema
-} from "@shared/schema";
 
 // Load environment variables
 dotenv.config();
@@ -750,6 +749,1010 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error('Error syncing offline expenses:', error);
       res.status(500).json({ message: "Failed to sync offline expenses" });
+    }
+  });
+  
+  // BUDGET ENDPOINTS
+  
+  // Get all budgets for a user
+  app.get("/api/users/:userId/budgets", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Check if user is requesting their own budgets
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized to view these budgets" });
+      }
+      
+      const budgets = await storage.getBudgetsByUserId(userId);
+      res.json(budgets);
+    } catch (error) {
+      console.error('Error getting user budgets:', error);
+      res.status(500).json({ message: "Failed to get user budgets" });
+    }
+  });
+  
+  // Get budgets by year and month
+  app.get("/api/users/:userId/budgets/:year/:month", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const year = parseInt(req.params.year);
+      const month = parseInt(req.params.month);
+      
+      if (isNaN(userId) || isNaN(year) || isNaN(month) || month < 1 || month > 12) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      
+      // Check if user is requesting their own budgets
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized to view these budgets" });
+      }
+      
+      const budgets = await storage.getBudgetsByYearMonth(userId, year, month);
+      res.json(budgets);
+    } catch (error) {
+      console.error('Error getting budgets by year/month:', error);
+      res.status(500).json({ message: "Failed to get budgets" });
+    }
+  });
+  
+  // Create budget
+  app.post("/api/budgets", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const validatedData = insertBudgetSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const budget = await storage.createBudget(validatedData);
+      res.status(201).json(budget);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating budget:', error);
+      res.status(500).json({ message: "Failed to create budget" });
+    }
+  });
+  
+  // Update budget
+  app.patch("/api/budgets/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid budget ID" });
+      }
+      
+      // Fetch the budget to check if the user is authorized to update it
+      const existingBudget = await storage.getBudgetById(id);
+      if (!existingBudget) {
+        return res.status(404).json({ message: "Budget not found" });
+      }
+      
+      // Check if user is updating their own budget
+      if (req.user?.id !== existingBudget.userId) {
+        return res.status(403).json({ message: "Unauthorized to update this budget" });
+      }
+      
+      const validatedData = insertBudgetSchema.partial().parse(req.body);
+      const budget = await storage.updateBudget(id, validatedData);
+      
+      res.json(budget);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating budget:', error);
+      res.status(500).json({ message: "Failed to update budget" });
+    }
+  });
+  
+  // Delete budget
+  app.delete("/api/budgets/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid budget ID" });
+      }
+      
+      // Fetch the budget to check if the user is authorized to delete it
+      const existingBudget = await storage.getBudgetById(id);
+      if (!existingBudget) {
+        return res.status(404).json({ message: "Budget not found" });
+      }
+      
+      // Check if user is deleting their own budget
+      if (req.user?.id !== existingBudget.userId) {
+        return res.status(403).json({ message: "Unauthorized to delete this budget" });
+      }
+      
+      const success = await storage.deleteBudget(id);
+      if (!success) {
+        return res.status(404).json({ message: "Budget not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting budget:', error);
+      res.status(500).json({ message: "Failed to delete budget" });
+    }
+  });
+  
+  // INCOME GENERATION FEATURES
+  
+  // STACKR GIGS ENDPOINTS
+  
+  // Get all gigs
+  app.get("/api/gigs", requireAuth, async (req, res) => {
+    try {
+      const gigs = await storage.getStackrGigs();
+      res.json(gigs);
+    } catch (error) {
+      console.error('Error getting gigs:', error);
+      res.status(500).json({ message: "Failed to get gigs" });
+    }
+  });
+  
+  // Get gig by ID
+  app.get("/api/gigs/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid gig ID" });
+      }
+      
+      const gig = await storage.getStackrGigById(id);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+      
+      res.json(gig);
+    } catch (error) {
+      console.error('Error getting gig:', error);
+      res.status(500).json({ message: "Failed to get gig" });
+    }
+  });
+  
+  // Create gig
+  app.post("/api/gigs", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const validatedData = insertStackrGigSchema.parse({
+        ...req.body,
+        createdBy: userId,
+        status: req.body.status || 'open'
+      });
+      
+      const gig = await storage.createStackrGig(validatedData);
+      res.status(201).json(gig);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating gig:', error);
+      res.status(500).json({ message: "Failed to create gig" });
+    }
+  });
+  
+  // Update gig
+  app.patch("/api/gigs/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid gig ID" });
+      }
+      
+      // Fetch the gig to check if the user is authorized to update it
+      const existingGig = await storage.getStackrGigById(id);
+      if (!existingGig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+      
+      // Check if user is the creator of the gig
+      if (req.user?.id !== existingGig.createdBy) {
+        return res.status(403).json({ message: "Unauthorized to update this gig" });
+      }
+      
+      const validatedData = insertStackrGigSchema.partial().parse(req.body);
+      const gig = await storage.updateStackrGig(id, validatedData);
+      
+      res.json(gig);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating gig:', error);
+      res.status(500).json({ message: "Failed to update gig" });
+    }
+  });
+  
+  // Delete gig
+  app.delete("/api/gigs/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid gig ID" });
+      }
+      
+      // Fetch the gig to check if the user is authorized to delete it
+      const existingGig = await storage.getStackrGigById(id);
+      if (!existingGig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+      
+      // Check if user is the creator of the gig
+      if (req.user?.id !== existingGig.createdBy) {
+        return res.status(403).json({ message: "Unauthorized to delete this gig" });
+      }
+      
+      const success = await storage.deleteStackrGig(id);
+      if (!success) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting gig:', error);
+      res.status(500).json({ message: "Failed to delete gig" });
+    }
+  });
+  
+  // Apply for gig
+  app.post("/api/gigs/:id/apply", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user?.id;
+      
+      if (isNaN(id) || !userId) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      
+      const result = await storage.applyForGig(id, userId, req.body.message);
+      res.status(201).json(result);
+    } catch (error) {
+      console.error('Error applying for gig:', error);
+      res.status(500).json({ message: "Failed to apply for gig" });
+    }
+  });
+  
+  // AFFILIATE PROGRAM ENDPOINTS
+  
+  // Get all affiliate programs
+  app.get("/api/affiliate-programs", requireAuth, async (req, res) => {
+    try {
+      const programs = await storage.getAffiliatePrograms();
+      res.json(programs);
+    } catch (error) {
+      console.error('Error getting affiliate programs:', error);
+      res.status(500).json({ message: "Failed to get affiliate programs" });
+    }
+  });
+  
+  // Get affiliate program by ID
+  app.get("/api/affiliate-programs/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid program ID" });
+      }
+      
+      const program = await storage.getAffiliateProgramById(id);
+      if (!program) {
+        return res.status(404).json({ message: "Affiliate program not found" });
+      }
+      
+      res.json(program);
+    } catch (error) {
+      console.error('Error getting affiliate program:', error);
+      res.status(500).json({ message: "Failed to get affiliate program" });
+    }
+  });
+  
+  // Create affiliate program (admin only)
+  app.post("/api/affiliate-programs", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertAffiliateProgramSchema.parse(req.body);
+      const program = await storage.createAffiliateProgram(validatedData);
+      res.status(201).json(program);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating affiliate program:', error);
+      res.status(500).json({ message: "Failed to create affiliate program" });
+    }
+  });
+  
+  // Join affiliate program
+  app.post("/api/affiliate-programs/:id/join", requireAuth, async (req, res) => {
+    try {
+      const programId = parseInt(req.params.id);
+      const userId = req.user?.id;
+      
+      if (isNaN(programId) || !userId) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      
+      const result = await storage.joinAffiliateProgram(programId, userId);
+      res.status(201).json(result);
+    } catch (error) {
+      console.error('Error joining affiliate program:', error);
+      res.status(500).json({ message: "Failed to join affiliate program" });
+    }
+  });
+  
+  // Get user's affiliate links/codes
+  app.get("/api/users/:userId/affiliates", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId) || req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const affiliates = await storage.getUserAffiliates(userId);
+      res.json(affiliates);
+    } catch (error) {
+      console.error('Error getting user affiliates:', error);
+      res.status(500).json({ message: "Failed to get user affiliates" });
+    }
+  });
+  
+  // Track affiliate click
+  app.post("/api/affiliates/:code/track", async (req, res) => {
+    try {
+      const code = req.params.code;
+      await storage.trackAffiliateClick(code);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error tracking affiliate click:', error);
+      res.status(500).json({ message: "Failed to track affiliate click" });
+    }
+  });
+  
+  // Record affiliate conversion
+  app.post("/api/affiliates/:code/convert", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const code = req.params.code;
+      const amount = parseFloat(req.body.amount);
+      
+      if (isNaN(amount)) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+      
+      await storage.recordAffiliateConversion(code, amount);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error recording affiliate conversion:', error);
+      res.status(500).json({ message: "Failed to record affiliate conversion" });
+    }
+  });
+  
+  // MONEY CHALLENGES ENDPOINTS
+  
+  // Get all money challenges
+  app.get("/api/money-challenges", requireAuth, async (req, res) => {
+    try {
+      const challenges = await storage.getMoneyChallenges();
+      res.json(challenges);
+    } catch (error) {
+      console.error('Error getting money challenges:', error);
+      res.status(500).json({ message: "Failed to get money challenges" });
+    }
+  });
+  
+  // Get money challenge by ID
+  app.get("/api/money-challenges/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid challenge ID" });
+      }
+      
+      const challenge = await storage.getMoneyChallenge(id);
+      if (!challenge) {
+        return res.status(404).json({ message: "Money challenge not found" });
+      }
+      
+      res.json(challenge);
+    } catch (error) {
+      console.error('Error getting money challenge:', error);
+      res.status(500).json({ message: "Failed to get money challenge" });
+    }
+  });
+  
+  // Create money challenge (admin only)
+  app.post("/api/money-challenges", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertMoneyChallengeSchema.parse(req.body);
+      const challenge = await storage.createMoneyChallenge(validatedData);
+      res.status(201).json(challenge);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating money challenge:', error);
+      res.status(500).json({ message: "Failed to create money challenge" });
+    }
+  });
+  
+  // Join money challenge
+  app.post("/api/money-challenges/:id/join", requireAuth, async (req, res) => {
+    try {
+      const challengeId = parseInt(req.params.id);
+      const userId = req.user?.id;
+      
+      if (isNaN(challengeId) || !userId) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      
+      const result = await storage.joinMoneyChallenge(challengeId, userId);
+      res.status(201).json(result);
+    } catch (error) {
+      console.error('Error joining money challenge:', error);
+      res.status(500).json({ message: "Failed to join money challenge" });
+    }
+  });
+  
+  // Update user challenge progress
+  app.patch("/api/user-challenges/:id/progress", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user?.id;
+      
+      if (isNaN(id) || !userId) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      
+      const userChallenge = await storage.getUserChallengeById(id);
+      if (!userChallenge || userChallenge.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const progress = parseFloat(req.body.progress);
+      if (isNaN(progress)) {
+        return res.status(400).json({ message: "Invalid progress value" });
+      }
+      
+      const result = await storage.updateUserChallengeProgress(id, progress);
+      res.json(result);
+    } catch (error) {
+      console.error('Error updating challenge progress:', error);
+      res.status(500).json({ message: "Failed to update challenge progress" });
+    }
+  });
+  
+  // Get user's active challenges
+  app.get("/api/users/:userId/challenges", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId) || req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const challenges = await storage.getUserChallenges(userId);
+      res.json(challenges);
+    } catch (error) {
+      console.error('Error getting user challenges:', error);
+      res.status(500).json({ message: "Failed to get user challenges" });
+    }
+  });
+  
+  // DIGITAL PRODUCTS ENDPOINTS
+  
+  // Get all digital products
+  app.get("/api/digital-products", async (req, res) => {
+    try {
+      const products = await storage.getDigitalProducts();
+      res.json(products);
+    } catch (error) {
+      console.error('Error getting digital products:', error);
+      res.status(500).json({ message: "Failed to get digital products" });
+    }
+  });
+  
+  // Get digital product by ID
+  app.get("/api/digital-products/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid product ID" });
+      }
+      
+      const product = await storage.getDigitalProductById(id);
+      if (!product) {
+        return res.status(404).json({ message: "Digital product not found" });
+      }
+      
+      res.json(product);
+    } catch (error) {
+      console.error('Error getting digital product:', error);
+      res.status(500).json({ message: "Failed to get digital product" });
+    }
+  });
+  
+  // Create digital product (admin only)
+  app.post("/api/digital-products", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertDigitalProductSchema.parse(req.body);
+      const product = await storage.createDigitalProduct(validatedData);
+      res.status(201).json(product);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating digital product:', error);
+      res.status(500).json({ message: "Failed to create digital product" });
+    }
+  });
+  
+  // Purchase digital product
+  app.post("/api/digital-products/:id/purchase", requireAuth, async (req, res) => {
+    try {
+      const productId = parseInt(req.params.id);
+      const userId = req.user?.id;
+      
+      if (isNaN(productId) || !userId) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      
+      const product = await storage.getDigitalProductById(productId);
+      if (!product) {
+        return res.status(404).json({ message: "Digital product not found" });
+      }
+      
+      // Create Stripe checkout session for the product
+      if (!stripe) {
+        return res.status(500).json({ message: "Payment processing is not available" });
+      }
+      
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: product.title,
+                description: product.description
+              },
+              unit_amount: Math.round(product.price * 100), // convert to cents
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${req.protocol}://${req.get('host')}/purchase-success?product=${productId}`,
+        cancel_url: `${req.protocol}://${req.get('host')}/digital-products/${productId}`,
+        metadata: {
+          productId: productId.toString(),
+          userId: userId.toString(),
+          productType: 'digital'
+        }
+      });
+      
+      res.json({ url: session.url });
+    } catch (error) {
+      console.error('Error purchasing digital product:', error);
+      res.status(500).json({ message: "Failed to process purchase" });
+    }
+  });
+  
+  // USED GEAR LISTINGS ENDPOINTS
+  
+  // Get all used gear listings
+  app.get("/api/used-gear", requireAuth, async (req, res) => {
+    try {
+      const listings = await storage.getUsedGearListings();
+      res.json(listings);
+    } catch (error) {
+      console.error('Error getting used gear listings:', error);
+      res.status(500).json({ message: "Failed to get used gear listings" });
+    }
+  });
+  
+  // Get used gear listing by ID
+  app.get("/api/used-gear/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid listing ID" });
+      }
+      
+      const listing = await storage.getUsedGearListingById(id);
+      if (!listing) {
+        return res.status(404).json({ message: "Used gear listing not found" });
+      }
+      
+      res.json(listing);
+    } catch (error) {
+      console.error('Error getting used gear listing:', error);
+      res.status(500).json({ message: "Failed to get used gear listing" });
+    }
+  });
+  
+  // Create used gear listing
+  app.post("/api/used-gear", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const validatedData = insertUsedGearListingSchema.parse({
+        ...req.body,
+        sellerId: userId
+      });
+      
+      const listing = await storage.createUsedGearListing(validatedData);
+      res.status(201).json(listing);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating used gear listing:', error);
+      res.status(500).json({ message: "Failed to create used gear listing" });
+    }
+  });
+  
+  // Update used gear listing
+  app.patch("/api/used-gear/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid listing ID" });
+      }
+      
+      // Fetch the listing to check if the user is authorized to update it
+      const existingListing = await storage.getUsedGearListingById(id);
+      if (!existingListing) {
+        return res.status(404).json({ message: "Used gear listing not found" });
+      }
+      
+      // Check if user is the seller
+      if (req.user?.id !== existingListing.sellerId) {
+        return res.status(403).json({ message: "Unauthorized to update this listing" });
+      }
+      
+      const validatedData = insertUsedGearListingSchema.partial().parse(req.body);
+      const listing = await storage.updateUsedGearListing(id, validatedData);
+      
+      res.json(listing);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating used gear listing:', error);
+      res.status(500).json({ message: "Failed to update used gear listing" });
+    }
+  });
+  
+  // Delete used gear listing
+  app.delete("/api/used-gear/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid listing ID" });
+      }
+      
+      // Fetch the listing to check if the user is authorized to delete it
+      const existingListing = await storage.getUsedGearListingById(id);
+      if (!existingListing) {
+        return res.status(404).json({ message: "Used gear listing not found" });
+      }
+      
+      // Check if user is the seller
+      if (req.user?.id !== existingListing.sellerId) {
+        return res.status(403).json({ message: "Unauthorized to delete this listing" });
+      }
+      
+      const success = await storage.deleteUsedGearListing(id);
+      if (!success) {
+        return res.status(404).json({ message: "Used gear listing not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting used gear listing:', error);
+      res.status(500).json({ message: "Failed to delete used gear listing" });
+    }
+  });
+  
+  // INVOICE BUILDER ENDPOINTS
+  
+  // Get all invoices for a user
+  app.get("/api/users/:userId/invoices", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId) || req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const invoices = await storage.getUserInvoices(userId);
+      res.json(invoices);
+    } catch (error) {
+      console.error('Error getting user invoices:', error);
+      res.status(500).json({ message: "Failed to get user invoices" });
+    }
+  });
+  
+  // Get invoice by ID
+  app.get("/api/invoices/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid invoice ID" });
+      }
+      
+      const invoice = await storage.getInvoiceById(id);
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Check if user is the creator of the invoice
+      if (req.user?.id !== invoice.userId) {
+        return res.status(403).json({ message: "Unauthorized to view this invoice" });
+      }
+      
+      res.json(invoice);
+    } catch (error) {
+      console.error('Error getting invoice:', error);
+      res.status(500).json({ message: "Failed to get invoice" });
+    }
+  });
+  
+  // Create invoice
+  app.post("/api/invoices", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const validatedData = insertInvoiceSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const invoice = await storage.createInvoice(validatedData);
+      res.status(201).json(invoice);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating invoice:', error);
+      res.status(500).json({ message: "Failed to create invoice" });
+    }
+  });
+  
+  // Update invoice
+  app.patch("/api/invoices/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid invoice ID" });
+      }
+      
+      // Fetch the invoice to check if the user is authorized to update it
+      const existingInvoice = await storage.getInvoiceById(id);
+      if (!existingInvoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Check if user is the creator of the invoice
+      if (req.user?.id !== existingInvoice.userId) {
+        return res.status(403).json({ message: "Unauthorized to update this invoice" });
+      }
+      
+      const validatedData = insertInvoiceSchema.partial().parse(req.body);
+      const invoice = await storage.updateInvoice(id, validatedData);
+      
+      res.json(invoice);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating invoice:', error);
+      res.status(500).json({ message: "Failed to update invoice" });
+    }
+  });
+  
+  // Delete invoice
+  app.delete("/api/invoices/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid invoice ID" });
+      }
+      
+      // Fetch the invoice to check if the user is authorized to delete it
+      const existingInvoice = await storage.getInvoiceById(id);
+      if (!existingInvoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Check if user is the creator of the invoice
+      if (req.user?.id !== existingInvoice.userId) {
+        return res.status(403).json({ message: "Unauthorized to delete this invoice" });
+      }
+      
+      const success = await storage.deleteInvoice(id);
+      if (!success) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      res.status(500).json({ message: "Failed to delete invoice" });
+    }
+  });
+  
+  // REFERRAL SYSTEM ENDPOINTS
+  
+  // Generate referral code for user
+  app.post("/api/users/:userId/referral-code", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId) || req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const referral = await storage.generateReferralCode(userId);
+      res.status(201).json(referral);
+    } catch (error) {
+      console.error('Error generating referral code:', error);
+      res.status(500).json({ message: "Failed to generate referral code" });
+    }
+  });
+  
+  // Apply referral code (for new user registration)
+  app.post("/api/referrals/:code/apply", async (req, res) => {
+    try {
+      const code = req.params.code;
+      const userId = parseInt(req.body.userId);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const result = await storage.applyReferralCode(code, userId);
+      res.json(result);
+    } catch (error) {
+      console.error('Error applying referral code:', error);
+      res.status(500).json({ message: "Failed to apply referral code" });
+    }
+  });
+  
+  // Get user's referrals
+  app.get("/api/users/:userId/referrals", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId) || req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const referrals = await storage.getUserReferrals(userId);
+      res.json(referrals);
+    } catch (error) {
+      console.error('Error getting user referrals:', error);
+      res.status(500).json({ message: "Failed to get user referrals" });
+    }
+  });
+  
+  // CREATIVE GRANTS PROGRAM ENDPOINTS
+  
+  // Get all creative grants
+  app.get("/api/creative-grants", requireAuth, async (req, res) => {
+    try {
+      const grants = await storage.getCreativeGrants();
+      res.json(grants);
+    } catch (error) {
+      console.error('Error getting creative grants:', error);
+      res.status(500).json({ message: "Failed to get creative grants" });
+    }
+  });
+  
+  // Get creative grant by ID
+  app.get("/api/creative-grants/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid grant ID" });
+      }
+      
+      const grant = await storage.getCreativeGrantById(id);
+      if (!grant) {
+        return res.status(404).json({ message: "Creative grant not found" });
+      }
+      
+      res.json(grant);
+    } catch (error) {
+      console.error('Error getting creative grant:', error);
+      res.status(500).json({ message: "Failed to get creative grant" });
+    }
+  });
+  
+  // Create creative grant (admin only)
+  app.post("/api/creative-grants", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCreativeGrantSchema.parse(req.body);
+      const grant = await storage.createCreativeGrant(validatedData);
+      res.status(201).json(grant);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating creative grant:', error);
+      res.status(500).json({ message: "Failed to create creative grant" });
+    }
+  });
+  
+  // Apply for creative grant
+  app.post("/api/creative-grants/:id/apply", requireAuth, async (req, res) => {
+    try {
+      const grantId = parseInt(req.params.id);
+      const userId = req.user?.id;
+      
+      if (isNaN(grantId) || !userId) {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+      
+      const validatedData = insertGrantApplicationSchema.parse({
+        ...req.body,
+        grantId,
+        userId,
+        status: 'pending'
+      });
+      
+      const application = await storage.applyForCreativeGrant(validatedData);
+      res.status(201).json(application);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error applying for creative grant:', error);
+      res.status(500).json({ message: "Failed to apply for creative grant" });
+    }
+  });
+  
+  // Get user's grant applications
+  app.get("/api/users/:userId/grant-applications", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId) || req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const applications = await storage.getUserGrantApplications(userId);
+      res.json(applications);
+    } catch (error) {
+      console.error('Error getting user grant applications:', error);
+      res.status(500).json({ message: "Failed to get user grant applications" });
     }
   });
   
