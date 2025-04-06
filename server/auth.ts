@@ -7,6 +7,7 @@ import { generateToken, hashPassword, verifyPassword, generateSecureToken } from
 import { authenticateToken, requireAuth } from './middleware/authMiddleware';
 import { sendVerificationEmail, sendPasswordResetEmail } from './email-service';
 import { twoFactorService } from './services/two-factor-service';
+import { handleSocialAuth } from './middleware/firebase-auth';
 
 // Add proper validation for registration and login
 const registerSchema = insertUserSchema.extend({
@@ -270,6 +271,51 @@ export function setupAuth(app: Express) {
     // JWT tokens can't be invalidated without a token store/blacklist
     // The client should discard the token
     return res.status(200).json({ message: 'Logout successful' });
+  });
+
+  // Social login (Firebase Authentication)
+  app.post('/api/auth/social-login', async (req: Request, res: Response) => {
+    try {
+      const { idToken } = z.object({
+        idToken: z.string().min(1),
+        provider: z.string().optional(),
+        uid: z.string().optional(),
+        email: z.string().email().optional(),
+        displayName: z.string().optional(),
+        photoURL: z.string().optional()
+      }).parse(req.body);
+      
+      // Verify and handle the token with Firebase
+      const user = await handleSocialAuth(idToken);
+      
+      if (!user) {
+        return res.status(400).json({ message: 'Failed to authenticate with social provider' });
+      }
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+      
+      // Generate JWT token
+      const token = generateToken({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      });
+      
+      return res.status(200).json({
+        message: 'Social login successful',
+        user: userWithoutPassword,
+        token
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Social login error:', error);
+      return res.status(500).json({ message: 'Social login failed' });
+    }
   });
   
   // Change password (authenticated)
