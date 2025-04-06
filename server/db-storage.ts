@@ -143,8 +143,8 @@ export class DbStorage implements IStorage {
 
   async getUser(id: number): Promise<User | undefined> {
     try {
-      // Use simple SQL query to avoid schema mismatches
-      const { rows } = await db.connection.query(
+      // Use pool directly for manual queries
+      const { rows } = await pool.query(
         'SELECT * FROM users WHERE id = $1 LIMIT 1',
         [id]
       );
@@ -166,8 +166,8 @@ export class DbStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
-      // Use simple SQL query to avoid schema mismatches
-      const { rows } = await db.connection.query(
+      // Use pool directly for manual queries
+      const { rows } = await pool.query(
         'SELECT * FROM users WHERE username = $1 LIMIT 1',
         [username]
       );
@@ -189,8 +189,8 @@ export class DbStorage implements IStorage {
   
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
-      // Use simple SQL query to avoid schema mismatches
-      const { rows } = await db.connection.query(
+      // Use pool directly for manual queries
+      const { rows } = await pool.query(
         'SELECT * FROM users WHERE email = $1 LIMIT 1',
         [email]
       );

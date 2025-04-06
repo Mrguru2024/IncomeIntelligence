@@ -234,6 +234,11 @@ export default function AuthPage() {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginFormValues) => {
+      console.log("Attempting login with:", { 
+        username: credentials.username, 
+        password: "***" 
+      });
+      
       const res = await apiRequest("POST", "/api/auth/login", {
         identifier: credentials.username,
         password: credentials.password,
@@ -241,6 +246,7 @@ export default function AuthPage() {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
+        console.error("Login error response:", errorData);
         throw new Error(
           errorData.message || "Login failed. Please check your credentials.",
         );
