@@ -105,14 +105,42 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     try {
       setIsSocialLoginPending(true);
-      await signInWithRedirect(auth, googleProvider);
+      // Use signInWithPopup instead of redirect for better error handling
+      const result = await signInWithPopup(auth, googleProvider);
+      
+      if (result) {
+        const user = result.user;
+        const idToken = await user.getIdToken();
+        
+        const response = await apiRequest("POST", "/api/auth/social-login", {
+          idToken,
+          provider: "google",
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to authenticate with backend");
+        }
+        
+        toast({
+          title: "Google Sign-In Successful",
+          description: `Welcome, ${user.displayName || "New User"}!`,
+        });
+        
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+        setTimeout(() => setLocation('/'), 500);
+      }
     } catch (error: any) {
-      console.error("Google sign-in error:", error?.code, error?.message);
+      console.error("Google sign-in error:", error);
       toast({
         title: "Google Sign-In Failed",
-        description: error instanceof Error ? error.message : "Could not initiate Google sign-in",
+        description: error instanceof Error ? error.message : "Could not complete Google sign-in",
         variant: "destructive",
       });
+    } finally {
       setIsSocialLoginPending(false);
     }
   };
