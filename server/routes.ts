@@ -58,11 +58,30 @@ let stripe: Stripe | null = null;
 
 if (stripeSecretKey) {
   stripe = new Stripe(stripeSecretKey, {
-    apiVersion: "2023-10-16",
+    apiVersion: "2023-10-16" as any, // Type casting to avoid LSP issues
   });
   console.log('Stripe initialized successfully');
 } else {
-  console.warn('STRIPE_SECRET_KEY not found. Stripe functionality will be disabled.');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('STRIPE_SECRET_KEY not found. Stripe functionality will be disabled in development mode.');
+  } else {
+    console.warn('STRIPE_SECRET_KEY not found. Stripe functionality will be disabled.');
+  }
+}
+
+// Check Firebase credentials and provide a message in development mode
+const hasFirebaseCreds = !!(
+  process.env.FIREBASE_PROJECT_ID &&
+  process.env.FIREBASE_CLIENT_EMAIL &&
+  process.env.FIREBASE_PRIVATE_KEY
+);
+
+if (!hasFirebaseCreds) {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Firebase credentials missing or invalid, but continuing in development mode');
+  } else {
+    console.warn('Firebase credentials are missing. Social authentication will be disabled.');
+  }
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {

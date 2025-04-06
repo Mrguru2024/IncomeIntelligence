@@ -2,40 +2,66 @@ import admin from 'firebase-admin';
 import { Request, Response, NextFunction } from 'express';
 import { storage } from '../storage';
 
+// Determine if we're in development mode
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// In development, we can proceed even without proper Firebase credentials
+let hasFirebaseCredentials = false;
+
 // Check if Firebase credentials are available
-const hasFirebaseCredentials = !!(
-  process.env.FIREBASE_PROJECT_ID &&
-  process.env.FIREBASE_CLIENT_EMAIL &&
-  process.env.FIREBASE_PRIVATE_KEY
-);
+if (process.env.FIREBASE_PROJECT_ID && 
+    process.env.FIREBASE_CLIENT_EMAIL && 
+    process.env.FIREBASE_PRIVATE_KEY) {
+    
+  // We have all the required credentials
+  hasFirebaseCredentials = true;
+    
+  // Initialize Firebase Admin with credentials if available
+  if (!admin.apps.length) {
+    try {
+      const serviceAccount = {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      };
 
-// Initialize Firebase Admin with credentials if available
-if (hasFirebaseCredentials && !admin.apps.length) {
-  const serviceAccount = {
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  };
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+        databaseURL: `https://${serviceAccount.projectId}.firebaseio.com`
+      });
+      console.log('Firebase Admin SDK initialized successfully');
+    } catch (error) {
+      console.error('Error initializing Firebase Admin SDK:', error);
+      hasFirebaseCredentials = false;
+    }
+  }
+} 
 
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-    databaseURL: `https://${serviceAccount.projectId}.firebaseio.com`
-  });
-}
-
-// Log warning if Firebase is not configured
+// Log appropriate message if Firebase is not configured
 if (!hasFirebaseCredentials) {
-  console.warn('Firebase credentials are missing. Social authentication will be disabled.');
+  if (isDevelopment) {
+    console.log('Firebase credentials missing or invalid, but continuing in development mode');
+  } else {
+    console.warn('Firebase credentials are missing. Social authentication will be disabled.');
+  }
 }
 
 // Middleware to verify Firebase token
 export const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
-  // If Firebase is not initialized, we cannot verify tokens
+  // If Firebase is not initialized, we'll handle this gracefully in development
   if (!hasFirebaseCredentials) {
-    console.warn('Firebase auth verification skipped - credentials not available');
-    return res.status(503).json({ 
-      message: 'Social authentication is disabled - Firebase credentials not configured' 
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Firebase auth verification skipped - credentials not available (development mode)');
+      // In development, we'll allow the request to proceed
+      next();
+      return;
+    } else {
+      // In production, we should reject the request
+      console.warn('Firebase auth verification skipped - credentials not available');
+      return res.status(503).json({ 
+        message: 'Social authentication is disabled - Firebase credentials not configured' 
+      });
+    }
   }
   
   const idToken = req.headers.authorization?.split('Bearer ')[1];
@@ -67,7 +93,22 @@ export const verifyFirebaseToken = async (req: Request, res: Response, next: Nex
 export const handleSocialAuth = async (idToken: string) => {
   // Check if Firebase is initialized
   if (!hasFirebaseCredentials) {
-    throw new Error('Social authentication is disabled - Firebase credentials not configured');
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Firebase social auth handling skipped - credentials not available (development mode)');
+      // In development, we can create a mock user for testing
+      const mockUser = {
+        id: 1,
+        username: 'devuser',
+        email: 'dev@example.com',
+        role: 'user',
+        provider: 'firebase',
+        providerId: 'mock-uid',
+        firebaseUid: 'mock-uid',
+      };
+      return mockUser;
+    } else {
+      throw new Error('Social authentication is disabled - Firebase credentials not configured');
+    }
   }
   
   try {
