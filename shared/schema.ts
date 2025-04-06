@@ -1318,3 +1318,36 @@ export const insertGigApplicationSchema = createInsertSchema(gigApplications).om
 
 export type InsertGigApplication = z.infer<typeof insertGigApplicationSchema>;
 export type GigApplication = typeof gigApplications.$inferSelect;
+
+// Professional Services schema
+export const professionalServices = pgTable("professional_services", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // locksmith, plumber, electrician, etc.
+  pricing: json("pricing"), // { hourly, flat_rate, minimum, etc. }
+  location: text("location"),
+  availability: json("availability"), // { days, hours, etc. }
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  isActive: boolean("is_active").notNull().default(true),
+  contactInfo: json("contact_info"), // { phone, email, website, etc. }
+  ratings: numeric("ratings").default("0"),
+  reviewCount: integer("review_count").default(0),
+  licenseInfo: text("license_info"),
+  certifications: json("certifications"), // Array of certification details
+  serviceArea: json("service_area"), // Geographic area details
+  businessHours: json("business_hours"), // Structured business hours
+});
+
+export const insertProfessionalServiceSchema = createInsertSchema(professionalServices).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  ratings: true,
+  reviewCount: true,
+});
+
+export type ProfessionalService = typeof professionalServices.$inferSelect;
+export type InsertProfessionalService = z.infer<typeof insertProfessionalServiceSchema>;

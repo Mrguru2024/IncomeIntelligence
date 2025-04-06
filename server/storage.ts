@@ -14,7 +14,8 @@ import { users, type User, type InsertUser, incomes, type Income, type InsertInc
   notifications, type Notification, type InsertNotification,
   spendingPersonalityQuestions, type SpendingPersonalityQuestion, type InsertSpendingPersonalityQuestion,
   spendingPersonalityResults, type SpendingPersonalityResult, type InsertSpendingPersonalityResult,
-  budgets, type Budget, type InsertBudget
+  budgets, type Budget, type InsertBudget,
+  professionalServices, type ProfessionalService, type InsertProfessionalService
  } from "@shared/schema";
 
 // modify the interface with any CRUD methods
@@ -199,6 +200,16 @@ export interface IStorage {
   deleteBudget(id: number): Promise<boolean>;
   getBudgetsByUserId(userId: number): Promise<Budget[]>;
   getBudgetsByYearMonth(userId: number, year: number, month: number): Promise<Budget[]>;
+  
+  // Professional Services methods
+  getProfessionalServices(): Promise<ProfessionalService[]>;
+  getProfessionalServiceById(id: number): Promise<ProfessionalService | undefined>;
+  createProfessionalService(service: InsertProfessionalService): Promise<ProfessionalService>;
+  updateProfessionalService(id: number, service: Partial<InsertProfessionalService>): Promise<ProfessionalService | undefined>;
+  deleteProfessionalService(id: number): Promise<boolean>;
+  getProfessionalServicesByUserId(userId: number): Promise<ProfessionalService[]>;
+  getProfessionalServicesByCategory(category: string): Promise<ProfessionalService[]>;
+  toggleProfessionalServiceActive(id: number, isActive: boolean): Promise<ProfessionalService | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -221,6 +232,7 @@ export class MemStorage implements IStorage {
   private spendingPersonalityQuestions: Map<number, SpendingPersonalityQuestion>;
   private spendingPersonalityResults: Map<number, SpendingPersonalityResult>;
   private budgets: Map<number, Budget>;
+  private professionalServices: Map<number, ProfessionalService>;
   
   private userCurrentId: number;
   private userProfileCurrentId: number;
@@ -241,6 +253,7 @@ export class MemStorage implements IStorage {
   private spendingPersonalityQuestionCurrentId: number;
   private spendingPersonalityResultCurrentId: number;
   private budgetCurrentId: number;
+  private professionalServiceCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -262,6 +275,7 @@ export class MemStorage implements IStorage {
     this.spendingPersonalityQuestions = new Map();
     this.spendingPersonalityResults = new Map();
     this.budgets = new Map();
+    this.professionalServices = new Map();
     
     this.userCurrentId = 1;
     this.userProfileCurrentId = 1;
@@ -282,6 +296,7 @@ export class MemStorage implements IStorage {
     this.spendingPersonalityQuestionCurrentId = 1;
     this.spendingPersonalityResultCurrentId = 1;
     this.budgetCurrentId = 1;
+    this.professionalServiceCurrentId = 1;
     
     // Add some initial data
     this.setupInitialData();
@@ -2323,6 +2338,92 @@ export class MemStorage implements IStorage {
   async getBudgetsByYearMonth(userId: number, year: number, month: number): Promise<Budget[]> {
     return Array.from(this.budgets.values())
       .filter(budget => budget.userId === userId && budget.year === year && budget.month === month);
+  }
+
+  // Professional Services methods
+  async getProfessionalServices(): Promise<ProfessionalService[]> {
+    return Array.from(this.professionalServices.values());
+  }
+
+  async getProfessionalServiceById(id: number): Promise<ProfessionalService | undefined> {
+    return this.professionalServices.get(id);
+  }
+
+  async createProfessionalService(service: InsertProfessionalService): Promise<ProfessionalService> {
+    const id = this.professionalServiceCurrentId++;
+    const now = new Date();
+    
+    const newService: ProfessionalService = {
+      id,
+      userId: service.userId,
+      name: service.name,
+      description: service.description,
+      category: service.category,
+      pricing: service.pricing || null,
+      location: service.location || null,
+      availability: service.availability || null,
+      createdAt: now,
+      updatedAt: now,
+      isActive: service.isActive !== undefined ? service.isActive : true,
+      contactInfo: service.contactInfo || null,
+      ratings: "0",
+      reviewCount: 0,
+      licenseInfo: service.licenseInfo || null,
+      certifications: service.certifications || null,
+      serviceArea: service.serviceArea || null,
+      businessHours: service.businessHours || null
+    };
+    
+    this.professionalServices.set(id, newService);
+    return newService;
+  }
+
+  async updateProfessionalService(id: number, service: Partial<InsertProfessionalService>): Promise<ProfessionalService | undefined> {
+    const existingService = this.professionalServices.get(id);
+    if (!existingService) {
+      return undefined;
+    }
+    
+    const updatedService: ProfessionalService = {
+      ...existingService,
+      ...service,
+      updatedAt: new Date()
+    };
+    
+    this.professionalServices.set(id, updatedService);
+    return updatedService;
+  }
+
+  async deleteProfessionalService(id: number): Promise<boolean> {
+    return this.professionalServices.delete(id);
+  }
+
+  async getProfessionalServicesByUserId(userId: number): Promise<ProfessionalService[]> {
+    return Array.from(this.professionalServices.values()).filter(
+      service => service.userId === userId
+    );
+  }
+
+  async getProfessionalServicesByCategory(category: string): Promise<ProfessionalService[]> {
+    return Array.from(this.professionalServices.values()).filter(
+      service => service.category === category
+    );
+  }
+
+  async toggleProfessionalServiceActive(id: number, isActive: boolean): Promise<ProfessionalService | undefined> {
+    const existingService = this.professionalServices.get(id);
+    if (!existingService) {
+      return undefined;
+    }
+    
+    const updatedService: ProfessionalService = {
+      ...existingService,
+      isActive,
+      updatedAt: new Date()
+    };
+    
+    this.professionalServices.set(id, updatedService);
+    return updatedService;
   }
 }
 

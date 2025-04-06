@@ -8,7 +8,8 @@ import {
   Notification, InsertNotification, notifications,
   SpendingPersonalityQuestion, InsertSpendingPersonalityQuestion, spendingPersonalityQuestions,
   SpendingPersonalityResult, InsertSpendingPersonalityResult, spendingPersonalityResults,
-  Budget, InsertBudget, budgets
+  Budget, InsertBudget, budgets, 
+  ProfessionalService, InsertProfessionalService, professionalServices
 } from '@shared/schema';
 import { IStorage } from './storage';
 import { db, pool } from './db';
@@ -1946,8 +1947,124 @@ export class DbStorage implements IStorage {
       return [];
     }
   }
+  
+  // Professional Services methods
+  async getProfessionalServices(): Promise<ProfessionalService[]> {
+    try {
+      return await db.select().from(professionalServices);
+    } catch (error) {
+      console.error('Error getting professional services:', error);
+      return [];
+    }
+  }
+
+  async getProfessionalServiceById(id: number): Promise<ProfessionalService | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(professionalServices)
+        .where(eq(professionalServices.id, id));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting professional service by id:', error);
+      return undefined;
+    }
+  }
+
+  async createProfessionalService(service: InsertProfessionalService): Promise<ProfessionalService> {
+    try {
+      const now = new Date();
+      const serviceToInsert = {
+        ...service,
+        createdAt: now,
+        updatedAt: now,
+        ratings: "0",
+        reviewCount: 0,
+        isActive: service.isActive !== undefined ? service.isActive : true
+      };
+      
+      const result = await db.insert(professionalServices).values(serviceToInsert).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating professional service:', error);
+      throw error;
+    }
+  }
+
+  async updateProfessionalService(id: number, service: Partial<InsertProfessionalService>): Promise<ProfessionalService | undefined> {
+    try {
+      const result = await db
+        .update(professionalServices)
+        .set({
+          ...service,
+          updatedAt: new Date()
+        })
+        .where(eq(professionalServices.id, id))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating professional service:', error);
+      return undefined;
+    }
+  }
+
+  async deleteProfessionalService(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(professionalServices)
+        .where(eq(professionalServices.id, id))
+        .returning({ id: professionalServices.id });
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting professional service:', error);
+      return false;
+    }
+  }
+
+  async getProfessionalServicesByUserId(userId: number): Promise<ProfessionalService[]> {
+    try {
+      return await db
+        .select()
+        .from(professionalServices)
+        .where(eq(professionalServices.userId, userId));
+    } catch (error) {
+      console.error('Error getting professional services by user id:', error);
+      return [];
+    }
+  }
+
+  async getProfessionalServicesByCategory(category: string): Promise<ProfessionalService[]> {
+    try {
+      return await db
+        .select()
+        .from(professionalServices)
+        .where(eq(professionalServices.category, category));
+    } catch (error) {
+      console.error('Error getting professional services by category:', error);
+      return [];
+    }
+  }
+
+  async toggleProfessionalServiceActive(id: number, isActive: boolean): Promise<ProfessionalService | undefined> {
+    try {
+      const result = await db
+        .update(professionalServices)
+        .set({
+          isActive,
+          updatedAt: new Date()
+        })
+        .where(eq(professionalServices.id, id))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error toggling professional service active status:', error);
+      return undefined;
+    }
+  }
 }
 
 // Create and export a singleton instance
-// Export initialized storage instance
 export const dbStorage = new DbStorage();
