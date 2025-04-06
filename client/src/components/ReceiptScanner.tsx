@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,7 @@ export default function ReceiptScanner() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const { mutate: processReceipt, isPending } = useMutation({
     mutationFn: async (formData: FormData) => {
       return apiRequest("/api/receipts/process", {
@@ -31,7 +30,8 @@ export default function ReceiptScanner() {
     onError: (error) => {
       toast({
         title: "Failed to process receipt",
-        description: "There was an error processing the receipt. Please try again.",
+        description:
+          "There was an error processing the receipt. Please try again.",
         variant: "destructive",
       });
     },
@@ -43,10 +43,10 @@ export default function ReceiptScanner() {
       // Create preview URL
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
-      
+
       // Process receipt
       const formData = new FormData();
-      formData.append('receipt', file);
+      formData.append("receipt", file);
       processReceipt(formData);
     }
   };
@@ -74,17 +74,17 @@ export default function ReceiptScanner() {
         <div className="flex flex-col items-center gap-4">
           {previewUrl && (
             <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden">
-              <img 
-                src={previewUrl} 
-                alt="Receipt preview" 
+              <img
+                src={previewUrl}
+                alt="Receipt preview"
                 className="absolute inset-0 w-full h-full object-contain"
               />
             </div>
           )}
-          
+
           <div className="flex gap-2 w-full">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="flex-1"
               onClick={() => fileInputRef.current?.click()}
               disabled={isPending}
@@ -92,9 +92,9 @@ export default function ReceiptScanner() {
               <Upload className="w-4 h-4 mr-2" />
               Upload Receipt
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               className="flex-1"
               onClick={handleCameraCapture}
               disabled={isPending}
@@ -103,7 +103,7 @@ export default function ReceiptScanner() {
               Scan Receipt
             </Button>
           </div>
-          
+
           <Input
             ref={fileInputRef}
             type="file"
@@ -112,7 +112,7 @@ export default function ReceiptScanner() {
             onChange={handleFileChange}
             disabled={isPending}
           />
-          
+
           {isPending && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="w-4 h-4 animate-spin" />

@@ -18,7 +18,8 @@ export default function IncomeCategoryIcon({
 }: IncomeCategoryIconProps) {
   const category = getCategoryById(categoryId);
   // Convert to proper icon name format (first letter capitalized)
-  const formattedIconName = category.icon.charAt(0).toUpperCase() + category.icon.slice(1);
+  const formattedIconName =
+    category.icon.charAt(0).toUpperCase() + category.icon.slice(1);
   // Get the icon component from LucideIcons
   const IconComponent = (LucideIcons as any)[formattedIconName];
 
@@ -47,7 +48,7 @@ export default function IncomeCategoryIcon({
         className={cn(
           `bg-${category.color}-100 text-${category.color}-500 rounded-full flex items-center justify-center`,
           bgSizeClasses[size],
-          className
+          className,
         )}
       >
         <IconComponent className={sizeClasses[size]} />
@@ -56,8 +57,8 @@ export default function IncomeCategoryIcon({
   }
 
   return (
-    <IconComponent 
-      className={cn(`text-${category.color}-500`, sizeClasses[size], className)} 
+    <IconComponent
+      className={cn(`text-${category.color}-500`, sizeClasses[size], className)}
     />
   );
 }

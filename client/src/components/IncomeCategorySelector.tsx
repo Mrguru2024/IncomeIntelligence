@@ -32,7 +32,8 @@ export default function IncomeCategorySelector({
   // Helper function to render the selected icon
   const renderIcon = (iconName: string) => {
     // Convert to proper icon name format (first letter capitalized)
-    const formattedIconName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
+    const formattedIconName =
+      iconName.charAt(0).toUpperCase() + iconName.slice(1);
     // Get the icon component from LucideIcons
     const IconComponent = (LucideIcons as any)[formattedIconName];
     return IconComponent ? <IconComponent className="h-4 w-4 mr-2" /> : null;
@@ -79,7 +80,7 @@ export default function IncomeCategorySelector({
                 <Check
                   className={cn(
                     "ml-auto h-4 w-4",
-                    value === category.id ? "opacity-100" : "opacity-0"
+                    value === category.id ? "opacity-100" : "opacity-0",
                   )}
                 />
               </CommandItem>

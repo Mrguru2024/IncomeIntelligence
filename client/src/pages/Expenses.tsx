@@ -9,7 +9,13 @@ import ExpenseForm from "@/components/ExpenseForm";
 import ExpensesList from "@/components/ExpensesList";
 import ExpenseCategorySelector from "@/components/ExpenseCategorySelector";
 import VoiceExpenseEntry from "@/components/VoiceExpenseEntry";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
 import ExportDataButton from "@/components/ExportDataButton";
@@ -20,7 +26,9 @@ import SubscriptionSniper from "@/components/SubscriptionSniper";
 export default function Expenses() {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [showVoiceExpense, setShowVoiceExpense] = useState(false);
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string | null>(null);
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<
+    string | null
+  >(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [location] = useLocation();
@@ -33,29 +41,33 @@ export default function Expenses() {
   // Process URL parameters for opening forms
   useEffect(() => {
     const url = new URL(window.location.href);
-    const openExpenseForm = url.searchParams.get('openExpenseForm');
-    const openVoiceExpense = url.searchParams.get('openVoiceExpense');
+    const openExpenseForm = url.searchParams.get("openExpenseForm");
+    const openVoiceExpense = url.searchParams.get("openVoiceExpense");
 
-    if (openExpenseForm === 'true') {
+    if (openExpenseForm === "true") {
       setShowExpenseForm(true);
       setShowVoiceExpense(false);
       // Clean up the URL
-      window.history.replaceState({}, document.title, '/expenses');
+      window.history.replaceState({}, document.title, "/expenses");
     }
 
-    if (openVoiceExpense === 'true') {
+    if (openVoiceExpense === "true") {
       setShowVoiceExpense(true);
       setShowExpenseForm(false);
       // Clean up the URL
-      window.history.replaceState({}, document.title, '/expenses');
+      window.history.replaceState({}, document.title, "/expenses");
     }
   }, [location]);
 
   // Get all expenses, with optional category filter
-  const { data: expenses, isLoading, error } = useQuery({
-    queryKey: ['expenses', selectedCategoryFilter, currentYear, currentMonth],
+  const {
+    data: expenses,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["expenses", selectedCategoryFilter, currentYear, currentMonth],
     queryFn: async () => {
-      let url = '/api/expenses';
+      let url = "/api/expenses";
 
       if (selectedCategoryFilter) {
         url = `/api/expenses/category/${selectedCategoryFilter}`;
@@ -65,14 +77,16 @@ export default function Expenses() {
       }
 
       return apiRequest(url) as Promise<Expense[]>;
-    }
+    },
   });
 
   // Current month's total expenses
-  const totalExpenses = expenses?.reduce(
-    (sum: number, expense: Expense) => sum + parseFloat(expense.amount.toString()), 
-    0
-  ) || 0;
+  const totalExpenses =
+    expenses?.reduce(
+      (sum: number, expense: Expense) =>
+        sum + parseFloat(expense.amount.toString()),
+      0,
+    ) || 0;
 
   // Handle form submission
   const handleExpenseAdded = () => {
@@ -80,7 +94,7 @@ export default function Expenses() {
     setShowExpenseForm(false);
 
     // Invalidate expenses query to refresh the list
-    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    queryClient.invalidateQueries({ queryKey: ["expenses"] });
 
     // Show success toast
     toast({
@@ -94,13 +108,15 @@ export default function Expenses() {
     <div className="w-full max-w-full overflow-x-hidden px-3 sm:px-6 py-4 sm:py-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Expenses</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Expenses
+          </h1>
           <p className="text-sm sm:text-base text-gray-500 mt-1">
             Track and manage your spending
           </p>
         </div>
         <div className="mt-3 sm:mt-0 w-full sm:w-auto flex flex-col sm:flex-row gap-2">
-          <Button 
+          <Button
             onClick={() => {
               setShowExpenseForm(!showExpenseForm);
               setShowVoiceExpense(false);
@@ -109,7 +125,7 @@ export default function Expenses() {
           >
             {showExpenseForm ? "Cancel" : "Add Expense"}
           </Button>
-          <Button 
+          <Button
             onClick={() => {
               setShowVoiceExpense(!showVoiceExpense);
               setShowExpenseForm(false);
@@ -125,7 +141,9 @@ export default function Expenses() {
       {showExpenseForm && (
         <Card className="mb-4 sm:mb-6 overflow-hidden">
           <CardHeader className="px-4 py-4 sm:px-6 sm:py-5">
-            <CardTitle className="text-lg sm:text-xl">Add New Expense</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">
+              Add New Expense
+            </CardTitle>
             <CardDescription className="text-xs sm:text-sm">
               Record your expense details below
             </CardDescription>
@@ -138,10 +156,12 @@ export default function Expenses() {
 
       {showVoiceExpense && (
         <div className="mb-4 sm:mb-6">
-          <VoiceExpenseEntry onSuccess={() => {
-            setShowVoiceExpense(false);
-            queryClient.invalidateQueries({ queryKey: ['expenses'] });
-          }} />
+          <VoiceExpenseEntry
+            onSuccess={() => {
+              setShowVoiceExpense(false);
+              queryClient.invalidateQueries({ queryKey: ["expenses"] });
+            }}
+          />
         </div>
       )}
 
@@ -153,9 +173,11 @@ export default function Expenses() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalExpenses.toFixed(2)}</div>
+            <div className="text-2xl font-bold">
+              ${totalExpenses.toFixed(2)}
+            </div>
             <p className="text-xs text-gray-500 mt-1">
-              {format(today, 'MMMM yyyy')}
+              {format(today, "MMMM yyyy")}
             </p>
           </CardContent>
         </Card>
@@ -165,7 +187,10 @@ export default function Expenses() {
         <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
           <div className="overflow-x-auto horizontal-scroll w-full -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
             <TabsList className="horizontal-scroll scrollbar-none flex pb-1 min-w-[280px] xxs:min-w-[360px] sm:min-w-0 inline-flex w-full">
-              <TabsTrigger value="all" onClick={() => setSelectedCategoryFilter(null)}>
+              <TabsTrigger
+                value="all"
+                onClick={() => setSelectedCategoryFilter(null)}
+              >
                 All Expenses
               </TabsTrigger>
               <TabsTrigger value="category">By Category</TabsTrigger>
@@ -182,7 +207,7 @@ export default function Expenses() {
                 options={{
                   title: "Expense Report",
                   subtitle: `Total: $${totalExpenses.toFixed(2)} - ${expenses.length} entries`,
-                  includeDate: true
+                  includeDate: true,
                 }}
                 fileNamePrefix="expense_report"
               />
@@ -197,15 +222,20 @@ export default function Expenses() {
             </div>
           ) : error ? (
             <div className="bg-red-50 p-4 rounded-md">
-              <p className="text-red-600">Error loading expenses. Please try again.</p>
+              <p className="text-red-600">
+                Error loading expenses. Please try again.
+              </p>
             </div>
           ) : expenses && expenses.length > 0 ? (
             <ExpensesList expenses={expenses} />
           ) : (
             <div className="bg-gray-50 p-8 rounded-md text-center">
-              <h3 className="text-lg font-medium text-gray-600 mb-2">No expenses found</h3>
+              <h3 className="text-lg font-medium text-gray-600 mb-2">
+                No expenses found
+              </h3>
               <p className="text-gray-500">
-                Get started by adding your first expense using the "Add Expense" button above.
+                Get started by adding your first expense using the "Add Expense"
+                button above.
               </p>
             </div>
           )}
@@ -213,7 +243,7 @@ export default function Expenses() {
 
         <TabsContent value="category" className="mt-0">
           <div className="mb-6">
-            <ExpenseCategorySelector 
+            <ExpenseCategorySelector
               selectedCategory={selectedCategoryFilter}
               onSelectCategory={setSelectedCategoryFilter}
             />
@@ -225,7 +255,9 @@ export default function Expenses() {
             </div>
           ) : error ? (
             <div className="bg-red-50 p-4 rounded-md">
-              <p className="text-red-600">Error loading expenses. Please try again.</p>
+              <p className="text-red-600">
+                Error loading expenses. Please try again.
+              </p>
             </div>
           ) : expenses && expenses.length > 0 ? (
             <ExpensesList expenses={expenses} />
@@ -242,17 +274,21 @@ export default function Expenses() {
             </div>
           )}
         </TabsContent>
-        <TabsContent value="receipt" className="mt-0 border-0 p-0"> {/* Added Receipt Scanner Content */}
+        <TabsContent value="receipt" className="mt-0 border-0 p-0">
+          {" "}
+          {/* Added Receipt Scanner Content */}
           <ReceiptScanner />
         </TabsContent>
         <TabsContent value="subscriptions" className="mt-0 border-0 p-0">
           <SubscriptionSniper />
         </TabsContent>
         <TabsContent value="voice" className="mt-0 border-0 p-0">
-          <VoiceExpenseEntry onSuccess={() => {
-            setShowVoiceExpense(false);
-            queryClient.invalidateQueries({ queryKey: ['expenses'] });
-          }} />
+          <VoiceExpenseEntry
+            onSuccess={() => {
+              setShowVoiceExpense(false);
+              queryClient.invalidateQueries({ queryKey: ["expenses"] });
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>

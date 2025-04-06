@@ -1,33 +1,47 @@
-
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { LineChart, Lightbulb, TrendingUp, ArrowDownRight, DollarSign } from "lucide-react";
+import {
+  LineChart,
+  Lightbulb,
+  TrendingUp,
+  ArrowDownRight,
+  DollarSign,
+} from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 
 interface SpendingPattern {
   category: string;
   amount: number;
-  trend: 'up' | 'down' | 'stable';
+  trend: "up" | "down" | "stable";
 }
 
 export default function CashFlowCoach() {
   const [isCoachMode, setIsCoachMode] = useState(false);
-  
+
   // Example spending patterns - in a real app, this would come from your backend
   const spendingPatterns: SpendingPattern[] = [
-    { category: 'Restaurants', amount: 450, trend: 'up' },
-    { category: 'Groceries', amount: 380, trend: 'down' },
-    { category: 'Entertainment', amount: 200, trend: 'stable' }
+    { category: "Restaurants", amount: 450, trend: "up" },
+    { category: "Groceries", amount: 380, trend: "down" },
+    { category: "Entertainment", amount: 200, trend: "stable" },
   ];
 
-  const getTrendColor = (trend: 'up' | 'down' | 'stable') => {
+  const getTrendColor = (trend: "up" | "down" | "stable") => {
     switch (trend) {
-      case 'up': return 'text-red-500';
-      case 'down': return 'text-green-500';
-      default: return 'text-blue-500';
+      case "up":
+        return "text-red-500";
+      case "down":
+        return "text-green-500";
+      default:
+        return "text-blue-500";
     }
   };
 
@@ -37,13 +51,15 @@ export default function CashFlowCoach() {
         <div className="flex justify-between items-center">
           <div>
             <CardTitle>Cash Flow Coach</CardTitle>
-            <CardDescription>Smart insights to optimize your money flow</CardDescription>
+            <CardDescription>
+              Smart insights to optimize your money flow
+            </CardDescription>
           </div>
           <Button
             variant={isCoachMode ? "default" : "outline"}
             onClick={() => setIsCoachMode(!isCoachMode)}
           >
-            {isCoachMode ? 'Coaching Active' : 'Start Coaching'}
+            {isCoachMode ? "Coaching Active" : "Start Coaching"}
           </Button>
         </div>
       </CardHeader>
@@ -53,11 +69,12 @@ export default function CashFlowCoach() {
             <Lightbulb className="h-4 w-4" />
             <AlertTitle>Active Recommendations</AlertTitle>
             <AlertDescription>
-              Based on your spending patterns, here are some optimization opportunities.
+              Based on your spending patterns, here are some optimization
+              opportunities.
             </AlertDescription>
           </Alert>
         )}
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-4">
             <h4 className="font-semibold flex items-center gap-2">
@@ -68,7 +85,9 @@ export default function CashFlowCoach() {
               <div key={index} className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm">{pattern.category}</span>
-                  <span className={`text-sm font-medium ${getTrendColor(pattern.trend)}`}>
+                  <span
+                    className={`text-sm font-medium ${getTrendColor(pattern.trend)}`}
+                  >
                     {formatCurrency(pattern.amount)}
                   </span>
                 </div>
@@ -76,7 +95,7 @@ export default function CashFlowCoach() {
               </div>
             ))}
           </div>
-          
+
           <div className="space-y-4">
             <div className="p-4 border rounded-lg">
               <h4 className="font-semibold mb-2 flex items-center gap-2">
@@ -91,7 +110,7 @@ export default function CashFlowCoach() {
                 <div>Potential monthly savings: {formatCurrency(90)}</div>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Button className="w-full" variant="outline">
                 Get Personalized Tips

@@ -1,23 +1,45 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { AlertCircle, ArrowRight, Plus, Trash2 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { AlertCircle, ArrowRight, Plus, Trash2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export type Rule = {
   id: string;
-  type: 'recurring' | 'income-based' | 'time-based' | 'round-up' | 'challenge' | 'seasonal';
+  type:
+    | "recurring"
+    | "income-based"
+    | "time-based"
+    | "round-up"
+    | "challenge"
+    | "seasonal";
   name: string;
   enabled: boolean;
   conditions: {
@@ -26,43 +48,43 @@ export type Rule = {
     dates?: Date[];
     selectedDays?: number[];
     roundTo?: number;
-    season?: 'high' | 'low';
-    challengeType?: 'login' | 'subscription-cancel';
+    season?: "high" | "low";
+    challengeType?: "login" | "subscription-cancel";
     threshold?: number;
     recurringDate?: Date;
     startDate?: Date;
     endDate?: Date;
   };
   action: {
-    type: 'save' | 'invest';
+    type: "save" | "invest";
     amount: number;
-    amountType: 'fixed' | 'percentage' | 'round-up';
+    amountType: "fixed" | "percentage" | "round-up";
     destination: string;
     roundUpTo?: number;
   };
 };
 
 const ruleCategories = {
-  recurring: { label: 'Recurring', color: 'bg-blue-500' },
-  'income-based': { label: 'Income Based', color: 'bg-green-500' },
-  'time-based': { label: 'Time Based', color: 'bg-purple-500' },
-  'round-up': { label: 'Round Up', color: 'bg-orange-500' },
-  challenge: { label: 'Challenge', color: 'bg-pink-500' },
-  seasonal: { label: 'Seasonal', color: 'bg-yellow-500' },
+  recurring: { label: "Recurring", color: "bg-blue-500" },
+  "income-based": { label: "Income Based", color: "bg-green-500" },
+  "time-based": { label: "Time Based", color: "bg-purple-500" },
+  "round-up": { label: "Round Up", color: "bg-orange-500" },
+  challenge: { label: "Challenge", color: "bg-pink-500" },
+  seasonal: { label: "Seasonal", color: "bg-yellow-500" },
 };
 
 export default function SmartRulesEngine() {
   const [rules, setRules] = useState<Rule[]>([]);
   const [newRule, setNewRule] = useState<Partial<Rule>>({
-    type: 'recurring',
-    name: '',
+    type: "recurring",
+    name: "",
     enabled: true,
     conditions: {},
     action: {
-      type: 'save',
+      type: "save",
       amount: 0,
-      destination: 'savings'
-    }
+      destination: "savings",
+    },
   });
   const [isAddingRule, setIsAddingRule] = useState(false);
 
@@ -71,7 +93,7 @@ export default function SmartRulesEngine() {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -83,24 +105,24 @@ export default function SmartRulesEngine() {
       enabled: true,
       conditions: newRule.conditions || {},
       action: newRule.action || {
-        type: 'save',
+        type: "save",
         amount: 0,
-        destination: 'savings'
-      }
+        destination: "savings",
+      },
     };
 
     setRules([...rules, rule]);
     setIsAddingRule(false);
     setNewRule({
-      type: 'recurring',
-      name: '',
+      type: "recurring",
+      name: "",
       enabled: true,
       conditions: {},
       action: {
-        type: 'save',
+        type: "save",
         amount: 0,
-        destination: 'savings'
-      }
+        destination: "savings",
+      },
     });
 
     toast({
@@ -110,7 +132,7 @@ export default function SmartRulesEngine() {
   };
 
   const handleDeleteRule = (id: string) => {
-    setRules(rules.filter(rule => rule.id !== id));
+    setRules(rules.filter((rule) => rule.id !== id));
     toast({
       title: "Rule Deleted",
       description: "The rule has been removed",
@@ -118,27 +140,29 @@ export default function SmartRulesEngine() {
   };
 
   const handleToggleRule = (id: string) => {
-    setRules(rules.map(rule =>
-      rule.id === id ? { ...rule, enabled: !rule.enabled } : rule
-    ));
+    setRules(
+      rules.map((rule) =>
+        rule.id === id ? { ...rule, enabled: !rule.enabled } : rule,
+      ),
+    );
   };
 
   const getRuleDescription = (rule: Rule): string => {
     switch (rule.type) {
-      case 'recurring':
-        return `Save ${rule.action.amountType === 'percentage' ? rule.action.amount + '%' : '$' + rule.action.amount} every ${rule.conditions.frequency || 'month'}`;
-      case 'income-based':
+      case "recurring":
+        return `Save ${rule.action.amountType === "percentage" ? rule.action.amount + "%" : "$" + rule.action.amount} every ${rule.conditions.frequency || "month"}`;
+      case "income-based":
         return `Save ${rule.action.amount}% when income exceeds ${rule.conditions.threshold || 0}`;
-      case 'time-based':
+      case "time-based":
         return `Save ${rule.action.amount} on specific dates`;
-      case 'round-up':
+      case "round-up":
         return `Round up transactions to nearest ${rule.action.roundUpTo || 1}`;
-      case 'challenge':
-        return `Save ${rule.action.amount} on ${rule.conditions.challengeType || 'specific'} actions`;
-      case 'seasonal':
-        return `Adjust savings during ${rule.conditions.season || 'specific'} season`;
+      case "challenge":
+        return `Save ${rule.action.amount} on ${rule.conditions.challengeType || "specific"} actions`;
+      case "seasonal":
+        return `Adjust savings during ${rule.conditions.season || "specific"} season`;
       default:
-        return 'Custom rule';
+        return "Custom rule";
     }
   };
 
@@ -149,7 +173,9 @@ export default function SmartRulesEngine() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Smart Rules Engine</CardTitle>
-              <CardDescription>Automate your savings with smart rules</CardDescription>
+              <CardDescription>
+                Automate your savings with smart rules
+              </CardDescription>
             </div>
             <Button
               onClick={() => setIsAddingRule(true)}
@@ -177,22 +203,30 @@ export default function SmartRulesEngine() {
                       <Input
                         placeholder="Enter rule name"
                         value={newRule.name}
-                        onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
+                        onChange={(e) =>
+                          setNewRule({ ...newRule, name: e.target.value })
+                        }
                       />
                     </div>
                     <div>
                       <Label>Rule Type</Label>
                       <Select
                         value={newRule.type}
-                        onValueChange={(value: any) => setNewRule({ ...newRule, type: value })}
+                        onValueChange={(value: any) =>
+                          setNewRule({ ...newRule, type: value })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select rule type" />
                         </SelectTrigger>
                         <SelectContent>
-                          {Object.entries(ruleCategories).map(([key, { label }]) => (
-                            <SelectItem key={key} value={key}>{label}</SelectItem>
-                          ))}
+                          {Object.entries(ruleCategories).map(
+                            ([key, { label }]) => (
+                              <SelectItem key={key} value={key}>
+                                {label}
+                              </SelectItem>
+                            ),
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -203,10 +237,12 @@ export default function SmartRulesEngine() {
                       <Label>Action Type</Label>
                       <Select
                         value={newRule.action?.type}
-                        onValueChange={(value: any) => setNewRule({
-                          ...newRule,
-                          action: { ...newRule.action!, type: value }
-                        })}
+                        onValueChange={(value: any) =>
+                          setNewRule({
+                            ...newRule,
+                            action: { ...newRule.action!, type: value },
+                          })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select action" />
@@ -222,66 +258,104 @@ export default function SmartRulesEngine() {
                       <div>
                         <Label>Amount Type</Label>
                         <Select
-                          value={newRule.action?.amountType || 'fixed'}
-                          onValueChange={(value: 'fixed' | 'percentage' | 'round-up') => setNewRule({
-                            ...newRule,
-                            action: { ...newRule.action!, amountType: value }
-                          })}
+                          value={newRule.action?.amountType || "fixed"}
+                          onValueChange={(
+                            value: "fixed" | "percentage" | "round-up",
+                          ) =>
+                            setNewRule({
+                              ...newRule,
+                              action: { ...newRule.action!, amountType: value },
+                            })
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select amount type" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="fixed">Fixed Amount</SelectItem>
-                            <SelectItem value="percentage">Percentage</SelectItem>
+                            <SelectItem value="percentage">
+                              Percentage
+                            </SelectItem>
                             <SelectItem value="round-up">Round Up</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div>
-                        <Label>Amount {newRule.action?.amountType === 'percentage' ? '(%)' : '($)'}</Label>
+                        <Label>
+                          Amount{" "}
+                          {newRule.action?.amountType === "percentage"
+                            ? "(%)"
+                            : "($)"}
+                        </Label>
                         <Input
                           type="number"
-                          placeholder={newRule.action?.amountType === 'percentage' ? 'Enter percentage' : 'Enter amount'}
-                          value={newRule.action?.amount || ''}
+                          placeholder={
+                            newRule.action?.amountType === "percentage"
+                              ? "Enter percentage"
+                              : "Enter amount"
+                          }
+                          value={newRule.action?.amount || ""}
                           min={0}
-                          max={newRule.action?.amountType === 'percentage' ? 100 : undefined}
-                          step={newRule.action?.amountType === 'percentage' ? 1 : 0.01}
-                          onChange={(e) => setNewRule({
-                            ...newRule,
-                            action: { ...newRule.action!, amount: parseFloat(e.target.value) }
-                          })}
+                          max={
+                            newRule.action?.amountType === "percentage"
+                              ? 100
+                              : undefined
+                          }
+                          step={
+                            newRule.action?.amountType === "percentage"
+                              ? 1
+                              : 0.01
+                          }
+                          onChange={(e) =>
+                            setNewRule({
+                              ...newRule,
+                              action: {
+                                ...newRule.action!,
+                                amount: parseFloat(e.target.value),
+                              },
+                            })
+                          }
                         />
                       </div>
-                      {newRule.action?.amountType === 'round-up' && (
+                      {newRule.action?.amountType === "round-up" && (
                         <div>
                           <Label>Round Up To</Label>
                           <Input
                             type="number"
                             placeholder="Enter round up amount"
-                            value={newRule.action?.roundUpTo || ''}
+                            value={newRule.action?.roundUpTo || ""}
                             min={0}
                             step={0.01}
-                            onChange={(e) => setNewRule({
-                              ...newRule,
-                              action: { ...newRule.action!, roundUpTo: parseFloat(e.target.value) }
-                            })}
+                            onChange={(e) =>
+                              setNewRule({
+                                ...newRule,
+                                action: {
+                                  ...newRule.action!,
+                                  roundUpTo: parseFloat(e.target.value),
+                                },
+                              })
+                            }
                           />
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {newRule.type === 'recurring' && (
+                  {newRule.type === "recurring" && (
                     <div className="space-y-4">
                       <div>
                         <Label>Recurring Schedule</Label>
                         <Select
-                          value={newRule.conditions?.frequency || 'monthly'}
-                          onValueChange={(value) => setNewRule({
-                            ...newRule,
-                            conditions: { ...newRule.conditions, frequency: value }
-                          })}
+                          value={newRule.conditions?.frequency || "monthly"}
+                          onValueChange={(value) =>
+                            setNewRule({
+                              ...newRule,
+                              conditions: {
+                                ...newRule.conditions,
+                                frequency: value,
+                              },
+                            })
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select frequency" />
@@ -295,45 +369,55 @@ export default function SmartRulesEngine() {
                         </Select>
                       </div>
 
-                      {newRule.conditions?.frequency === 'monthly' && (
+                      {newRule.conditions?.frequency === "monthly" && (
                         <div>
                           <Label>Monthly Date</Label>
                           <Select
-                            value={String(newRule.conditions?.selectedDays?.[0] || 1)}
-                            onValueChange={(value) => setNewRule({
-                              ...newRule,
-                              conditions: {
-                                ...newRule.conditions,
-                                selectedDays: [parseInt(value)]
-                              }
-                            })}
+                            value={String(
+                              newRule.conditions?.selectedDays?.[0] || 1,
+                            )}
+                            onValueChange={(value) =>
+                              setNewRule({
+                                ...newRule,
+                                conditions: {
+                                  ...newRule.conditions,
+                                  selectedDays: [parseInt(value)],
+                                },
+                              })
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select date" />
                             </SelectTrigger>
                             <SelectContent>
-                              {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
-                                <SelectItem key={day} value={String(day)}>
-                                  {day}
-                                </SelectItem>
-                              ))}
+                              {Array.from({ length: 31 }, (_, i) => i + 1).map(
+                                (day) => (
+                                  <SelectItem key={day} value={String(day)}>
+                                    {day}
+                                  </SelectItem>
+                                ),
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
                       )}
 
-                      {newRule.conditions?.frequency === 'weekly' && (
+                      {newRule.conditions?.frequency === "weekly" && (
                         <div>
                           <Label>Day of Week</Label>
                           <Select
-                            value={String(newRule.conditions?.selectedDays?.[0] || 1)}
-                            onValueChange={(value) => setNewRule({
-                              ...newRule,
-                              conditions: {
-                                ...newRule.conditions,
-                                selectedDays: [parseInt(value)]
-                              }
-                            })}
+                            value={String(
+                              newRule.conditions?.selectedDays?.[0] || 1,
+                            )}
+                            onValueChange={(value) =>
+                              setNewRule({
+                                ...newRule,
+                                conditions: {
+                                  ...newRule.conditions,
+                                  selectedDays: [parseInt(value)],
+                                },
+                              })
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select day" />
@@ -351,7 +435,7 @@ export default function SmartRulesEngine() {
                         </div>
                       )}
 
-                      {newRule.conditions?.frequency === 'yearly' && (
+                      {newRule.conditions?.frequency === "yearly" && (
                         <div>
                           <Label>Select Date</Label>
                           <Popover>
@@ -360,25 +444,37 @@ export default function SmartRulesEngine() {
                                 variant={"outline"}
                                 className={cn(
                                   "w-full justify-start text-left font-normal",
-                                  !newRule.conditions?.recurringDate && "text-muted-foreground"
+                                  !newRule.conditions?.recurringDate &&
+                                    "text-muted-foreground",
                                 )}
                               >
                                 {newRule.conditions?.recurringDate ? (
-                                  format(newRule.conditions.recurringDate, "MMM dd")
+                                  format(
+                                    newRule.conditions.recurringDate,
+                                    "MMM dd",
+                                  )
                                 ) : (
                                   <span>Pick a date</span>
                                 )}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
                               <Calendar
                                 mode="single"
                                 selected={newRule.conditions?.recurringDate}
-                                onSelect={(date) => setNewRule({
-                                  ...newRule,
-                                  conditions: { ...newRule.conditions, recurringDate: date }
-                                })}
+                                onSelect={(date) =>
+                                  setNewRule({
+                                    ...newRule,
+                                    conditions: {
+                                      ...newRule.conditions,
+                                      recurringDate: date,
+                                    },
+                                  })
+                                }
                                 initialFocus
                               />
                             </PopoverContent>
@@ -388,15 +484,20 @@ export default function SmartRulesEngine() {
                     </div>
                   )}
 
-                  {newRule.type === 'seasonal' && (
+                  {newRule.type === "seasonal" && (
                     <div>
                       <Label>Season</Label>
                       <Select
                         value={newRule.conditions?.season}
-                        onValueChange={(value: 'high' | 'low') => setNewRule({
-                          ...newRule,
-                          conditions: { ...newRule.conditions, season: value }
-                        })}
+                        onValueChange={(value: "high" | "low") =>
+                          setNewRule({
+                            ...newRule,
+                            conditions: {
+                              ...newRule.conditions,
+                              season: value,
+                            },
+                          })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select season" />
@@ -409,27 +510,35 @@ export default function SmartRulesEngine() {
                     </div>
                   )}
 
-                  {newRule.type === 'challenge' && (
+                  {newRule.type === "challenge" && (
                     <div>
                       <Label>Challenge Type</Label>
                       <Select
                         value={newRule.conditions?.challengeType}
-                        onValueChange={(value: 'login' | 'subscription-cancel') => setNewRule({
-                          ...newRule,
-                          conditions: { ...newRule.conditions, challengeType: value }
-                        })}
+                        onValueChange={(
+                          value: "login" | "subscription-cancel",
+                        ) =>
+                          setNewRule({
+                            ...newRule,
+                            conditions: {
+                              ...newRule.conditions,
+                              challengeType: value,
+                            },
+                          })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select challenge type" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="login">Login</SelectItem>
-                          <SelectItem value="subscription-cancel">Subscription Cancel</SelectItem>
+                          <SelectItem value="subscription-cancel">
+                            Subscription Cancel
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   )}
-
 
                   <div className="space-y-4">
                     <div>
@@ -440,7 +549,8 @@ export default function SmartRulesEngine() {
                             variant={"outline"}
                             className={cn(
                               "w-full justify-start text-left font-normal",
-                              !newRule.conditions?.startDate && "text-muted-foreground"
+                              !newRule.conditions?.startDate &&
+                                "text-muted-foreground",
                             )}
                           >
                             {newRule.conditions?.startDate ? (
@@ -455,10 +565,15 @@ export default function SmartRulesEngine() {
                           <Calendar
                             mode="single"
                             selected={newRule.conditions?.startDate}
-                            onSelect={(date) => setNewRule({
-                              ...newRule,
-                              conditions: { ...newRule.conditions, startDate: date }
-                            })}
+                            onSelect={(date) =>
+                              setNewRule({
+                                ...newRule,
+                                conditions: {
+                                  ...newRule.conditions,
+                                  startDate: date,
+                                },
+                              })
+                            }
                             initialFocus
                           />
                         </PopoverContent>
@@ -473,7 +588,8 @@ export default function SmartRulesEngine() {
                             variant={"outline"}
                             className={cn(
                               "w-full justify-start text-left font-normal",
-                              !newRule.conditions?.endDate && "text-muted-foreground"
+                              !newRule.conditions?.endDate &&
+                                "text-muted-foreground",
                             )}
                           >
                             {newRule.conditions?.endDate ? (
@@ -488,13 +604,20 @@ export default function SmartRulesEngine() {
                           <Calendar
                             mode="single"
                             selected={newRule.conditions?.endDate}
-                            onSelect={(date) => setNewRule({
-                              ...newRule,
-                              conditions: { ...newRule.conditions, endDate: date }
-                            })}
-                            disabled={(date) => (
-                              newRule.conditions?.startDate ? date < newRule.conditions.startDate : false
-                            )}
+                            onSelect={(date) =>
+                              setNewRule({
+                                ...newRule,
+                                conditions: {
+                                  ...newRule.conditions,
+                                  endDate: date,
+                                },
+                              })
+                            }
+                            disabled={(date) =>
+                              newRule.conditions?.startDate
+                                ? date < newRule.conditions.startDate
+                                : false
+                            }
                             initialFocus
                           />
                         </PopoverContent>
@@ -503,19 +626,20 @@ export default function SmartRulesEngine() {
                   </div>
 
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setIsAddingRule(false)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsAddingRule(false)}
+                    >
                       Cancel
                     </Button>
-                    <Button onClick={handleAddRule}>
-                      Create Rule
-                    </Button>
+                    <Button onClick={handleAddRule}>Create Rule</Button>
                   </div>
                 </div>
               </motion.div>
             )}
 
             <div className="space-y-4">
-              {rules.map(rule => (
+              {rules.map((rule) => (
                 <motion.div
                   key={rule.id}
                   initial={{ opacity: 0 }}
@@ -527,7 +651,9 @@ export default function SmartRulesEngine() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Badge className={`${ruleCategories[rule.type].color} text-white`}>
+                          <Badge
+                            className={`${ruleCategories[rule.type].color} text-white`}
+                          >
                             {ruleCategories[rule.type].label}
                           </Badge>
                           <div>
@@ -560,7 +686,10 @@ export default function SmartRulesEngine() {
               {rules.length === 0 && !isAddingRule && (
                 <div className="text-center py-8 text-muted-foreground">
                   <AlertCircle className="mx-auto h-12 w-12 mb-3" />
-                  <p>No rules created yet. Add your first rule to start automating your savings!</p>
+                  <p>
+                    No rules created yet. Add your first rule to start
+                    automating your savings!
+                  </p>
                 </div>
               )}
             </div>

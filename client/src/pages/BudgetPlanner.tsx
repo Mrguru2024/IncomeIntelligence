@@ -5,14 +5,9 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
+  CardTitle,
 } from "@/components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Calculator,
   Calendar,
@@ -23,7 +18,7 @@ import {
   ArrowUp,
   Target,
   TrendingUp,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -34,25 +29,24 @@ import SafeEnvelope from "@/components/SafeEnvelope"; // Added import
 import CashFlowCoach from "@/components/CashFlowCoach"; // Added import
 import { useIncomeStore } from "@/hooks/useIncomeStore"; // Import store
 
-
 export default function BudgetPlanner() {
   const { data: incomes = [] } = useQuery<Income[]>({
-    queryKey: ['/api/incomes'],
+    queryKey: ["/api/incomes"],
   });
 
   const { data: goals = [] } = useQuery<Goal[]>({
-    queryKey: ['/api/goals'],
+    queryKey: ["/api/goals"],
   });
 
   // Get allocation percentages from the store
-  const { 
-    needsPercentage, 
-    investmentsPercentage, 
-    savingsPercentage 
-  } = useIncomeStore();
+  const { needsPercentage, investmentsPercentage, savingsPercentage } =
+    useIncomeStore();
 
   // Calculate total income
-  const totalIncome = incomes.reduce((sum, income) => sum + parseFloat(income.amount.toString()), 0);
+  const totalIncome = incomes.reduce(
+    (sum, income) => sum + parseFloat(income.amount.toString()),
+    0,
+  );
 
   // Calculate budget allocation based on custom percentages
   const needsAllocation = totalIncome * (needsPercentage / 100);
@@ -60,19 +54,25 @@ export default function BudgetPlanner() {
   const investmentsAllocation = totalIncome * (investmentsPercentage / 100);
 
   // Calculate progress toward goals by type
-  const incomeGoals = goals.filter(goal => goal.type === 'income');
-  const savingsGoals = goals.filter(goal => goal.type === 'savings');
-  const investmentGoals = goals.filter(goal => goal.type === 'investments');
+  const incomeGoals = goals.filter((goal) => goal.type === "income");
+  const savingsGoals = goals.filter((goal) => goal.type === "savings");
+  const investmentGoals = goals.filter((goal) => goal.type === "investments");
 
   // Helper function to calculate goal progress
   const calculateGoalProgress = (goals: Goal[]) => {
-    const totalTarget = goals.reduce((sum, goal) => sum + parseFloat(goal.targetAmount.toString()), 0);
-    const totalCurrent = goals.reduce((sum, goal) => sum + parseFloat(goal.currentAmount.toString()), 0);
+    const totalTarget = goals.reduce(
+      (sum, goal) => sum + parseFloat(goal.targetAmount.toString()),
+      0,
+    );
+    const totalCurrent = goals.reduce(
+      (sum, goal) => sum + parseFloat(goal.currentAmount.toString()),
+      0,
+    );
 
     return {
       target: totalTarget,
       current: totalCurrent,
-      percentage: totalTarget > 0 ? (totalCurrent / totalTarget) * 100 : 0
+      percentage: totalTarget > 0 ? (totalCurrent / totalTarget) * 100 : 0,
     };
   };
 
@@ -85,24 +85,43 @@ export default function BudgetPlanner() {
   const oneMonthLater = new Date();
   oneMonthLater.setDate(now.getDate() + 30);
 
-  const upcomingGoals = goals.filter(goal => {
-    if (!goal.deadline) return false;
-    const deadline = new Date(goal.deadline);
-    return deadline >= now && deadline <= oneMonthLater;
-  }).sort((a, b) => {
-    const dateA = new Date(a.deadline || 0);
-    const dateB = new Date(b.deadline || 0);
-    return dateA.getTime() - dateB.getTime();
-  });
+  const upcomingGoals = goals
+    .filter((goal) => {
+      if (!goal.deadline) return false;
+      const deadline = new Date(goal.deadline);
+      return deadline >= now && deadline <= oneMonthLater;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.deadline || 0);
+      const dateB = new Date(b.deadline || 0);
+      return dateA.getTime() - dateB.getTime();
+    });
 
   return (
     <div className="w-full max-w-full overflow-x-hidden px-2 xxs:px-3 sm:px-6 py-3 xxs:py-4 sm:py-6">
-      <h1 className="text-xl xxs:text-2xl font-bold mb-4 xxs:mb-6">Budget Planner</h1>
+      <h1 className="text-xl xxs:text-2xl font-bold mb-4 xxs:mb-6">
+        Budget Planner
+      </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 xxs:gap-3 sm:gap-4 mb-4 xxs:mb-6">
-        <SafeEnvelope category="Groceries" allocated={400} spent={250} total={400} />
-        <SafeEnvelope category="Entertainment" allocated={200} spent={150} total={200} />
-        <SafeEnvelope category="Transportation" allocated={300} spent={200} total={300} />
+        <SafeEnvelope
+          category="Groceries"
+          allocated={400}
+          spent={250}
+          total={400}
+        />
+        <SafeEnvelope
+          category="Entertainment"
+          allocated={200}
+          spent={150}
+          total={200}
+        />
+        <SafeEnvelope
+          category="Transportation"
+          allocated={300}
+          spent={200}
+          total={300}
+        />
       </div>
 
       <CashFlowCoach />
@@ -132,15 +151,24 @@ export default function BudgetPlanner() {
         <Tabs defaultValue="calendar" className="w-full">
           <div className="overflow-x-auto scrollbar-none -mx-2 xxs:-mx-3 px-2 xxs:px-3 pb-1 xxs:pb-2">
             <TabsList className="flex w-full justify-start gap-0.5 xxs:gap-1 max-w-none mb-2 xxs:mb-3 sm:mb-6 min-w-[240px] xxs:min-w-[280px] sm:min-w-[320px] overflow-x-auto">
-              <TabsTrigger value="calendar" className="flex-1 flex items-center justify-center py-1 xxs:py-1.5 px-1 xxs:px-2 sm:p-2 text-[10px] xxs:text-xs sm:text-sm">
+              <TabsTrigger
+                value="calendar"
+                className="flex-1 flex items-center justify-center py-1 xxs:py-1.5 px-1 xxs:px-2 sm:p-2 text-[10px] xxs:text-xs sm:text-sm"
+              >
                 <Calendar className="h-2.5 w-2.5 xxs:h-3 xxs:w-3 sm:h-4 sm:w-4 mr-0.5 xxs:mr-1 sm:mr-2 flex-shrink-0" />
                 <span className="truncate">Calendar</span>
               </TabsTrigger>
-              <TabsTrigger value="allocation" className="flex-1 flex items-center justify-center py-1 xxs:py-1.5 px-1 xxs:px-2 sm:p-2 text-[10px] xxs:text-xs sm:text-sm">
+              <TabsTrigger
+                value="allocation"
+                className="flex-1 flex items-center justify-center py-1 xxs:py-1.5 px-1 xxs:px-2 sm:p-2 text-[10px] xxs:text-xs sm:text-sm"
+              >
                 <PieChart className="h-2.5 w-2.5 xxs:h-3 xxs:w-3 sm:h-4 sm:w-4 mr-0.5 xxs:mr-1 sm:mr-2 flex-shrink-0" />
                 <span className="truncate">Budget</span>
               </TabsTrigger>
-              <TabsTrigger value="goals" className="flex-1 flex items-center justify-center py-1 xxs:py-1.5 px-1 xxs:px-2 sm:p-2 text-[10px] xxs:text-xs sm:text-sm">
+              <TabsTrigger
+                value="goals"
+                className="flex-1 flex items-center justify-center py-1 xxs:py-1.5 px-1 xxs:px-2 sm:p-2 text-[10px] xxs:text-xs sm:text-sm"
+              >
                 <BarChart className="h-2.5 w-2.5 xxs:h-3 xxs:w-3 sm:h-4 sm:w-4 mr-0.5 xxs:mr-1 sm:mr-2 flex-shrink-0" />
                 <span className="truncate">Goals</span>
               </TabsTrigger>
@@ -157,9 +185,15 @@ export default function BudgetPlanner() {
 
           <TabsContent value="allocation" className="mt-2 xxs:mt-3 sm:mt-4">
             <div className="flex flex-col xxs:flex-row justify-between items-start xxs:items-center gap-2 xxs:gap-0 mb-2 xxs:mb-3">
-              <h3 className="text-xs xxs:text-sm sm:text-base font-medium">Allocation Overview</h3>
+              <h3 className="text-xs xxs:text-sm sm:text-base font-medium">
+                Allocation Overview
+              </h3>
               <Link href="/settings">
-                <Button variant="outline" size="sm" className="text-[10px] xxs:text-xs flex items-center gap-0.5 xxs:gap-1 py-1 px-1.5 xxs:px-2 h-7 xxs:h-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-[10px] xxs:text-xs flex items-center gap-0.5 xxs:gap-1 py-1 px-1.5 xxs:px-2 h-7 xxs:h-8"
+                >
                   <SettingsIcon className="h-2.5 w-2.5 xxs:h-3 xxs:w-3" />
                   Edit Budget Settings
                 </Button>
@@ -237,12 +271,14 @@ function StatCard({ title, value, icon, color }: StatCardProps) {
       <CardContent className="p-2 xs:p-3 sm:p-6">
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-xs xs:text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-base xs:text-xl sm:text-2xl font-bold mt-1">{value}</p>
+            <p className="text-xs xs:text-sm font-medium text-muted-foreground">
+              {title}
+            </p>
+            <p className="text-base xs:text-xl sm:text-2xl font-bold mt-1">
+              {value}
+            </p>
           </div>
-          <div className={`p-1.5 xs:p-2 rounded-full ${color}`}>
-            {icon}
-          </div>
+          <div className={`p-1.5 xs:p-2 rounded-full ${color}`}>{icon}</div>
         </div>
       </CardContent>
     </Card>
@@ -257,7 +293,13 @@ interface AllocationCardProps {
   icon: React.ReactNode;
 }
 
-function AllocationCard({ title, value, description, color, icon }: AllocationCardProps) {
+function AllocationCard({
+  title,
+  value,
+  description,
+  color,
+  icon,
+}: AllocationCardProps) {
   return (
     <Card className={color}>
       <CardContent className="p-2 xs:p-3 sm:p-4">
@@ -285,12 +327,23 @@ interface GoalProgressCardProps {
   color: string;
 }
 
-function GoalProgressCard({ title, current, target, percentage, count, color }: GoalProgressCardProps) {
+function GoalProgressCard({
+  title,
+  current,
+  target,
+  percentage,
+  count,
+  color,
+}: GoalProgressCardProps) {
   return (
     <Card className={color}>
       <CardHeader className="px-2 xs:px-3 sm:px-6 py-2 xs:py-3 sm:py-6">
-        <CardTitle className="text-sm xs:text-base sm:text-lg">{title}</CardTitle>
-        <CardDescription className="text-xs xs:text-sm">{count} {count === 1 ? 'goal' : 'goals'}</CardDescription>
+        <CardTitle className="text-sm xs:text-base sm:text-lg">
+          {title}
+        </CardTitle>
+        <CardDescription className="text-xs xs:text-sm">
+          {count} {count === 1 ? "goal" : "goals"}
+        </CardDescription>
       </CardHeader>
       <CardContent className="px-2 xs:px-3 sm:px-6 pb-3 xs:pb-4 sm:pb-6">
         <div className="space-y-2 xs:space-y-3">

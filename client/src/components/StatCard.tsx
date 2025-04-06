@@ -20,18 +20,24 @@ export default function StatCard({
   iconBgColor,
   changeValue,
   changeText,
-  className
+  className,
 }: StatCardProps) {
   return (
     <Card className={cn("border border-gray-100", className)}>
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-xs sm:text-sm font-medium text-gray-500">{title}</span>
-            <span className="text-xl sm:text-2xl font-semibold text-gray-800 mt-1">{value}</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-500">
+              {title}
+            </span>
+            <span className="text-xl sm:text-2xl font-semibold text-gray-800 mt-1">
+              {value}
+            </span>
           </div>
           <div className={`rounded-full bg-${iconBgColor} p-2 sm:p-3`}>
-            <i className={`fas fa-${icon} text-${iconColor} text-sm sm:text-base`}></i>
+            <i
+              className={`fas fa-${icon} text-${iconColor} text-sm sm:text-base`}
+            ></i>
           </div>
         </div>
         <div className="mt-3 sm:mt-4 flex items-center text-xs sm:text-sm">

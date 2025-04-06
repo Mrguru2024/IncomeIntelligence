@@ -1,9 +1,15 @@
-import { createContext, ReactNode, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useState,
+  useEffect,
+} from "react";
 import {
   useQuery,
   useMutation,
   UseMutationResult,
-  useQueryClient
+  useQueryClient,
 } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -39,13 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
-    refetch
+    refetch,
   } = useQuery({
-    queryKey: ['/api/auth/user'],
+    queryKey: ["/api/auth/user"],
     queryFn: ({ queryKey }) => {
       return fetch(queryKey[0], { credentials: "include" })
         .then((res) => {
-          if (res.ok) return res.json().then(data => data.user);
+          if (res.ok) return res.json().then((data) => data.user);
           if (res.status === 401) return null;
           throw new Error("Authentication check failed");
         })
@@ -58,18 +64,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(credentials)
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(credentials),
       });
-      
+
       if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.message || 'Login failed');
+        throw new Error(errData.message || "Login failed");
       }
-      
+
       return await res.json();
     },
     onSuccess: () => {
@@ -90,24 +96,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (userData: RegisterData) => {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(userData)
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(userData),
       });
-      
+
       if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.message || 'Registration failed');
+        throw new Error(errData.message || "Registration failed");
       }
-      
+
       return await res.json();
     },
     onSuccess: (data) => {
       toast({
         title: "Registration successful",
-        description: data.message || "Your account has been created. Please check your email for verification.",
+        description:
+          data.message ||
+          "Your account has been created. Please check your email for verification.",
       });
       refetch(); // Refresh user data
     },
@@ -122,32 +130,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
       });
-      
+
       if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.message || 'Logout failed');
+        throw new Error(errData.message || "Logout failed");
       }
-      
+
       return await res.json();
     },
     onSuccess: () => {
       // Clear any local auth data
-      localStorage.removeItem('auth_token');
-      
+      localStorage.removeItem("auth_token");
+
       // Invalidate and refetch queries that depend on auth status
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+
       toast({
         title: "Logout successful",
         description: "You have been logged out.",
       });
-      
+
       // Force reload to clear all application state
-      window.location.href = '/auth';
+      window.location.href = "/auth";
     },
     onError: (error: Error) => {
       toast({

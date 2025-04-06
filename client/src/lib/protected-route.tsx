@@ -9,7 +9,10 @@ interface ProtectedRouteProps {
   component: () => React.JSX.Element;
 }
 
-export function ProtectedRoute({ path, component: Component }: ProtectedRouteProps) {
+export function ProtectedRoute({
+  path,
+  component: Component,
+}: ProtectedRouteProps) {
   const [, setLocation] = useLocation();
   const { user, isLoading } = useAuth();
 

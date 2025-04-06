@@ -1,27 +1,42 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import VanillaModal from './VanillaModal';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import VanillaModal from "./VanillaModal";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, TargetIcon, PiggyBankIcon, TrendingUpIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  TargetIcon,
+  PiggyBankIcon,
+  TrendingUpIcon,
+} from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 
 export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
   // State management for the form
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [type, setType] = useState('savings');
-  const [targetAmount, setTargetAmount] = useState('');
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [type, setType] = useState("savings");
+  const [targetAmount, setTargetAmount] = useState("");
   const [deadline, setDeadline] = useState<Date | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Use useEffect to set focus when modal opens
   const nameInputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -29,19 +44,19 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
       setTimeout(() => nameInputRef.current?.focus(), 100);
     }
   }, []);
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
-      
+
       if (!name || !targetAmount || !type) {
         toast({
           title: "Missing fields",
           description: "Please fill in all required fields",
-          variant: "destructive"
+          variant: "destructive",
         });
         setIsSubmitting(false);
         return;
@@ -58,11 +73,11 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
         startDate: new Date(),
         deadline: deadline || null,
       };
-      
-      await apiRequest('/api/goals', {
-        method: 'POST',
+
+      await apiRequest("/api/goals", {
+        method: "POST",
         body: JSON.stringify(formData),
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       });
 
       // Show success message
@@ -70,18 +85,18 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
         title: "Goal created",
         description: "Your goal has been created successfully",
       });
-      
+
       // Invalidate goals cache
-      queryClient.invalidateQueries({ queryKey: ['/api/goals'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["/api/goals"] });
+
       // Close the modal
       onClose();
     } catch (error) {
-      console.error('Error creating goal:', error);
+      console.error("Error creating goal:", error);
       toast({
         title: "Failed to create goal",
         description: "There was an error creating your goal",
-        variant: "destructive"
+        variant: "destructive",
       });
       setIsSubmitting(false);
     }
@@ -90,11 +105,11 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
   // Get icon by goal type
   const getGoalIcon = () => {
     switch (type) {
-      case 'income':
+      case "income":
         return <TargetIcon className="h-5 w-5 text-blue-500" />;
-      case 'savings':
+      case "savings":
         return <PiggyBankIcon className="h-5 w-5 text-emerald-500" />;
-      case 'investments':
+      case "investments":
         return <TrendingUpIcon className="h-5 w-5 text-purple-500" />;
       default:
         return <TargetIcon className="h-5 w-5 text-gray-500" />;
@@ -104,16 +119,20 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
   // Helper for type-specific colors
   const getTypeColor = () => {
     switch (type) {
-      case 'income': return 'border-blue-200 bg-blue-50';
-      case 'savings': return 'border-emerald-200 bg-emerald-50';
-      case 'investments': return 'border-purple-200 bg-purple-50';
-      default: return 'border-gray-200 bg-gray-50';
+      case "income":
+        return "border-blue-200 bg-blue-50";
+      case "savings":
+        return "border-emerald-200 bg-emerald-50";
+      case "investments":
+        return "border-purple-200 bg-purple-50";
+      default:
+        return "border-gray-200 bg-gray-50";
     }
   };
 
   return (
-    <VanillaModal 
-      title="Create New Goal" 
+    <VanillaModal
+      title="Create New Goal"
       onClose={onClose}
       onSubmit={handleSubmit}
       isSubmitting={isSubmitting}
@@ -123,18 +142,25 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
           <div className="flex items-center gap-3">
             {getGoalIcon()}
             <div>
-              <h4 className="font-medium text-sm">{type.charAt(0).toUpperCase() + type.slice(1)} Goal</h4>
+              <h4 className="font-medium text-sm">
+                {type.charAt(0).toUpperCase() + type.slice(1)} Goal
+              </h4>
               <p className="text-xs text-gray-600">
-                {type === 'income' && 'Track income targets for financial growth'}
-                {type === 'savings' && 'Save for emergencies or future purchases'}
-                {type === 'investments' && 'Grow your wealth through investments'}
+                {type === "income" &&
+                  "Track income targets for financial growth"}
+                {type === "savings" &&
+                  "Save for emergencies or future purchases"}
+                {type === "investments" &&
+                  "Grow your wealth through investments"}
               </p>
             </div>
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-sm font-medium">Goal Name *</Label>
+          <Label htmlFor="name" className="text-sm font-medium">
+            Goal Name *
+          </Label>
           <Input
             id="name"
             ref={nameInputRef}
@@ -145,9 +171,11 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
             required
           />
         </div>
-        
+
         <div className="space-y-2">
-          <Label htmlFor="description" className="text-sm font-medium">Description</Label>
+          <Label htmlFor="description" className="text-sm font-medium">
+            Description
+          </Label>
           <Textarea
             id="description"
             value={description}
@@ -157,9 +185,11 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
             rows={3}
           />
         </div>
-        
+
         <div className="space-y-2">
-          <Label htmlFor="type" className="text-sm font-medium">Goal Type *</Label>
+          <Label htmlFor="type" className="text-sm font-medium">
+            Goal Type *
+          </Label>
           <Select value={type} onValueChange={setType} required>
             <SelectTrigger className="text-sm">
               <SelectValue placeholder="Select goal type" />
@@ -186,9 +216,11 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="space-y-2">
-          <Label htmlFor="targetAmount" className="text-sm font-medium">Target Amount *</Label>
+          <Label htmlFor="targetAmount" className="text-sm font-medium">
+            Target Amount *
+          </Label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <span className="text-gray-500">$</span>
@@ -206,9 +238,11 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
             />
           </div>
         </div>
-        
+
         <div className="space-y-2">
-          <Label htmlFor="deadline" className="text-sm font-medium">Deadline Date</Label>
+          <Label htmlFor="deadline" className="text-sm font-medium">
+            Deadline Date
+          </Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -217,7 +251,11 @@ export default function DirectGoalModal({ onClose }: { onClose: () => void }) {
                 className="w-full justify-start text-left font-normal text-sm"
               >
                 <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
-                {deadline ? format(deadline, "MMM d, yyyy") : <span>Pick a date</span>}
+                {deadline ? (
+                  format(deadline, "MMM d, yyyy")
+                ) : (
+                  <span>Pick a date</span>
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">

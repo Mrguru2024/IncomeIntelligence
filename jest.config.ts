@@ -1,32 +1,34 @@
-
-import type { Config } from 'jest';
+import type { Config } from "jest";
 
 const config: Config = {
-  preset: 'ts-jest',
-  testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  preset: "ts-jest",
+  testEnvironment: "jsdom",
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/client/src/$1',
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '@shared/(.*)$': '<rootDir>/shared/$1'
+    "^@/(.*)$": "<rootDir>/client/src/$1",
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    "@shared/(.*)$": "<rootDir>/shared/$1",
   },
   testMatch: [
-    '<rootDir>/client/src/**/*.test.{ts,tsx}',
-    '<rootDir>/server/**/*.test.{ts,tsx}'
+    "<rootDir>/client/src/**/*.test.{ts,tsx}",
+    "<rootDir>/server/**/*.test.{ts,tsx}",
   ],
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: 'tsconfig.json',
-    }]
+    "^.+\\.tsx?$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.json",
+      },
+    ],
   },
   globals: {
-    'ts-jest': {
+    "ts-jest": {
       isolatedModules: true,
     },
   },
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   testEnvironmentOptions: {
-    customExportConditions: ['']
+    customExportConditions: [""],
   },
   // Adding these options to make tests run faster
   maxWorkers: 1,
@@ -37,16 +39,16 @@ const config: Config = {
   // Setup specific configs for different test environments
   projects: [
     {
-      displayName: 'client',
-      testEnvironment: 'jsdom',
-      testMatch: ['<rootDir>/client/src/**/*.test.{ts,tsx}'],
+      displayName: "client",
+      testEnvironment: "jsdom",
+      testMatch: ["<rootDir>/client/src/**/*.test.{ts,tsx}"],
     },
     {
-      displayName: 'server',
-      testEnvironment: 'node',
-      testMatch: ['<rootDir>/server/**/*.test.{ts,tsx}'],
-    }
-  ]
+      displayName: "server",
+      testEnvironment: "node",
+      testMatch: ["<rootDir>/server/**/*.test.{ts,tsx}"],
+    },
+  ],
 };
 
 export default config;

@@ -10,19 +10,27 @@ import { formatCurrency } from "@/lib/utils/format";
 
 export default function Dashboard() {
   const { data: incomes, isLoading } = useQuery<Income[]>({
-    queryKey: ['/api/incomes'],
+    queryKey: ["/api/incomes"],
   });
 
   // Calculate totals for the current month
   const currentDate = new Date();
-  const currentMonthIncomes = incomes?.filter(income => {
-    const incomeDate = new Date(income.date);
-    return incomeDate.getMonth() === currentDate.getMonth() && 
-           incomeDate.getFullYear() === currentDate.getFullYear();
-  }) || [];
+  const currentMonthIncomes =
+    incomes?.filter((income) => {
+      const incomeDate = new Date(income.date);
+      return (
+        incomeDate.getMonth() === currentDate.getMonth() &&
+        incomeDate.getFullYear() === currentDate.getFullYear()
+      );
+    }) || [];
 
   const totalMonthlyIncome = currentMonthIncomes.reduce((sum, income) => {
-    return sum + (typeof income.amount === 'string' ? parseFloat(income.amount) : income.amount);
+    return (
+      sum +
+      (typeof income.amount === "string"
+        ? parseFloat(income.amount)
+        : income.amount)
+    );
   }, 0);
 
   const totalJobs = currentMonthIncomes.length;
@@ -35,14 +43,18 @@ export default function Dashboard() {
       <main className="w-full py-4 sm:py-6 lg:py-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-8">
           <div>
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">Dashboard</h2>
-            <p className="text-sm sm:text-base text-gray-500 mt-1">Track and manage your income distribution</p>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
+              Dashboard
+            </h2>
+            <p className="text-sm sm:text-base text-gray-500 mt-1">
+              Track and manage your income distribution
+            </p>
           </div>
         </div>
 
         {/* Overview Section */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
-          <StatCard 
+          <StatCard
             title="Total Income (This Month)"
             value={formatCurrency(totalMonthlyIncome)}
             icon="dollar-sign"
@@ -51,8 +63,8 @@ export default function Dashboard() {
             changeValue={12}
             changeText="vs last month"
           />
-          
-          <StatCard 
+
+          <StatCard
             title="Jobs Completed"
             value={totalJobs.toString()}
             icon="briefcase"
@@ -61,8 +73,8 @@ export default function Dashboard() {
             changeValue={8}
             changeText="vs last month"
           />
-          
-          <StatCard 
+
+          <StatCard
             title="Savings Growth"
             value={formatCurrency(savingsTotal)}
             icon="piggy-bank"

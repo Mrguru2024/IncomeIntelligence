@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { useState, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 // Type definition for offline storage items
 export interface OfflineStorageItem {
@@ -11,7 +11,7 @@ export interface OfflineStorageItem {
 
 export function useOfflineStorage<T>(
   key: string,
-  syncFn?: (items: T[]) => Promise<void>
+  syncFn?: (items: T[]) => Promise<void>,
 ) {
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -22,7 +22,7 @@ export function useOfflineStorage<T>(
       const storedItems = localStorage.getItem(key);
       return storedItems ? JSON.parse(storedItems) : [];
     } catch (error) {
-      console.error('Error getting items from offline storage:', error);
+      console.error("Error getting items from offline storage:", error);
       return [];
     }
   };
@@ -32,7 +32,7 @@ export function useOfflineStorage<T>(
     try {
       localStorage.setItem(key, JSON.stringify(items));
     } catch (error) {
-      console.error('Error saving items to offline storage:', error);
+      console.error("Error saving items to offline storage:", error);
     }
   };
 
@@ -54,22 +54,20 @@ export function useOfflineStorage<T>(
   // Remove an item from storage
   const removeItem = (id: string): void => {
     const items = getItems();
-    const filteredItems = items.filter(item => item.id !== id);
+    const filteredItems = items.filter((item) => item.id !== id);
     saveItems(filteredItems);
   };
 
   // Get unsynced items
   const getUnsyncedItems = (): T[] => {
     const items = getItems();
-    return items
-      .filter(item => !item.synced)
-      .map(item => item.data);
+    return items.filter((item) => !item.synced).map((item) => item.data);
   };
 
   // Mark items as synced
   const markAsSynced = (ids: string[]): void => {
     const items = getItems();
-    const updatedItems = items.map(item => {
+    const updatedItems = items.map((item) => {
       if (ids.includes(item.id)) {
         return { ...item, synced: true };
       }
@@ -85,22 +83,22 @@ export function useOfflineStorage<T>(
     try {
       setIsSyncing(true);
       const unsyncedItems = getUnsyncedItems();
-      
+
       if (unsyncedItems.length === 0) {
         setIsSyncing(false);
         return true;
       }
 
       await syncFn(unsyncedItems);
-      
+
       // Mark all synced items
       const ids = unsyncedItems.map((item: any) => item.offlineId);
       markAsSynced(ids);
-      
+
       setIsSyncing(false);
       return true;
     } catch (error) {
-      console.error('Error syncing items:', error);
+      console.error("Error syncing items:", error);
       setIsSyncing(false);
       return false;
     }
@@ -124,8 +122,8 @@ export function useOfflineStorage<T>(
       setIsOnline(false);
     };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     // Try to sync on initial load if online
     if (isOnline && syncFn) {
@@ -133,8 +131,8 @@ export function useOfflineStorage<T>(
     }
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, [syncFn]);
 
@@ -143,7 +141,7 @@ export function useOfflineStorage<T>(
     isSyncing,
     addItem,
     removeItem,
-    getItems: () => getItems().map(item => item.data),
+    getItems: () => getItems().map((item) => item.data),
     getUnsyncedItems,
     syncItems,
     clearItems,

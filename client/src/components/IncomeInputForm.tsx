@@ -7,19 +7,35 @@ import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { incomeCategories } from "@shared/schema";
 import IncomeCategorySelector from "./IncomeCategorySelector";
 import IncomeCategoryIcon from "./IncomeCategoryIcon";
 
 const incomeFormSchema = z.object({
   description: z.string().min(1, "Job description is required"),
-  amount: z.string().min(1, "Amount is required").refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
-    message: "Amount must be a positive number",
-  }),
+  amount: z
+    .string()
+    .min(1, "Amount is required")
+    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+      message: "Amount must be a positive number",
+    }),
   date: z.string().min(1, "Date is required"),
   source: z.string().default("Manual"),
   category: z.string().default("other"),
@@ -29,13 +45,13 @@ type IncomeFormValues = z.infer<typeof incomeFormSchema>;
 
 export default function IncomeInputForm() {
   const { toast } = useToast();
-  
+
   const form = useForm<IncomeFormValues>({
     resolver: zodResolver(incomeFormSchema),
     defaultValues: {
       description: "",
       amount: "", // Changed back to string
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split("T")[0],
       source: "Manual",
       category: "other",
     },
@@ -46,9 +62,9 @@ export default function IncomeInputForm() {
       // Convert form data to match the API requirements
       // Make sure to format the date as a proper ISO string for the API
       const dateObj = new Date(data.date);
-      
-      const response = await apiRequest('/api/incomes', {
-        method: 'POST',
+
+      const response = await apiRequest("/api/incomes", {
+        method: "POST",
         body: JSON.stringify({
           description: data.description,
           amount: data.amount, // This should be a string matching the schema
@@ -56,12 +72,12 @@ export default function IncomeInputForm() {
           source: data.source,
           category: data.category,
           userId: 1, // In a real app, we would get this from auth context
-        })
+        }),
       });
       return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/incomes'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/incomes"] });
       toast({
         title: "Income Added",
         description: "Your income entry has been saved successfully.",
@@ -69,7 +85,7 @@ export default function IncomeInputForm() {
       form.reset({
         description: "",
         amount: "",
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split("T")[0],
         source: "Manual",
         category: "other",
       });
@@ -90,15 +106,22 @@ export default function IncomeInputForm() {
   return (
     <Card className="border border-gray-100 overflow-hidden">
       <CardContent className="p-4 sm:p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Add New Income</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          Add New Income
+        </h3>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-3 sm:space-y-4"
+          >
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-700">Job Description</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">
+                    Job Description
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="e.g., Emergency lockout service"
@@ -110,13 +133,15 @@ export default function IncomeInputForm() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-700">Amount ($)</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">
+                    Amount ($)
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -132,13 +157,15 @@ export default function IncomeInputForm() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-700">Date</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">
+                    Date
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="date"
@@ -150,13 +177,15 @@ export default function IncomeInputForm() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-700">Category</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">
+                    Category
+                  </FormLabel>
                   <FormControl>
                     <IncomeCategorySelector
                       value={field.value}
@@ -167,14 +196,16 @@ export default function IncomeInputForm() {
                 </FormItem>
               )}
             />
-            
+
             <div className="pt-2">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
                 disabled={createIncomeMutation.isPending}
               >
-                {createIncomeMutation.isPending ? "Saving..." : "Save Income Entry"}
+                {createIncomeMutation.isPending
+                  ? "Saving..."
+                  : "Save Income Entry"}
               </Button>
             </div>
           </form>

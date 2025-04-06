@@ -1,15 +1,36 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/use-auth';
-import { apiRequest } from '@/lib/queryClient';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2, Check, Clock, CreditCard, Calendar, ShieldOff } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { apiRequest } from "@/lib/queryClient";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Loader2,
+  Check,
+  Clock,
+  CreditCard,
+  Calendar,
+  ShieldOff,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type SubscriptionInfo = {
   tier: string;
@@ -31,7 +52,7 @@ const SubscriptionPage = () => {
   // Redirect if not logged in
   useEffect(() => {
     if (user === null) {
-      navigate('/auth');
+      navigate("/auth");
     }
   }, [user, navigate]);
 
@@ -41,33 +62,34 @@ const SubscriptionPage = () => {
     isLoading: subscriptionLoading,
     error: subscriptionError,
   } = useQuery<SubscriptionInfo>({
-    queryKey: ['/api/subscription'],
+    queryKey: ["/api/subscription"],
     enabled: !!user,
   });
 
   // Cancel subscription mutation
   const cancelMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/cancel-subscription');
+      const response = await apiRequest("POST", "/api/cancel-subscription");
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || 'Failed to cancel subscription');
+        throw new Error(data.message || "Failed to cancel subscription");
       }
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/subscription'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
       toast({
-        title: 'Subscription Cancelled',
-        description: 'Your subscription will remain active until the end of the billing period.',
+        title: "Subscription Cancelled",
+        description:
+          "Your subscription will remain active until the end of the billing period.",
       });
       setCancelDialogOpen(false);
     },
     onError: (error: Error) => {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -78,11 +100,11 @@ const SubscriptionPage = () => {
 
   // Format date to display in a readable format
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -90,25 +112,25 @@ const SubscriptionPage = () => {
   const getSubscriptionStatus = () => {
     if (!subscription) return null;
 
-    if (subscription.tier === 'free') {
+    if (subscription.tier === "free") {
       return {
-        label: 'Free',
-        color: 'bg-gray-100 text-gray-800',
+        label: "Free",
+        color: "bg-gray-100 text-gray-800",
         icon: null,
       };
     }
 
     if (subscription.active) {
       return {
-        label: 'Active',
-        color: 'bg-green-100 text-green-800',
+        label: "Active",
+        color: "bg-green-100 text-green-800",
         icon: <Check className="h-4 w-4 mr-1" />,
       };
     }
 
     return {
-      label: 'Inactive',
-      color: 'bg-red-100 text-red-800',
+      label: "Inactive",
+      color: "bg-red-100 text-red-800",
       icon: <ShieldOff className="h-4 w-4 mr-1" />,
     };
   };
@@ -119,7 +141,9 @@ const SubscriptionPage = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <h2 className="text-2xl font-semibold">Loading subscription details...</h2>
+        <h2 className="text-2xl font-semibold">
+          Loading subscription details...
+        </h2>
       </div>
     );
   }
@@ -129,9 +153,11 @@ const SubscriptionPage = () => {
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <div className="bg-red-100 text-red-800 p-4 rounded-lg max-w-md text-center">
           <h2 className="text-2xl font-semibold mb-2">Error</h2>
-          <p>Failed to load subscription information. Please try again later.</p>
+          <p>
+            Failed to load subscription information. Please try again later.
+          </p>
         </div>
-        <Button onClick={() => navigate('/dashboard')} className="mt-6">
+        <Button onClick={() => navigate("/dashboard")} className="mt-6">
           Return to Dashboard
         </Button>
       </div>
@@ -142,7 +168,9 @@ const SubscriptionPage = () => {
     <div className="container mx-auto py-12 px-4 max-w-3xl">
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold mb-2">Subscription Management</h1>
-        <p className="text-muted-foreground">Manage your Stackr subscription and billing details</p>
+        <p className="text-muted-foreground">
+          Manage your Stackr subscription and billing details
+        </p>
       </div>
 
       <Card className="mb-8">
@@ -150,7 +178,7 @@ const SubscriptionPage = () => {
           <div className="flex justify-between items-center">
             <CardTitle>Subscription Details</CardTitle>
             {status && (
-              <Badge 
+              <Badge
                 className={`flex items-center ${status.color}`}
                 variant="outline"
               >
@@ -168,11 +196,11 @@ const SubscriptionPage = () => {
             <div className="space-y-1">
               <p className="text-sm font-medium">Plan</p>
               <p className="text-lg font-semibold">
-                {subscription?.tier === 'pro' ? 'Stackr Pro' : 'Free Plan'}
+                {subscription?.tier === "pro" ? "Stackr Pro" : "Free Plan"}
               </p>
             </div>
-            
-            {subscription?.active && subscription?.tier === 'pro' && (
+
+            {subscription?.active && subscription?.tier === "pro" && (
               <div className="space-y-1">
                 <p className="text-sm font-medium">Price</p>
                 <p className="text-lg font-semibold">$9.99/month</p>
@@ -194,7 +222,7 @@ const SubscriptionPage = () => {
                 <Clock className="h-5 w-5 text-gray-500 mt-0.5" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium">
-                    {subscription.active ? 'Next Billing Date' : 'Expired on'}
+                    {subscription.active ? "Next Billing Date" : "Expired on"}
                   </p>
                   <p>{formatDate(subscription.endDate)}</p>
                 </div>
@@ -206,14 +234,32 @@ const SubscriptionPage = () => {
 
           <div className="space-y-3">
             <h3 className="font-medium">Plan Features</h3>
-            {subscription?.tier === 'pro' ? (
+            {subscription?.tier === "pro" ? (
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <li className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> AI Financial Assistant</li>
-                <li className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> Voice Commands</li>
-                <li className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> Bank Account Integration</li>
-                <li className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> Advanced Analytics</li>
-                <li className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> Unlimited Categories</li>
-                <li className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> Income Opportunities</li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" /> AI Financial
+                  Assistant
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" /> Voice
+                  Commands
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" /> Bank Account
+                  Integration
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" /> Advanced
+                  Analytics
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" /> Unlimited
+                  Categories
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" /> Income
+                  Opportunities
+                </li>
               </ul>
             ) : (
               <p className="text-muted-foreground">
@@ -223,10 +269,10 @@ const SubscriptionPage = () => {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:space-y-0">
-          {subscription?.tier === 'free' ? (
-            <Button 
-              variant="default" 
-              onClick={() => navigate('/subscribe')}
+          {subscription?.tier === "free" ? (
+            <Button
+              variant="default"
+              onClick={() => navigate("/subscribe")}
               className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white"
             >
               Upgrade to Pro
@@ -234,17 +280,17 @@ const SubscriptionPage = () => {
           ) : (
             <>
               {subscription?.active ? (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setCancelDialogOpen(true)}
                   className="w-full sm:w-auto"
                 >
                   Cancel Subscription
                 </Button>
               ) : (
-                <Button 
-                  variant="default" 
-                  onClick={() => navigate('/subscribe')}
+                <Button
+                  variant="default"
+                  onClick={() => navigate("/subscribe")}
                   className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white"
                 >
                   Renew Subscription
@@ -255,29 +301,30 @@ const SubscriptionPage = () => {
         </CardFooter>
       </Card>
 
-      {subscription?.tier === 'pro' && (
+      {subscription?.tier === "pro" && (
         <Card>
           <CardHeader>
             <CardTitle>Payment Method</CardTitle>
-            <CardDescription>
-              Manage your payment details
-            </CardDescription>
+            <CardDescription>Manage your payment details</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-4">
               <CreditCard className="h-10 w-10 text-muted-foreground" />
               <div>
-                <p className="font-medium">Payment information is managed through Stripe</p>
+                <p className="font-medium">
+                  Payment information is managed through Stripe
+                </p>
                 <p className="text-sm text-muted-foreground">
-                  For security reasons, your payment details are securely stored with our payment processor.
+                  For security reasons, your payment details are securely stored
+                  with our payment processor.
                 </p>
               </div>
             </div>
           </CardContent>
           <CardFooter>
-            <Button 
+            <Button
               variant="outline"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate("/dashboard")}
               className="w-full"
             >
               Return to Dashboard
@@ -292,24 +339,40 @@ const SubscriptionPage = () => {
           <DialogHeader>
             <DialogTitle>Cancel Your Subscription?</DialogTitle>
             <DialogDescription>
-              Are you sure you want to cancel your Stackr Pro subscription? You'll still have access to Pro features until the end of your current billing period.
+              Are you sure you want to cancel your Stackr Pro subscription?
+              You'll still have access to Pro features until the end of your
+              current billing period.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <p className="font-medium">What you'll lose:</p>
             <ul className="mt-2 space-y-1 text-sm">
-              <li className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> AI Financial Assistant</li>
-              <li className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> Voice Commands</li>
-              <li className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> Bank Account Integration</li>
-              <li className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> Advanced Analytics</li>
+              <li className="flex items-center">
+                <Check className="h-4 w-4 text-green-500 mr-2" /> AI Financial
+                Assistant
+              </li>
+              <li className="flex items-center">
+                <Check className="h-4 w-4 text-green-500 mr-2" /> Voice Commands
+              </li>
+              <li className="flex items-center">
+                <Check className="h-4 w-4 text-green-500 mr-2" /> Bank Account
+                Integration
+              </li>
+              <li className="flex items-center">
+                <Check className="h-4 w-4 text-green-500 mr-2" /> Advanced
+                Analytics
+              </li>
             </ul>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setCancelDialogOpen(false)}
+            >
               Keep Subscription
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleCancel}
               disabled={cancelMutation.isPending}
             >
@@ -319,7 +382,7 @@ const SubscriptionPage = () => {
                   Cancelling...
                 </>
               ) : (
-                'Confirm Cancellation'
+                "Confirm Cancellation"
               )}
             </Button>
           </DialogFooter>
