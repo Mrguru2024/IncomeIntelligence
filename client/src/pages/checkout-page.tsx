@@ -14,24 +14,18 @@ import { Separator } from '@/components/ui/separator';
 import type { Stripe } from '@stripe/stripe-js';
 
 // Create a lazy-loaded stripePromise that is only instantiated when needed
-let stripePromise: Promise<Stripe | null>;
 const getStripePromise = (): Promise<Stripe | null> => {
-  if (!stripePromise) {
-    stripePromise = (async () => {
-      try {
-        const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-        if (!stripeKey) {
-          console.error('Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)');
-          return null;
-        }
-        return await loadStripe(stripeKey);
-      } catch (error) {
-        console.error('Failed to initialize Stripe:', error);
-        return null;
-      }
-    })();
+  try {
+    const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+    if (!stripeKey) {
+      console.error('Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)');
+      return Promise.resolve(null);
+    }
+    return loadStripe(stripeKey);
+  } catch (error) {
+    console.error('Failed to initialize Stripe:', error);
+    return Promise.resolve(null);
   }
-  return stripePromise;
 };
 
 interface CheckoutFormProps {
