@@ -9,7 +9,10 @@ import {
 } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 
-const projectId = process.env.FIREBASE_PROJECT_ID || import.meta.env.VITE_FIREBASE_PROJECT_ID || "stackr-19160";
+import { getDataConnect } from "firebase/data-connect";
+import { connectorConfig } from "@firebasegen/default-connector";
+
+const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || "stackr-19160";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -21,11 +24,11 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Configure Data Connect client
-const dataConnectConfig = {
-  projectId,
-  // other config options...
-};
+// Initialize Data Connect
+const dataConnect = getDataConnect({
+  ...connectorConfig,
+  projectId
+});
 
 // Validate config before initialization
 if (!firebaseConfig.projectId) {
