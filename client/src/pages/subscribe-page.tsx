@@ -27,23 +27,22 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Stripe } from "@stripe/stripe-js";
 
 // Create a lazy-loaded stripePromise that is only instantiated when needed
-const getStripePromise = async (): Promise<Stripe | null> => {
+// Initialize Stripe only once and cache the promise
+const stripePromise = (() => {
   try {
     const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
     if (!stripeKey) {
       console.error("Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)");
-      return null;
+      return Promise.resolve(null);
     }
-    const stripe = await loadStripe(stripeKey);
-    if (!stripe) {
-      throw new Error("Failed to initialize Stripe");
-    }
-    return stripe;
+    return loadStripe(stripeKey);
   } catch (error) {
     console.error("Failed to initialize Stripe:", error);
-    return null;
+    return Promise.resolve(null);
   }
-};
+})();
+
+const getStripePromise = () => stripePromise;
 
 const SubscribeForm = () => {
   const stripe = useStripe();
