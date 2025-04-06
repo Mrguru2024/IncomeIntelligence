@@ -11,7 +11,18 @@ import { Loader2, ShoppingCart, ArrowLeft } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 // Initialize Stripe outside component to avoid recreating on each render
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+import type { Stripe } from '@stripe/stripe-js';
+let stripePromise: Promise<Stripe | null> | null = null;
+try {
+  const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+  if (!stripeKey) {
+    console.error('Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)');
+  } else {
+    stripePromise = loadStripe(stripeKey);
+  }
+} catch (error) {
+  console.error('Failed to initialize Stripe:', error);
+}
 
 interface CheckoutFormProps {
   amount: number;
