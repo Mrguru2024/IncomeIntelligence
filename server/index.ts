@@ -170,6 +170,7 @@ app.use((req, res, next) => {
 
   // Handle client-side routing (MUST come AFTER other routes)
   app.get('*', (req, res) => {
+    const __dirname = new URL('.', import.meta.url).pathname;
     res.sendFile(path.join(__dirname, '../client/dist/index.html'));
   });
 
