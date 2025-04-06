@@ -38,28 +38,30 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase Authentication with custom settings
 export const auth = getAuth(app);
 
-// Configure auth persistence and settings
-try {
-  await setPersistence(auth, browserLocalPersistence);
-  
-  // Configure auth settings after persistence is set
-  auth.settings = {
-    appVerificationDisabledForTesting: process.env.NODE_ENV === 'development',
-    forceRecaptcha: false
-  };
-  
-  // Add error event listener
-  auth.onAuthStateChanged((user) => {
-    if (user) {
-      console.log('User is signed in');
-    }
-  }, (error) => {
-    console.error('Auth state change error:', error);
+// Configure auth persistence
+setPersistence(auth, browserLocalPersistence)
+  .catch((error) => {
+    console.error("Firebase persistence error:", error);
   });
 
-} catch (error) {
-  console.error("Firebase initialization error:", error);
-}
+// Configure auth settings
+auth.settings.appVerificationDisabledForTesting = true;
+auth.settings.forceRecaptcha = false;
+
+// Add error event listener
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    console.log('User is signed in');
+  }
+}, (error) => {
+  console.error('Auth state change error:', error);
+});
+
+// Configure Google provider with custom parameters
+googleProvider.setCustomParameters({
+  prompt: 'select_account',
+  login_hint: 'user@example.com'
+});
 
 // Configure providers
 export const googleProvider = new GoogleAuthProvider();

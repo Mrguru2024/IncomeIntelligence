@@ -105,29 +105,7 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     try {
       setIsSocialLoginPending(true);
-      
-      // Configure provider settings
-      googleProvider.setCustomParameters({
-        prompt: 'select_account'
-      });
-      
-      // Try popup first
-      try {
-        const result = await signInWithPopup(auth, googleProvider);
-        console.log("Popup sign-in successful");
-        return result;
-      } catch (popupError: any) {
-        console.warn("Popup failed:", popupError?.code);
-        
-        // Only try redirect for specific errors
-        if (popupError?.code === 'auth/popup-blocked' || 
-            popupError?.code === 'auth/popup-closed-by-user') {
-          console.log("Attempting redirect sign-in...");
-          await signInWithRedirect(auth, googleProvider);
-        } else {
-          throw popupError;
-        }
-      }
+      await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
       console.error("Google sign-in error:", error?.code, error?.message);
       toast({
