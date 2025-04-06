@@ -5,7 +5,10 @@ import {
   GoogleAuthProvider, 
   GithubAuthProvider, 
   OAuthProvider,
-  browserLocalPersistence
+  browserLocalPersistence,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult 
 } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 
