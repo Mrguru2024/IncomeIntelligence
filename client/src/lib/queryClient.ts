@@ -1,5 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { auth } from "./firebase"; // Assuming firebase is imported elsewhere
+// import { auth } from "./firebase"; // Removed Firebase import
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -42,8 +42,8 @@ export async function apiRequest(
   data?: any,
   customHeaders?: Record<string, string>,
 ): Promise<Response> {
-  // Get current Firebase auth token
-  const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+  // Get current Firebase auth token  - This needs to be replaced
+  const token = getAuthToken(); // Now using localStorage
 
   // Create headers with auth token if available
   const headers: Record<string, string> = {
@@ -84,29 +84,35 @@ export const getQueryFn: <T>(options: {
         'Content-Type': 'application/json'
       };
 
-    // Add Authorization header if token exists
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+      const token = getAuthToken(); // Get token from local storage
 
-    const res = await fetch(queryKey[0] as string, {
-      headers,
-      credentials: "include",
-      mode: 'cors'
-    });
+      // Add Authorization header if token exists
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      // Clear token if unauthorized
-      if (token) removeAuthToken();
-      return null;
-    }
+      const res = await fetch(queryKey[0] as string, {
+        headers,
+        credentials: "include",
+        mode: 'cors'
+      });
 
-    await throwIfResNotOk(res);
-    try {
-      return await res.json();
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        // Clear token if unauthorized
+        if (token) removeAuthToken();
+        return null;
+      }
+
+      await throwIfResNotOk(res);
+      try {
+        return await res.json();
+      } catch (error) {
+        console.error('Error parsing response:', error);
+        return null;
+      }
     } catch (error) {
-      console.error('Error parsing response:', error);
-      return null;
+      console.error("Error in getQueryFn:", error);
+      throw error; // Re-throw the error to be handled by react-query
     }
   };
 
