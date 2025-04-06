@@ -286,26 +286,55 @@ export function setupAuth(app: Express) {
       }).parse(req.body);
       
       // Verify and handle the token with Firebase
-      const user = await handleSocialAuth(idToken);
+      let user;
+      try {
+        user = await handleSocialAuth(idToken);
+      } catch (err) {
+        const error = err as Error;
+        console.warn('Social login failed:', error.message || 'Unknown error');
+        if (process.env.NODE_ENV === 'development') {
+          // In development mode, we can continue with a mock user
+          user = {
+            id: 1,
+            username: 'devuser',
+            email: 'dev@example.com',
+            role: 'user',
+            provider: 'firebase',
+            providerId: 'mock-uid',
+            firebaseUid: 'mock-uid',
+          };
+          console.log('Using mock user for development:', user);
+        } else {
+          return res.status(503).json({ 
+            message: 'Social authentication is currently unavailable',
+            details: error.message || 'Unknown error'
+          });
+        }
+      }
       
       if (!user) {
         return res.status(400).json({ message: 'Failed to authenticate with social provider' });
       }
       
-      // Remove password from response
-      const { password, ...userWithoutPassword } = user;
-      
       // Generate JWT token
       const token = generateToken({
         id: user.id,
         username: user.username,
-        email: user.email,
+        email: user.email || '',
         role: user.role
       });
       
+      // Create user response without password
+      const userResponse = { ...user } as Record<string, any>;
+      
+      // Delete password if it exists (for non-mock users)
+      if ('password' in userResponse) {
+        delete userResponse.password;
+      }
+      
       return res.status(200).json({
         message: 'Social login successful',
-        user: userWithoutPassword,
+        user: userResponse,
         token
       });
     } catch (error) {
