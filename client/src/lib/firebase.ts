@@ -27,7 +27,13 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase only once
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+let app;
+if (getApps().length) {
+  app = getApps()[0];
+} else {
+  app = initializeApp(firebaseConfig);
+}
+
 const auth = getAuth(app);
 const analytics = getAnalytics(app);
 

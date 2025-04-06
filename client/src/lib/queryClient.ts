@@ -83,8 +83,8 @@ export const getQueryFn: <T>(options: {
     const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
     
     if (!projectId) {
-      console.error('Project ID missing');
-      return null;
+      console.error('Firebase Project ID is missing');
+      throw new Error('Firebase configuration error');
     }
 
     // Create headers with auth token if available
