@@ -27,13 +27,13 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN format
   
   if (!token) {
-    return next(); // Allow request to proceed without user
+    return res.status(401).json({ message: 'Not authenticated' });
   }
   
   // Verify token
   const payload = verifyToken(token);
   if (!payload) {
-    return next(); // Invalid token, proceed without user
+    return res.status(401).json({ message: 'Invalid or expired token' });
   }
   
   // Set user data in request
@@ -102,7 +102,31 @@ export const requireSelfOrAdmin = (req: Request, res: Response, next: NextFuncti
  * Optional authentication middleware
  * Sets user data if token is valid, but doesn't require it
  */
-export const optionalAuth = authenticateToken;
+export const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
+  // Get authorization header
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN format
+  
+  if (!token) {
+    return next(); // Allow request to proceed without user
+  }
+  
+  // Verify token
+  const payload = verifyToken(token);
+  if (!payload) {
+    return next(); // Invalid token, proceed without user
+  }
+  
+  // Set user data in request
+  req.user = {
+    id: payload.id,
+    username: payload.username,
+    email: payload.email,
+    role: payload.role || 'user'
+  };
+  
+  next();
+};
 
 /**
  * Middleware to check if authenticated user matches userId in request body

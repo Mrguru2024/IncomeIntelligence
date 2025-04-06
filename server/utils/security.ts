@@ -94,6 +94,14 @@ export function hashPassword(password: string): string {
  */
 export function verifyPassword(password: string, storedHash: string): boolean {
   try {
+    // Check if this is a bcrypt hash (starts with $2b$)
+    if (storedHash.startsWith('$2b$') || storedHash.startsWith('$2a$')) {
+      // Use bcrypt compare
+      const bcrypt = require('bcrypt');
+      return bcrypt.compareSync(password, storedHash);
+    }
+    
+    // Handle scrypt hash (our format)
     const [hashedPassword, salt] = storedHash.split('.');
     const hashedPasswordBuf = Buffer.from(hashedPassword, 'hex');
     
@@ -107,6 +115,11 @@ export function verifyPassword(password: string, storedHash: string): boolean {
     // Fallback to a simple comparison if scrypt fails
     // This should never happen in normal operation
     try {
+      // Check if this might be a bcrypt hash that failed
+      if (storedHash.startsWith('$2b$') || storedHash.startsWith('$2a$')) {
+        return false;
+      }
+      
       const [hashedPassword, salt] = storedHash.split('.');
       const hash = createHash('sha256').update(password).update(salt).digest('hex');
       return hash === hashedPassword;
