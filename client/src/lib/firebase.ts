@@ -23,8 +23,15 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 const auth = getAuth(app);
 
-// Set persistence
-setPersistence(auth, browserLocalPersistence);
+// Set persistence with better error handling
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log('Firebase persistence set successfully');
+  })
+  .catch((error) => {
+    console.warn('Firebase persistence error:', error);
+    // Continue anyway as this is not critical
+  });
 
 // Initialize providers
 const googleProvider = new GoogleAuthProvider();
