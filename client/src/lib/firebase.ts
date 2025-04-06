@@ -1,125 +1,62 @@
-
-import { initializeApp, getApps } from "firebase/app";
+import { initializeApp, getApps } from 'firebase/app';
 import { 
   getAuth, 
   GoogleAuthProvider, 
-  GithubAuthProvider, 
+  GithubAuthProvider,
   OAuthProvider,
   browserLocalPersistence,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult 
-} from "firebase/auth";
-import { getAnalytics } from "firebase/analytics";
+  setPersistence
+} from 'firebase/auth';
+import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCnIly7WixD5bJqPKUms7HHqD41pQOei94",
-  authDomain: "stackr-19160.firebaseapp.com",
-  projectId: "stackr-19160",
-  storageBucket: "stackr-19160.appspot.com",
-  messagingSenderId: "887839576217",
-  appId: "1:887839576217:web:37d47847b89cd4687d2808",
-  measurementId: "G-DZ87C6BM55"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase only once
+// Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 const auth = getAuth(app);
-const analytics = process.env.NODE_ENV === 'production' ? getAnalytics(app) : null;
 
-// Configure auth providers
+// Set persistence
+setPersistence(auth, browserLocalPersistence);
+
+// Initialize providers
 const googleProvider = new GoogleAuthProvider();
-googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
-googleProvider.addScope('https://www.googleapis.com/auth/userinfo.email');
-googleProvider.setCustomParameters({
-  prompt: 'select_account'
-});
-
 const githubProvider = new GithubAuthProvider();
 const appleProvider = new OAuthProvider('apple.com');
 
-// Set persistence
-auth.setPersistence(browserLocalPersistence)
-  .then(() => console.log('Firebase persistence set'))
-  .catch(error => console.error('Firebase persistence error:', error));
+// Configure Google provider
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.email');
 
-// Configure language
+// Configure Github provider
+githubProvider.addScope('read:user');
+githubProvider.addScope('user:email');
+
+//This part remains from original code, as it's not directly related to initialization or provider setup.
+const analytics = process.env.NODE_ENV === 'production' ? getAnalytics(app) : null;
 auth.useDeviceLanguage();
-      
-      // Configure auth settings
-      auth.settings.appVerificationDisabledForTesting = process.env.NODE_ENV === 'development';
-      
-      // Set persistence with retry
-      const setPersistenceWithRetry = async (retries = 3) => {
-        for (let i = 0; i < retries; i++) {
-          try {
-            await auth.setPersistence(browserLocalPersistence);
-            console.log('Firebase persistence set');
-            break;
-          } catch (error) {
-            if (i === retries - 1) throw error;
-            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-          }
-        }
-      };
-      
-      setPersistenceWithRetry().catch(error => {
-        console.error('Firebase persistence error after retries:', error);
-      });
-      
-      // Initialize analytics only in production
-      if (process.env.NODE_ENV === 'production') {
-        try {
-          analytics = getAnalytics(app);
-          console.log('Firebase Analytics initialized');
-        } catch (error) {
-          console.log('Analytics initialization skipped');
-        }
-      }
-    } else {
-      app = getApps()[0];
-      auth = getAuth(app);
-      
-      if (process.env.NODE_ENV === 'production') {
-        try {
-          analytics = getAnalytics(app);
-        } catch (error) {
-          console.log('Analytics initialization skipped');
-        }
-      }
-    }
+auth.settings.appVerificationDisabledForTesting = process.env.NODE_ENV === 'development';
 
-    // Configure auth state persistence
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        console.log('User is signed in');
-      }
-    });
-
-  } catch (error) {
-    console.error('Firebase initialization error:', error);
-    throw error;
+// Configure auth state persistence (from original code)
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    console.log('User is signed in');
   }
+});
 
-  googleProvider = new GoogleAuthProvider();
-  githubProvider = new GithubAuthProvider();
-  appleProvider = new OAuthProvider('apple.com');
 
-  // Configure Google provider with correct parameters
-  googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
-  googleProvider.addScope('https://www.googleapis.com/auth/userinfo.email');
-  googleProvider.setCustomParameters({
-    prompt: 'select_account',
-    access_type: 'offline',
-    login_hint: ''
-  });
-  githubProvider.addScope('read:user');
-  githubProvider.addScope('user:email');
-
-} catch (error) {
-  console.error('Firebase initialization error:', error);
-  throw error;
-}
-
-export { auth, googleProvider, githubProvider, appleProvider, analytics };
-export default app;
+export { 
+  app,
+  auth,
+  googleProvider,
+  githubProvider,
+  appleProvider,
+  analytics
+};
