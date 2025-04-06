@@ -95,8 +95,13 @@ try {
   githubProvider = new GithubAuthProvider();
   appleProvider = new OAuthProvider('apple.com');
 
-  // Configure providers
-  googleProvider.setCustomParameters({ prompt: 'select_account' });
+  // Configure providers with required scopes
+  googleProvider.addScope('profile');
+  googleProvider.addScope('email');
+  googleProvider.setCustomParameters({
+    prompt: 'select_account',
+    access_type: 'offline'
+  });
   githubProvider.addScope('read:user');
   githubProvider.addScope('user:email');
 
