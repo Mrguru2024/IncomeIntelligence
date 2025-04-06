@@ -30,30 +30,37 @@ try {
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
     console.log('Firebase initialized successfully');
-    try {
-      if (process.env.NODE_ENV === 'production') {
+    
+    // Initialize auth first
+    auth = getAuth(app);
+    auth.useDeviceLanguage(); // Use device language
+    
+    // Set persistence
+    auth.setPersistence(browserLocalPersistence)
+      .then(() => console.log('Firebase persistence set'))
+      .catch(error => console.error('Firebase persistence error:', error));
+    
+    // Initialize analytics only in production
+    if (process.env.NODE_ENV === 'production') {
+      try {
         analytics = getAnalytics(app);
         console.log('Firebase Analytics initialized');
+      } catch (error) {
+        console.log('Analytics initialization skipped');
       }
-    } catch (error) {
-      console.log('Analytics initialization skipped in development');
     }
   } else {
     app = getApps()[0];
-    try {
-      if (process.env.NODE_ENV === 'production') {
+    auth = getAuth(app);
+    
+    if (process.env.NODE_ENV === 'production') {
+      try {
         analytics = getAnalytics(app);
+      } catch (error) {
+        console.log('Analytics initialization skipped');
       }
-    } catch (error) {
-      console.log('Analytics initialization skipped in development');
     }
-    console.log('Using existing Firebase instance');
   }
-
-  auth = getAuth(app);
-  auth.setPersistence(browserLocalPersistence)
-    .then(() => console.log('Firebase persistence set'))
-    .catch(error => console.error('Firebase persistence error:', error));
 
   googleProvider = new GoogleAuthProvider();
   githubProvider = new GithubAuthProvider();
