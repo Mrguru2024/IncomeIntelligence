@@ -11,9 +11,6 @@ import {
   browserLocalPersistence
 } from "firebase/auth";
 
-import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, GithubAuthProvider, OAuthProvider } from "firebase/auth";
-
 // Your web app's Firebase configuration from environment variables
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -38,6 +35,24 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase Authentication with custom settings
 export const auth = getAuth(app);
 
+// Configure providers
+export const googleProvider = new GoogleAuthProvider();
+export const githubProvider = new GithubAuthProvider();
+export const appleProvider = new OAuthProvider('apple.com');
+
+// Configure Google provider with custom parameters
+googleProvider.setCustomParameters({
+  prompt: 'select_account',
+  login_hint: 'user@example.com'
+});
+
+// Add scopes for additional permissions
+googleProvider.addScope('profile');
+googleProvider.addScope('email');
+
+githubProvider.addScope('read:user');
+githubProvider.addScope('user:email');
+
 // Configure auth persistence
 setPersistence(auth, browserLocalPersistence)
   .catch((error) => {
@@ -56,23 +71,5 @@ auth.onAuthStateChanged((user) => {
 }, (error) => {
   console.error('Auth state change error:', error);
 });
-
-// Configure Google provider with custom parameters
-googleProvider.setCustomParameters({
-  prompt: 'select_account',
-  login_hint: 'user@example.com'
-});
-
-// Configure providers
-export const googleProvider = new GoogleAuthProvider();
-export const githubProvider = new GithubAuthProvider();
-export const appleProvider = new OAuthProvider('apple.com');
-
-// Add scopes for additional permissions
-googleProvider.addScope('profile');
-googleProvider.addScope('email');
-
-githubProvider.addScope('read:user');
-githubProvider.addScope('user:email');
 
 export default app;
