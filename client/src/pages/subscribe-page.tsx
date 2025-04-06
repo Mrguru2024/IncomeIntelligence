@@ -12,7 +12,18 @@ import { Check, X, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Initialize Stripe outside component to avoid recreating on each render
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+import type { Stripe } from '@stripe/stripe-js';
+let stripePromise: Promise<Stripe | null> | null = null;
+try {
+  const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+  if (!stripeKey) {
+    console.error('Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)');
+  } else {
+    stripePromise = loadStripe(stripeKey);
+  }
+} catch (error) {
+  console.error('Failed to initialize Stripe:', error);
+}
 
 const SubscribeForm = () => {
   const stripe = useStripe();
