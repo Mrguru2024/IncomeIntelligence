@@ -12,12 +12,20 @@ import { getAnalytics } from "firebase/analytics";
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  projectId: "stackr-19160", // Explicitly set project ID
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
+
+// Log config for debugging
+console.log("Firebase Config:", { 
+  projectId: firebaseConfig.projectId,
+  apiKey: firebaseConfig.apiKey ? "present" : "missing",
+  authDomain: firebaseConfig.authDomain ? "present" : "missing"
+});
+</old_str>
 
 // Initialize Firebase only once
 let app;
