@@ -31,6 +31,7 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
+  props["aria-describedby"] = "dialog-description",
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
