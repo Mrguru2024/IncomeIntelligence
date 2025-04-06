@@ -16,6 +16,11 @@ export function setupFirebaseAdmin() {
 
 // Middleware to verify Firebase token
 export const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
+  // Verify project ID is set
+  if (!process.env.FIREBASE_PROJECT_ID) {
+    console.error('FIREBASE_PROJECT_ID not configured');
+    return res.status(500).json({ message: 'Server configuration error' });
+  }
   // If Firebase is not initialized, we'll handle this gracefully in development
   if (!hasFirebaseCredentials) {
     if (process.env.NODE_ENV === 'development') {
