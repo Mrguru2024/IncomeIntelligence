@@ -70,20 +70,11 @@ if (stripeSecretKey) {
   }
 }
 
-// Check Firebase credentials and provide a message in development mode
-const hasFirebaseCreds = !!(
-  process.env.FIREBASE_PROJECT_ID &&
-  process.env.FIREBASE_CLIENT_EMAIL &&
-  process.env.FIREBASE_PRIVATE_KEY
-);
+// Initialize Firebase Admin using our centralized firebase-admin module
+import { setupFirebaseAdmin } from './middleware/firebase-auth';
 
-if (!hasFirebaseCreds) {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Firebase credentials missing or invalid, but continuing in development mode');
-  } else {
-    console.warn('Firebase credentials are missing. Social authentication will be disabled.');
-  }
-}
+// This will attempt to initialize Firebase and return whether it was successful
+const hasFirebaseCreds = setupFirebaseAdmin();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
