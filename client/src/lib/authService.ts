@@ -135,6 +135,7 @@ const sendAuthToBackend = async (
     const data = await response.json();
 
     if (!response.ok) {
+      console.error('Auth error:', data);
       throw new Error(data.message || "Failed to authenticate with backend");
     }
 

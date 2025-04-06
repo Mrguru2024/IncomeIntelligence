@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -30,6 +29,8 @@ import { Loader2, CircleDollarSign } from "lucide-react";
 import { auth, googleProvider } from "@/lib/firebase";
 import { getRedirectResult, GoogleAuthProvider } from "firebase/auth";
 import { signInWithPopup } from "firebase/auth";
+import { useAuth } from "@/hooks/use-auth";
+
 
 // Login validation schema
 const loginSchema = z.object({
@@ -66,6 +67,7 @@ export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isSocialLoginPending, setIsSocialLoginPending] = useState(false);
+  const { loginMutation } = useAuth();
 
   // Check for redirect result on page load
   useEffect(() => {
@@ -218,6 +220,7 @@ export default function AuthPage() {
       username: "",
       password: "",
     },
+    mode: "onChange"
   });
 
   // Register form hook
@@ -232,46 +235,6 @@ export default function AuthPage() {
   });
 
   // Login mutation
-  const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginFormValues) => {
-      try {
-        const res = await apiRequest("POST", "/api/auth/login", {
-          identifier: credentials.username,
-          password: credentials.password,
-        });
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          console.error("Login error response:", errorData);
-          throw new Error(
-            errorData.message || "Login failed. Please check your credentials.",
-          );
-        }
-
-        const data = await res.json();
-        return data;
-      } catch (error) {
-        console.error("Login error:", error);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      toast({
-        title: "Login successful",
-        description: "Welcome back to Stackr!",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setTimeout(() => setLocation("/"), 500);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Login failed",
-        description:
-          error.message || "There was an error logging in. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
 
   // Register mutation
   const registerMutation = useMutation({
@@ -313,14 +276,17 @@ export default function AuthPage() {
     },
   });
 
-  const onLoginSubmit = async (values: LoginFormValues) => {
+  const onLoginSubmit = async (data: LoginFormValues) => {
     try {
-      loginMutation.mutate(values);
+      await loginMutation.mutateAsync({
+        identifier: data.username,
+        password: data.password
+      });
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       toast({
-        title: "Login Error",
-        description: "Please check your network connection and try again.",
+        title: "Login failed",
+        description: "Please check your credentials and try again",
         variant: "destructive",
       });
     }
@@ -796,7 +762,7 @@ export default function AuthPage() {
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-6 w-6 text-primary"
                   fill="none"
-                  viewBox="0 0 24 24"
+                  viewBox="00 24"
                   stroke="currentColor"
                 >
                   <path
