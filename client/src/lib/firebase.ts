@@ -8,11 +8,15 @@ import {
   browserLocalPersistence,
 } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
-
 import { getDataConnect } from "firebase/data-connect";
 import { connectorConfig } from "@firebasegen/default-connector";
 
-const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || "stackr-19160";
+// Get project ID from environment variables
+const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+
+if (!projectId) {
+  throw new Error('VITE_FIREBASE_PROJECT_ID is required');
+}
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -24,20 +28,15 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Data Connect
+// Initialize Firebase only once
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// Initialize Data Connect with projectId
 const dataConnect = getDataConnect({
   ...connectorConfig,
   projectId
 });
-
-// Validate config before initialization
-if (!firebaseConfig.projectId) {
-  throw new Error('Firebase projectId is missing from configuration');
-}
-
-// Initialize Firebase only once
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-const auth = getAuth(app);
 
 // Initialize providers
 const googleProvider = new GoogleAuthProvider();
@@ -59,4 +58,4 @@ auth
 // Configure language
 auth.useDeviceLanguage();
 
-export { app, auth, googleProvider, githubProvider, appleProvider };
+export { app, auth, googleProvider, githubProvider, appleProvider, dataConnect };

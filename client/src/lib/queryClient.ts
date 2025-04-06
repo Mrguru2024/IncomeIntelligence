@@ -80,7 +80,11 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     // Get current Firebase auth token and project configuration
     const token = auth.currentUser ? await auth.currentUser.getIdToken(true) : null;
-    const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || "stackr-19160";
+    const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+    
+    if (!projectId) {
+      throw new Error('VITE_FIREBASE_PROJECT_ID is required');
+    }
 
     // Create headers with auth token if available
     const headers: Record<string, string> = {
