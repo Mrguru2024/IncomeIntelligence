@@ -24,7 +24,8 @@ import {
   insertInvoiceSchema,
   insertCreativeGrantSchema,
   insertGrantApplicationSchema,
-  insertReferralSchema
+  insertReferralSchema,
+  insertProfessionalServiceSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -3617,6 +3618,202 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching subscription status:', error);
       res.status(500).json({ message: "Failed to fetch subscription status" });
+    }
+  });
+
+  // PROFESSIONAL SERVICES ENDPOINTS
+  
+  // Get all professional services
+  app.get("/api/professional-services", async (req, res) => {
+    try {
+      const services = await storage.getProfessionalServices();
+      res.json(services);
+    } catch (error) {
+      console.error('Error fetching professional services:', error);
+      res.status(500).json({ message: "Failed to fetch professional services" });
+    }
+  });
+  
+  // Get professional service by ID
+  app.get("/api/professional-services/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid service ID" });
+      }
+      
+      const service = await storage.getProfessionalServiceById(id);
+      if (!service) {
+        return res.status(404).json({ message: "Professional service not found" });
+      }
+      
+      res.json(service);
+    } catch (error) {
+      console.error('Error fetching professional service:', error);
+      res.status(500).json({ message: "Failed to fetch professional service" });
+    }
+  });
+  
+  // Create new professional service (requires authentication)
+  app.post("/api/professional-services", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized - User ID not found" });
+      }
+      
+      const validatedData = insertProfessionalServiceSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const service = await storage.createProfessionalService(validatedData);
+      res.status(201).json(service);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating professional service:', error);
+      res.status(500).json({ message: "Failed to create professional service" });
+    }
+  });
+  
+  // Update professional service (requires authentication and ownership)
+  app.patch("/api/professional-services/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid service ID" });
+      }
+      
+      // Get service to verify ownership
+      const service = await storage.getProfessionalServiceById(id);
+      if (!service) {
+        return res.status(404).json({ message: "Professional service not found" });
+      }
+      
+      // Verify ownership
+      if (service.userId !== req.user?.id) {
+        return res.status(403).json({ message: "Unauthorized - You do not own this service" });
+      }
+      
+      const validatedData = insertProfessionalServiceSchema.partial().parse(req.body);
+      
+      const updatedService = await storage.updateProfessionalService(id, validatedData);
+      if (!updatedService) {
+        return res.status(404).json({ message: "Professional service not found" });
+      }
+      
+      res.json(updatedService);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating professional service:', error);
+      res.status(500).json({ message: "Failed to update professional service" });
+    }
+  });
+  
+  // Delete professional service (requires authentication and ownership)
+  app.delete("/api/professional-services/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid service ID" });
+      }
+      
+      // Get service to verify ownership
+      const service = await storage.getProfessionalServiceById(id);
+      if (!service) {
+        return res.status(404).json({ message: "Professional service not found" });
+      }
+      
+      // Verify ownership
+      if (service.userId !== req.user?.id) {
+        return res.status(403).json({ message: "Unauthorized - You do not own this service" });
+      }
+      
+      const success = await storage.deleteProfessionalService(id);
+      if (!success) {
+        return res.status(404).json({ message: "Professional service not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting professional service:', error);
+      res.status(500).json({ message: "Failed to delete professional service" });
+    }
+  });
+  
+  // Get professional services by user ID
+  app.get("/api/users/:userId/professional-services", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const services = await storage.getProfessionalServicesByUserId(userId);
+      res.json(services);
+    } catch (error) {
+      console.error('Error fetching user professional services:', error);
+      res.status(500).json({ message: "Failed to fetch user professional services" });
+    }
+  });
+  
+  // Get professional services by category
+  app.get("/api/professional-services/category/:category", async (req, res) => {
+    try {
+      const category = req.params.category;
+      
+      const services = await storage.getProfessionalServicesByCategory(category);
+      res.json(services);
+    } catch (error) {
+      console.error('Error fetching professional services by category:', error);
+      res.status(500).json({ message: "Failed to fetch professional services by category" });
+    }
+  });
+  
+  // Toggle service active status (requires authentication and ownership)
+  app.patch("/api/professional-services/:id/toggle-active", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid service ID" });
+      }
+      
+      // Get service to verify ownership
+      const service = await storage.getProfessionalServiceById(id);
+      if (!service) {
+        return res.status(404).json({ message: "Professional service not found" });
+      }
+      
+      // Verify ownership
+      if (service.userId !== req.user?.id) {
+        return res.status(403).json({ message: "Unauthorized - You do not own this service" });
+      }
+      
+      const schema = z.object({
+        isActive: z.boolean()
+      });
+      
+      const { isActive } = schema.parse(req.body);
+      
+      const updatedService = await storage.toggleProfessionalServiceActive(id, isActive);
+      if (!updatedService) {
+        return res.status(404).json({ message: "Professional service not found" });
+      }
+      
+      res.json(updatedService);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error toggling professional service active status:', error);
+      res.status(500).json({ message: "Failed to toggle professional service active status" });
     }
   });
 
