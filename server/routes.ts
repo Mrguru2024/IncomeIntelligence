@@ -2084,7 +2084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // USER PROFILE ENDPOINTS
 
   // Get user profile
-  app.get("/api/user/profile", async (req, res) => {
+  app.get("/api/user/profile", firebaseAuth, async (req, res) => {
     try {
       // For now, hardcode userId as 1 since we don't have authentication yet
       const userId = 1;

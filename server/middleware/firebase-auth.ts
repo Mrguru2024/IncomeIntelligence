@@ -55,7 +55,26 @@ export const verifyFirebaseToken = async (req: Request, res: Response, next: Nex
     next();
   } catch (error) {
     console.error('Error verifying Firebase token:', error);
-    return res.status(401).json({ message: 'Unauthorized - Invalid token' });
+    return res.status(401).json({ message: 'Not authenticated' });
+  }
+};
+
+export const firebaseAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+
+    const token = authHeader.split('Bearer ')[1];
+    const admin = getFirebaseAdmin();
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    console.error('Firebase auth error:', error);
+    return res.status(401).json({ message: 'Not authenticated' });
   }
 };
 
