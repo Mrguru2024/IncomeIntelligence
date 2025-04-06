@@ -78,12 +78,14 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Get current Firebase auth token
+    // Get current Firebase auth token and project configuration
     const token = auth.currentUser ? await auth.currentUser.getIdToken(true) : null;
+    const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || "stackr-19160";
 
     // Create headers with auth token if available
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Firebase-Project': projectId
     };
 
     // Add Authorization header if token exists
