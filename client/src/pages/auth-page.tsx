@@ -81,7 +81,7 @@ export default function AuthPage() {
             description: `Welcome, ${user.displayName || "New User"}!`,
           });
           
-          queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
           setTimeout(() => setLocation('/'), 500);
         }
       } catch (error) {
@@ -120,7 +120,7 @@ export default function AuthPage() {
 
   // Check if user is logged in
   const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ['/api/user'],
+    queryKey: ['/api/auth/user'],
     queryFn: async ({ queryKey }) => {
       try {
         const res = await fetch(queryKey[0], { 
@@ -168,8 +168,8 @@ export default function AuthPage() {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginFormValues) => {
-      const res = await apiRequest('POST', '/api/login', {
-        username: credentials.username,
+      const res = await apiRequest('POST', '/api/auth/login', {
+        identifier: credentials.username,
         password: credentials.password
       });
       
@@ -185,7 +185,7 @@ export default function AuthPage() {
         title: "Login successful",
         description: "Welcome back to Stackr!",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       setTimeout(() => setLocation('/'), 500);
     },
     onError: (error: Error) => {
@@ -200,7 +200,7 @@ export default function AuthPage() {
   // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (userData: RegisterFormValues) => {
-      const res = await apiRequest('POST', '/api/register', {
+      const res = await apiRequest('POST', '/api/auth/register', {
         username: userData.username,
         email: userData.email,
         password: userData.password
