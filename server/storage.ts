@@ -13,7 +13,8 @@ import { users, type User, type InsertUser, incomes, type Income, type InsertInc
   widgetSettings, type WidgetSettings, type InsertWidgetSettings,
   notifications, type Notification, type InsertNotification,
   spendingPersonalityQuestions, type SpendingPersonalityQuestion, type InsertSpendingPersonalityQuestion,
-  spendingPersonalityResults, type SpendingPersonalityResult, type InsertSpendingPersonalityResult
+  spendingPersonalityResults, type SpendingPersonalityResult, type InsertSpendingPersonalityResult,
+  budgets, type Budget, type InsertBudget
  } from "@shared/schema";
 
 // modify the interface with any CRUD methods
@@ -189,6 +190,15 @@ export interface IStorage {
   getSpendingPersonalityResultById(id: number): Promise<SpendingPersonalityResult | undefined>;
   createSpendingPersonalityResult(result: InsertSpendingPersonalityResult): Promise<SpendingPersonalityResult>;
   getLatestSpendingPersonalityResult(userId: number): Promise<SpendingPersonalityResult | undefined>;
+  
+  // Budget methods
+  getBudgets(): Promise<Budget[]>;
+  getBudgetById(id: number): Promise<Budget | undefined>;
+  createBudget(budget: InsertBudget): Promise<Budget>;
+  updateBudget(id: number, budget: Partial<InsertBudget>): Promise<Budget | undefined>;
+  deleteBudget(id: number): Promise<boolean>;
+  getBudgetsByUserId(userId: number): Promise<Budget[]>;
+  getBudgetsByYearMonth(userId: number, year: number, month: number): Promise<Budget[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -210,6 +220,7 @@ export class MemStorage implements IStorage {
   private notifications: Map<number, Notification>;
   private spendingPersonalityQuestions: Map<number, SpendingPersonalityQuestion>;
   private spendingPersonalityResults: Map<number, SpendingPersonalityResult>;
+  private budgets: Map<number, Budget>;
   
   private userCurrentId: number;
   private userProfileCurrentId: number;
@@ -229,6 +240,7 @@ export class MemStorage implements IStorage {
   private notificationCurrentId: number;
   private spendingPersonalityQuestionCurrentId: number;
   private spendingPersonalityResultCurrentId: number;
+  private budgetCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -249,6 +261,7 @@ export class MemStorage implements IStorage {
     this.notifications = new Map();
     this.spendingPersonalityQuestions = new Map();
     this.spendingPersonalityResults = new Map();
+    this.budgets = new Map();
     
     this.userCurrentId = 1;
     this.userProfileCurrentId = 1;
@@ -268,6 +281,7 @@ export class MemStorage implements IStorage {
     this.notificationCurrentId = 1;
     this.spendingPersonalityQuestionCurrentId = 1;
     this.spendingPersonalityResultCurrentId = 1;
+    this.budgetCurrentId = 1;
     
     // Add some initial data
     this.setupInitialData();
@@ -2237,6 +2251,78 @@ export class MemStorage implements IStorage {
     if (userResults.length === 0) return undefined;
     
     return userResults[0]; // Already sorted by takenAt desc
+  }
+
+  // Budget methods
+  async getBudgets(): Promise<Budget[]> {
+    return Array.from(this.budgets.values());
+  }
+
+  async getBudgetById(id: number): Promise<Budget | undefined> {
+    return this.budgets.get(id);
+  }
+
+  async createBudget(budget: InsertBudget): Promise<Budget> {
+    const id = this.budgetCurrentId++;
+    const now = new Date();
+    
+    const newBudget: Budget = {
+      id,
+      userId: budget.userId,
+      year: budget.year,
+      month: budget.month,
+      needsPercentage: budget.needsPercentage || 40,
+      wantsPercentage: budget.wantsPercentage || 30,
+      savingsPercentage: budget.savingsPercentage || 30,
+      needsCategories: Array.isArray(budget.needsCategories) ? budget.needsCategories : [],
+      wantsCategories: Array.isArray(budget.wantsCategories) ? budget.wantsCategories : [],
+      savingsCategories: Array.isArray(budget.savingsCategories) ? budget.savingsCategories : [],
+      rules: Array.isArray(budget.rules) ? budget.rules : [],
+      monthlyIncome: budget.monthlyIncome || null,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.budgets.set(id, newBudget);
+    return newBudget;
+  }
+
+  async updateBudget(id: number, budget: Partial<InsertBudget>): Promise<Budget | undefined> {
+    const existingBudget = this.budgets.get(id);
+    if (!existingBudget) return undefined;
+    
+    const updatedBudget: Budget = {
+      ...existingBudget,
+      ...(budget.userId !== undefined ? { userId: budget.userId } : {}),
+      ...(budget.year !== undefined ? { year: budget.year } : {}),
+      ...(budget.month !== undefined ? { month: budget.month } : {}),
+      ...(budget.needsPercentage !== undefined ? { needsPercentage: budget.needsPercentage } : {}),
+      ...(budget.wantsPercentage !== undefined ? { wantsPercentage: budget.wantsPercentage } : {}),
+      ...(budget.savingsPercentage !== undefined ? { savingsPercentage: budget.savingsPercentage } : {}),
+      ...(budget.needsCategories !== undefined ? { needsCategories: Array.isArray(budget.needsCategories) ? budget.needsCategories : [] } : {}),
+      ...(budget.wantsCategories !== undefined ? { wantsCategories: Array.isArray(budget.wantsCategories) ? budget.wantsCategories : [] } : {}),
+      ...(budget.savingsCategories !== undefined ? { savingsCategories: Array.isArray(budget.savingsCategories) ? budget.savingsCategories : [] } : {}),
+      ...(budget.rules !== undefined ? { rules: Array.isArray(budget.rules) ? budget.rules : [] } : {}),
+      ...(budget.monthlyIncome !== undefined ? { monthlyIncome: budget.monthlyIncome } : {}),
+      updatedAt: new Date()
+    };
+    
+    this.budgets.set(id, updatedBudget);
+    return updatedBudget;
+  }
+
+  async deleteBudget(id: number): Promise<boolean> {
+    return this.budgets.delete(id);
+  }
+
+  async getBudgetsByUserId(userId: number): Promise<Budget[]> {
+    return Array.from(this.budgets.values())
+      .filter(budget => budget.userId === userId);
+  }
+
+  async getBudgetsByYearMonth(userId: number, year: number, month: number): Promise<Budget[]> {
+    return Array.from(this.budgets.values())
+      .filter(budget => budget.userId === userId && budget.year === year && budget.month === month);
   }
 }
 

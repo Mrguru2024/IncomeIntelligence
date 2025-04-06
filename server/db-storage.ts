@@ -7,7 +7,8 @@ import {
   Reminder, InsertReminder, reminders, WidgetSettings, InsertWidgetSettings, widgetSettings,
   Notification, InsertNotification, notifications,
   SpendingPersonalityQuestion, InsertSpendingPersonalityQuestion, spendingPersonalityQuestions,
-  SpendingPersonalityResult, InsertSpendingPersonalityResult, spendingPersonalityResults
+  SpendingPersonalityResult, InsertSpendingPersonalityResult, spendingPersonalityResults,
+  Budget, InsertBudget, budgets
 } from '@shared/schema';
 import { IStorage } from './storage';
 import { db, pool } from './db';
@@ -1840,6 +1841,109 @@ export class DbStorage implements IStorage {
     } catch (error) {
       console.error('Error getting latest spending personality result:', error);
       return undefined;
+    }
+  }
+
+  // Budget methods
+  async getBudgets(): Promise<Budget[]> {
+    try {
+      return await db.select().from(budgets);
+    } catch (error) {
+      console.error('Error getting budgets:', error);
+      return [];
+    }
+  }
+
+  async getBudgetById(id: number): Promise<Budget | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(budgets)
+        .where(eq(budgets.id, id));
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting budget by id:', error);
+      return undefined;
+    }
+  }
+
+  async createBudget(budget: InsertBudget): Promise<Budget> {
+    try {
+      const [newBudget] = await db
+        .insert(budgets)
+        .values({
+          ...budget,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      return newBudget;
+    } catch (error) {
+      console.error('Error creating budget:', error);
+      throw error;
+    }
+  }
+
+  async updateBudget(id: number, budget: Partial<InsertBudget>): Promise<Budget | undefined> {
+    try {
+      const [updatedBudget] = await db
+        .update(budgets)
+        .set({
+          ...budget,
+          updatedAt: new Date()
+        })
+        .where(eq(budgets.id, id))
+        .returning();
+      
+      return updatedBudget;
+    } catch (error) {
+      console.error('Error updating budget:', error);
+      return undefined;
+    }
+  }
+
+  async deleteBudget(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(budgets)
+        .where(eq(budgets.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting budget:', error);
+      return false;
+    }
+  }
+
+  async getBudgetsByUserId(userId: number): Promise<Budget[]> {
+    try {
+      return await db
+        .select()
+        .from(budgets)
+        .where(eq(budgets.userId, userId));
+    } catch (error) {
+      console.error('Error getting budgets by user id:', error);
+      return [];
+    }
+  }
+
+  async getBudgetsByYearMonth(userId: number, year: number, month: number): Promise<Budget[]> {
+    try {
+      return await db
+        .select()
+        .from(budgets)
+        .where(
+          and(
+            eq(budgets.userId, userId),
+            eq(budgets.year, year),
+            eq(budgets.month, month)
+          )
+        );
+    } catch (error) {
+      console.error('Error getting budgets by year and month:', error);
+      return [];
     }
   }
 }

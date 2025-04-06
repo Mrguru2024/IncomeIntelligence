@@ -1229,6 +1229,41 @@ export const insertSpendingPersonalityResultSchema = baseInsertSpendingPersonali
 export type InsertSpendingPersonalityResult = z.infer<typeof insertSpendingPersonalityResultSchema>;
 export type SpendingPersonalityResult = typeof spendingPersonalityResults.$inferSelect;
 
+// Define budget schema
+export const budgets = pgTable("budgets", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  year: integer("year").notNull(),
+  month: integer("month").notNull(),
+  needsPercentage: integer("needs_percentage").notNull().default(40),
+  wantsPercentage: integer("wants_percentage").notNull().default(30),
+  savingsPercentage: integer("savings_percentage").notNull().default(30),
+  needsCategories: json("needs_categories").$type<string[]>().default([]),
+  wantsCategories: json("wants_categories").$type<string[]>().default([]),
+  savingsCategories: json("savings_categories").$type<string[]>().default([]),
+  rules: json("rules").$type<{ category: string, allocation: string }[]>().default([]),
+  monthlyIncome: numeric("monthly_income"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertBudgetSchema = createInsertSchema(budgets).pick({
+  userId: true,
+  year: true,
+  month: true,
+  needsPercentage: true,
+  wantsPercentage: true,
+  savingsPercentage: true,
+  needsCategories: true,
+  wantsCategories: true,
+  savingsCategories: true,
+  rules: true,
+  monthlyIncome: true,
+});
+
+export type InsertBudget = z.infer<typeof insertBudgetSchema>;
+export type Budget = typeof budgets.$inferSelect;
+
 // Quiz Questions Schema
 export const spendingPersonalityQuestions = pgTable("spending_personality_questions", {
   id: serial("id").primaryKey(),
