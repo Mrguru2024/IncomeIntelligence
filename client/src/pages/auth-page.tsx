@@ -105,15 +105,31 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     try {
       setIsSocialLoginPending(true);
-      // Try popup first, fallback to redirect
+      
+      // Configure provider settings
+      googleProvider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      
+      // Try popup first
       try {
-        await signInWithPopup(auth, googleProvider);
-      } catch (popupError) {
-        console.warn("Popup failed, trying redirect:", popupError);
-        await signInWithRedirect(auth, googleProvider);
+        const result = await signInWithPopup(auth, googleProvider);
+        console.log("Popup sign-in successful");
+        return result;
+      } catch (popupError: any) {
+        console.warn("Popup failed:", popupError?.code);
+        
+        // Only try redirect for specific errors
+        if (popupError?.code === 'auth/popup-blocked' || 
+            popupError?.code === 'auth/popup-closed-by-user') {
+          console.log("Attempting redirect sign-in...");
+          await signInWithRedirect(auth, googleProvider);
+        } else {
+          throw popupError;
+        }
       }
-    } catch (error) {
-      console.error("Google sign-in initiation error:", error);
+    } catch (error: any) {
+      console.error("Google sign-in error:", error?.code, error?.message);
       toast({
         title: "Google Sign-In Failed",
         description: error instanceof Error ? error.message : "Could not initiate Google sign-in",
