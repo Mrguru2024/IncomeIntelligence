@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, setAuthToken, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, CircleDollarSign } from "lucide-react";
 import { auth, googleProvider } from "@/lib/firebase";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithRedirect, getRedirectResult, GoogleAuthProvider } from "firebase/auth";
 
 // Login validation schema
 const loginSchema = z.object({
@@ -46,54 +46,74 @@ export default function AuthPage() {
   const { toast } = useToast();
   const [isSocialLoginPending, setIsSocialLoginPending] = useState(false);
   
-  // Google Sign In function
-  const handleGoogleSignIn = async () => {
+  // Check for redirect result on page load
+  useEffect(() => {
+    async function checkRedirectResult() {
+      try {
+        setIsSocialLoginPending(true);
+        const result = await getRedirectResult(auth);
+        
+        if (result) {
+          // User successfully signed in with redirect
+          const user = result.user;
+          const idToken = await user.getIdToken();
+          
+          // Send token to backend
+          const response = await apiRequest("POST", "/api/auth/social-login", {
+            idToken,
+            provider: "google",
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Google sign-in failed");
+          }
+          
+          const data = await response.json();
+          
+          // Handle successful login
+          toast({
+            title: "Google Sign-In Successful",
+            description: `Welcome, ${user.displayName || "New User"}!`,
+          });
+          
+          queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+          setTimeout(() => setLocation('/'), 500);
+        }
+      } catch (error) {
+        console.error("Google redirect result error:", error);
+        if (error instanceof Error) {
+          toast({
+            title: "Google Sign-In Failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      } finally {
+        setIsSocialLoginPending(false);
+      }
+    }
+    
+    checkRedirectResult();
+  }, [toast, setLocation]);
+  
+  // Google Sign In function - uses redirect instead of popup for better compatibility
+  const handleGoogleSignIn = () => {
     try {
       setIsSocialLoginPending(true);
-      const result = await signInWithPopup(auth, googleProvider);
-      
-      // The signed-in user info
-      const user = result.user;
-      // Google Access Token can be used to access the Google API
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      
-      // Get the ID token
-      const idToken = await user.getIdToken();
-      
-      // Send the token to your backend for verification and to create a session
-      const response = await apiRequest("POST", "/api/auth/social-login", {
-        idToken,
-        provider: "google",
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Google sign-in failed");
-      }
-      
-      const data = await response.json();
-      
-      // Handle successful login
-      toast({
-        title: "Google Sign-In Successful",
-        description: `Welcome, ${user.displayName || "New User"}!`,
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-      setTimeout(() => setLocation('/'), 500);
-      
+      // Using redirect approach instead of popup for better compatibility
+      signInWithRedirect(auth, googleProvider);
     } catch (error) {
-      console.error("Google sign-in error:", error);
+      console.error("Google sign-in initiation error:", error);
       toast({
         title: "Google Sign-In Failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+        description: error instanceof Error ? error.message : "Could not initiate Google sign-in",
         variant: "destructive",
       });
-    } finally {
       setIsSocialLoginPending(false);
     }
   };

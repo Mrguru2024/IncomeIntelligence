@@ -21,7 +21,14 @@ if (result.error) {
   console.log('.env file loaded successfully');
   console.log('Firebase Project ID from dotenv:', process.env.FIREBASE_PROJECT_ID ? "Available" : "Missing");
   console.log('Firebase Client Email from dotenv:', process.env.FIREBASE_CLIENT_EMAIL ? "Available" : "Missing");
-  console.log('Firebase Private Key from dotenv:', process.env.FIREBASE_PRIVATE_KEY ? "Available (first chars: " + process.env.FIREBASE_PRIVATE_KEY.substring(0, 20) + "...)" : "Missing");
+  
+  // Safely check for FIREBASE_PRIVATE_KEY
+  if (process.env.FIREBASE_PRIVATE_KEY) {
+    console.log('Firebase Private Key from dotenv: Available (first chars: ' + 
+      process.env.FIREBASE_PRIVATE_KEY.substring(0, 20) + '...)');
+  } else {
+    console.log('Firebase Private Key from dotenv: Missing');
+  }
 }
 
 const app = express();
