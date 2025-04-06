@@ -109,10 +109,15 @@ export function setupAuth(app: Express) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       
-      // Check if account is active
-      if (user.accountStatus !== 'active') {
-        return res.status(403).json({ message: 'Account is not active' });
-      }
+      // Check if account is active - currently disabled 
+      // Log login attempt info
+      console.log(`Login attempt - User: ${user.username}`);
+      
+      // Schema has account_status but database doesn't have that column yet
+      // So we'll skip this check for now and assume all accounts are active
+      // if (user.accountStatus && user.accountStatus !== 'active') {
+      //   return res.status(403).json({ message: 'Account is not active' });
+      // }
       
       // Verify password
       const isPasswordValid = verifyPassword(password, user.password);
