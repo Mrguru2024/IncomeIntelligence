@@ -28,7 +28,11 @@ export class DbStorage implements IStorage {
         // Add demo user
         await this.createUser({
           username: 'demo',
-          password: 'password123'
+          password: 'password123',
+          email: 'demo@stackr.finance',
+          role: 'user',
+          accountStatus: 'active',
+          verified: true
         });
 
         // Add sample incomes if no incomes exist
@@ -126,6 +130,15 @@ export class DbStorage implements IStorage {
   }
 
   // User methods
+  async getUsers(): Promise<User[]> {
+    try {
+      return await db.select().from(users);
+    } catch (error) {
+      console.error('Error getting users:', error);
+      return [];
+    }
+  }
+
   async getUser(id: number): Promise<User | undefined> {
     try {
       const result = await db.select().from(users).where(eq(users.id, id));
@@ -142,6 +155,142 @@ export class DbStorage implements IStorage {
       return result.length > 0 ? result[0] : undefined;
     } catch (error) {
       console.error('Error getting user by username:', error);
+      return undefined;
+    }
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    try {
+      const result = await db.select().from(users).where(eq(users.email, email));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting user by email:', error);
+      return undefined;
+    }
+  }
+  
+  async getUserByVerificationToken(token: string): Promise<User | undefined> {
+    try {
+      const result = await db.select().from(users).where(eq(users.verificationToken, token));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting user by verification token:', error);
+      return undefined;
+    }
+  }
+  
+  async getUserByResetToken(token: string): Promise<User | undefined> {
+    try {
+      const now = new Date();
+      const result = await db
+        .select()
+        .from(users)
+        .where(
+          and(
+            eq(users.resetPasswordToken, token),
+            gte(users.resetPasswordExpires, now)
+          )
+        );
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting user by reset token:', error);
+      return undefined;
+    }
+  }
+  
+  async getUserByStripeCustomerId(customerId: string): Promise<User | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(users)
+        .where(eq(users.stripeCustomerId, customerId));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting user by Stripe customer ID:', error);
+      return undefined;
+    }
+  }
+  
+  async getUserByStripeSubscriptionId(subscriptionId: string): Promise<User | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(users)
+        .where(eq(users.stripeSubscriptionId, subscriptionId));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting user by Stripe subscription ID:', error);
+      return undefined;
+    }
+  }
+  
+  async updateUserLastLogin(id: number): Promise<User | undefined> {
+    try {
+      const result = await db
+        .update(users)
+        .set({ lastLogin: new Date() })
+        .where(eq(users.id, id))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating user last login:', error);
+      return undefined;
+    }
+  }
+  
+  async verifyUser(id: number): Promise<User | undefined> {
+    try {
+      const result = await db
+        .update(users)
+        .set({
+          verified: true,
+          verificationToken: null,
+          accountStatus: 'active'
+        })
+        .where(eq(users.id, id))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error verifying user:', error);
+      return undefined;
+    }
+  }
+  
+  async setPasswordReset(id: number, token: string, expires: Date): Promise<User | undefined> {
+    try {
+      const result = await db
+        .update(users)
+        .set({
+          resetPasswordToken: token,
+          resetPasswordExpires: expires
+        })
+        .where(eq(users.id, id))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error setting password reset:', error);
+      return undefined;
+    }
+  }
+  
+  async resetPassword(id: number, newPassword: string): Promise<User | undefined> {
+    try {
+      const result = await db
+        .update(users)
+        .set({
+          password: newPassword,
+          resetPasswordToken: null,
+          resetPasswordExpires: null
+        })
+        .where(eq(users.id, id))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error resetting password:', error);
       return undefined;
     }
   }
@@ -167,6 +316,75 @@ export class DbStorage implements IStorage {
       return result.length > 0 ? result[0] : undefined;
     } catch (error) {
       console.error('Error updating user:', error);
+      return undefined;
+    }
+  }
+  
+  // Subscription methods
+  async updateUserSubscription(userId: number, tier: string, active: boolean, startDate?: Date, endDate?: Date): Promise<User | undefined> {
+    try {
+      const result = await db
+        .update(users)
+        .set({
+          subscriptionTier: tier,
+          subscriptionActive: active,
+          subscriptionStartDate: startDate || null,
+          subscriptionEndDate: endDate || null
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating user subscription:', error);
+      return undefined;
+    }
+  }
+  
+  async updateStripeCustomerId(userId: number, customerId: string): Promise<User | undefined> {
+    try {
+      const result = await db
+        .update(users)
+        .set({ stripeCustomerId: customerId })
+        .where(eq(users.id, userId))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating Stripe customer ID:', error);
+      return undefined;
+    }
+  }
+  
+  async updateStripeSubscriptionId(userId: number, subscriptionId: string): Promise<User | undefined> {
+    try {
+      const result = await db
+        .update(users)
+        .set({ stripeSubscriptionId: subscriptionId })
+        .where(eq(users.id, userId))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating Stripe subscription ID:', error);
+      return undefined;
+    }
+  }
+  
+  async updateUserStripeInfo(userId: number, stripeInfo: { customerId: string, subscriptionId: string }): Promise<User | undefined> {
+    try {
+      const result = await db
+        .update(users)
+        .set({
+          stripeCustomerId: stripeInfo.customerId,
+          stripeSubscriptionId: stripeInfo.subscriptionId
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating user Stripe info:', error);
       return undefined;
     }
   }
@@ -1627,4 +1845,5 @@ export class DbStorage implements IStorage {
 }
 
 // Create and export a singleton instance
+// Export initialized storage instance
 export const dbStorage = new DbStorage();

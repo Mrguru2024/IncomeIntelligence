@@ -68,6 +68,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
   phone: true,
   provider: true,
   providerId: true,
+  firebaseUid: true,
+  profileImage: true,
   verificationToken: true,
   role: true,
   accountStatus: true,

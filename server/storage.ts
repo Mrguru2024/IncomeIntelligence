@@ -21,11 +21,14 @@ import { users, type User, type InsertUser, incomes, type Income, type InsertInc
 
 export interface IStorage {
   // User methods
+  getUsers(): Promise<User[]>;
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByVerificationToken(token: string): Promise<User | undefined>;
   getUserByResetToken(token: string): Promise<User | undefined>;
+  getUserByStripeCustomerId(customerId: string): Promise<User | undefined>;
+  getUserByStripeSubscriptionId(subscriptionId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
   updateUserLastLogin(id: number): Promise<User | undefined>;
@@ -567,6 +570,10 @@ export class MemStorage implements IStorage {
     this.widgetSettings.set(widgetSettingsId, widgetSetting);
   }
 
+  async getUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+  
   async getUser(id: number): Promise<User | undefined> {
     return this.users.get(id);
   }
@@ -596,6 +603,18 @@ export class MemStorage implements IStorage {
         new Date(user.resetPasswordExpires) > new Date()
     );
   }
+  
+  async getUserByStripeCustomerId(customerId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.stripeCustomerId === customerId
+    );
+  }
+  
+  async getUserByStripeSubscriptionId(subscriptionId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.stripeSubscriptionId === subscriptionId
+    );
+  }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userCurrentId++;
@@ -620,6 +639,8 @@ export class MemStorage implements IStorage {
       resetPasswordExpires: null,
       provider: insertUser.provider || 'local',
       providerId: insertUser.providerId || null,
+      firebaseUid: insertUser.firebaseUid || null,
+      profileImage: insertUser.profileImage || null,
       role: insertUser.role || 'user',
       accountStatus: insertUser.accountStatus || 'pending',
       twoFactorEnabled: false,
