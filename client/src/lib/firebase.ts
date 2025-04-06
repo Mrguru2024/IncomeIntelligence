@@ -30,16 +30,22 @@ try {
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
     console.log('Firebase initialized successfully');
-    // Only initialize analytics in production environment
-    if (window.location.hostname !== 'localhost' && window.location.hostname !== '0.0.0.0') {
-      analytics = getAnalytics(app);
-      console.log('Firebase Analytics initialized');
+    try {
+      if (process.env.NODE_ENV === 'production') {
+        analytics = getAnalytics(app);
+        console.log('Firebase Analytics initialized');
+      }
+    } catch (error) {
+      console.log('Analytics initialization skipped in development');
     }
   } else {
     app = getApps()[0];
-    // Only initialize analytics in production environment
-    if (window.location.hostname !== 'localhost' && window.location.hostname !== '0.0.0.0') {
-      analytics = getAnalytics(app);
+    try {
+      if (process.env.NODE_ENV === 'production') {
+        analytics = getAnalytics(app);
+      }
+    } catch (error) {
+      console.log('Analytics initialization skipped in development');
     }
     console.log('Using existing Firebase instance');
   }
