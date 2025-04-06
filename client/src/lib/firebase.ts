@@ -1,12 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
-  GithubAuthProvider,
-  OAuthProvider,
-  browserLocalPersistence,
-  setPersistence
-} from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, GithubAuthProvider, OAuthProvider, browserLocalPersistence } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
@@ -19,51 +12,33 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
+// Initialize Firebase only once
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 const auth = getAuth(app);
 
-// Set persistence with better error handling
-setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    console.log('Firebase persistence set successfully');
-  })
-  .catch((error) => {
-    console.warn('Firebase persistence error:', error);
-    // Continue anyway as this is not critical
-  });
-
 // Initialize providers
 const googleProvider = new GoogleAuthProvider();
-const githubProvider = new GithubAuthProvider();
-const appleProvider = new OAuthProvider('apple.com');
-
-// Configure Google provider
 googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
 googleProvider.addScope('https://www.googleapis.com/auth/userinfo.email');
 
-// Configure Github provider
+const githubProvider = new GithubAuthProvider();
 githubProvider.addScope('read:user');
 githubProvider.addScope('user:email');
 
-//This part remains from original code, as it's not directly related to initialization or provider setup.
-const analytics = process.env.NODE_ENV === 'production' ? getAnalytics(app) : null;
+const appleProvider = new OAuthProvider('apple.com');
+
+// Configure persistence
+auth.setPersistence(browserLocalPersistence)
+  .then(() => console.log('Firebase persistence set'))
+  .catch(error => console.error('Firebase persistence error:', error));
+
+// Configure language
 auth.useDeviceLanguage();
-auth.settings.appVerificationDisabledForTesting = process.env.NODE_ENV === 'development';
 
-// Configure auth state persistence (from original code)
-auth.onAuthStateChanged((user) => {
-  if (user) {
-    console.log('User is signed in');
-  }
-});
-
-
-export { 
+export {
   app,
   auth,
   googleProvider,
   githubProvider,
-  appleProvider,
-  analytics
+  appleProvider
 };
