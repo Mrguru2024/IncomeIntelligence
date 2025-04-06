@@ -32,9 +32,10 @@ console.log("Firebase configuration loaded:", {
 // Initialize Firebase with retry mechanism and network check
 const initializeFirebaseWithRetry = async (retries = 3, delay = 1000) => {
   try {
-    // Check network connectivity first
-    const networkTest = await fetch('https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=' + firebaseConfig.apiKey, {
-      method: 'OPTIONS'
+    // Check network connectivity first using Firebase domain
+    const networkTest = await fetch('https://firebase.googleapis.com/favicon.ico', {
+      method: 'HEAD',
+      mode: 'no-cors'
     }).catch(() => null);
 
     if (!networkTest) {
