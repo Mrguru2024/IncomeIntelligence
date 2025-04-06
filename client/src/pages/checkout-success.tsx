@@ -1,15 +1,14 @@
 import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/authService';
+import { useAuth } from '@/hooks/use-auth';
 
 const CheckoutSuccessPage = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {

@@ -28,11 +28,26 @@ import { notificationService } from "./notification-service";
 import { insertNotificationSchema } from "@shared/schema";
 import { requireAuth, checkUserMatch } from "./middleware/authMiddleware";
 import { requireAdmin } from "./middleware/adminMiddleware";
+import { requireProSubscription } from "./middleware/proSubscriptionMiddleware";
 import { setupAuth } from "./auth";
 import { spendingPersonalityService } from "./spending-personality-service";
 import Stripe from "stripe";
 import express from "express";
 import dotenv from "dotenv";
+import { 
+  insertStackrGigSchema, 
+  insertAffiliateProgramSchema, 
+  insertUserAffiliateSchema,
+  insertDigitalProductSchema, 
+  insertMoneyChallengeSchema, 
+  insertUserChallengeSchema,
+  insertInvestmentStrategySchema, 
+  insertUsedGearListingSchema, 
+  insertInvoiceSchema,
+  insertCreativeGrantSchema, 
+  insertGrantApplicationSchema, 
+  insertReferralSchema
+} from "@shared/schema";
 
 // Load environment variables
 dotenv.config();
@@ -2043,6 +2058,553 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(503).json(stripeDisabledMessage);
     });
   }
+
+  /******************************
+   * INCOME GENERATION FEATURES *
+   ******************************/
+
+  // STACKR GIGS MARKETPLACE
+
+  // Get all gigs
+  app.get("/api/gigs", requireAuth, async (req, res) => {
+    try {
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching gigs:', error);
+      res.status(500).json({ message: "Failed to fetch gigs" });
+    }
+  });
+
+  // Get gig by ID
+  app.get("/api/gigs/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid gig ID" });
+      }
+
+      // Placeholder - would need to implement storage method
+      res.status(404).json({ message: "Gig not found" });
+    } catch (error) {
+      console.error('Error fetching gig:', error);
+      res.status(500).json({ message: "Failed to fetch gig" });
+    }
+  });
+
+  // Create new gig
+  app.post("/api/gigs", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized - User ID not found" });
+      }
+      
+      const validatedData = insertStackrGigSchema.parse({
+        ...req.body,
+        requesterUserId: userId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      // Placeholder - would need to implement storage method
+      res.status(201).json({ id: 1, ...validatedData });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating gig:', error);
+      res.status(500).json({ message: "Failed to create gig" });
+    }
+  });
+
+  // Update gig
+  app.patch("/api/gigs/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid gig ID" });
+      }
+
+      const validatedData = insertStackrGigSchema.partial().parse({
+        ...req.body,
+        updatedAt: new Date()
+      });
+      
+      // Placeholder - would need to implement storage method
+      res.status(404).json({ message: "Gig not found" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating gig:', error);
+      res.status(500).json({ message: "Failed to update gig" });
+    }
+  });
+
+  // Delete gig
+  app.delete("/api/gigs/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid gig ID" });
+      }
+
+      // Placeholder - would need to implement storage method
+      res.status(404).json({ message: "Gig not found" });
+    } catch (error) {
+      console.error('Error deleting gig:', error);
+      res.status(500).json({ message: "Failed to delete gig" });
+    }
+  });
+
+  // Get gigs by user (created by user)
+  app.get("/api/gigs/created/:userId", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching user gigs:', error);
+      res.status(500).json({ message: "Failed to fetch user gigs" });
+    }
+  });
+
+  // Get gigs assigned to user
+  app.get("/api/gigs/assigned/:userId", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching assigned gigs:', error);
+      res.status(500).json({ message: "Failed to fetch assigned gigs" });
+    }
+  });
+
+  // AFFILIATE PROGRAMS
+  
+  // Get all affiliate programs
+  app.get("/api/affiliate-programs", requireAuth, async (req, res) => {
+    try {
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching affiliate programs:', error);
+      res.status(500).json({ message: "Failed to fetch affiliate programs" });
+    }
+  });
+
+  // Get user's affiliate programs
+  app.get("/api/users/:userId/affiliates", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching user affiliates:', error);
+      res.status(500).json({ message: "Failed to fetch user affiliates" });
+    }
+  });
+
+  // Join affiliate program
+  app.post("/api/users/:userId/affiliates", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const validatedData = insertUserAffiliateSchema.parse({
+        ...req.body,
+        userId: userId,
+        dateJoined: new Date()
+      });
+      
+      // Placeholder - would need to implement storage method
+      res.status(201).json({ id: 1, ...validatedData });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error joining affiliate program:', error);
+      res.status(500).json({ message: "Failed to join affiliate program" });
+    }
+  });
+
+  // DIGITAL PRODUCTS
+  
+  // Get all products
+  app.get("/api/digital-products", requireAuth, async (req, res) => {
+    try {
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching digital products:', error);
+      res.status(500).json({ message: "Failed to fetch digital products" });
+    }
+  });
+
+  // Get user's products
+  app.get("/api/users/:userId/digital-products", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching user digital products:', error);
+      res.status(500).json({ message: "Failed to fetch user digital products" });
+    }
+  });
+
+  // Create digital product
+  app.post("/api/digital-products", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized - User ID not found" });
+      }
+      
+      const validatedData = insertDigitalProductSchema.parse({
+        ...req.body,
+        userId: userId,
+        created: new Date(),
+        updated: new Date()
+      });
+      
+      // Placeholder - would need to implement storage method
+      res.status(201).json({ id: 1, ...validatedData });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating digital product:', error);
+      res.status(500).json({ message: "Failed to create digital product" });
+    }
+  });
+
+  // MONEY CHALLENGES
+  
+  // Get all challenges
+  app.get("/api/money-challenges", requireAuth, async (req, res) => {
+    try {
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching money challenges:', error);
+      res.status(500).json({ message: "Failed to fetch money challenges" });
+    }
+  });
+
+  // Get featured challenges
+  app.get("/api/money-challenges/featured", requireAuth, async (req, res) => {
+    try {
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching featured challenges:', error);
+      res.status(500).json({ message: "Failed to fetch featured challenges" });
+    }
+  });
+
+  // Join challenge - requires Pro subscription
+  app.post("/api/users/:userId/challenges", requireAuth, requireProSubscription, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const validatedData = insertUserChallengeSchema.parse({
+        ...req.body,
+        userId: userId,
+        startDate: new Date(),
+        status: "in_progress"
+      });
+      
+      // Placeholder - would need to implement storage method
+      res.status(201).json({ id: 1, ...validatedData });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error joining money challenge:', error);
+      res.status(500).json({ message: "Failed to join money challenge" });
+    }
+  });
+
+  // INVESTMENT STRATEGIES
+  
+  // Get all investment strategies
+  app.get("/api/investment-strategies", requireAuth, async (req, res) => {
+    try {
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching investment strategies:', error);
+      res.status(500).json({ message: "Failed to fetch investment strategies" });
+    }
+  });
+
+  // Get recommended investment strategies - requires Pro subscription
+  app.get("/api/investment-strategies/recommended", requireAuth, requireProSubscription, async (req, res) => {
+    try {
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching recommended strategies:', error);
+      res.status(500).json({ message: "Failed to fetch recommended strategies" });
+    }
+  });
+
+  // USED GEAR LISTINGS
+  
+  // Get all listings
+  app.get("/api/used-gear-listings", requireAuth, async (req, res) => {
+    try {
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching used gear listings:', error);
+      res.status(500).json({ message: "Failed to fetch used gear listings" });
+    }
+  });
+
+  // Get user's listings
+  app.get("/api/users/:userId/used-gear-listings", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching user listings:', error);
+      res.status(500).json({ message: "Failed to fetch user listings" });
+    }
+  });
+
+  // Create used gear listing
+  app.post("/api/used-gear-listings", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized - User ID not found" });
+      }
+      
+      const validatedData = insertUsedGearListingSchema.parse({
+        ...req.body,
+        userId: userId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      // Placeholder - would need to implement storage method
+      res.status(201).json({ id: 1, ...validatedData });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating used gear listing:', error);
+      res.status(500).json({ message: "Failed to create used gear listing" });
+    }
+  });
+
+  // INVOICES
+  
+  // Get user's invoices
+  app.get("/api/users/:userId/invoices", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching user invoices:', error);
+      res.status(500).json({ message: "Failed to fetch user invoices" });
+    }
+  });
+
+  // Create invoice
+  app.post("/api/invoices", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized - User ID not found" });
+      }
+      
+      const validatedData = insertInvoiceSchema.parse({
+        ...req.body,
+        userId: userId,
+        issueDate: new Date(),
+      });
+      
+      // Placeholder - would need to implement storage method
+      res.status(201).json({ id: 1, ...validatedData });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating invoice:', error);
+      res.status(500).json({ message: "Failed to create invoice" });
+    }
+  });
+
+  // CREATIVE GRANTS
+  
+  // Get all grants
+  app.get("/api/creative-grants", requireAuth, async (req, res) => {
+    try {
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching creative grants:', error);
+      res.status(500).json({ message: "Failed to fetch creative grants" });
+    }
+  });
+
+  // Apply for grant - requires Pro subscription
+  app.post("/api/creative-grants/:grantId/applications", requireAuth, requireProSubscription, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized - User ID not found" });
+      }
+      
+      const grantId = parseInt(req.params.grantId);
+      if (isNaN(grantId)) {
+        return res.status(400).json({ message: "Invalid grant ID" });
+      }
+
+      const validatedData = insertGrantApplicationSchema.parse({
+        ...req.body,
+        grantId: grantId,
+        userId: userId,
+        status: "submitted",
+        applicationDate: new Date()
+      });
+      
+      // Placeholder - would need to implement storage method
+      res.status(201).json({ id: 1, ...validatedData });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error applying for grant:', error);
+      res.status(500).json({ message: "Failed to apply for grant" });
+    }
+  });
+
+  // REFERRAL SYSTEM
+  
+  // Get user's referrals
+  app.get("/api/users/:userId/referrals", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching user referrals:', error);
+      res.status(500).json({ message: "Failed to fetch user referrals" });
+    }
+  });
+
+  // Create referral
+  app.post("/api/referrals", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized - User ID not found" });
+      }
+      
+      const validatedData = insertReferralSchema.parse({
+        ...req.body,
+        referrerUserId: userId,
+        dateCreated: new Date(),
+        status: "pending"
+      });
+      
+      // Placeholder - would need to implement storage method
+      res.status(201).json({ id: 1, ...validatedData });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating referral:', error);
+      res.status(500).json({ message: "Failed to create referral" });
+    }
+  });
+
+  // SUBSCRIPTION ROUTES
+
+  // Get user's subscription status
+  app.get("/api/users/:userId/subscription", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Check if user is requesting their own subscription info
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized to view this user's subscription" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Return subscription info
+      const subscriptionInfo = {
+        tier: user.subscriptionTier,
+        active: user.subscriptionActive,
+        startDate: user.subscriptionStartDate,
+        endDate: user.subscriptionEndDate,
+        stripeCustomerId: user.stripeCustomerId,
+        stripeSubscriptionId: user.stripeSubscriptionId
+      };
+
+      res.json(subscriptionInfo);
+    } catch (error) {
+      console.error('Error fetching subscription status:', error);
+      res.status(500).json({ message: "Failed to fetch subscription status" });
+    }
+  });
 
   const httpServer = createServer(app);
 

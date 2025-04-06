@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/authService';
+import { useAuth } from '@/hooks/use-auth';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ const SubscriptionPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -225,9 +225,9 @@ const SubscriptionPage = () => {
         <CardFooter className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:space-y-0">
           {subscription?.tier === 'free' ? (
             <Button 
-              variant="gradient" 
+              variant="default" 
               onClick={() => navigate('/subscribe')}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white"
             >
               Upgrade to Pro
             </Button>
@@ -243,9 +243,9 @@ const SubscriptionPage = () => {
                 </Button>
               ) : (
                 <Button 
-                  variant="gradient" 
+                  variant="default" 
                   onClick={() => navigate('/subscribe')}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white"
                 >
                   Renew Subscription
                 </Button>

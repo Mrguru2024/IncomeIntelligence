@@ -148,6 +148,15 @@ export const incomeCategories = [
   { id: "consulting", name: "Consulting", icon: "messagesSquare", color: "indigo" },
   { id: "repair", name: "Repair", icon: "tool", color: "amber" },
   { id: "retail", name: "Retail Sale", icon: "shoppingBag", color: "green" },
+  { id: "gig", name: "Stackr Gig", icon: "briefcase", color: "teal" },
+  { id: "affiliate", name: "Affiliate Income", icon: "link", color: "pink" },
+  { id: "referral", name: "Referral Bonus", icon: "userPlus", color: "violet" },
+  { id: "digital", name: "Digital Product", icon: "smartphone", color: "cyan" },
+  { id: "challenge", name: "Money Challenge", icon: "target", color: "rose" },
+  { id: "investment", name: "Investment", icon: "trendingUp", color: "lime" },
+  { id: "sale", name: "Used Gear Sale", icon: "package", color: "orange" },
+  { id: "invoice", name: "Client Invoice", icon: "fileText", color: "sky" },
+  { id: "grant", name: "Stackr Grant", icon: "award", color: "emerald" },
   { id: "other", name: "Other", icon: "moreHorizontal", color: "gray" }
 ];
 
@@ -195,6 +204,474 @@ export type Income = typeof incomes.$inferSelect;
 export function getCategoryById(categoryId: string) {
   return incomeCategories.find(cat => cat.id === categoryId) || incomeCategories[incomeCategories.length - 1]; // Default to "Other"
 }
+
+// Stackr Gigs schema
+export const stackrGigs = pgTable("stackr_gigs", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  amount: numeric("amount").notNull(),
+  status: text("status").notNull().default("open"), // open, assigned, completed, cancelled
+  requesterUserId: integer("requester_user_id").notNull(), // User who created the gig
+  assignedUserId: integer("assigned_user_id"), // User who accepted the gig
+  category: text("category").notNull(),
+  skills: json("skills"), // Array of required skills
+  estimatedHours: numeric("estimated_hours"),
+  dueDate: timestamp("due_date"),
+  completionDate: timestamp("completion_date"),
+  paymentStatus: text("payment_status").default("unpaid"), // unpaid, processing, paid
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  location: text("location"), // Online or physical location
+  hasAttachments: boolean("has_attachments").default(false),
+});
+
+const baseInsertStackrGigSchema = createInsertSchema(stackrGigs).pick({
+  title: true,
+  description: true,
+  amount: true,
+  status: true,
+  requesterUserId: true,
+  assignedUserId: true,
+  category: true,
+  skills: true,
+  estimatedHours: true,
+  dueDate: true,
+  completionDate: true,
+  paymentStatus: true,
+  location: true,
+  hasAttachments: true,
+});
+
+// Extend it to handle date conversion
+export const insertStackrGigSchema = baseInsertStackrGigSchema.extend({
+  dueDate: z.preprocess(
+    (arg) => {
+      if (arg === null || arg === undefined) return null;
+      if (typeof arg === 'string' || arg instanceof Date) {
+        return new Date(arg);
+      }
+      return arg;
+    },
+    z.date().nullable()
+  ),
+  completionDate: z.preprocess(
+    (arg) => {
+      if (arg === null || arg === undefined) return null;
+      if (typeof arg === 'string' || arg instanceof Date) {
+        return new Date(arg);
+      }
+      return arg;
+    },
+    z.date().nullable()
+  ),
+});
+
+export type InsertStackrGig = z.infer<typeof insertStackrGigSchema>;
+export type StackrGig = typeof stackrGigs.$inferSelect;
+
+// Affiliate Programs schema
+export const affiliatePrograms = pgTable("affiliate_programs", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  company: text("company").notNull(),
+  category: text("category").notNull(),
+  commissionRate: text("commission_rate").notNull(),
+  payoutThreshold: numeric("payout_threshold"),
+  payoutSchedule: text("payout_schedule"),
+  termsUrl: text("terms_url"),
+  signupUrl: text("signup_url").notNull(),
+  logoUrl: text("logo_url"),
+  status: text("status").notNull().default("active"), // active, inactive
+  tags: json("tags"), // Array of tags for searching
+  aiRecommendationScore: integer("ai_recommendation_score"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  featured: boolean("featured").default(false),
+});
+
+export const insertAffiliateProgramSchema = createInsertSchema(affiliatePrograms).pick({
+  name: true,
+  description: true,
+  company: true,
+  category: true,
+  commissionRate: true,
+  payoutThreshold: true,
+  payoutSchedule: true,
+  termsUrl: true,
+  signupUrl: true,
+  logoUrl: true,
+  status: true,
+  tags: true,
+  aiRecommendationScore: true,
+  featured: true,
+});
+
+export type InsertAffiliateProgram = z.infer<typeof insertAffiliateProgramSchema>;
+export type AffiliateProgram = typeof affiliatePrograms.$inferSelect;
+
+// User Affiliates schema (tracks which programs a user is part of)
+export const userAffiliates = pgTable("user_affiliates", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  programId: integer("program_id").notNull(),
+  affiliateId: text("affiliate_id"), // User's ID in the affiliate program
+  referralCode: text("referral_code"),
+  referralUrl: text("referral_url"),
+  dateJoined: timestamp("date_joined").notNull().defaultNow(),
+  totalEarnings: numeric("total_earnings").default("0"),
+  status: text("status").notNull().default("active"), // active, inactive
+  lastPayout: timestamp("last_payout"),
+  notes: text("notes"),
+});
+
+export const insertUserAffiliateSchema = createInsertSchema(userAffiliates).pick({
+  userId: true,
+  programId: true,
+  affiliateId: true,
+  referralCode: true,
+  referralUrl: true,
+  totalEarnings: true,
+  status: true,
+  lastPayout: true,
+  notes: true,
+});
+
+export type InsertUserAffiliate = z.infer<typeof insertUserAffiliateSchema>;
+export type UserAffiliate = typeof userAffiliates.$inferSelect;
+
+// Digital Products schema
+export const digitalProducts = pgTable("digital_products", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(), // Creator of the product
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  price: numeric("price").notNull(),
+  category: text("category").notNull(),
+  fileUrl: text("file_url"), // URL to download the product
+  previewUrl: text("preview_url"), // URL for preview image/content
+  downloadCount: integer("download_count").default(0),
+  published: boolean("published").default(false),
+  created: timestamp("created").notNull().defaultNow(),
+  updated: timestamp("updated").notNull().defaultNow(),
+  stripePriceId: text("stripe_price_id"), // For Stripe integration
+  tags: json("tags"), // Array of tags for searching
+  version: text("version").default("1.0"),
+  ratings: json("ratings"), // Array of rating objects
+  averageRating: numeric("average_rating"),
+});
+
+export const insertDigitalProductSchema = createInsertSchema(digitalProducts).pick({
+  userId: true,
+  title: true,
+  description: true,
+  price: true,
+  category: true,
+  fileUrl: true,
+  previewUrl: true,
+  downloadCount: true,
+  published: true,
+  stripePriceId: true,
+  tags: true,
+  version: true,
+  ratings: true,
+  averageRating: true,
+});
+
+export type InsertDigitalProduct = z.infer<typeof insertDigitalProductSchema>;
+export type DigitalProduct = typeof digitalProducts.$inferSelect;
+
+// Money Challenges schema
+export const moneyChallenges = pgTable("money_challenges", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  days: integer("days").notNull(), // Duration in days
+  amount: numeric("amount").notNull(), // Amount to be earned/saved
+  difficulty: text("difficulty").notNull().default("medium"), // easy, medium, hard
+  category: text("category").notNull(),
+  instructions: json("instructions"), // Array of steps to complete
+  pointsReward: integer("points_reward").notNull().default(50),
+  badgeId: integer("badge_id"), // Optional badge to be awarded
+  active: boolean("active").default(true),
+  created: timestamp("created").notNull().defaultNow(),
+  startDate: timestamp("start_date"), // When challenge becomes available
+  endDate: timestamp("end_date"), // When challenge expires
+  featured: boolean("featured").default(false),
+});
+
+export const insertMoneyChallengeSchema = createInsertSchema(moneyChallenges).pick({
+  title: true,
+  description: true,
+  days: true,
+  amount: true,
+  difficulty: true,
+  category: true,
+  instructions: true,
+  pointsReward: true,
+  badgeId: true,
+  active: true,
+  startDate: true,
+  endDate: true,
+  featured: true,
+});
+
+export type InsertMoneyChallenge = z.infer<typeof insertMoneyChallengeSchema>;
+export type MoneyChallenge = typeof moneyChallenges.$inferSelect;
+
+// User Challenges schema (tracks user participation in challenges)
+export const userChallenges = pgTable("user_challenges", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  challengeId: integer("challenge_id").notNull(),
+  startDate: timestamp("start_date").notNull().defaultNow(),
+  completionDate: timestamp("completion_date"),
+  status: text("status").notNull().default("in_progress"), // not_started, in_progress, completed, failed
+  progress: integer("progress").default(0), // Percentage completed
+  currentDay: integer("current_day").default(1),
+  dailyLogs: json("daily_logs"), // Array of daily activity logs
+  pointsEarned: integer("points_earned").default(0),
+  notes: text("notes"),
+});
+
+export const insertUserChallengeSchema = createInsertSchema(userChallenges).pick({
+  userId: true,
+  challengeId: true,
+  startDate: true,
+  completionDate: true,
+  status: true,
+  progress: true,
+  currentDay: true,
+  dailyLogs: true,
+  pointsEarned: true,
+  notes: true,
+});
+
+export type InsertUserChallenge = z.infer<typeof insertUserChallengeSchema>;
+export type UserChallenge = typeof userChallenges.$inferSelect;
+
+// Investment Strategies schema
+export const investmentStrategies = pgTable("investment_strategies", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  riskLevel: text("risk_level").notNull(), // low, medium, high
+  timeHorizon: text("time_horizon").notNull(), // short, medium, long
+  minimumInvestment: numeric("minimum_investment"),
+  category: text("category").notNull(),
+  returnPotential: text("return_potential").notNull(),
+  steps: json("steps"), // Array of steps to implement the strategy
+  resources: json("resources"), // Array of resource links
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  featured: boolean("featured").default(false),
+  forSubscribersOnly: boolean("for_subscribers_only").default(false),
+});
+
+export const insertInvestmentStrategySchema = createInsertSchema(investmentStrategies).pick({
+  name: true,
+  description: true,
+  riskLevel: true,
+  timeHorizon: true,
+  minimumInvestment: true,
+  category: true,
+  returnPotential: true,
+  steps: true,
+  resources: true,
+  featured: true,
+  forSubscribersOnly: true,
+});
+
+export type InsertInvestmentStrategy = z.infer<typeof insertInvestmentStrategySchema>;
+export type InvestmentStrategy = typeof investmentStrategies.$inferSelect;
+
+// Used Gear Listings schema
+export const usedGearListings = pgTable("used_gear_listings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  price: numeric("price").notNull(),
+  category: text("category").notNull(),
+  condition: text("condition").notNull(),
+  location: text("location").notNull(),
+  images: json("images"), // Array of image URLs
+  status: text("status").notNull().default("active"), // active, sold, withdrawn
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  contactMethod: text("contact_method").notNull().default("app"), // app, email, phone
+  tags: json("tags"), // Array of searchable tags
+  sold: boolean("sold").default(false),
+  soldPrice: numeric("sold_price"),
+  soldDate: timestamp("sold_date"),
+});
+
+export const insertUsedGearListingSchema = createInsertSchema(usedGearListings).pick({
+  userId: true,
+  title: true,
+  description: true,
+  price: true,
+  category: true,
+  condition: true,
+  location: true,
+  images: true,
+  status: true,
+  contactMethod: true,
+  tags: true,
+  sold: true,
+  soldPrice: true,
+  soldDate: true,
+});
+
+export type InsertUsedGearListing = z.infer<typeof insertUsedGearListingSchema>;
+export type UsedGearListing = typeof usedGearListings.$inferSelect;
+
+// Invoices schema
+export const invoices = pgTable("invoices", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  clientName: text("client_name").notNull(),
+  clientEmail: text("client_email"),
+  clientPhone: text("client_phone"),
+  invoiceNumber: text("invoice_number").notNull(),
+  issueDate: timestamp("issue_date").notNull().defaultNow(),
+  dueDate: timestamp("due_date").notNull(),
+  amount: numeric("amount").notNull(),
+  taxAmount: numeric("tax_amount").default("0"),
+  totalAmount: numeric("total_amount").notNull(),
+  status: text("status").notNull().default("draft"), // draft, sent, paid, overdue, cancelled
+  description: text("description"),
+  items: json("items"), // Array of line items
+  notes: text("notes"),
+  terms: text("terms"),
+  paymentMethod: text("payment_method"),
+  paid: boolean("paid").default(false),
+  paidDate: timestamp("paid_date"),
+  paidAmount: numeric("paid_amount"),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+});
+
+export const insertInvoiceSchema = createInsertSchema(invoices).pick({
+  userId: true,
+  clientName: true,
+  clientEmail: true,
+  clientPhone: true,
+  invoiceNumber: true,
+  issueDate: true,
+  dueDate: true,
+  amount: true,
+  taxAmount: true,
+  totalAmount: true,
+  status: true,
+  description: true,
+  items: true,
+  notes: true,
+  terms: true,
+  paymentMethod: true,
+  paid: true,
+  paidDate: true,
+  paidAmount: true,
+  stripePaymentIntentId: true,
+});
+
+export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+export type Invoice = typeof invoices.$inferSelect;
+
+// Creative Grants schema
+export const creativeGrants = pgTable("creative_grants", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  amount: numeric("amount").notNull(),
+  category: text("category").notNull(),
+  applicationDeadline: timestamp("application_deadline").notNull(),
+  announcementDate: timestamp("announcement_date").notNull(),
+  eligibilityCriteria: json("eligibility_criteria"), // JSON array of criteria
+  submissionRequirements: json("submission_requirements"), // JSON array of requirements
+  status: text("status").notNull().default("open"), // open, reviewing, closed, awarded
+  maxApplicants: integer("max_applicants"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  winnerUserId: integer("winner_user_id"),
+});
+
+export const insertCreativeGrantSchema = createInsertSchema(creativeGrants).pick({
+  title: true,
+  description: true,
+  amount: true,
+  category: true,
+  applicationDeadline: true,
+  announcementDate: true,
+  eligibilityCriteria: true,
+  submissionRequirements: true,
+  status: true,
+  maxApplicants: true,
+  winnerUserId: true,
+});
+
+export type InsertCreativeGrant = z.infer<typeof insertCreativeGrantSchema>;
+export type CreativeGrant = typeof creativeGrants.$inferSelect;
+
+// Grant Applications schema
+export const grantApplications = pgTable("grant_applications", {
+  id: serial("id").primaryKey(),
+  grantId: integer("grant_id").notNull(),
+  userId: integer("user_id").notNull(),
+  applicationDate: timestamp("application_date").notNull().defaultNow(),
+  status: text("status").notNull().default("submitted"), // submitted, under_review, accepted, rejected
+  submissionContent: json("submission_content"), // JSON containing the application content
+  reviewNotes: text("review_notes"),
+  reviewerId: integer("reviewer_id"),
+  reviewDate: timestamp("review_date"),
+  score: integer("score"),
+});
+
+export const insertGrantApplicationSchema = createInsertSchema(grantApplications).pick({
+  grantId: true,
+  userId: true,
+  status: true,
+  submissionContent: true,
+  reviewNotes: true,
+  reviewerId: true,
+  reviewDate: true,
+  score: true,
+});
+
+export type InsertGrantApplication = z.infer<typeof insertGrantApplicationSchema>;
+export type GrantApplication = typeof grantApplications.$inferSelect;
+
+// Referral System schema
+export const referrals = pgTable("referrals", {
+  id: serial("id").primaryKey(),
+  referrerUserId: integer("referrer_user_id").notNull(),
+  referredEmail: text("referred_email").notNull(),
+  referralCode: text("referral_code").notNull(),
+  status: text("status").notNull().default("pending"), // pending, registered, subscribed, expired
+  dateCreated: timestamp("date_created").notNull().defaultNow(),
+  dateRegistered: timestamp("date_registered"),
+  referredUserId: integer("referred_user_id"),
+  rewardClaimed: boolean("reward_claimed").default(false),
+  rewardAmount: numeric("reward_amount"),
+  rewardType: text("reward_type"), // points, cash, subscription_extension
+  expirationDate: timestamp("expiration_date"),
+  campaignId: text("campaign_id"),
+});
+
+export const insertReferralSchema = createInsertSchema(referrals).pick({
+  referrerUserId: true,
+  referredEmail: true,
+  referralCode: true,
+  status: true,
+  referredUserId: true,
+  rewardClaimed: true,
+  rewardAmount: true,
+  rewardType: true,
+  expirationDate: true,
+  campaignId: true,
+});
+
+export type InsertReferral = z.infer<typeof insertReferralSchema>;
+export type Referral = typeof referrals.$inferSelect;
 
 // Define goal types
 export const goalTypes = [

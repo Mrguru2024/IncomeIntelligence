@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/authService';
+import { useAuth } from '@/hooks/use-auth';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { apiRequest } from '@/lib/queryClient';
@@ -24,7 +24,7 @@ const CheckoutForm = ({ amount, productName, onSuccess }: CheckoutFormProps) => 
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,8 +100,7 @@ const CheckoutPage = () => {
     id: ""
   });
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { toast } = useToast();
 
   // Extract query params to determine what's being purchased
