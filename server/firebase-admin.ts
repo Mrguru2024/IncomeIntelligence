@@ -27,12 +27,12 @@ export function initializeFirebaseAdmin() {
     const serviceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
     };
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-      databaseURL: `https://${serviceAccount.projectId}.firebaseio.com`
+      databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`
     });
     
     console.log('Firebase Admin SDK initialized successfully');
