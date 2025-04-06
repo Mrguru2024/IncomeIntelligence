@@ -28,19 +28,15 @@ console.log("Firebase configuration loaded:", {
   storageBucket: firebaseConfig.storageBucket,
 });
 
-// Initialize Firebase with retry mechanism
-const initializeFirebaseWithRetry = async (retries = 3, delay = 1000) => {
+// Initialize Firebase
+const initializeFirebaseWithRetry = async () => {
   try {
     if (!getApps().length) {
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       await auth.setPersistence(browserLocalPersistence);
-      
-      const googleProvider = new GoogleAuthProvider();
-      googleProvider.setCustomParameters({
-        prompt: 'select_account'
-      });
 
+      const googleProvider = new GoogleAuthProvider();
       const githubProvider = new GithubAuthProvider();
       const appleProvider = new OAuthProvider('apple.com');
 
@@ -51,16 +47,11 @@ const initializeFirebaseWithRetry = async (retries = 3, delay = 1000) => {
       const googleProvider = new GoogleAuthProvider();
       const githubProvider = new GithubAuthProvider();
       const appleProvider = new OAuthProvider('apple.com');
-      
+
       return { app, auth, googleProvider, githubProvider, appleProvider };
     }
   } catch (error) {
     console.error('Firebase initialization error:', error);
-    if (retries > 0) {
-      console.log(`Retrying Firebase initialization in ${delay}ms... (${retries} attempts left)`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return initializeFirebaseWithRetry(retries - 1, delay * 1.5);
-    }
     throw error;
   }
 };
