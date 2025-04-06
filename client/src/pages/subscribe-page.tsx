@@ -26,8 +26,25 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 // Initialize Stripe in a component to make sure it has access to the environment variables
 import type { Stripe } from "@stripe/stripe-js";
 
-// Initialize Stripe only once
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+// Initialize Stripe only once with error handling
+const stripePromise = (async () => {
+  try {
+    const key = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+    if (!key) {
+      console.error("Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)");
+      return null;
+    }
+    console.log("Initializing Stripe with key:", key.slice(0, 8) + "...");
+    const stripe = await loadStripe(key);
+    if (!stripe) {
+      throw new Error("Failed to initialize Stripe");
+    }
+    return stripe;
+  } catch (error) {
+    console.error("Failed to initialize Stripe:", error);
+    return null;
+  }
+})();
 
 const SubscribeForm = () => {
   const stripe = useStripe();
@@ -293,7 +310,7 @@ const SubscribePage = () => {
           <CardContent>
             {clientSecret ? (
               <Elements
-                stripe={stripePromise}
+                stripe={await stripePromise}
                 options={{
                   clientSecret,
                   loader: "auto",
