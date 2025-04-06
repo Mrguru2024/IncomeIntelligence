@@ -26,19 +26,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Stripe } from "@stripe/stripe-js";
 
 // Initialize Stripe with proper error handling and logging
-const stripePromise = (async () => {
-  try {
-    const key = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-    if (!key) {
-      console.error('Missing Stripe public key');
-      return null;
-    }
-    return await loadStripe(key);
-  } catch (error) {
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
+  .catch(error => {
     console.error('Error loading Stripe:', error);
     return null;
-  }
-})();
+  });
 
 const SubscribeForm = () => {
   const stripe = useStripe();
