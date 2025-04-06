@@ -81,10 +81,10 @@ export const getQueryFn: <T>(options: {
     // Get current Firebase auth token and project configuration
     const token = auth.currentUser ? await auth.currentUser.getIdToken(true) : null;
     const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
-    
+
     if (!projectId) {
-      console.error('Firebase Project ID is missing');
-      throw new Error('Firebase configuration error');
+      console.error('Firebase Project ID is missing in environment variables');
+      throw new Error('Firebase configuration error: Project ID missing');
     }
 
     // Create headers with auth token if available
