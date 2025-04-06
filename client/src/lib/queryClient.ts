@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { auth } from "./firebase"; // Assuming firebase is imported elsewhere
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -41,15 +42,16 @@ export async function apiRequest(
   data?: any,
   customHeaders?: Record<string, string>
 ): Promise<Response> {
-  // Get token from localStorage if available
-  const token = getAuthToken();
-  
+  // Get current Firebase auth token
+  const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+
+
   // Create headers with auth token if available
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...customHeaders,
   };
-  
+
   // Add Authorization header if token exists
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -77,17 +79,17 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Get token from localStorage if available
-    const token = getAuthToken();
-    
+    // Get current Firebase auth token
+    const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+
     // Create headers with auth token if available
     const headers: Record<string, string> = {};
-    
+
     // Add Authorization header if token exists
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    
+
     const res = await fetch(queryKey[0] as string, {
       headers,
       credentials: "include",
