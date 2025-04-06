@@ -79,10 +79,12 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     // Get current Firebase auth token
-    const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+    const token = auth.currentUser ? await auth.currentUser.getIdToken(true) : null;
 
     // Create headers with auth token if available
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
 
     // Add Authorization header if token exists
     if (token) {
@@ -92,6 +94,7 @@ export const getQueryFn: <T>(options: {
     const res = await fetch(queryKey[0] as string, {
       headers,
       credentials: "include",
+      mode: 'cors'
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
