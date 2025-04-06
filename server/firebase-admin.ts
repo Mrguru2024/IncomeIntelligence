@@ -3,25 +3,29 @@ import admin from 'firebase-admin';
 let isInitialized = false;
 
 export function initializeFirebaseAdmin() {
-  // Check if Firebase credentials are available
-  console.log("Initializing Firebase Admin...");
-  console.log("Firebase Project ID:", process.env.FIREBASE_PROJECT_ID ? "Available" : "Missing");
-  console.log("Firebase Client Email:", process.env.FIREBASE_CLIENT_EMAIL ? "Available" : "Missing");
-  console.log("Firebase Private Key:", process.env.FIREBASE_PRIVATE_KEY ? "Available (first chars: " + 
-    (process.env.FIREBASE_PRIVATE_KEY?.substring(0, 20) || "N/A") + "...)" : "Missing");
+  try {
+    // Check if Firebase credentials are available
+    console.log("Initializing Firebase Admin...");
+    
+    const requiredEnvVars = {
+      'FIREBASE_PROJECT_ID': process.env.FIREBASE_PROJECT_ID,
+      'FIREBASE_CLIENT_EMAIL': process.env.FIREBASE_CLIENT_EMAIL,
+      'FIREBASE_PRIVATE_KEY': process.env.FIREBASE_PRIVATE_KEY
+    };
 
-  if (!process.env.FIREBASE_PROJECT_ID || 
-      !process.env.FIREBASE_CLIENT_EMAIL || 
-      !process.env.FIREBASE_PRIVATE_KEY) {
-    console.warn('Firebase credentials are missing. Social authentication will be disabled.');
-    return false;
-  }
+    const missingVars = Object.entries(requiredEnvVars)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key);
 
-  // Only initialize once
-  if (isInitialized || admin.apps.length > 0) {
-    console.log('Firebase Admin is already initialized');
-    return true;
-  }
+    if (missingVars.length > 0) {
+      throw new Error(`Missing required Firebase environment variables: ${missingVars.join(', ')}`);
+    }
+
+    // Only initialize once
+    if (isInitialized || admin.apps.length > 0) {
+      console.log('Firebase Admin is already initialized');
+      return true;
+    }
 
   try {
     const serviceAccount = {
