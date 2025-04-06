@@ -4,91 +4,40 @@ import {
   GoogleAuthProvider, 
   GithubAuthProvider, 
   OAuthProvider,
-  signInWithPopup,
-  signInWithRedirect,
-  setPersistence,
   browserLocalPersistence
 } from "firebase/auth";
 
-// Your web app's Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyCnIly7WixD5bJqPKUms7HHqD41pQOei94",
+  authDomain: "stackr-19160.firebaseapp.com",
+  projectId: "stackr-19160",
+  storageBucket: "stackr-19160.firebasestorage.app",
+  messagingSenderId: "887839576217",
+  appId: "1:887839576217:web:37d47847b89cd4687d2808",
+  measurementId: "G-DZ87C6BM55"
 };
 
-// Log Firebase configuration for debugging (excluding sensitive info)
-console.log("Firebase configuration loaded:", {
-  authDomain: firebaseConfig.authDomain,
-  projectId: firebaseConfig.projectId,
-  storageBucket: firebaseConfig.storageBucket,
-});
+let app;
+let auth;
+let googleProvider;
+let githubProvider;
+let appleProvider;
 
-// Initialize Firebase
-const initializeFirebaseWithRetry = async () => {
-  try {
-    if (!getApps().length) {
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      await auth.setPersistence(browserLocalPersistence);
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  auth.setPersistence(browserLocalPersistence);
 
-      const googleProvider = new GoogleAuthProvider();
-      const githubProvider = new GithubAuthProvider();
-      const appleProvider = new OAuthProvider('apple.com');
-
-      return { app, auth, googleProvider, githubProvider, appleProvider };
-    } else {
-      const app = getApps()[0];
-      const auth = getAuth(app);
-      const googleProvider = new GoogleAuthProvider();
-      const githubProvider = new GithubAuthProvider();
-      const appleProvider = new OAuthProvider('apple.com');
-
-      return { app, auth, googleProvider, githubProvider, appleProvider };
-    }
-  } catch (error) {
-    console.error('Firebase initialization error:', error);
-    throw error;
-  }
-};
-
-const { app, auth, googleProvider, githubProvider, appleProvider } = await initializeFirebaseWithRetry();
-
-// Configure Google provider with custom parameters
-googleProvider.setCustomParameters({
-  prompt: 'select_account',
-  login_hint: 'user@example.com'
-});
-
-// Add scopes for additional permissions
-googleProvider.addScope('profile');
-googleProvider.addScope('email');
-
-githubProvider.addScope('read:user');
-githubProvider.addScope('user:email');
-
-// Configure auth persistence
-setPersistence(auth, browserLocalPersistence)
-  .catch((error) => {
-    console.error("Firebase persistence error:", error);
-  });
-
-// Configure auth settings
-auth.settings.appVerificationDisabledForTesting = true;
-auth.settings.forceRecaptcha = false;
-
-// Add error event listener
-auth.onAuthStateChanged((user) => {
-  if (user) {
-    console.log('User is signed in');
-  }
-}, (error) => {
-  console.error('Auth state change error:', error);
-});
+  googleProvider = new GoogleAuthProvider();
+  githubProvider = new GithubAuthProvider();
+  appleProvider = new OAuthProvider('apple.com');
+} else {
+  app = getApps()[0];
+  auth = getAuth(app);
+  googleProvider = new GoogleAuthProvider();
+  githubProvider = new GithubAuthProvider();
+  appleProvider = new OAuthProvider('apple.com');
+}
 
 export { auth, googleProvider, githubProvider, appleProvider };
 export default app;
