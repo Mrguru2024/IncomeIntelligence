@@ -143,8 +143,21 @@ export class DbStorage implements IStorage {
 
   async getUser(id: number): Promise<User | undefined> {
     try {
-      const result = await db.select().from(users).where(eq(users.id, id));
-      return result.length > 0 ? result[0] : undefined;
+      // Use simple SQL query to avoid schema mismatches
+      const { rows } = await db.connection.query(
+        'SELECT * FROM users WHERE id = $1 LIMIT 1',
+        [id]
+      );
+      
+      if (rows.length === 0) return undefined;
+      
+      // Add missing fields that might be expected by the app
+      const user = rows[0] as User;
+      if (user && !('onboardingCompleted' in user)) {
+        (user as any).onboardingCompleted = false;
+      }
+      
+      return user;
     } catch (error) {
       console.error('Error getting user:', error);
       return undefined;
@@ -153,8 +166,21 @@ export class DbStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
-      const result = await db.select().from(users).where(eq(users.username, username));
-      return result.length > 0 ? result[0] : undefined;
+      // Use simple SQL query to avoid schema mismatches
+      const { rows } = await db.connection.query(
+        'SELECT * FROM users WHERE username = $1 LIMIT 1',
+        [username]
+      );
+      
+      if (rows.length === 0) return undefined;
+      
+      // Add missing fields that might be expected by the app
+      const user = rows[0] as User;
+      if (user && !('onboardingCompleted' in user)) {
+        (user as any).onboardingCompleted = false;
+      }
+      
+      return user;
     } catch (error) {
       console.error('Error getting user by username:', error);
       return undefined;
@@ -163,8 +189,21 @@ export class DbStorage implements IStorage {
   
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
-      const result = await db.select().from(users).where(eq(users.email, email));
-      return result.length > 0 ? result[0] : undefined;
+      // Use simple SQL query to avoid schema mismatches
+      const { rows } = await db.connection.query(
+        'SELECT * FROM users WHERE email = $1 LIMIT 1',
+        [email]
+      );
+      
+      if (rows.length === 0) return undefined;
+      
+      // Add missing fields that might be expected by the app
+      const user = rows[0] as User;
+      if (user && !('onboardingCompleted' in user)) {
+        (user as any).onboardingCompleted = false;
+      }
+      
+      return user;
     } catch (error) {
       console.error('Error getting user by email:', error);
       return undefined;
