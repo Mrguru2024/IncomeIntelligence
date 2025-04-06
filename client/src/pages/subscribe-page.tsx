@@ -27,17 +27,22 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Stripe } from "@stripe/stripe-js";
 
 // Initialize Stripe only once
-const stripePromise = (() => {
+const stripePromise = (async () => {
   try {
     const key = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
     if (!key) {
       console.error("Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)");
-      return Promise.resolve(null);
+      return null;
     }
-    return loadStripe(key);
+    console.log("Initializing Stripe with key:", key.slice(0, 8) + "...");
+    const stripe = await loadStripe(key);
+    if (!stripe) {
+      throw new Error("Failed to initialize Stripe");
+    }
+    return stripe;
   } catch (error) {
     console.error("Failed to initialize Stripe:", error);
-    return Promise.resolve(null);
+    return null;
   }
 })();
 
@@ -303,11 +308,12 @@ const SubscribePage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {clientSecret && stripePromise ? (
+            {clientSecret ? (
               <Elements
                 stripe={stripePromise}
                 options={{
                   clientSecret,
+                  loader: "auto",
                   appearance: {
                     theme: "stripe",
                     variables: {
