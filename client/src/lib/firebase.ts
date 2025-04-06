@@ -12,26 +12,20 @@ import { getAnalytics } from "firebase/analytics";
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "stackr-19160",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase only once
-let app;
-try {
-  if (!firebaseConfig.projectId) {
-    throw new Error('Firebase projectId is missing from configuration');
-  }
-  app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-  console.log('Firebase initialized with project:', firebaseConfig.projectId);
-} catch (error) {
-  console.error("Firebase initialization error:", error);
-  app = getApps()[0];
+// Validate config before initialization
+if (!firebaseConfig.projectId) {
+  throw new Error('Firebase projectId is missing from configuration');
 }
 
+// Initialize Firebase only once
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 // Initialize providers
