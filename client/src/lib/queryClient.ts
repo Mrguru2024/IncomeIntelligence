@@ -78,16 +78,17 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Get current Firebase auth token and project configuration
-    const token = auth.currentUser ? await auth.currentUser.getIdToken(true) : null;
-    const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+    try {
+      // Get current Firebase auth token and project configuration
+      const token = auth.currentUser ? await auth.currentUser.getIdToken(true) : null;
+      const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
 
-    if (!projectId) {
-      console.error('Firebase Project ID is missing in environment variables');
-      throw new Error('Firebase configuration error: Project ID missing');
-    }
+      if (!projectId) {
+        console.error('Firebase Project ID is missing');
+        return null;
+      }
 
-    // Create headers with auth token if available
+      // Create headers with auth token if available
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'X-Firebase-Project': projectId
@@ -111,7 +112,12 @@ export const getQueryFn: <T>(options: {
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    try {
+      return await res.json();
+    } catch (error) {
+      console.error('Error parsing response:', error);
+      return null;
+    }
   };
 
 export const queryClient = new QueryClient({
