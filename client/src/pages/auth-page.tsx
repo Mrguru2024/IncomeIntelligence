@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -31,6 +30,7 @@ import { auth, googleProvider } from "@/lib/firebase";
 import { getRedirectResult, GoogleAuthProvider } from "firebase/auth";
 import { signInWithPopup } from "firebase/auth";
 import { useAuth } from "@/hooks/use-auth";
+import { testSanityConnection } from "@/lib/sanityTest"; // Added import
 
 
 // Login validation schema
@@ -298,6 +298,12 @@ export default function AuthPage() {
   };
 
   // If user is already logged in, redirect to home page
+  useEffect(() => {
+    testSanityConnection().then(success => {
+      console.log("Sanity connection test:", success ? "Success" : "Failed");
+    });
+  }, []); // Added Sanity connection test
+
   if (userLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -757,13 +763,13 @@ export default function AuthPage() {
           </div>
 
           <div className="space-y-5">
-            <div className="flex items-start space-x-4">
+            <div className`flex items-start space-x-4">
               <div className="bg-primary/20 p-3 rounded-full">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-6 w-6 text-primary"
                   fill="none"
-                  viewBox="00 24"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
                   <path
