@@ -1,49 +1,17 @@
-import admin from 'firebase-admin';
 import { Request, Response, NextFunction } from 'express';
 import { storage } from '../storage';
+import { getFirebaseAdmin, initializeFirebaseAdmin } from '../firebase-admin';
 
 // Determine if we're in development mode
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-// In development, we can proceed even without proper Firebase credentials
+// We'll set this flag when needed, it will be updated by initializeFirebaseAdmin()
 let hasFirebaseCredentials = false;
 
-// Check if Firebase credentials are available
-if (process.env.FIREBASE_PROJECT_ID && 
-    process.env.FIREBASE_CLIENT_EMAIL && 
-    process.env.FIREBASE_PRIVATE_KEY) {
-    
-  // We have all the required credentials
-  hasFirebaseCredentials = true;
-    
-  // Initialize Firebase Admin with credentials if available
-  if (!admin.apps.length) {
-    try {
-      const serviceAccount = {
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      };
-
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-        databaseURL: `https://${serviceAccount.projectId}.firebaseio.com`
-      });
-      console.log('Firebase Admin SDK initialized successfully');
-    } catch (error) {
-      console.error('Error initializing Firebase Admin SDK:', error);
-      hasFirebaseCredentials = false;
-    }
-  }
-} 
-
-// Log appropriate message if Firebase is not configured
-if (!hasFirebaseCredentials) {
-  if (isDevelopment) {
-    console.log('Firebase credentials missing or invalid, but continuing in development mode');
-  } else {
-    console.warn('Firebase credentials are missing. Social authentication will be disabled.');
-  }
+// Function to set up Firebase Admin SDK
+export function setupFirebaseAdmin() {
+  hasFirebaseCredentials = initializeFirebaseAdmin();
+  return hasFirebaseCredentials;
 }
 
 // Middleware to verify Firebase token
@@ -71,7 +39,9 @@ export const verifyFirebaseToken = async (req: Request, res: Response, next: Nex
   }
   
   try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    // Get admin from our new centralized firebase-admin module
+    const firebaseAdmin = getFirebaseAdmin();
+    const decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);
     
     // Create proper user object that matches Express.User interface
     req.user = {
@@ -112,8 +82,10 @@ export const handleSocialAuth = async (idToken: string) => {
   }
   
   try {
+    // Get admin from our new centralized firebase-admin module
+    const firebaseAdmin = getFirebaseAdmin();
     // Verify the ID token
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);
     
     const { uid, email, name, picture } = decodedToken;
     
