@@ -1,6 +1,7 @@
 import { randomBytes, createHash, scrypt, timingSafeEqual, ScryptOptions } from 'crypto';
 import jwt, { Secret, SignOptions } from 'jsonwebtoken';
 import { promisify } from 'util';
+import * as bcrypt from 'bcrypt';
 
 // Promisify scrypt for better async handling
 const scryptAsync = promisify<Buffer | string, Buffer | string, number, Buffer>(scrypt);
@@ -97,8 +98,12 @@ export function verifyPassword(password: string, storedHash: string): boolean {
     // Check if this is a bcrypt hash (starts with $2b$)
     if (storedHash.startsWith('$2b$') || storedHash.startsWith('$2a$')) {
       // Use bcrypt compare
-      const bcrypt = require('bcrypt');
-      return bcrypt.compareSync(password, storedHash);
+      try {
+        return bcrypt.compareSync(password, storedHash);
+      } catch (error) {
+        console.error('Bcrypt comparison error:', error);
+        return false;
+      }
     }
     
     // Handle scrypt hash (our format)
