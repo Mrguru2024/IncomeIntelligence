@@ -83,7 +83,8 @@ export const getQueryFn: <T>(options: {
     const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
     
     if (!projectId) {
-      throw new Error('VITE_FIREBASE_PROJECT_ID is required');
+      console.error('Project ID missing');
+      return null;
     }
 
     // Create headers with auth token if available
