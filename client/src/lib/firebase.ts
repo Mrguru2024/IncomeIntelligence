@@ -19,17 +19,8 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-if (!firebaseConfig.projectId) {
-  console.error('Firebase Project ID is missing');
-}
-
 // Initialize Firebase only once
-let app;
-if (getApps().length) {
-  app = getApps()[0];
-} else {
-  app = initializeApp(firebaseConfig);
-}
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
 const auth = getAuth(app);
 const analytics = getAnalytics(app);
