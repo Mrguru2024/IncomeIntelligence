@@ -31,6 +31,7 @@ import { requireAdmin } from "./middleware/adminMiddleware";
 import { requireProSubscription } from "./middleware/proSubscriptionMiddleware";
 import { setupAuth } from "./auth";
 import { spendingPersonalityService } from "./spending-personality-service";
+import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import Stripe from "stripe";
 import express from "express";
 import dotenv from "dotenv";
@@ -2624,6 +2625,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch subscription status" });
     }
   });
+
+  // Register Perplexity AI routes
+  registerPerplexityRoutes(app);
 
   const httpServer = createServer(app);
 
