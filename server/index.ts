@@ -174,46 +174,17 @@ app.use((req, res, next) => {
     res.sendFile(path.join(dirname, '../dist/public/index.html'));
   });
 
-
-  // Global error handling middleware
-  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
-    // Handle CSRF token errors
-    if (err.code === 'EBADCSRFTOKEN') {
-      return res.status(403).json({
-        status: 'error',
-        message: 'Invalid or missing CSRF token'
-      });
-    }
-
-    const status = err.status || err.statusCode || 500;
-
-    // Create appropriate error response
-    const errorResponse: {
-      status: string;
-      message: string;
-      stack?: string;
-      error?: any;
-    } = {
-      status: 'error',
-      message: err.message || "Internal Server Error",
-    };
-
-    // Only include stack trace in development
-    if (process.env.NODE_ENV === 'development') {
-      errorResponse.stack = err.stack;
-      errorResponse.error = err;
-
-      // Log full error in development
-      console.error('ERROR:', err);
-    }
-
-    // Log all 500 errors in any environment (no sensitive data)
-    if (status === 500) {
-      log(`SERVER ERROR: ${req.method} ${req.path} - ${err.message || 'Unknown error'}`);
-    }
-
-    res.status(status).json(errorResponse);
+  // Basic error handling
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error('Error:', err);
+    res.status(500).json({ message: 'Internal server error' });
   });
+
+  // Handle 404s
+  app.use((req: Request, res: Response) => {
+    res.status(404).json({ message: 'Not found' });
+  });
+
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
