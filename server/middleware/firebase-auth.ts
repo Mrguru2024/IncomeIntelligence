@@ -2,23 +2,42 @@ import admin from 'firebase-admin';
 import { Request, Response, NextFunction } from 'express';
 import { storage } from '../storage';
 
-// Initialize Firebase Admin with credentials
-const serviceAccount = {
-  projectId: process.env.FIREBASE_PROJECT_ID || "stackr-19160",
-  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-  privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-};
+// Check if Firebase credentials are available
+const hasFirebaseCredentials = !!(
+  process.env.FIREBASE_PROJECT_ID &&
+  process.env.FIREBASE_CLIENT_EMAIL &&
+  process.env.FIREBASE_PRIVATE_KEY
+);
 
-// Only initialize if it hasn't been initialized already
-if (!admin.apps.length) {
+// Initialize Firebase Admin with credentials if available
+if (hasFirebaseCredentials && !admin.apps.length) {
+  const serviceAccount = {
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  };
+
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
     databaseURL: `https://${serviceAccount.projectId}.firebaseio.com`
   });
 }
 
+// Log warning if Firebase is not configured
+if (!hasFirebaseCredentials) {
+  console.warn('Firebase credentials are missing. Social authentication will be disabled.');
+}
+
 // Middleware to verify Firebase token
 export const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
+  // If Firebase is not initialized, we cannot verify tokens
+  if (!hasFirebaseCredentials) {
+    console.warn('Firebase auth verification skipped - credentials not available');
+    return res.status(503).json({ 
+      message: 'Social authentication is disabled - Firebase credentials not configured' 
+    });
+  }
+  
   const idToken = req.headers.authorization?.split('Bearer ')[1];
   
   if (!idToken) {
@@ -46,6 +65,11 @@ export const verifyFirebaseToken = async (req: Request, res: Response, next: Nex
 
 // Function to create or update user from Firebase auth
 export const handleSocialAuth = async (idToken: string) => {
+  // Check if Firebase is initialized
+  if (!hasFirebaseCredentials) {
+    throw new Error('Social authentication is disabled - Firebase credentials not configured');
+  }
+  
   try {
     // Verify the ID token
     const decodedToken = await admin.auth().verifyIdToken(idToken);

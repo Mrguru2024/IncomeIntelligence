@@ -21,6 +21,9 @@ import SubscribePage from "@/pages/subscribe-page";
 import SubscriptionPage from "@/pages/subscription-page";
 import CheckoutPage from "@/pages/checkout-page";
 import CheckoutSuccessPage from "@/pages/checkout-success";
+import IncomeHub from "@/pages/IncomeHub";
+import PricingPage from "@/pages/PricingPage";
+import StackrGigs from "@/pages/income/StackrGigs";
 import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import AppTutorial from "@/components/AppTutorial";
@@ -52,6 +55,9 @@ function Router() {
       <ProtectedRoute path="/subscription" component={SubscriptionPage} />
       <ProtectedRoute path="/checkout" component={CheckoutPage} />
       <ProtectedRoute path="/checkout/success" component={CheckoutSuccessPage} />
+      <ProtectedRoute path="/income-hub" component={IncomeHub} />
+      <ProtectedRoute path="/pricing" component={PricingPage} />
+      <ProtectedRoute path="/income-hub/gigs" component={StackrGigs} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
