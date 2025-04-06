@@ -7,6 +7,7 @@ import {
   OAuthProvider,
   browserLocalPersistence
 } from "firebase/auth";
+import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCnIly7WixD5bJqPKUms7HHqD41pQOei94",
@@ -20,6 +21,7 @@ const firebaseConfig = {
 
 let app;
 let auth;
+let analytics;
 let googleProvider;
 let githubProvider;
 let appleProvider;
@@ -28,8 +30,11 @@ try {
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
     console.log('Firebase initialized successfully');
+    analytics = getAnalytics(app);
+    console.log('Firebase Analytics initialized');
   } else {
     app = getApps()[0];
+    analytics = getAnalytics(app);
     console.log('Using existing Firebase instance');
   }
 
@@ -52,5 +57,5 @@ try {
   throw error;
 }
 
-export { auth, googleProvider, githubProvider, appleProvider };
+export { auth, googleProvider, githubProvider, appleProvider, analytics };
 export default app;
