@@ -1,3 +1,4 @@
+
 import { initializeApp, getApps } from "firebase/app";
 import { 
   getAuth, 
@@ -23,20 +24,32 @@ let googleProvider;
 let githubProvider;
 let appleProvider;
 
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
+try {
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+    console.log('Firebase initialized successfully');
+  } else {
+    app = getApps()[0];
+    console.log('Using existing Firebase instance');
+  }
+
   auth = getAuth(app);
-  auth.setPersistence(browserLocalPersistence);
+  auth.setPersistence(browserLocalPersistence)
+    .then(() => console.log('Firebase persistence set'))
+    .catch(error => console.error('Firebase persistence error:', error));
 
   googleProvider = new GoogleAuthProvider();
   githubProvider = new GithubAuthProvider();
   appleProvider = new OAuthProvider('apple.com');
-} else {
-  app = getApps()[0];
-  auth = getAuth(app);
-  googleProvider = new GoogleAuthProvider();
-  githubProvider = new GithubAuthProvider();
-  appleProvider = new OAuthProvider('apple.com');
+
+  // Configure providers
+  googleProvider.setCustomParameters({ prompt: 'select_account' });
+  githubProvider.addScope('read:user');
+  githubProvider.addScope('user:email');
+
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+  throw error;
 }
 
 export { auth, googleProvider, githubProvider, appleProvider };
