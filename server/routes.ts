@@ -49,6 +49,7 @@ import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import Stripe from "stripe";
 import express from "express";
 import dotenv from "dotenv";
+import { firebaseAuth } from "./middleware/firebase-auth";
 
 // Load environment variables
 dotenv.config();
