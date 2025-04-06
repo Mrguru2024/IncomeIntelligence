@@ -27,15 +27,21 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Stripe } from "@stripe/stripe-js";
 
 // Initialize Stripe only once and cache the promise
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
-
-const getStripePromise = () => {
-  if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
-    console.error("Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)");
+const stripePromise = (() => {
+  try {
+    const key = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+    if (!key) {
+      console.error("Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)");
+      return null;
+    }
+    return loadStripe(key);
+  } catch (error) {
+    console.error("Failed to initialize Stripe:", error);
     return null;
   }
-  return stripePromise;
-};
+})();
+
+const getStripePromise = () => stripePromise;
 
 const SubscribeForm = () => {
   const stripe = useStripe();
