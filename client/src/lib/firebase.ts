@@ -29,16 +29,14 @@ console.log("Firebase configuration loaded:", {
   storageBucket: firebaseConfig.storageBucket,
 });
 
-// Initialize Firebase with custom settings
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-// Initialize Firebase Authentication with custom settings
-export const auth = getAuth(app);
-
-// Configure providers
-export const googleProvider = new GoogleAuthProvider();
-export const githubProvider = new GithubAuthProvider();
-export const appleProvider = new OAuthProvider('apple.com');
+// Configure providers after auth initialization
+const googleProvider = new GoogleAuthProvider();
+const githubProvider = new GithubAuthProvider();
+const appleProvider = new OAuthProvider('apple.com');
 
 // Configure Google provider with custom parameters
 googleProvider.setCustomParameters({
@@ -72,4 +70,5 @@ auth.onAuthStateChanged((user) => {
   console.error('Auth state change error:', error);
 });
 
+export { auth, googleProvider, githubProvider, appleProvider };
 export default app;
