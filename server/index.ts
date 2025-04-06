@@ -166,12 +166,12 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
-  app.use(express.static('client/dist')); // Serve static files
+  app.use(express.static(path.join(__dirname, '../dist/public'))); // Serve static files
 
   // Handle client-side routing (MUST come AFTER other routes)
   app.get('*', (req, res) => {
     const __dirname = new URL('.', import.meta.url).pathname;
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    res.sendFile(path.join(__dirname, '../dist/public/index.html'));
   });
 
 
