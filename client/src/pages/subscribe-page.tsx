@@ -23,11 +23,10 @@ import { Separator } from "@/components/ui/separator";
 import { Check, X, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-// Initialize Stripe in a component to make sure it has access to the environment variables
 import type { Stripe } from "@stripe/stripe-js";
 
-// Initialize Stripe with proper error handling
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+// Ensure stripe is initialized only once
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
 
 const SubscribeForm = () => {
   const stripe = useStripe();
@@ -291,7 +290,11 @@ const SubscribePage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {clientSecret && stripePromise ? (
+            {!stripePromise ? (
+              <div className="flex justify-center py-4">
+                <p className="text-red-500">Failed to load payment system. Please refresh the page.</p>
+              </div>
+            ) : clientSecret ? (
               <Elements
                 stripe={stripePromise}
                 options={{
