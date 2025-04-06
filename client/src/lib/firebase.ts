@@ -22,22 +22,29 @@ const firebaseConfig = {
   measurementId: "G-DZ87C6BM55"
 };
 
-let app;
-let auth;
-let analytics;
-let googleProvider;
-let githubProvider;
-let appleProvider;
+// Initialize Firebase only once
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
+const auth = getAuth(app);
+const analytics = process.env.NODE_ENV === 'production' ? getAnalytics(app) : null;
 
-try {
-  try {
-    if (!getApps().length) {
-      app = initializeApp(firebaseConfig);
-      console.log('Firebase initialized successfully');
-      
-      // Initialize auth first with retries
-      auth = getAuth(app);
-      auth.useDeviceLanguage();
+// Configure auth providers
+const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.email');
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
+const githubProvider = new GithubAuthProvider();
+const appleProvider = new OAuthProvider('apple.com');
+
+// Set persistence
+auth.setPersistence(browserLocalPersistence)
+  .then(() => console.log('Firebase persistence set'))
+  .catch(error => console.error('Firebase persistence error:', error));
+
+// Configure language
+auth.useDeviceLanguage();
       
       // Configure auth settings
       auth.settings.appVerificationDisabledForTesting = process.env.NODE_ENV === 'development';

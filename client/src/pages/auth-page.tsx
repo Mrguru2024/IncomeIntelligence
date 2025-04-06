@@ -106,9 +106,20 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     try {
       setIsSocialLoginPending(true);
+      
+      // Ensure auth and provider are properly initialized
+      if (!auth || !googleProvider) {
+        throw new Error("Authentication not properly initialized");
+      }
+
       const result = await signInWithPopup(auth, googleProvider)
         .catch((error) => {
-          console.error("Detailed sign-in error:", error);
+          console.error("Detailed sign-in error:", {
+            code: error.code,
+            message: error.message,
+            email: error.email,
+            credential: error.credential
+          });
           throw error;
         });
       
