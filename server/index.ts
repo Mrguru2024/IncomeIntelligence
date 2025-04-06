@@ -12,6 +12,7 @@ import csrf from "csurf";
 import { preventApiAbuse, sanitizeQueryParams, setSecurityHeaders } from "./middleware/apiProtection";
 import { optionalAuth } from "./middleware/authMiddleware";
 import dotenv from 'dotenv';
+import path from 'path';
 
 // Load environment variables from .env file
 const result = dotenv.config();
@@ -21,7 +22,7 @@ if (result.error) {
   console.log('.env file loaded successfully');
   console.log('Firebase Project ID from dotenv:', process.env.FIREBASE_PROJECT_ID ? "Available" : "Missing");
   console.log('Firebase Client Email from dotenv:', process.env.FIREBASE_CLIENT_EMAIL ? "Available" : "Missing");
-  
+
   // Safely check for FIREBASE_PRIVATE_KEY
   if (process.env.FIREBASE_PRIVATE_KEY) {
     console.log('Firebase Private Key from dotenv: Available (first chars: ' + 
@@ -148,7 +149,7 @@ app.use((req, res, next) => {
         if (sanitizedResponse.token) sanitizedResponse.token = "[REDACTED]";
         if (sanitizedResponse.accessToken) sanitizedResponse.accessToken = "[REDACTED]";
         if (sanitizedResponse.authToken) sanitizedResponse.authToken = "[REDACTED]";
-        
+
         logLine += ` :: ${JSON.stringify(sanitizedResponse)}`;
       }
 
@@ -165,6 +166,13 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+  app.use(express.static('client/dist')); // Serve static files
+
+  // Handle client-side routing (MUST come AFTER other routes)
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  });
+
 
   // Global error handling middleware
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
@@ -175,9 +183,9 @@ app.use((req, res, next) => {
         message: 'Invalid or missing CSRF token'
       });
     }
-    
+
     const status = err.status || err.statusCode || 500;
-    
+
     // Create appropriate error response
     const errorResponse: {
       status: string;
@@ -188,21 +196,21 @@ app.use((req, res, next) => {
       status: 'error',
       message: err.message || "Internal Server Error",
     };
-    
+
     // Only include stack trace in development
     if (process.env.NODE_ENV === 'development') {
       errorResponse.stack = err.stack;
       errorResponse.error = err;
-      
+
       // Log full error in development
       console.error('ERROR:', err);
     }
-    
+
     // Log all 500 errors in any environment (no sensitive data)
     if (status === 500) {
       log(`SERVER ERROR: ${req.method} ${req.path} - ${err.message || 'Unknown error'}`);
     }
-    
+
     res.status(status).json(errorResponse);
   });
 
@@ -244,6 +252,6 @@ app.use((req, res, next) => {
       throw err;
     }
   };
-  
+
   startServer();
 })();
