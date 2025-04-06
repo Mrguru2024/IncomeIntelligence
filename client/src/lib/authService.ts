@@ -119,6 +119,7 @@ const sendAuthToBackend = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/json",
       },
       body: JSON.stringify({
         idToken,
@@ -131,12 +132,13 @@ const sendAuthToBackend = async (
       credentials: "include",
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const data = await response.json();
       throw new Error(data.message || "Failed to authenticate with backend");
     }
 
-    return await response.json();
+    return data;
   } catch (error) {
     console.error("Error sending authentication to backend:", error);
     throw error;
