@@ -14,7 +14,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, CircleDollarSign } from "lucide-react";
 import { auth, googleProvider } from "@/lib/firebase";
-import { signInWithRedirect, getRedirectResult, GoogleAuthProvider } from "firebase/auth";
+import { signInWithRedirect, signInWithPopup, getRedirectResult, GoogleAuthProvider } from "firebase/auth";
 
 // Login validation schema
 const loginSchema = z.object({
