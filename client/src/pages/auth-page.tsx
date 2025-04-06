@@ -260,8 +260,17 @@ export default function AuthPage() {
     },
   });
 
-  const onLoginSubmit = (values: LoginFormValues) => {
-    loginMutation.mutate(values);
+  const onLoginSubmit = async (values: LoginFormValues) => {
+    try {
+      loginMutation.mutate(values);
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Login Error",
+        description: "Please check your network connection and try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const onRegisterSubmit = (values: RegisterFormValues) => {

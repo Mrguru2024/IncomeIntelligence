@@ -27,39 +27,68 @@ let githubProvider;
 let appleProvider;
 
 try {
-  if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-    console.log('Firebase initialized successfully');
-    
-    // Initialize auth first
-    auth = getAuth(app);
-    auth.useDeviceLanguage(); // Use device language
-    
-    // Set persistence
-    auth.setPersistence(browserLocalPersistence)
-      .then(() => console.log('Firebase persistence set'))
-      .catch(error => console.error('Firebase persistence error:', error));
-    
-    // Initialize analytics only in production
-    if (process.env.NODE_ENV === 'production') {
-      try {
-        analytics = getAnalytics(app);
-        console.log('Firebase Analytics initialized');
-      } catch (error) {
-        console.log('Analytics initialization skipped');
+  try {
+    if (!getApps().length) {
+      app = initializeApp(firebaseConfig);
+      console.log('Firebase initialized successfully');
+      
+      // Initialize auth first with retries
+      auth = getAuth(app);
+      auth.useDeviceLanguage();
+      
+      // Configure auth settings
+      auth.settings.appVerificationDisabledForTesting = process.env.NODE_ENV === 'development';
+      
+      // Set persistence with retry
+      const setPersistenceWithRetry = async (retries = 3) => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            await auth.setPersistence(browserLocalPersistence);
+            console.log('Firebase persistence set');
+            break;
+          } catch (error) {
+            if (i === retries - 1) throw error;
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+          }
+        }
+      };
+      
+      setPersistenceWithRetry().catch(error => {
+        console.error('Firebase persistence error after retries:', error);
+      });
+      
+      // Initialize analytics only in production
+      if (process.env.NODE_ENV === 'production') {
+        try {
+          analytics = getAnalytics(app);
+          console.log('Firebase Analytics initialized');
+        } catch (error) {
+          console.log('Analytics initialization skipped');
+        }
+      }
+    } else {
+      app = getApps()[0];
+      auth = getAuth(app);
+      
+      if (process.env.NODE_ENV === 'production') {
+        try {
+          analytics = getAnalytics(app);
+        } catch (error) {
+          console.log('Analytics initialization skipped');
+        }
       }
     }
-  } else {
-    app = getApps()[0];
-    auth = getAuth(app);
-    
-    if (process.env.NODE_ENV === 'production') {
-      try {
-        analytics = getAnalytics(app);
-      } catch (error) {
-        console.log('Analytics initialization skipped');
+
+    // Configure auth state persistence
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        console.log('User is signed in');
       }
-    }
+    });
+
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
+    throw error;
   }
 
   googleProvider = new GoogleAuthProvider();
