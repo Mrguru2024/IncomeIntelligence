@@ -10,19 +10,23 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ShoppingCart, ArrowLeft } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
-// Initialize Stripe outside component to avoid recreating on each render
+// Initialize Stripe in a component to make sure it has access to the environment variables
 import type { Stripe } from '@stripe/stripe-js';
-let stripePromise: Promise<Stripe | null> | null = null;
-try {
-  const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-  if (!stripeKey) {
-    console.error('Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)');
-  } else {
-    stripePromise = loadStripe(stripeKey);
+
+// Create a lazy-loaded stripePromise that is only instantiated when needed
+const getStripePromise = (): Promise<Stripe | null> => {
+  try {
+    const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+    if (!stripeKey) {
+      console.error('Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)');
+      return Promise.resolve(null);
+    }
+    return loadStripe(stripeKey);
+  } catch (error) {
+    console.error('Failed to initialize Stripe:', error);
+    return Promise.resolve(null);
   }
-} catch (error) {
-  console.error('Failed to initialize Stripe:', error);
-}
+};
 
 interface CheckoutFormProps {
   amount: number;
@@ -244,7 +248,7 @@ const CheckoutPage = () => {
             <CardContent>
               {clientSecret ? (
                 <Elements
-                  stripe={stripePromise}
+                  stripe={getStripePromise()}
                   options={{
                     clientSecret,
                     appearance: {
