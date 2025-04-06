@@ -27,7 +27,16 @@ export const verifyFirebaseToken = async (req: Request, res: Response, next: Nex
   
   try {
     const decodedToken = await admin.auth().verifyIdToken(idToken);
-    req.user = decodedToken;
+    
+    // Create proper user object that matches Express.User interface
+    req.user = {
+      id: 0, // This will be set properly when we fetch the actual user
+      username: decodedToken.name || '',
+      email: decodedToken.email || '',
+      role: 'user',
+      ...decodedToken
+    };
+    
     next();
   } catch (error) {
     console.error('Error verifying Firebase token:', error);
@@ -43,33 +52,43 @@ export const handleSocialAuth = async (idToken: string) => {
     
     const { uid, email, name, picture } = decodedToken;
     
-    // Check if user exists
-    const existingUser = email ? await storage.getUserByEmail(email) : null;
+    // Check if user exists by email
+    let existingUser = null;
+    if (email) {
+      // Manually query for user by email since we don't have getUserByEmail method
+      const users = await storage.getUsers();
+      existingUser = users.find((user) => user.email === email);
+    }
     
     if (existingUser) {
       // Update existing user with Firebase UID if needed
       if (!existingUser.firebaseUid) {
-        await storage.updateUser(existingUser.id, { 
+        await storage.updateUser(existingUser.id, {
+          provider: 'firebase',
+          providerId: uid,
           firebaseUid: uid,
-          lastLogin: new Date()
+          profileImage: picture || existingUser.profileImage
         });
-      } else {
-        // Just update last login time
-        await storage.updateUserLastLogin(existingUser.id);
       }
+      
+      // Update the last login time
+      await storage.updateUserLastLogin(existingUser.id);
       
       return existingUser;
     } else {
       // Create new user
+      const username = name || (email ? email.split('@')[0] : `user_${uid.substring(0, 8)}`);
+      
       const newUser = await storage.createUser({
-        username: name || email?.split('@')[0] || `user_${uid.substring(0, 8)}`,
+        username: username,
         email: email || '',
+        password: '', // Empty password for social auth
+        provider: 'firebase',
+        providerId: uid,
         firebaseUid: uid,
-        password: '', // We don't need a password for social auth
-        isVerified: true, // Social auth users are considered verified
-        profileImage: picture || '',
-        lastLogin: new Date(),
-        dateCreated: new Date()
+        profileImage: picture || null,
+        verified: true, // Social auth users are considered verified
+        accountStatus: 'active'
       });
       
       return newUser;
