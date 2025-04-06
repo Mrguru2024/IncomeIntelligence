@@ -218,22 +218,30 @@ app.use((req, res, next) => {
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const startServer = (port = 5000) => {
+  const startServer = async (port = 5000, retries = 3) => {
     try {
-      server.listen({
-        port,
-        host: "0.0.0.0",
-        reusePort: true,
-      }, () => {
-        log(`serving on port ${port}`);
+      await new Promise((resolve, reject) => {
+        server.listen({
+          port,
+          host: "0.0.0.0",
+        }, () => {
+          log(`serving on port ${port}`);
+          resolve(true);
+        }).on('error', (err) => {
+          if (err.code === 'EADDRINUSE' && retries > 0) {
+            log(`Port ${port} is busy, retrying...`);
+            server.close();
+            setTimeout(() => {
+              startServer(port, retries - 1).catch(reject);
+            }, 1000);
+          } else {
+            reject(err);
+          }
+        });
       });
     } catch (err) {
-      if (err.code === 'EADDRINUSE') {
-        log(`Port ${port} is busy, killing existing processes...`);
-        server.close();
-      } else {
-        throw err;
-      }
+      log(`Failed to start server: ${err.message}`);
+      throw err;
     }
   };
   
