@@ -7,7 +7,6 @@ import { generateToken, hashPassword, verifyPassword, generateSecureToken } from
 import { authenticateToken, requireAuth } from './middleware/authMiddleware';
 import { sendVerificationEmail, sendPasswordResetEmail } from './email-service';
 import { twoFactorService } from './services/two-factor-service';
-import { handleSocialAuth } from './middleware/firebase-auth';
 
 // Add proper validation for registration and login
 const registerSchema = insertUserSchema.extend({
@@ -278,80 +277,7 @@ export function setupAuth(app: Express) {
     return res.status(200).json({ message: 'Logout successful' });
   });
 
-  // Social login (Firebase Authentication)
-  app.post('/api/auth/social-login', async (req: Request, res: Response) => {
-    try {
-      const { idToken } = z.object({
-        idToken: z.string().min(1),
-        provider: z.string().optional(),
-        uid: z.string().optional(),
-        email: z.string().email().optional(),
-        displayName: z.string().optional(),
-        photoURL: z.string().optional()
-      }).parse(req.body);
-      
-      // Verify and handle the token with Firebase
-      let user;
-      try {
-        user = await handleSocialAuth(idToken);
-      } catch (err) {
-        const error = err as Error;
-        console.warn('Social login failed:', error.message || 'Unknown error');
-        if (process.env.NODE_ENV === 'development') {
-          // In development mode, we can continue with a mock user
-          user = {
-            id: 1,
-            username: 'devuser',
-            email: 'dev@example.com',
-            role: 'user',
-            provider: 'firebase',
-            providerId: 'mock-uid',
-            firebaseUid: 'mock-uid',
-          };
-          console.log('Using mock user for development:', user);
-        } else {
-          return res.status(503).json({ 
-            message: 'Social authentication is currently unavailable',
-            details: error.message || 'Unknown error'
-          });
-        }
-      }
-      
-      if (!user) {
-        return res.status(400).json({ message: 'Failed to authenticate with social provider' });
-      }
-      
-      // Generate JWT token
-      const token = generateToken({
-        id: user.id,
-        username: user.username,
-        email: user.email || '',
-        role: user.role
-      });
-      
-      // Create user response without password
-      const userResponse = { ...user } as Record<string, any>;
-      
-      // Delete password if it exists (for non-mock users)
-      if ('password' in userResponse) {
-        delete userResponse.password;
-      }
-      
-      return res.status(200).json({
-        message: 'Social login successful',
-        user: userResponse,
-        token
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const validationError = fromZodError(error);
-        return res.status(400).json({ message: validationError.message });
-      }
-      console.error('Social login error:', error);
-      return res.status(500).json({ message: 'Social login failed' });
-    }
-  });
-  
+
   // Change password (authenticated)
   app.post('/api/auth/change-password', authenticateToken, requireAuth, async (req: Request, res: Response) => {
     try {
