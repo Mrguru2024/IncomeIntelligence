@@ -1,23 +1,43 @@
 
-import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+// Mock Firebase implementation
+// This is a stub that allows the application to compile without Firebase credentials
+// In a production environment, you would use the actual Firebase SDK
 
-// Create a mock firebase configuration if environment variables are not available
-// This handles the error: "Configuration must contain projectId"
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "mock-api-key",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "mock-domain.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "mock-project-id",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "mock-storage-bucket",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "000000000000",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:000000000000:web:0000000000000000000000"
+console.log("Using mock Firebase service");
+
+// Mock auth object
+const auth = {
+  currentUser: null,
+  onAuthStateChanged: (callback: (user: null) => void) => {
+    callback(null);
+    return () => {};
+  },
+  signInWithEmailAndPassword: async () => {
+    throw new Error("Firebase authentication is disabled");
+  },
+  createUserWithEmailAndPassword: async () => {
+    throw new Error("Firebase authentication is disabled");
+  },
+  signOut: async () => {
+    throw new Error("Firebase authentication is disabled");
+  }
 };
 
-console.log("Firebase persistence set");
+// Mock GoogleAuthProvider
+class GoogleAuthProvider {
+  addScope() { return this; }
+  setCustomParameters() { return this; }
+}
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+// Mock functions
+const signInWithPopup = async () => {
+  throw new Error("Social login is currently disabled");
+};
+
+const getRedirectResult = async () => {
+  return null;
+};
+
 const googleProvider = new GoogleAuthProvider();
 
-export { auth, googleProvider };
+export { auth, googleProvider, signInWithPopup, getRedirectResult };
