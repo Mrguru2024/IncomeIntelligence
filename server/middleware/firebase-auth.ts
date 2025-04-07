@@ -17,6 +17,7 @@ export const verifyFirebaseToken = async (req: Request, res: Response, next: Nex
   }
 };
 
-export const setupAuth = () => {
-  return true;
+export const setupFirebaseAdmin = () => {
+  // Since we're removing Firebase, return false to indicate no Firebase credentials
+  return false;
 };
