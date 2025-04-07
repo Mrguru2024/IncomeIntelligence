@@ -1,39 +1,21 @@
-
 import { Request, Response, NextFunction } from 'express';
-import { storage } from '../storage';
+import jwt from 'jsonwebtoken';
 
-export const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
-  next();
-};
-
-export function setupFirebaseAdmin() {
-  return true;
-}
-
-// Handle social authentication with Firebase
-export async function handleSocialAuth(idToken: string) {
+export const verifyAuthToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // In a real implementation, you would verify the token with Firebase Admin SDK
-    // and get the user details from the decoded token
-    // For now, we're using a mock implementation
-    
-    // For development purposes, create or get a mock user
-    const user = await storage.getUserByUsername('admin');
-    if (user) {
-      return user;
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
     }
 
-    // If no user exists (first-time setup), create a mock user
-    const newUser = await storage.createUser({
-      username: 'admin',
-      email: 'admin@example.com',
-      password: '$2b$10$zUQVDwD9V7SEijWMZl2UP.5gQywVk6l7i1o/aXkOZKv6jFhRVW1/O', // 'password123'
-      role: 'admin'
-    });
-    
-    return newUser;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+    req.user = decoded;
+    next();
   } catch (error) {
-    console.error('Error in handleSocialAuth:', error);
-    throw new Error('Failed to authenticate with Firebase');
+    return res.status(401).json({ message: 'Invalid token' });
   }
-}
+};
+
+export const setupAuth = () => {
+  return true;
+};
