@@ -17,5 +17,8 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
-// Simple setup function that returns true to indicate auth is ready
-export const setupAuth = () => true;
+// Add the missing setupFirebaseAdmin export
+export const setupFirebaseAdmin = () => {
+  // Simple setup function that returns true to indicate auth is ready
+  return true;
+};
