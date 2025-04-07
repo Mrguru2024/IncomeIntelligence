@@ -1,4 +1,4 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 // import { auth } from "./firebase"; // Removed Firebase import
 
 async function throwIfResNotOk(res: Response) {
@@ -77,56 +77,51 @@ export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    try {
-      // Create basic headers
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-
-      const token = getAuthToken(); // Get token from local storage
-
-      // Add Authorization header if token exists
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const res = await fetch(queryKey[0] as string, {
-        headers,
-        credentials: "include",
-        mode: 'cors'
-      });
-
-      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-        // Clear token if unauthorized
-        if (token) removeAuthToken();
-        return null;
-      }
-
-      await throwIfResNotOk(res);
+    async ({ queryKey }) => {
       try {
-        return await res.json();
+        // Create basic headers
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json'
+        };
+
+        const token = getAuthToken(); // Get token from local storage
+
+        // Add Authorization header if token exists
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(queryKey[0] as string, {
+          headers,
+          credentials: "include",
+          mode: 'cors'
+        });
+
+        if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+          // Clear token if unauthorized
+          if (token) removeAuthToken();
+          return null;
+        }
+
+        await throwIfResNotOk(res);
+        try {
+          return await res.json();
+        } catch (error) {
+          console.error('Error parsing response:', error);
+          return null;
+        }
       } catch (error) {
-        console.error('Error parsing response:', error);
-        return null;
+        console.error("Error in getQueryFn:", error);
+        throw error; // Re-throw the error to be handled by react-query
       }
-    } catch (error) {
-      console.error("Error in getQueryFn:", error);
-      throw error; // Re-throw the error to be handled by react-query
-    }
-  };
+    };
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
+      retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
-    },
-    mutations: {
-      retry: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
   },
 });
