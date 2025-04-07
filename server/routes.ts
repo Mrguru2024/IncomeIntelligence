@@ -49,7 +49,7 @@ import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import Stripe from "stripe";
 import express from "express";
 import dotenv from "dotenv";
-import { verifyToken as authMiddleware } from "./middleware/firebase-auth";
+import { requireAuth } from "./middleware/authMiddleware";
 
 // Load environment variables
 dotenv.config();
@@ -2085,7 +2085,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // USER PROFILE ENDPOINTS
 
   // Get user profile
-  app.get("/api/user/profile", verifyToken, async (req, res) => {
+  app.get("/api/user/profile", requireAuth, async (req, res) => {
     try {
       // For now, hardcode userId as 1 since we don't have authentication yet
       const userId = 1;
