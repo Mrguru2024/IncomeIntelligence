@@ -1,5 +1,4 @@
 import { QueryClient } from "@tanstack/react-query";
-// import { auth } from "./firebase"; // Removed Firebase import
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -29,46 +28,33 @@ export function removeAuthToken(): void {
   localStorage.removeItem("auth_token");
 }
 
-/**
- * Makes an API request with proper authentication
- * @param method HTTP method (GET, POST, PUT, DELETE, etc.)
- * @param endpoint API endpoint path (e.g. '/api/user')
- * @param data Optional request body
- * @returns Response object
- */
 export async function apiRequest(
   method: string,
   endpoint: string,
   data?: any,
   customHeaders?: Record<string, string>,
 ): Promise<Response> {
-  // Get current Firebase auth token  - This needs to be replaced
-  const token = getAuthToken(); // Now using localStorage
+  const token = getAuthToken();
 
-  // Create headers with auth token if available
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...customHeaders,
   };
 
-  // Add Authorization header if token exists
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  // Prepare request options
   const options: RequestInit = {
     method,
     headers,
     credentials: "include",
   };
 
-  // Add body for non-GET requests if data is provided
   if (method !== "GET" && data !== undefined) {
     options.body = JSON.stringify(data);
   }
 
-  // Make the request
   return fetch(endpoint, options);
 }
 
@@ -79,14 +65,12 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
     async ({ queryKey }) => {
       try {
-        // Create basic headers
         const headers: Record<string, string> = {
           'Content-Type': 'application/json'
         };
 
-        const token = getAuthToken(); // Get token from local storage
+        const token = getAuthToken();
 
-        // Add Authorization header if token exists
         if (token) {
           headers["Authorization"] = `Bearer ${token}`;
         }
@@ -98,7 +82,6 @@ export const getQueryFn: <T>(options: {
         });
 
         if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-          // Clear token if unauthorized
           if (token) removeAuthToken();
           return null;
         }
@@ -112,7 +95,7 @@ export const getQueryFn: <T>(options: {
         }
       } catch (error) {
         console.error("Error in getQueryFn:", error);
-        throw error; // Re-throw the error to be handled by react-query
+        throw error;
       }
     };
 
@@ -121,7 +104,7 @@ export const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
     },
   },
 });
