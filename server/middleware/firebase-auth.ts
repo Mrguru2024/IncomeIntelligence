@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-export const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
+export const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
@@ -17,7 +17,5 @@ export const verifyFirebaseToken = async (req: Request, res: Response, next: Nex
   }
 };
 
-export const setupFirebaseAdmin = () => {
-  // Since we're removing Firebase, return false to indicate no Firebase credentials
-  return false;
-};
+// Simple setup function that returns true to indicate auth is ready
+export const setupAuth = () => true;
