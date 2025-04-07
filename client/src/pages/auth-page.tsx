@@ -9,6 +9,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -26,9 +27,8 @@ import { Separator } from "@/components/ui/separator";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, CircleDollarSign } from "lucide-react";
-import { auth, googleProvider } from "@/lib/firebase";
-import { getRedirectResult, GoogleAuthProvider } from "firebase/auth";
-import { signInWithPopup } from "firebase/auth";
+// Using mock Firebase implementation
+import { auth, googleProvider, getRedirectResult, signInWithPopup } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { testSanityConnection } from "@/lib/sanityTest"; // Added import
 
@@ -70,53 +70,16 @@ export default function AuthPage() {
   const [isSocialLoginPending, setIsSocialLoginPending] = useState(false);
   const { loginMutation } = useAuth();
 
-  // Check for redirect result on page load
+  // Check for redirect result on page load - disabled for now
   useEffect(() => {
     async function checkRedirectResult() {
       try {
         setIsSocialLoginPending(true);
-        const result = await getRedirectResult(auth);
-
-        if (result) {
-          // User successfully signed in with redirect
-          const user = result.user;
-          const idToken = await user.getIdToken();
-
-          // Send token to backend
-          const response = await apiRequest("POST", "/api/auth/social-login", {
-            idToken,
-            provider: "google",
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Google sign-in failed");
-          }
-
-          const data = await response.json();
-
-          // Handle successful login
-          toast({
-            title: "Google Sign-In Successful",
-            description: `Welcome, ${user.displayName || "New User"}!`,
-          });
-
-          queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-          setTimeout(() => setLocation("/"), 500);
-        }
+        
+        // Firebase functionality disabled temporarily
+        
       } catch (error) {
         console.error("Google redirect result error:", error);
-        if (error instanceof Error) {
-          toast({
-            title: "Google Sign-In Failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
       } finally {
         setIsSocialLoginPending(false);
       }
@@ -125,61 +88,23 @@ export default function AuthPage() {
     checkRedirectResult();
   }, [toast, setLocation]);
 
-  // Google Sign In function - uses redirect instead of popup for better compatibility
+  // Google Sign In function - temporarily disabled
   const handleGoogleSignIn = async () => {
     try {
       setIsSocialLoginPending(true);
 
-      // Ensure auth and provider are properly initialized
-      if (!auth || !googleProvider) {
-        throw new Error("Authentication not properly initialized");
-      }
-
-      const result = await signInWithPopup(auth, googleProvider).catch(
-        (error) => {
-          console.error("Detailed sign-in error:", {
-            code: error.code,
-            message: error.message,
-            email: error.email,
-            credential: error.credential,
-          });
-          throw error;
-        },
-      );
-
-      if (result) {
-        const user = result.user;
-        const idToken = await user.getIdToken();
-
-        const response = await apiRequest("POST", "/api/auth/social-login", {
-          idToken,
-          provider: "google",
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to authenticate with backend");
-        }
-
-        toast({
-          title: "Google Sign-In Successful",
-          description: `Welcome, ${user.displayName || "New User"}!`,
-        });
-
-        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-        setTimeout(() => setLocation("/"), 500);
-      }
+      // Social login disabled temporarily
+      toast({
+        title: "Social login disabled",
+        description: "Please use direct login with username and password",
+        variant: "destructive",
+      });
+      
     } catch (error: any) {
       console.error("Google sign-in error:", error);
       toast({
         title: "Google Sign-In Failed",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Could not complete Google sign-in",
+        description: "Social login is currently unavailable",
         variant: "destructive",
       });
     } finally {
