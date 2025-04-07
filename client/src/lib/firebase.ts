@@ -1,11 +1,17 @@
-// Simple authentication module
+
+// Simple authentication module without Firebase
+interface User {
+  id: string;
+  email: string | null;
+}
+
 const auth = {
-  currentUser: null,
-  onAuthStateChanged: (callback: (user: any) => void) => {
+  currentUser: null as User | null,
+  onAuthStateChanged: (callback: (user: User | null) => void) => {
     callback(null);
     return () => {};
   },
-  getIdToken: () => null
+  getIdToken: () => Promise.resolve(null)
 };
 
 export { auth };
