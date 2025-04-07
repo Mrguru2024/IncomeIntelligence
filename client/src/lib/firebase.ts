@@ -1,43 +1,24 @@
 
-// Mock Firebase implementation
-// This is a stub that allows the application to compile without Firebase credentials
-// In a production environment, you would use the actual Firebase SDK
+import { initializeApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
-console.log("Using mock Firebase service");
-
-// Mock auth object
-const auth = {
-  currentUser: null,
-  onAuthStateChanged: (callback: (user: null) => void) => {
-    callback(null);
-    return () => {};
-  },
-  signInWithEmailAndPassword: async () => {
-    throw new Error("Firebase authentication is disabled");
-  },
-  createUserWithEmailAndPassword: async () => {
-    throw new Error("Firebase authentication is disabled");
-  },
-  signOut: async () => {
-    throw new Error("Firebase authentication is disabled");
-  }
+// Create a mock firebase configuration since we don't have the real credentials
+const firebaseConfig = {
+  apiKey: "mock-api-key",
+  authDomain: "mock-domain.firebaseapp.com",
+  projectId: "mock-project-id",
+  storageBucket: "mock-storage-bucket",
+  messagingSenderId: "000000000000",
+  appId: "1:000000000000:web:0000000000000000000000"
 };
 
-// Mock GoogleAuthProvider
-class GoogleAuthProvider {
-  addScope() { return this; }
-  setCustomParameters() { return this; }
-}
+console.log("Using mock Firebase configuration");
 
-// Mock functions
-const signInWithPopup = async () => {
-  throw new Error("Social login is currently disabled");
-};
-
-const getRedirectResult = async () => {
-  return null;
-};
-
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
+// Export additional functions for compatibility
+import { signInWithPopup, getRedirectResult } from "firebase/auth";
 export { auth, googleProvider, signInWithPopup, getRedirectResult };

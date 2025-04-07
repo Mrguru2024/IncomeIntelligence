@@ -70,45 +70,17 @@ export default function AuthPage() {
   const [isSocialLoginPending, setIsSocialLoginPending] = useState(false);
   const { loginMutation } = useAuth();
 
-  // Check for redirect result on page load - disabled for now
-  useEffect(() => {
-    async function checkRedirectResult() {
-      try {
-        setIsSocialLoginPending(true);
-        
-        // Firebase functionality disabled temporarily
-        
-      } catch (error) {
-        console.error("Google redirect result error:", error);
-      } finally {
-        setIsSocialLoginPending(false);
-      }
-    }
-
-    checkRedirectResult();
-  }, [toast, setLocation]);
+  // Removed redirect result check as it's not needed
 
   // Google Sign In function - temporarily disabled
   const handleGoogleSignIn = async () => {
     try {
-      setIsSocialLoginPending(true);
-
-      // Social login disabled temporarily
       toast({
         title: "Social login disabled",
-        description: "Please use direct login with username and password",
-        variant: "destructive",
+        description: "Please use direct login with username and password. Try admin/password123",
       });
-      
     } catch (error: any) {
       console.error("Google sign-in error:", error);
-      toast({
-        title: "Google Sign-In Failed",
-        description: "Social login is currently unavailable",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSocialLoginPending(false);
     }
   };
 
