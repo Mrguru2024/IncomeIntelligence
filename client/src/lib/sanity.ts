@@ -1,17 +1,20 @@
+
 import { createClient } from '@sanity/client';
 
-// Debug logging to verify environment variables
-console.log("Loaded Sanity ENV Vars:", {
-  projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
-  dataset: import.meta.env.VITE_SANITY_DATASET,
-  version: import.meta.env.VITE_SANITY_API_VERSION
-});
+const projectId = import.meta.env.VITE_SANITY_PROJECT_ID;
+const dataset = import.meta.env.VITE_SANITY_DATASET;
+const apiVersion = import.meta.env.VITE_SANITY_API_VERSION;
+const token = import.meta.env.VITE_SANITY_TOKEN;
+
+if (!projectId) {
+  console.error('Sanity Project ID is missing');
+}
 
 export const client = createClient({
-  projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
-  dataset: import.meta.env.VITE_SANITY_DATASET,
-  apiVersion: import.meta.env.VITE_SANITY_API_VERSION,
-  token: import.meta.env.VITE_SANITY_TOKEN,
+  projectId: projectId || '5enbinz3',
+  dataset: dataset || 'production',
+  apiVersion: apiVersion || '2023-05-03',
+  token: token,
   useCdn: true,
   perspective: 'published',
   ignoreBrowserTokenWarning: true
