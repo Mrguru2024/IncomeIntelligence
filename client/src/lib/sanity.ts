@@ -1,14 +1,9 @@
-
 import { createClient } from '@sanity/client';
 
-if (!import.meta.env.VITE_SANITY_PROJECT_ID) {
-  throw new Error('Missing VITE_SANITY_PROJECT_ID');
-}
-
 export const client = createClient({
-  projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
-  dataset: import.meta.env.VITE_SANITY_DATASET || 'production',
-  apiVersion: import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03',
-  token: import.meta.env.VITE_SANITY_TOKEN,
-  useCdn: true
+  projectId: "5enbinz3",
+  dataset: "production",
+  apiVersion: "2023-05-03",
+  token: "sklhlPEHDNeyktyXttfyrF9Ex7KH0UtkZm6rIRNbfaUNVwsWOGhNZiwdKdtpTZQ0GVZFrzu8vBXAZRff20R7Smj96wOICuk7A68KrY5aKn5AIKvD76XmbRwGxW1NeymEgnYyorF5XOkwMkwlL86RDWQSzKXc6T2izNYtecSKio3sYzWWQh21",
+  useCdn: true,
 });
