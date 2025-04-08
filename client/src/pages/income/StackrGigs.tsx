@@ -35,8 +35,6 @@ export default function StackrGigs() {
     async function fetchGigs() {
       try {
         setLoading(true);
-      
-      try {
         const query = `*[_type == "gig" && status == "open"] | order(createdAt desc) {
           _id,
           title,
@@ -54,9 +52,9 @@ export default function StackrGigs() {
 
         const result = await client.fetch(query);
         setGigs(result);
-        setLoading(false);
       } catch (err) {
         setError('Failed to fetch gigs');
+      } finally {
         setLoading(false);
       }
     }
