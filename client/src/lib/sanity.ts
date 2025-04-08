@@ -1,13 +1,14 @@
 
 import { createClient } from '@sanity/client';
 
-// Create Sanity client with complete configuration
+// Create Sanity client with hardcoded configuration for development
 const client = createClient({
   projectId: '5enbinz3',
   dataset: 'production',
   apiVersion: '2023-05-03',
-  useCdn: true, // Enable CDN caching for better performance
-  perspective: 'published'
+  useCdn: true,
+  perspective: 'published',
+  ignoreBrowserTokenWarning: true
 });
 
 export default client;
