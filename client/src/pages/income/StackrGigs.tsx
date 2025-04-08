@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { client } from '@/lib/sanity';
+import { client } from '../../lib/sanity';
 
 interface Gig {
   _id: string;

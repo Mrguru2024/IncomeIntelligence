@@ -8,7 +8,7 @@ console.log("Loaded Sanity ENV Vars:", {
   version: import.meta.env.VITE_SANITY_API_VERSION
 });
 
-const client = createClient({
+export const client = createClient({
   projectId: import.meta.env.VITE_SANITY_PROJECT_ID || '5enbinz3',
   dataset: import.meta.env.VITE_SANITY_DATASET || 'production',
   apiVersion: import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03',
@@ -17,5 +17,3 @@ const client = createClient({
   perspective: 'published',
   ignoreBrowserTokenWarning: true
 });
-
-export default client;
