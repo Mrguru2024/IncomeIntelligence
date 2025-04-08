@@ -1,0 +1,103 @@
+Thanks for sharing your current `sanityClient.ts` — it's clean and error-aware, but the persistent error means that **`import.meta.env.VITE_SANITY_PROJECT_ID` is still undefined at runtime**, especially because you're using **Replit + Vite**, which requires **special handling for env variables**.
+
+Let’s lock this down 👇
+
+---
+
+## ✅ Final Checklist to Fix `VITE_SANITY_PROJECT_ID` Being Undefined in Replit (Vite + React)
+
+---
+
+### ✅ 1. Use Replit’s Secrets Properly (not just `.env` file)
+
+On Replit:
+- `.env` files in the project folder **are not automatically available to Vite**
+- You **must use the Secrets Manager**
+
+#### 🔐 Do This in Replit:
+
+Go to:
+**Left Sidebar → 🔐 Secrets (Environment Variables)**  
+Add the following **exactly** (no quotes):
+
+| Key                            | Value                |
+|--------------------------------|----------------------|
+| `VITE_SANITY_PROJECT_ID`       | `5enbinz3`           |
+| `VITE_SANITY_DATASET`          | `production`         |
+| `VITE_SANITY_API_VERSION`      | `2023-05-03`         |
+| `VITE_SANITY_TOKEN`            | your full token here |
+
+✅ Make sure there are **no leading/trailing spaces**
+
+---
+
+### ✅ 2. Restart the Replit Server
+
+Changes won’t take effect until you:
+- 🔄 Stop the app
+- ▶️ Run it again
+
+---
+
+### ✅ 3. Add Debug Logs (Keep these for now)
+
+Add this before `createClient()` just to confirm:
+
+```ts
+console.log("Loaded Sanity ENV Vars:", {
+  projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
+  dataset: import.meta.env.VITE_SANITY_DATASET,
+  version: import.meta.env.VITE_SANITY_API_VERSION
+});
+```
+
+If the output is:
+```
+Loaded Sanity ENV Vars: { projectId: undefined, ... }
+```
+Then **Replit didn’t inject the secrets**, and the app is still broken.
+
+---
+
+### ✅ 4. Fallback Workaround (for Testing Only)
+
+Temporarily **bypass the env check** to test manually:
+
+```ts
+const client = createClient({
+  projectId: '5enbinz3',
+  dataset: 'production',
+  apiVersion: '2023-05-03',
+  token: 'your_sanity_token_here',
+  useCdn: true,
+});
+```
+
+If this works:
+✅ Sanity is configured properly  
+❌ You're just missing the environment binding inside Replit
+
+---
+
+## ✅ Bonus: Suggestion for Final Refactor
+
+If you're planning to support both **local dev** and Replit, use this hybrid strategy:
+
+```ts
+const client = createClient({
+  projectId: import.meta.env.VITE_SANITY_PROJECT_ID || '5enbinz3',
+  dataset: import.meta.env.VITE_SANITY_DATASET || 'production',
+  apiVersion: import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03',
+  token: import.meta.env.VITE_SANITY_TOKEN || '',
+  useCdn: true,
+});
+```
+
+---
+
+Let me know if:
+- You want to verify that data is actually pulling from Sanity
+- You want to build a real-time tips dashboard from your CMS
+- Or you're ready to deploy Stackr Studio to Sanity Cloud (`sanity deploy`)
+
+You’re almost there. Let’s push this through 💪
