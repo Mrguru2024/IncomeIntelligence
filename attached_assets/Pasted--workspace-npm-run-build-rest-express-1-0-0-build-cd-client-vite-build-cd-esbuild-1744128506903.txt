@@ -1,0 +1,32 @@
+~/workspace$ npm run build
+
+> rest-express@1.0.0 build
+> cd client && vite build && cd .. && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v6.2.5 building for production...
+transforming (1) src/main.tsx
+warn - The `content` option in your Tailwind CSS configuration is missing or empty.
+warn - Configure your content sources or your generated CSS will be missing styles.
+warn - https://tailwindcss.com/docs/content-configuration
+✓ 3946 modules transformed.
+✗ Build failed in 5.92s
+error during build:
+src/pages/income/StackrGigs.tsx (2:9): "client" is not exported by "src/lib/sanity.ts", imported by "src/pages/income/StackrGigs.tsx".
+file: /home/runner/workspace/client/src/pages/income/StackrGigs.tsx:2:9
+
+1: import { useEffect, useState } from 'react';
+2: import { client } from '@/lib/sanity';
+            ^
+3: 
+4: interface Gig {
+
+    at getRollupError (file:///home/runner/workspace/node_modules/rollup/dist/es/shared/parseAst.js:397:41)
+    at error (file:///home/runner/workspace/node_modules/rollup/dist/es/shared/parseAst.js:393:42)
+    at Module.error (file:///home/runner/workspace/node_modules/rollup/dist/es/shared/node-entry.js:16711:16)
+    at Module.traceVariable (file:///home/runner/workspace/node_modules/rollup/dist/es/shared/node-entry.js:17160:29)
+    at ModuleScope.findVariable (file:///home/runner/workspace/node_modules/rollup/dist/es/shared/node-entry.js:14816:39)
+    at FunctionScope.findVariable (file:///home/runner/workspace/node_modules/rollup/dist/es/shared/node-entry.js:5582:38)
+    at FunctionBodyScope.findVariable (file:///home/runner/workspace/node_modules/rollup/dist/es/shared/node-entry.js:5582:38)
+    at ReturnValueScope.findVariable (file:///home/runner/workspace/node_modules/rollup/dist/es/shared/node-entry.js:5582:38)
+    at FunctionBodyScope.findVariable (file:///home/runner/workspace/node_modules/rollup/dist/es/shared/node-entry.js:5582:38)
+    at FunctionScope.findVariable (file:///home/runner/workspace/node_modules/rollup/dist/es/shared/node-entry.js:5582:38)
