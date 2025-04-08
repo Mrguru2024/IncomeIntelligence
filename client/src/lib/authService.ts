@@ -1,25 +1,31 @@
 
-import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from './queryClient';
 
-interface LoginResponse {
+export interface LoginResponse {
   token: string;
   user: {
     id: number;
     email: string;
+    username: string;
   };
 }
 
 export async function loginUser(email: string, password: string): Promise<LoginResponse> {
-  return apiRequest('/api/auth/login', {
+  const response = await apiRequest('/api/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: { email, password }
   });
+  return response;
 }
 
 export async function registerUser(email: string, password: string): Promise<LoginResponse> {
-  return apiRequest('/api/auth/register', {
+  const response = await apiRequest('/api/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: { email, password }
   });
+  return response;
+}
+
+export async function getCurrentUser() {
+  return apiRequest('/api/auth/user');
 }
