@@ -9,12 +9,5 @@ const config = {
   useCdn: true,
 };
 
-// Validate config before creating client
-if (!config.projectId) {
-  throw new Error('Sanity projectId is required');
-}
-
 export const client = createClient(config);
-
-// Export config for reuse if needed
 export const sanityConfig = config;
