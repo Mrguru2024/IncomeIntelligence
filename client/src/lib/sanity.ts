@@ -1,14 +1,11 @@
 
 import { createClient } from '@sanity/client';
 
-if (!import.meta.env.VITE_SANITY_PROJECT_ID && process.env.NODE_ENV === 'development') {
-  console.warn('VITE_SANITY_PROJECT_ID is not defined');
-}
-
+// Explicitly set the projectId and other configuration values
 export const client = createClient({
-  projectId: '5enbinz3',
+  projectId: '5enbinz3', // Your Sanity project ID
   dataset: 'production',
   apiVersion: '2023-05-03',
-  token: import.meta.env.VITE_SANITY_TOKEN,
+  token: 'sklhlPEHDNeyktyXttfyrF9Ex7KH0UtkZm6rIRNbfaUNVwsWOGhNZiwdKdtpTZQ0GVZFrzu8vBXAZRff20R7Smj96wOICuk7A68KrY5aKn5AIKvD76XmbRwGxW1NeymEgnYyorF5XOkwMkwlL86RDWQSzKXc6T2izNYtecSKio3sYzWWQh21',
   useCdn: true,
 });
