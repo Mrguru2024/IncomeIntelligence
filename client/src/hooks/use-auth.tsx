@@ -1,64 +1,73 @@
 
-import { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser, registerUser } from '@/lib/authService';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { apiRequest } from '@/lib/queryClient';
+
+interface User {
+  id: number;
+  email: string;
+  username: string;
+}
 
 interface AuthContextType {
-  user: any;
+  user: User | null;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('token');
     if (token) {
-      setIsAuthenticated(true);
-      setUser({ token });
+      apiRequest('/api/auth/user')
+        .then(data => setUser(data.user))
+        .catch(() => localStorage.removeItem('token'))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
   }, []);
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await loginUser(email, password);
-      localStorage.setItem('auth_token', response.token);
-      setUser(response.user);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
+    const data = await apiRequest('/api/auth/login', {
+      method: 'POST',
+      body: { identifier: email, password },
+    });
+    localStorage.setItem('token', data.token);
+    setUser(data.user);
   };
 
   const register = async (email: string, password: string) => {
-    try {
-      const response = await registerUser(email, password);
-      localStorage.setItem('auth_token', response.token);
-      setUser(response.user);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
-    }
+    const data = await apiRequest('/api/auth/register', {
+      method: 'POST',
+      body: { email, password },
+    });
+    localStorage.setItem('token', data.token);
+    setUser(data.user);
   };
 
   const logout = () => {
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('token');
     setUser(null);
-    setIsAuthenticated(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

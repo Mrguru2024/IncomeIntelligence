@@ -1,30 +1,38 @@
 
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from "@tanstack/react-query";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
       retry: 1,
+      refetchOnWindowFocus: false,
     },
   },
 });
 
-export const apiRequest = async (url: string, options: RequestInit = {}) => {
-  const token = localStorage.getItem('auth_token');
+interface RequestOptions extends RequestInit {
+  body?: any;
+}
+
+export async function apiRequest(endpoint: string, options: RequestOptions = {}) {
+  const token = localStorage.getItem('token');
   
-  const response = await fetch(url, {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
+
+  const response = await fetch(endpoint, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token}` : '',
-      ...options.headers,
-    },
+    headers,
+    body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
   if (!response.ok) {
-    throw new Error('API request failed');
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || 'Request failed');
   }
 
   return response.json();
-};
+}
