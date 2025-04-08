@@ -1,10 +1,5 @@
 
-interface AuthResponse {
-  token: string;
-  user: any;
-}
-
-export async function loginUser(email: string, password: string): Promise<AuthResponse> {
+export async function loginUser(email: string, password: string) {
   const response = await fetch('/api/auth/login', {
     method: 'POST',
     headers: {
@@ -20,7 +15,7 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
   return response.json();
 }
 
-export async function registerUser(email: string, password: string): Promise<AuthResponse> {
+export async function registerUser(email: string, password: string) {
   const response = await fetch('/api/auth/register', {
     method: 'POST',
     headers: {
@@ -36,7 +31,7 @@ export async function registerUser(email: string, password: string): Promise<Aut
   return response.json();
 }
 
-export async function getCurrentUser(): Promise<any> {
+export async function getCurrentUser() {
   const token = localStorage.getItem('token');
   if (!token) {
     throw new Error('No token found');

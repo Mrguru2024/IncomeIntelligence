@@ -7,56 +7,60 @@ import * as bcrypt from 'bcryptjs';
 import { JWTPayload, generateToken, verifyToken, extractTokenFromRequest } from './auth-utils';
 import { generateSecureToken } from './utils/security';
 import { authenticateToken, requireAuth } from './middleware/authMiddleware';
-
+import express from 'express';
+import { db } from './db';
+import { users } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-export async function handleLogin(req: Request, res: Response) {
+const authRouter = express.Router();
+
+authRouter.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+    const user = await db.select().from(users).where(eq(users.email, email)).limit(1);
 
-    // Here you would verify the user against your database
-    // This is a placeholder implementation
-    const user = await storage.getUserByEmail(email); // Replace with actual user lookup
-    if (!user) {
+    if (!user.length) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
+    const isValidPassword = await bcrypt.compare(password, user[0].password);
+    if (!isValidPassword) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '24h' });
-
-    const { password: _, ...userWithoutPassword } = user;
-    res.json({ token, user: userWithoutPassword });
+    const token = jwt.sign({ userId: user[0].id }, JWT_SECRET, { expiresIn: '24h' });
+    res.json({ token, user: user[0] });
   } catch (error) {
-    res.status(401).json({ message: 'Authentication failed' });
+    res.status(500).json({ message: 'Server error' });
   }
-}
+});
 
-export async function handleRegister(req: Request, res: Response) {
+authRouter.post('/register', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+    const existingUser = await db.select().from(users).where(eq(users.email, email));
 
-    // Here you would create the user in your database
-    // This is a placeholder implementation
-    const existingUserByEmail = await storage.getUserByEmail(email);
-    if (existingUserByEmail) {
-      return res.status(400).json({ message: 'Email already in use' });
+    if (existingUser.length) {
+      return res.status(400).json({ message: 'User already exists' });
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await storage.createUser({ email, password: hashedPassword }); // Replace with actual user creation
+    const newUser = await db.insert(users).values({
+      email,
+      password: hashedPassword,
+      role: 'user',
+      accountStatus: 'active'
+    }).returning();
 
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '24h' });
-
-    const { password: _, ...userWithoutPassword } = user;
-    res.json({ token, user: userWithoutPassword });
+    const token = jwt.sign({ userId: newUser[0].id }, JWT_SECRET, { expiresIn: '24h' });
+    res.json({ token, user: newUser[0] });
   } catch (error) {
-    res.status(400).json({ message: 'Registration failed' });
+    res.status(500).json({ message: 'Server error' });
   }
-}
+});
+
 
 export async function getCurrentUser(req: Request, res: Response) {
   try {
@@ -78,10 +82,7 @@ export async function getCurrentUser(req: Request, res: Response) {
  */
 export function setupAuth(app: Express) {
   // Register a new user
-  app.post('/api/auth/register', handleRegister);
-
-  // Login user
-  app.post('/api/auth/login', handleLogin);
+  app.use('/api/auth', authRouter);
 
   // Get current authenticated user
   app.get('/api/auth/user', authenticateToken, getCurrentUser);
@@ -92,49 +93,49 @@ export function setupAuth(app: Express) {
   });
 
   // Change password (authenticated)
-    app.post('/api/auth/change-password', authenticateToken, requireAuth, async (req: Request, res: Response) => {
-        try {
-            const { currentPassword, newPassword, confirmPassword } = z.object({
-                currentPassword: z.string().min(1),
-                newPassword: z.string().min(8).max(100),
-                confirmPassword: z.string()
-            }).refine(data => data.newPassword === data.confirmPassword, {
-                message: "Passwords don't match",
-                path: ["confirmPassword"]
-            }).parse(req.body);
+  app.post('/api/auth/change-password', authenticateToken, requireAuth, async (req: Request, res: Response) => {
+    try {
+        const { currentPassword, newPassword, confirmPassword } = z.object({
+            currentPassword: z.string().min(1),
+            newPassword: z.string().min(8).max(100),
+            confirmPassword: z.string()
+        }).refine(data => data.newPassword === data.confirmPassword, {
+            message: "Passwords don't match",
+            path: ["confirmPassword"]
+        }).parse(req.body);
 
-            if (!req.user) {
-                return res.status(401).json({ message: 'Not authenticated' });
-            }
-
-            // Get the full user with password
-            const user = await storage.getUser(req.user.id);
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-
-            // Verify current password
-            const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-            if (!isPasswordValid) {
-                return res.status(401).json({ message: 'Current password is incorrect' });
-            }
-
-            // Hash the new password
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-            // Update password
-            await storage.updateUser(user.id, { password: hashedPassword });
-
-            return res.status(200).json({ message: 'Password changed successfully' });
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                const validationError = fromZodError(error);
-                return res.status(400).json({ message: validationError.message });
-            }
-            console.error('Change password error:', error);
-            return res.status(500).json({ message: 'Failed to change password' });
+        if (!req.user) {
+            return res.status(401).json({ message: 'Not authenticated' });
         }
-    });
+
+        // Get the full user with password
+        const user = await storage.getUser(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Verify current password
+        const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Current password is incorrect' });
+        }
+
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password
+        await storage.updateUser(user.id, { password: hashedPassword });
+
+        return res.status(200).json({ message: 'Password changed successfully' });
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            const validationError = fromZodError(error);
+            return res.status(400).json({ message: validationError.message });
+        }
+        console.error('Change password error:', error);
+        return res.status(500).json({ message: 'Failed to change password' });
+    }
+});
 
 
   // Update user profile (authenticated)
