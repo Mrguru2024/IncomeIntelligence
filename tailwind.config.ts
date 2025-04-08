@@ -3,8 +3,8 @@ import type { Config } from "tailwindcss";
 export default {
   darkMode: ["class"],
   content: [
-    "./client/src/**/*.{ts,tsx}",
     "./client/index.html",
+    "./client/src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     screens: {
