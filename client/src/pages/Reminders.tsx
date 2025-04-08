@@ -52,7 +52,7 @@ import {
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { reminderTypes, reminderFrequencies } from "../../shared/schema";
+import { reminderTypes, reminderFrequencies } from "@shared/schema";
 
 // Icon imports
 import {
