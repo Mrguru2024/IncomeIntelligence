@@ -23,6 +23,12 @@ export default function StackrGigs() {
 
   useEffect(() => {
     async function fetchGigs() {
+      if (!import.meta.env.VITE_SANITY_PROJECT_ID) {
+        setError('Sanity configuration missing');
+        setLoading(false);
+        return;
+      }
+      
       try {
         const query = `*[_type == "gig" && status == "open"] | order(createdAt desc) {
           _id,
