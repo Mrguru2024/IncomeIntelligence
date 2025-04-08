@@ -1,5 +1,9 @@
 
-// Firebase configuration removed
-export const firebaseConfig = null;
-export const auth = null;
-export const db = null;
+// Simplified auth service
+const auth = {
+  currentUser: null,
+  onAuthStateChanged: () => {},
+  signOut: async () => {},
+};
+
+export { auth };
