@@ -23,7 +23,7 @@ import {
   AlertCircleIcon,
   PlusIcon,
 } from "lucide-react";
-import DirectGoalModal from "@/components/DirectGoalModal";
+import GoalFormModal from "@/components/GoalFormModal";
 import ExportDataButton from "@/components/ExportDataButton";
 import { formatGoalsData } from "@/lib/exportUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -367,7 +367,7 @@ export default function Goals() {
 
       {/* Goal Form Modal */}
       {isGoalModalOpen && (
-        <DirectGoalModal onClose={() => setIsGoalModalOpen(false)} />
+        <GoalFormModal isOpen={isGoalModalOpen} onClose={() => setIsGoalModalOpen(false)} />
       )}
     </div>
   );
