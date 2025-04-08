@@ -1,87 +1,48 @@
-import { createContext, useContext, useState } from "react";
-import { loginUser, registerUser, getCurrentUser } from "@/lib/authService";
-
-interface User {
-  id: number;
-  email: string;
-  role?: string;
-}
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface AuthContextType {
-  user: User | null;
+  user: any;
   loading: boolean;
-  error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          const userData = await getCurrentUser();
-          setUser(userData);
-        }
-      } catch (err) {
-        console.error('Auth initialization error:', err);
-        localStorage.removeItem('token');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initAuth();
+    setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    try {
-      setError(null);
-      const { token, user } = await loginUser(email, password);
-      localStorage.setItem('token', token);
-      setUser(user);
-    } catch (err) {
-      setError('Login failed');
-      throw err;
-    }
+  const signIn = async () => {
+    // Implement your custom auth logic here
+    setUser({ email: 'test@example.com' });
   };
 
-  const register = async (email: string, password: string) => {
-    try {
-      setError(null);
-      const { token, user } = await registerUser(email, password);
-      localStorage.setItem('token', token);
-      setUser(user);
-    } catch (err) {
-      setError('Registration failed');
-      throw err;
-    }
+  const signUp = async () => {
+    // Implement your custom auth logic here
+    setUser({ email: 'test@example.com' });
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
+  const signOut = async () => {
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
+}
