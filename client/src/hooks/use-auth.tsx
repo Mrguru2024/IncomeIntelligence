@@ -1,42 +1,70 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser, registerUser, getCurrentUser } from '@/lib/authService';
+
+import { createContext, useContext, useEffect, useState } from "react";
+import { loginUser, registerUser, getCurrentUser } from "@/lib/authService";
+
+interface User {
+  id: number;
+  email: string;
+  role?: string;
+}
 
 interface AuthContextType {
-  user: any;
+  user: User | null;
+  loading: boolean;
+  error: string | null;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      getCurrentUser()
-        .then(userData => setUser(userData))
-        .catch(() => localStorage.removeItem('token'))
-        .finally(() => setIsLoading(false));
-    } else {
-      setIsLoading(false);
-    }
+    const initAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const userData = await getCurrentUser();
+          setUser(userData);
+        }
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+        localStorage.removeItem('token');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await loginUser(email, password);
-    localStorage.setItem('token', response.token);
-    setUser(response.user);
+    try {
+      setError(null);
+      const { token, user } = await loginUser(email, password);
+      localStorage.setItem('token', token);
+      setUser(user);
+    } catch (err) {
+      setError('Login failed');
+      throw err;
+    }
   };
 
   const register = async (email: string, password: string) => {
-    const response = await registerUser(email, password);
-    localStorage.setItem('token', response.token);
-    setUser(response.user);
+    try {
+      setError(null);
+      const { token, user } = await registerUser(email, password);
+      localStorage.setItem('token', token);
+      setUser(user);
+    } catch (err) {
+      setError('Registration failed');
+      throw err;
+    }
   };
 
   const logout = () => {
@@ -45,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, loading, error, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

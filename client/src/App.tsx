@@ -3,6 +3,8 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
+// Initialize auth client
+import { AuthProvider } from "@/hooks/use-auth";
 import Dashboard from "@/pages/Dashboard";
 import IncomeHistory from "@/pages/IncomeHistory";
 import BankConnections from "@/pages/BankConnections";

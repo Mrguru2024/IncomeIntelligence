@@ -1,25 +1,23 @@
 
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import { Request } from 'express';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-export function generateToken(userId: number): string {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '24h' });
+export interface JWTPayload {
+  id: number;
+  email: string;
+  role?: string;
 }
 
-export function verifyToken(token: string) {
-  try {
-    return jwt.verify(token, JWT_SECRET);
-  } catch (error) {
-    return null;
-  }
-}
+export const generateToken = (payload: JWTPayload): string => {
+  return jwt.sign(payload, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
+};
 
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 10);
-}
+export const verifyToken = (token: string): JWTPayload => {
+  return jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as JWTPayload;
+};
 
-export async function comparePasswords(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash);
-}
+export const extractTokenFromRequest = (req: Request): string | null => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  return authHeader.split(' ')[1];
+};
