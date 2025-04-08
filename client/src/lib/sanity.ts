@@ -1,12 +1,15 @@
 
 import { createClient } from '@sanity/client';
 
-const config = {
-  projectId: '5enbinz3',
-  dataset: 'production',
-  apiVersion: '2024-01-01',
-  useCdn: false, // Set to false for development
-  ignoreBrowserTokenWarning: true // Suppress token warnings
-};
+const projectId = '5enbinz3';
+const dataset = 'production';
+const apiVersion = '2024-01-01';
+const token = import.meta.env.VITE_SANITY_TOKEN;
 
-export const client = createClient(config);
+export const client = createClient({
+  projectId,
+  dataset,
+  apiVersion,
+  useCdn: false,
+  token
+});
