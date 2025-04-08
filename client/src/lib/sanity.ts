@@ -1,20 +1,26 @@
 
 import { createClient } from '@sanity/client';
 
-// Get environment variables with fallbacks
-const projectId = import.meta.env.VITE_SANITY_PROJECT_ID || '5enbinz3';
-const dataset = import.meta.env.VITE_SANITY_DATASET || 'production';
-const apiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03';
-const token = import.meta.env.VITE_SANITY_TOKEN || 'sklhlPEHDNeyktyXttfyrF9Ex7KH0UtkZm6rIRNbfaUNVwsWOGhNZiwdKdtpTZQ0GVZFrzu8vBXAZRff20R7Smj96wOICuk7A68KrY5aKn5AIKvD76XmbRwGxW1NeymEgnYyorF5XOkwMkwlL86RDWQSzKXc6T2izNYtecSKio3sYzWWQh21';
+// Ensure environment variables are properly loaded
+const projectId = import.meta.env.VITE_SANITY_PROJECT_ID;
+const dataset = import.meta.env.VITE_SANITY_DATASET;
+const apiVersion = import.meta.env.VITE_SANITY_API_VERSION;
+const token = import.meta.env.VITE_SANITY_TOKEN;
 
+// Validate required configuration
 if (!projectId) {
-  console.error('Sanity projectId is required');
+  throw new Error('VITE_SANITY_PROJECT_ID is not defined');
 }
 
+if (!dataset) {
+  throw new Error('VITE_SANITY_DATASET is not defined');
+}
+
+// Create client with validated config
 export const client = createClient({
   projectId,
   dataset,
-  apiVersion,
+  apiVersion: apiVersion || '2023-05-03',
   token,
   useCdn: true,
 });
