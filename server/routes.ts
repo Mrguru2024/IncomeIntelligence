@@ -71,11 +71,7 @@ if (stripeSecretKey) {
   }
 }
 
-// Initialize Firebase Admin using our centralized firebase-admin module
-import { setupFirebaseAdmin } from './middleware/firebase-auth';
-
-// This will attempt to initialize Firebase and return whether it was successful
-const hasFirebaseCreds = setupFirebaseAdmin();
+// JWT Authentication is now handled by the auth middleware
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
