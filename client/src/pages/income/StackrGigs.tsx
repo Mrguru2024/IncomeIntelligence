@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { client } from '@/lib/sanity';
+import { client, sanityConfig } from '@/lib/sanity';
+
+// Validate Sanity configuration on component mount
+useEffect(() => {
+  if (!sanityConfig.projectId) {
+    console.error('Sanity configuration error: Missing projectId');
+  }
+}, []);
 
 interface Gig {
   _id: string;
