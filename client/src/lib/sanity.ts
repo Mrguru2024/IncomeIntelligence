@@ -1,4 +1,3 @@
-
 import { createClient } from '@sanity/client';
 
 if (!import.meta.env.VITE_SANITY_PROJECT_ID) {
@@ -7,10 +6,10 @@ if (!import.meta.env.VITE_SANITY_PROJECT_ID) {
 
 export const client = createClient({
   projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
-  dataset: import.meta.env.VITE_SANITY_DATASET || 'production',
-  apiVersion: import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03',
+  dataset: import.meta.env.VITE_SANITY_DATASET,
+  apiVersion: import.meta.env.VITE_SANITY_API_VERSION,
   token: import.meta.env.VITE_SANITY_TOKEN,
-  useCdn: true,
+  useCdn: false,
   perspective: 'published'
 });
 
