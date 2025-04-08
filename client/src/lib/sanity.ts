@@ -19,9 +19,11 @@ const defaultConfig = {
 };
 
 export const client = createClient({
-  ...defaultConfig,
   projectId: import.meta.env.VITE_SANITY_PROJECT_ID || defaultConfig.projectId,
   dataset: import.meta.env.VITE_SANITY_DATASET || defaultConfig.dataset,
   apiVersion: import.meta.env.VITE_SANITY_API_VERSION || defaultConfig.apiVersion,
   token: import.meta.env.VITE_SANITY_TOKEN || defaultConfig.token,
+  useCdn: defaultConfig.useCdn,
+  perspective: defaultConfig.perspective,
+  ignoreBrowserTokenWarning: defaultConfig.ignoreBrowserTokenWarning
 });
