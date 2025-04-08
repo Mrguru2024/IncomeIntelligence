@@ -14,13 +14,15 @@ console.log('Sanity Config (Actual Values):', {
   hasToken: !!token
 });
 
-export const client = createClient({
+const sanityConfig = {
   projectId,
   dataset,
   apiVersion,
   token,
   useCdn: true,
-});
+};
+
+export const client = createClient(sanityConfig);
 
 export const sanityConfig = {
   projectId,

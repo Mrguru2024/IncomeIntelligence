@@ -64,8 +64,4 @@ args = "cd client"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm install"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
 args = "npm run dev"
