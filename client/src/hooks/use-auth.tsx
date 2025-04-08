@@ -1,65 +1,64 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { apiRequest } from '@/lib/queryClient';
+
+import { createContext, useContext, useState, useEffect } from 'react';
+import { loginUser, registerUser } from '@/lib/authService';
 
 interface AuthContextType {
-  isAuthenticated: boolean;
-  user: any | null;
+  user: any;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<any | null>(null);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
     if (token) {
-      // Verify token and get user data
-      apiRequest('/api/auth/me')
-        .then(data => {
-          setUser(data.user);
-          setIsAuthenticated(true);
-        })
-        .catch(() => {
-          localStorage.removeItem('auth_token');
-          setIsAuthenticated(false);
-          setUser(null);
-        });
+      setIsAuthenticated(true);
+      setUser({ token });
     }
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await apiRequest('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-
-    localStorage.setItem('auth_token', response.token);
-    setUser(response.user);
-    setIsAuthenticated(true);
+    try {
+      const response = await loginUser(email, password);
+      localStorage.setItem('auth_token', response.token);
+      setUser(response.user);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   };
 
-  const logout = async () => {
-    await apiRequest('/api/auth/logout', { method: 'POST' });
+  const register = async (email: string, password: string) => {
+    try {
+      const response = await registerUser(email, password);
+      localStorage.setItem('auth_token', response.token);
+      setUser(response.user);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
+  };
+
+  const logout = () => {
     localStorage.removeItem('auth_token');
     setUser(null);
     setIsAuthenticated(false);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+export const useAuth = () => useContext(AuthContext);
