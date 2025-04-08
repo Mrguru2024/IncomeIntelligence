@@ -23,6 +23,12 @@ export default function StackrGigs() {
 
   useEffect(() => {
     async function fetchGigs() {
+      if (!client) {
+        setError('Sanity client not initialized');
+        setLoading(false);
+        return;
+      }
+      
       try {
         const query = `*[_type == "gig" && status == "open"] | order(createdAt desc) {
           _id,
