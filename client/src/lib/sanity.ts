@@ -6,12 +6,19 @@ const dataset = import.meta.env.VITE_SANITY_DATASET;
 const apiVersion = import.meta.env.VITE_SANITY_API_VERSION;
 const token = import.meta.env.VITE_SANITY_TOKEN;
 
-if (!projectId) {
-  console.error('Sanity Project ID is missing from environment variables');
-}
+// Debug logging
+console.log('Sanity Config:', {
+  projectId,
+  dataset,
+  apiVersion,
+  hasToken: !!token
+});
 
-if (!dataset) {
-  console.error('Sanity Dataset is missing from environment variables');
+if (!projectId || !dataset) {
+  console.error('Required Sanity configuration missing:', {
+    projectId: !!projectId,
+    dataset: !!dataset
+  });
 }
 
 export const client = createClient({
@@ -19,5 +26,14 @@ export const client = createClient({
   dataset: dataset || 'production',
   apiVersion: apiVersion || '2024-01-01',
   useCdn: false,
-  token
+  token,
+  ignoreBrowserTokenWarning: true
 });
+
+// Export config for testing
+export const sanityConfig = {
+  projectId,
+  dataset,
+  apiVersion,
+  hasToken: !!token
+};

@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import { client } from '../../lib/sanity';
+import { client, sanityConfig } from '../../lib/sanity';
 
-// Add error handling for Sanity client operations
+// Debug logging
+console.log('StackrGigs - Sanity Config:', sanityConfig);
+
 const handleSanityError = (error: any) => {
   console.error('Sanity Client Error:', error);
-  // Add your error handling logic here
+  if (error.message.includes('projectId')) {
+    console.error('Sanity Project ID configuration error. Current config:', sanityConfig);
+  }
 };
 
 interface Gig {
