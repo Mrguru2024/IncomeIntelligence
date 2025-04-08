@@ -42,7 +42,7 @@ export const users = pgTable("users", {
   resetPasswordExpires: timestamp("reset_password_expires"),
   provider: text("provider").default("local"), // 'local', 'google', 'github', 'apple', etc.
   providerId: text("provider_id"),
-  firebaseUid: text("firebase_uid"), // UID from Firebase Auth for social login
+  
   profileImage: text("profile_image"), // URL to profile image, often provided by social login
   role: text("role").notNull().default("user"), // 'user', 'admin'
   accountStatus: text("account_status").notNull().default("active"), // 'active', 'suspended', 'inactive'
