@@ -71,8 +71,19 @@ function Router() {
 }
 
 function App() {
-  
+  const [initialized, setInitialized] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    // Ensure environment variables are loaded
+    if (import.meta.env.VITE_SANITY_PROJECT_ID) {
+      setInitialized(true);
+    }
+  }, []);
+
+  if (!initialized) {
+    return <div>Loading...</div>;
+  }
   const [location] = useLocation();
   const isAuthPage = location === "/auth";
   const isOnboardingPage = location === "/onboarding";

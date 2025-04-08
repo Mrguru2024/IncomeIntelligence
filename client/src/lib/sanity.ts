@@ -1,14 +1,18 @@
 
 import { createClient } from '@sanity/client';
 
-// Debug log to check environment variable
-console.log('Sanity Project ID:', import.meta.env.VITE_SANITY_PROJECT_ID);
+const projectId = import.meta.env.VITE_SANITY_PROJECT_ID;
+const dataset = import.meta.env.VITE_SANITY_DATASET;
+const apiVersion = import.meta.env.VITE_SANITY_API_VERSION;
 
-// Create Sanity client using environment variable
+if (!projectId) {
+  console.error('Sanity Project ID is missing. Check your environment variables.');
+}
+
 const client = createClient({
-  projectId: import.meta.env.VITE_SANITY_PROJECT_ID || '5enbinz3', // Fallback for safety
-  dataset: 'production',
-  apiVersion: '2023-05-03',
+  projectId: projectId || '5enbinz3',
+  dataset: dataset || 'production',
+  apiVersion: apiVersion || '2023-05-03',
   useCdn: true,
   perspective: 'published',
   ignoreBrowserTokenWarning: true
