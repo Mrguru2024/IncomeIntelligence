@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 import { storage } from './storage';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 import { JWTPayload, generateToken, verifyToken, extractTokenFromRequest } from './auth-utils';
 import { generateSecureToken } from './utils/security';
 import { authenticateToken, requireAuth } from './middleware/authMiddleware';
