@@ -1,20 +1,12 @@
+
 import { createClient } from '@sanity/client';
 
-// Get environment variables with fallbacks
-const projectId = import.meta.env.VITE_SANITY_PROJECT_ID || '5enbinz3';
-const dataset = import.meta.env.VITE_SANITY_DATASET || 'production';
-const apiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03';
+const projectId = import.meta.env.VITE_SANITY_PROJECT_ID;
+const dataset = import.meta.env.VITE_SANITY_DATASET;
+const apiVersion = import.meta.env.VITE_SANITY_API_VERSION;
 const token = import.meta.env.VITE_SANITY_TOKEN;
 
-// Debug log for troubleshooting
-console.log('Sanity Config (Actual Values):', {
-  projectId,
-  dataset,
-  apiVersion,
-  hasToken: !!token
-});
-
-const sanityConfig = {
+export const sanityConfig = {
   projectId,
   dataset,
   apiVersion,
@@ -22,11 +14,16 @@ const sanityConfig = {
   useCdn: true,
 };
 
-export const client = createClient(sanityConfig);
-
-export const sanityConfig = {
+// Debug log for troubleshooting
+console.log('Sanity Config:', {
   projectId,
   dataset,
   apiVersion,
   hasToken: !!token
-};
+});
+
+if (!projectId || !dataset || !apiVersion || !token) {
+  throw new Error('Missing required Sanity configuration. Check environment variables.');
+}
+
+export const client = createClient(sanityConfig);
