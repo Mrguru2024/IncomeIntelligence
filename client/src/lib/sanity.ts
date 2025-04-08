@@ -1,19 +1,16 @@
 
 import { createClient } from '@sanity/client';
 
-// Ensure environment variables are properly loaded
-const sanityConfig = {
-  projectId: '5enbinz3', // Hardcoded from your .env
-  dataset: 'production',
-  apiVersion: '2023-05-03',
+// Log environment variables for debugging
+console.log('Sanity Project ID:', import.meta.env.VITE_SANITY_PROJECT_ID);
+
+// Create Sanity client with environment variables
+export const client = createClient({
+  projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
+  dataset: import.meta.env.VITE_SANITY_DATASET,
+  apiVersion: import.meta.env.VITE_SANITY_API_VERSION,
   token: import.meta.env.VITE_SANITY_TOKEN,
   useCdn: false
-};
-
-if (!sanityConfig.projectId) {
-  console.error('Missing Sanity project ID');
-}
-
-export const client = createClient(sanityConfig);
+});
 
 export default client;
