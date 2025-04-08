@@ -71,11 +71,6 @@ function Router() {
 }
 
 function App() {
-  // Debug environment variables
-  console.log('Sanity Config:', {
-    projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
-    dataset: import.meta.env.VITE_SANITY_DATASET
-  });
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [location] = useLocation();
