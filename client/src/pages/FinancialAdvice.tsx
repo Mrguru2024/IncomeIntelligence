@@ -925,8 +925,7 @@ const FinancialAdvice = () => {
                   </Label>
                   <div className="flex border rounded-md overflow-hidden w-full sm:w-auto">
                     <Button
-                      type="button"
-                      variant={expensePeriod === "week" ? "default" : "ghost"}                      className="rounded-none flex-1 text-xs sm:text-sm py-1 px-2 sm:py-2 sm:px-3"
+                      type="button                      variant={expensePeriod === "week" ? "default" : "ghost"}                      className="rounded-none flex-1 text-xs sm:text-sm py-1 px-2 sm:py-2 sm:px-3"
                       onClick={() => setExpensePeriod("week")}
                     >
                       Week
