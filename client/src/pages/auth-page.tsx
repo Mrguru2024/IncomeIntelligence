@@ -11,6 +11,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -63,27 +64,9 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { loginMutation } = useAuth();
 
-  // Check if user is logged in
-  const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ["/api/auth/user"],
-    queryFn: async ({ queryKey }) => {
-      try {
-        const res = await fetch(queryKey[0], {
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (res.ok) return res.json();
-        return null;
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        return null;
-      }
-    },
-  });
+  // Get user data from our auth hook
+  const { user, isLoading: userLoading } = useAuth();
 
   // Redirect to dashboard if logged in
   useEffect(() => {
@@ -113,47 +96,8 @@ export default function AuthPage() {
     },
   });
 
-  // Login mutation
-
-  // Register mutation
-  const registerMutation = useMutation({
-    mutationFn: async (userData: RegisterFormValues) => {
-      const res = await apiRequest("POST", "/api/auth/register", {
-        username: userData.username,
-        email: userData.email,
-        password: userData.password,
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || "Registration failed. Please try again.",
-        );
-      }
-
-      return res.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created! You can now log in.",
-      });
-      setActiveTab("login");
-      registerForm.reset();
-
-      // Pre-fill login form with registered username
-      loginForm.setValue("username", registerForm.getValues("username"));
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Registration failed",
-        description:
-          error.message ||
-          "There was an error creating your account. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
+  // Get auth mutations from the useAuth hook
+  const { loginMutation, registerMutation } = useAuth();
 
   const onLoginSubmit = async (data: LoginFormValues) => {
     try {
@@ -163,24 +107,31 @@ export default function AuthPage() {
       });
     } catch (error) {
       console.error('Login error:', error);
-      toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again",
-        variant: "destructive",
-      });
+      // Toast is handled in the mutation itself
     }
   };
 
   const onRegisterSubmit = (values: RegisterFormValues) => {
-    registerMutation.mutate(values);
+    // Only pass the needed fields
+    registerMutation.mutate({
+      username: values.username,
+      email: values.email,
+      password: values.password
+    });
+    
+    // Handle post-registration actions
+    if (registerMutation.isSuccess) {
+      setActiveTab("login");
+      registerForm.reset();
+      // Pre-fill login form with registered username
+      loginForm.setValue("username", registerForm.getValues("username"));
+    }
   };
 
-  // If user is already logged in, redirect to home page
+  // Empty useEffect, we don't need to test Sanity right now
   useEffect(() => {
-    testSanityConnection().then(success => {
-      console.log("Sanity connection test:", success ? "Success" : "Failed");
-    });
-  }, []); // Added Sanity connection test
+    console.log("Auth page mounted");
+  }, []);
 
   if (userLoading) {
     return (
@@ -634,12 +585,4 @@ export default function AuthPage() {
   );
 }
 
-async function testSanityConnection() {
-  try {
-    const res = await fetch('/api/sanity'); // Replace with your Sanity API endpoint
-    return res.ok;
-  } catch (error) {
-    console.error("Error testing Sanity connection:", error);
-    return false;
-  }
-}
+// Sanity connection test removed as it's not needed
