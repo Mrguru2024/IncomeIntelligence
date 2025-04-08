@@ -1,6 +1,6 @@
 
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../auth';
+import { verifyToken } from '../auth-utils';
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -9,10 +9,16 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       return res.status(401).json({ message: 'No token provided' });
     }
 
-    const decoded = await verifyToken(token);
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+    
     req.user = decoded;
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });
   }
 };
+
+export const setupFirebaseAdmin = () => true;
