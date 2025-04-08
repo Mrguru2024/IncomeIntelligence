@@ -5,7 +5,8 @@ export default {
   content: [
     "./client/src/**/*.{js,jsx,ts,tsx}",
     "./client/index.html",
-    "./shared/**/*.{js,jsx,ts,tsx}"
+    "./shared/**/*.{js,jsx,ts,tsx}",
+    "./index.html"
   ],
   theme: {
     screens: {
