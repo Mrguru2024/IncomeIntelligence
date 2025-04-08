@@ -75,18 +75,7 @@ function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Ensure environment variables are loaded
-    const sanityConfig = {
-      projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
-      dataset: import.meta.env.VITE_SANITY_DATASET,
-      apiVersion: import.meta.env.VITE_SANITY_API_VERSION
-    };
-    
-    if (sanityConfig.projectId && sanityConfig.dataset && sanityConfig.apiVersion) {
-      setInitialized(true);
-    } else {
-      console.error('Missing required Sanity configuration:', sanityConfig);
-    }
+    setInitialized(true);
   }, []);
 
   if (!initialized) {
