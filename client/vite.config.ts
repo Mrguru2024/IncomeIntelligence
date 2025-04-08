@@ -13,15 +13,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       external: [
-        'firebase',
-        'firebase/app',
-        'firebase/auth',
-        'firebase/firestore',
-        'firebase/analytics',
-        '@firebase/app',
-        '@firebase/auth',
-        '@firebase/firestore',
-        '@firebase/analytics',
+        // Firebase dependencies removed as we now use custom JWT auth
         '@sanity/client'
       ]
     }
