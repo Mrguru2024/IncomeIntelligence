@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { loginUser, registerUser, getCurrentUser } from "@/lib/authService";
 
@@ -29,14 +30,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const response = await loginUser(email, password);
-    localStorage.setItem('token', response.token);
-    setUser(response.user);
+    if (response.token) {
+      localStorage.setItem('token', response.token);
+      setUser(response.user);
+    }
   };
 
   const register = async (email: string, password: string) => {
     const response = await registerUser(email, password);
-    localStorage.setItem('token', response.token);
-    setUser(response.user);
+    if (response.token) {
+      localStorage.setItem('token', response.token);
+      setUser(response.user);
+    }
   };
 
   const logout = () => {

@@ -1,31 +1,56 @@
 
-import { apiRequest } from './queryClient';
-
-export interface LoginResponse {
+interface AuthResponse {
   token: string;
-  user: {
-    id: number;
-    email: string;
-    username: string;
-  };
+  user: any;
 }
 
-export async function loginUser(email: string, password: string): Promise<LoginResponse> {
-  const response = await apiRequest('/api/auth/login', {
+export async function loginUser(email: string, password: string): Promise<AuthResponse> {
+  const response = await fetch('/api/auth/login', {
     method: 'POST',
-    body: { email, password }
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
   });
-  return response;
+
+  if (!response.ok) {
+    throw new Error('Login failed');
+  }
+
+  return response.json();
 }
 
-export async function registerUser(email: string, password: string): Promise<LoginResponse> {
-  const response = await apiRequest('/api/auth/register', {
+export async function registerUser(email: string, password: string): Promise<AuthResponse> {
+  const response = await fetch('/api/auth/register', {
     method: 'POST',
-    body: { email, password }
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
   });
-  return response;
+
+  if (!response.ok) {
+    throw new Error('Registration failed');
+  }
+
+  return response.json();
 }
 
-export async function getCurrentUser() {
-  return apiRequest('/api/auth/user');
+export async function getCurrentUser(): Promise<any> {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('No token found');
+  }
+
+  const response = await fetch('/api/auth/me', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to get current user');
+  }
+
+  return response.json();
 }
