@@ -1,21 +1,28 @@
 
 import { createClient } from '@sanity/client';
 
-const projectId = import.meta.env.VITE_SANITY_PROJECT_ID;
-const dataset = import.meta.env.VITE_SANITY_DATASET;
-const apiVersion = import.meta.env.VITE_SANITY_API_VERSION;
-const token = import.meta.env.VITE_SANITY_TOKEN;
+// Debug logging to verify environment variables
+console.log('Sanity Config Debug:', {
+  projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
+  dataset: import.meta.env.VITE_SANITY_DATASET,
+  apiVersion: import.meta.env.VITE_SANITY_API_VERSION,
+  token: import.meta.env.VITE_SANITY_TOKEN?.substring(0, 8) + '...'
+});
 
-if (!projectId) {
-  console.error('Sanity Project ID is missing');
+const sanityProjectId = import.meta.env.VITE_SANITY_PROJECT_ID;
+const sanityDataset = import.meta.env.VITE_SANITY_DATASET || 'production';
+const sanityApiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03';
+const sanityToken = import.meta.env.VITE_SANITY_TOKEN;
+
+if (!sanityProjectId) {
+  throw new Error('Missing VITE_SANITY_PROJECT_ID – check .env or Secrets tab.');
 }
 
 export const client = createClient({
-  projectId: projectId || '5enbinz3',
-  dataset: dataset || 'production',
-  apiVersion: apiVersion || '2023-05-03',
-  token: token,
+  projectId: sanityProjectId,
+  dataset: sanityDataset,
+  apiVersion: sanityApiVersion,
+  token: sanityToken,
   useCdn: true,
   perspective: 'published',
-  ignoreBrowserTokenWarning: true
 });
