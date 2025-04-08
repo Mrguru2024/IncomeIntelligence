@@ -1,20 +1,51 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getAnalytics } from "firebase/analytics";
-import firebase from 'firebase/compat/app'; // added import for firebase.initializeApp
+// Mock Firebase implementation to avoid errors
+// This allows the app to work without Firebase keys
+console.log("Using mock Firebase service");
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+// Create mock auth object that doesn't rely on Firebase initialization
+const auth = {
+  currentUser: null,
+  onAuthStateChanged: (callback: (user: any) => void) => {
+    callback(null);
+    return () => {};
+  },
+  signInWithEmailAndPassword: async () => {
+    throw new Error("Firebase authentication is disabled");
+  },
+  createUserWithEmailAndPassword: async () => {
+    throw new Error("Firebase authentication is disabled");
+  },
+  signOut: async () => {
+    console.log("Mock signOut called");
+    return Promise.resolve();
+  }
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const analytics = getAnalytics(app);
+// Mock analytics object
+const analytics = {
+  logEvent: () => {},
+  setCurrentScreen: () => {},
+  setUserId: () => {}
+};
 
-export { auth, analytics };
+// For compatibility with other parts of the app
+// Custom implementations since we don't want to import from firebase/auth
+
+// Simple GoogleAuthProvider implementation
+class GoogleAuthProvider {
+  addScope() { return this; }
+  setCustomParameters() { return this; }
+}
+
+// Mock Firebase auth methods
+const signInWithPopup = async () => {
+  throw new Error("Social login is currently disabled");
+};
+
+const getRedirectResult = async () => {
+  return { user: null };
+};
+
+const googleProvider = new GoogleAuthProvider();
+
+export { auth, analytics, googleProvider, signInWithPopup, getRedirectResult };
