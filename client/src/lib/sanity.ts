@@ -1,4 +1,4 @@
 
-// Placeholder - Sanity integration removed
+// Sanity integration removed
 export const client = null;
-export default client;
+export default null;
