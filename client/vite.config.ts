@@ -21,7 +21,8 @@ export default defineConfig({
         '@firebase/app',
         '@firebase/auth',
         '@firebase/firestore',
-        '@firebase/analytics'
+        '@firebase/analytics',
+        '@sanity/client'
       ]
     }
   }
