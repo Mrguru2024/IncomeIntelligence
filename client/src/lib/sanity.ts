@@ -9,5 +9,24 @@ const config = {
   useCdn: true,
 };
 
-export const client = createClient(config);
+let client;
+try {
+  if (!config.projectId) {
+    throw new Error('Sanity projectId is required');
+  }
+  client = createClient(config);
+} catch (error) {
+  console.error('Failed to initialize Sanity client:', error);
+  client = null;
+}
+
+export { client };
 export const sanityConfig = config;
+
+// Helper function to check if client is initialized
+export const getSanityClient = () => {
+  if (!client) {
+    throw new Error('Sanity client not initialized');
+  }
+  return client;
+};
