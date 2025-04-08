@@ -34,7 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { occupationTypes, financialHealthStatuses } from "@shared/schema";
+import { occupationTypes, financialHealthStatuses } from "../../shared/schema";
 import SmartRulesEngine from "@/components/SmartRulesEngine"; //Import added here
 
 // Form validation schema
