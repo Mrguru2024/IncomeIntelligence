@@ -4,9 +4,10 @@ import { fromZodError } from 'zod-validation-error';
 import { storage } from './storage';
 import { InsertUser, insertUserSchema } from '@shared/schema';
 import jwt from 'jsonwebtoken';
-import { JWTPayload, generateToken as generateJWTToken, verifyToken as verifyJWTToken, extractTokenFromRequest } from './auth-utils'; // Assuming auth-utils.ts is created to store the new functions.
-import { hashPassword, verifyPassword, generateSecureToken } from './utils/security';
-import { authenticateToken, requireAuth } from './middleware/authMiddleware'; // Middleware needs updating to use JWT
+import bcrypt from 'bcrypt';
+import { JWTPayload, generateToken, verifyToken, extractTokenFromRequest } from './auth-utils'; 
+import { generateSecureToken } from './utils/security';
+import { authenticateToken, requireAuth } from './middleware/authMiddleware'; 
 import { sendVerificationEmail, sendPasswordResetEmail } from './email-service';
 import { twoFactorService } from './services/two-factor-service';
 
@@ -51,7 +52,7 @@ export function setupAuth(app: Express) {
       const verificationToken = generateSecureToken();
 
       // Hash the password
-      const hashedPassword = hashPassword(userData.password);
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
 
       // Create user with hashed password
       const user = await storage.createUser({
@@ -72,7 +73,7 @@ export function setupAuth(app: Express) {
       const { password, ...userWithoutPassword } = user;
 
       // Generate JWT token
-      const token = generateJWTToken({ userId: user.id, email: user.email });
+      const token = await generateToken(user.id);
 
       return res.status(201).json({
         message: 'Registration successful. Please check your email to verify your account.',
@@ -105,18 +106,12 @@ export function setupAuth(app: Express) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
-      // Check if account is active - currently disabled 
       // Log login attempt info
       console.log(`Login attempt - User: ${user.username}`);
 
-      // Schema has account_status but database doesn't have that column yet
-      // So we'll skip this check for now and assume all accounts are active
-      // if (user.accountStatus && user.accountStatus !== 'active') {
-      //   return res.status(403).json({ message: 'Account is not active' });
-      // }
 
       // Verify password
-      const isPasswordValid = verifyPassword(password, user.password);
+      const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
@@ -138,7 +133,7 @@ export function setupAuth(app: Express) {
       const { password: _, ...userWithoutPassword } = user;
 
       // Generate JWT token
-      const token = generateJWTToken({ userId: user.id, email: user.email });
+      const token = await generateToken(user.id);
 
       return res.status(200).json({
         message: 'Login successful',
@@ -237,7 +232,7 @@ export function setupAuth(app: Express) {
       }
 
       // Hash the new password
-      const hashedPassword = hashPassword(password);
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       // Update password and clear reset token
       await storage.resetPassword(user.id, hashedPassword);
@@ -293,13 +288,13 @@ export function setupAuth(app: Express) {
       }
 
       // Verify current password
-      const isPasswordValid = verifyPassword(currentPassword, user.password);
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
       if (!isPasswordValid) {
         return res.status(401).json({ message: 'Current password is incorrect' });
       }
 
       // Hash the new password
-      const hashedPassword = hashPassword(newPassword);
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
 
       // Update password
       await storage.updateUser(user.id, { password: hashedPassword });
@@ -451,7 +446,7 @@ export function setupAuth(app: Express) {
       const { password, ...userWithoutPassword } = user;
 
       // Generate JWT token
-      const jwtToken = generateJWTToken({ userId: user.id, email: user.email });
+      const jwtToken = await generateToken(user.id);
 
       return res.status(200).json({
         message: '2FA verification successful',
@@ -493,7 +488,7 @@ export function setupAuth(app: Express) {
       const { password, ...userWithoutPassword } = user;
 
       // Generate JWT token
-      const jwtToken = generateJWTToken({ userId: user.id, email: user.email });
+      const jwtToken = await generateToken(user.id);
 
       return res.status(200).json({
         message: 'Backup code verification successful',
@@ -528,7 +523,7 @@ export function setupAuth(app: Express) {
       }
 
       // Verify password
-      const isPasswordValid = verifyPassword(password, user.password);
+      const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         return res.status(401).json({ message: 'Invalid password' });
       }
