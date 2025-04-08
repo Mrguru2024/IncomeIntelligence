@@ -1,24 +1,24 @@
 
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../auth-utils';
+import jwt from 'jsonwebtoken';
 
-export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
-    }
-
-    const decoded = verifyToken(token);
-    if (!decoded) {
-      return res.status(401).json({ message: 'Invalid token' });
-    }
-    
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
     next();
-  } catch (error) {
-    return res.status(401).json({ message: 'Invalid token' });
+  } catch (err) {
+    return res.status(403).json({ message: 'Invalid token' });
   }
 };
 
-export const setupFirebaseAdmin = () => true;
+export const setupFirebaseAdmin = () => true; // Keep for backward compatibility
