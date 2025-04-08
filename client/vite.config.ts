@@ -10,4 +10,19 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, '../shared')
     }
   },
+  build: {
+    rollupOptions: {
+      external: [
+        'firebase',
+        'firebase/app',
+        'firebase/auth',
+        'firebase/firestore',
+        'firebase/analytics',
+        '@firebase/app',
+        '@firebase/auth',
+        '@firebase/firestore',
+        '@firebase/analytics'
+      ]
+    }
+  }
 });
