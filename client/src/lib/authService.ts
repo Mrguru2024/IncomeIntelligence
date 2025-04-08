@@ -1,5 +1,4 @@
-// Auth service cleaned up
-
+// JWT-based auth service
 export async function loginUser(email: string, password: string) {
   const response = await fetch('/api/auth/login', {
     method: 'POST',

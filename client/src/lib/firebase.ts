@@ -1,9 +1,7 @@
 
-// Simplified auth service
-const auth = {
+// Auth service simplified
+export const auth = {
   currentUser: null,
   onAuthStateChanged: () => {},
   signOut: async () => {},
 };
-
-export { auth };
