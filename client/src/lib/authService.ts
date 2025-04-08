@@ -1,3 +1,4 @@
+// Auth service cleaned up
 
 export async function loginUser(email: string, password: string) {
   const response = await fetch('/api/auth/login', {
