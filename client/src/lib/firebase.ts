@@ -1,31 +1,26 @@
 
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getAnalytics } from 'firebase/analytics';
+// Firebase has been replaced by our custom JWT authentication system
+// This file is kept as a stub for compatibility with any legacy code
 
-const requiredEnvVars = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+/**
+ * Mock Firebase implementations
+ * These are intentionally empty as we've migrated to a custom JWT auth system
+ */
+
+// Mock Firebase Auth
+const auth = {
+  // Empty implementation
 };
 
-// Validate all required Firebase config variables are present
-const missingVars = Object.entries(requiredEnvVars)
-  .filter(([_, value]) => !value)
-  .map(([key]) => key);
+// Mock Firestore
+const db = {
+  // Empty implementation 
+};
 
-if (missingVars.length > 0) {
-  throw new Error(`Missing Firebase configuration variables: ${missingVars.join(', ')}`);
-}
+// Mock Analytics
+const analytics = {
+  // Empty implementation
+};
 
-const app = initializeApp(requiredEnvVars);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const analytics = getAnalytics(app);
-
+// Export mock objects for compatibility
 export { auth, db, analytics };
