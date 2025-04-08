@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { client } from '../../lib/sanity';
 
+// Add error handling for Sanity client operations
+const handleSanityError = (error: any) => {
+  console.error('Sanity Client Error:', error);
+  // Add your error handling logic here
+};
+
 interface Gig {
   _id: string;
   title: string;
