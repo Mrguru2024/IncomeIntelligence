@@ -1,15 +1,14 @@
 
 import { createClient } from '@sanity/client';
 
-// Log environment variables for debugging
-console.log('Sanity Project ID:', import.meta.env.VITE_SANITY_PROJECT_ID);
-
-// Create Sanity client with environment variables
+// Create Sanity client with hardcoded config for development
 export const client = createClient({
-  projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
-  dataset: import.meta.env.VITE_SANITY_DATASET,
-  apiVersion: import.meta.env.VITE_SANITY_API_VERSION,
-  token: import.meta.env.VITE_SANITY_TOKEN,
+  projectId: '5enbinz3',
+  dataset: 'production',
+  apiVersion: '2023-05-03',
+  token: process.env.NODE_ENV === 'production' 
+    ? import.meta.env.VITE_SANITY_TOKEN 
+    : 'sklhlPEHDNeyktyXttfyrF9Ex7KH0UtkZm6rIRNbfaUNVwsWOGhNZiwdKdtpTZQ0GVZFrzu8vBXAZRff20R7Smj96wOICuk7A68KrY5aKn5AIKvD76XmbRwGxW1NeymEgnYyorF5XOkwMkwlL86RDWQSzKXc6T2izNYtecSKio3sYzWWQh21',
   useCdn: false
 });
 
