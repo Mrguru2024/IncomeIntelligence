@@ -1,37 +1,25 @@
-
 import { createClient } from '@sanity/client';
 
-// Validate environment variables
-const projectId = import.meta.env.VITE_SANITY_PROJECT_ID;
-const dataset = import.meta.env.VITE_SANITY_DATASET;
-const apiVersion = import.meta.env.VITE_SANITY_API_VERSION;
+// Get environment variables with fallbacks
+const projectId = import.meta.env.VITE_SANITY_PROJECT_ID || '5enbinz3';
+const dataset = import.meta.env.VITE_SANITY_DATASET || 'production';
+const apiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03';
 const token = import.meta.env.VITE_SANITY_TOKEN;
 
-// Debug log to verify values
-console.log('Sanity Environment Variables:', {
+// Debug log for troubleshooting
+console.log('Sanity Config (Actual Values):', {
   projectId,
   dataset,
   apiVersion,
-  token: token ? 'Present' : 'Missing'
+  hasToken: !!token
 });
-
-if (!projectId || !dataset || !apiVersion || !token) {
-  console.error('Sanity Configuration Error:', {
-    hasProjectId: !!projectId,
-    hasDataset: !!dataset,
-    hasApiVersion: !!apiVersion,
-    hasToken: !!token,
-  });
-  throw new Error('Missing required Sanity configuration. Check environment variables.');
-}
 
 export const client = createClient({
   projectId,
   dataset,
   apiVersion,
   token,
-  useCdn: false,
-  ignoreBrowserTokenWarning: true
+  useCdn: true,
 });
 
 export const sanityConfig = {
