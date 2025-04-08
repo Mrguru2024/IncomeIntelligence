@@ -27,10 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, CircleDollarSign } from "lucide-react";
-// Using mock Firebase implementation
-import { auth, googleProvider, getRedirectResult, signInWithPopup } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
-import { testSanityConnection } from "@/lib/sanityTest"; // Added import
 
 
 // Login validation schema
