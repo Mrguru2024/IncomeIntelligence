@@ -9,7 +9,8 @@ import {
   SpendingPersonalityQuestion, InsertSpendingPersonalityQuestion, spendingPersonalityQuestions,
   SpendingPersonalityResult, InsertSpendingPersonalityResult, spendingPersonalityResults,
   Budget, InsertBudget, budgets, 
-  ProfessionalService, InsertProfessionalService, professionalServices
+  ProfessionalService, InsertProfessionalService, professionalServices,
+  StackrGig, InsertStackrGig, stackrGigs
 } from '@shared/schema';
 import { IStorage } from './storage';
 import { db, pool } from './db';
@@ -2101,6 +2102,130 @@ export class DbStorage implements IStorage {
     } catch (error) {
       console.error('Error toggling professional service active status:', error);
       return undefined;
+    }
+  }
+
+  // Stackr Gigs methods
+  async getStackrGigs(): Promise<StackrGig[]> {
+    try {
+      return await db.select().from(stackrGigs).orderBy(desc(stackrGigs.createdAt));
+    } catch (error) {
+      console.error('Error getting Stackr gigs:', error);
+      return [];
+    }
+  }
+  
+  async getStackrGigById(id: number): Promise<StackrGig | undefined> {
+    try {
+      const result = await db.select().from(stackrGigs).where(eq(stackrGigs.id, id));
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error getting Stackr gig by ID:', error);
+      return undefined;
+    }
+  }
+  
+  async createStackrGig(gig: InsertStackrGig): Promise<StackrGig> {
+    try {
+      const now = new Date();
+      const result = await db.insert(stackrGigs).values({
+        ...gig,
+        createdAt: now,
+        updatedAt: now
+      }).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating Stackr gig:', error);
+      throw error;
+    }
+  }
+  
+  async updateStackrGig(id: number, gig: Partial<InsertStackrGig>): Promise<StackrGig | undefined> {
+    try {
+      const result = await db
+        .update(stackrGigs)
+        .set({
+          ...gig,
+          updatedAt: new Date()
+        })
+        .where(eq(stackrGigs.id, id))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error updating Stackr gig:', error);
+      return undefined;
+    }
+  }
+  
+  async deleteStackrGig(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(stackrGigs)
+        .where(eq(stackrGigs.id, id))
+        .returning({ id: stackrGigs.id });
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting Stackr gig:', error);
+      return false;
+    }
+  }
+  
+  async getStackrGigsByUserId(userId: number): Promise<StackrGig[]> {
+    try {
+      return await db
+        .select()
+        .from(stackrGigs)
+        .where(
+          or(
+            eq(stackrGigs.requesterUserId, userId),
+            eq(stackrGigs.assignedUserId, userId)
+          )
+        )
+        .orderBy(desc(stackrGigs.createdAt));
+    } catch (error) {
+      console.error('Error getting Stackr gigs by user ID:', error);
+      return [];
+    }
+  }
+  
+  async getStackrGigsByStatus(status: string): Promise<StackrGig[]> {
+    try {
+      return await db
+        .select()
+        .from(stackrGigs)
+        .where(eq(stackrGigs.status, status))
+        .orderBy(desc(stackrGigs.createdAt));
+    } catch (error) {
+      console.error('Error getting Stackr gigs by status:', error);
+      return [];
+    }
+  }
+  
+  async applyForGig(gigId: number, userId: number): Promise<StackrGig | undefined> {
+    try {
+      const gig = await this.getStackrGigById(gigId);
+      if (!gig) return undefined;
+      
+      if (gig.status !== "open") {
+        throw new Error("This gig is no longer open for applications");
+      }
+      
+      const result = await db
+        .update(stackrGigs)
+        .set({
+          status: "assigned",
+          assignedUserId: userId,
+          updatedAt: new Date()
+        })
+        .where(eq(stackrGigs.id, gigId))
+        .returning();
+      
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error applying for Stackr gig:', error);
+      throw error;
     }
   }
 }

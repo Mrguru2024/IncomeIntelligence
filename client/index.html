@@ -71,108 +71,67 @@
       }
     </style>
     
-    <!-- Firebase & Sanity Blocking System (Improved) -->
+    <!-- Advanced Dependency Interception System -->
     <script>
-      // Create better mocks with proper configuration to avoid errors
-      window.FIREBASE_DISABLED = true;
-      window.SANITY_DISABLED = true;
+      console.log("Initializing advanced dependency interception system...");
       
-      // Configure sanity client with a projectId to prevent the error
-      window.SANITY_CONFIG = {
-        projectId: 'mock-project-id',
+      // --- CRITICAL: Prevent any direct imports of Firebase or Sanity ---
+      // This creates a global interception layer that prevents modules from loading
+      window.__SANITY_CLIENT__ = {
+        projectId: 'stackr-demo-project',
         dataset: 'production',
-        apiVersion: '2023-11-01',
+        apiVersion: '2023-04-01',
         useCdn: true
       };
       
-      // Mock firebase completely
-      window.firebase = {
-        initializeApp: function() { 
-          console.log("[Firebase Mock] initializeApp called");
-          return {
-            options: {
-              projectId: 'mock-project-id',
-              apiKey: 'mock-api-key'
-            },
-            auth: function() { 
-              return {
-                onAuthStateChanged: function(callback) { 
-                  // Immediately call the callback with null to simulate logged out state
-                  setTimeout(() => callback(null), 0);
-                  return function() {}; 
-                },
-                signInWithEmailAndPassword: function() { 
-                  return Promise.resolve({
-                    user: {
-                      uid: 'mock-user-id',
-                      email: 'user@example.com',
-                      displayName: 'Test User'
-                    }
-                  }); 
-                },
-                createUserWithEmailAndPassword: function() { 
-                  return Promise.resolve({
-                    user: {
-                      uid: 'mock-user-id',
-                      email: 'newuser@example.com'
-                    }
-                  }); 
-                },
-                signOut: function() { return Promise.resolve(); },
-                currentUser: null,
-                setPersistence: function() { return Promise.resolve(); }
-              }; 
-            },
-            firestore: function() { return {
-              collection: () => ({
-                doc: () => ({
-                  get: () => Promise.resolve({
-                    exists: false,
-                    data: () => null
-                  }),
-                  set: () => Promise.resolve()
-                }),
-                add: () => Promise.resolve({ id: 'mock-doc-id' })
-              })
-            }; }
-          }; 
-        },
-        auth: {
-          GoogleAuthProvider: function() { return {}; },
-          signInWithRedirect: function() {},
-          getRedirectResult: function() { return Promise.resolve(null); }
-        },
-        app: function() { return {}; },
-        firestore: { 
-          Timestamp: { 
-            now: () => ({ toDate: () => new Date() }),
-            fromDate: (date) => ({ toDate: () => date })
-          }
+      // Global configuration with required fields to prevent errors
+      window.__FIREBASE_CONFIG__ = {
+        projectId: 'stackr-demo-project',
+        apiKey: 'AIzaSy-mock-key-zMsxHsGlj4',
+        authDomain: 'stackr-demo-project.firebaseapp.com'
+      };
+      
+      // Handle AMD/UMD module loading
+      window.define = window.define || function(name, deps, callback) {
+        // Intercept any attempts to load Firebase or Sanity
+        if (typeof name === 'string' && 
+            (name.includes('firebase') || name.includes('sanity'))) {
+          console.log(`[Interceptor] Blocked module: ${name}`);
+          return null;
+        }
+        
+        // Let other modules load normally
+        if (typeof callback === 'function') {
+          callback();
         }
       };
       
-      // For browser environment
+      // Set CommonJS Module.exports for script tags
+      window.module = window.module || { 
+        exports: {}
+      };
+      
+      // Compatibility with more module systems
       window.__FIREBASE_DEFAULTS__ = {
-        config: {
-          projectId: 'mock-project-id',
-          apiKey: 'mock-api-key',
-          authDomain: 'mock-auth-domain.firebaseapp.com'
-        }
+        config: window.__FIREBASE_CONFIG__
       };
       
-      // For modules that might try to access firebase
-      if (typeof module !== 'undefined') {
-        module.exports = {
-          firebase: window.firebase,
-          initializeApp: window.firebase.initializeApp,
-          getAuth: () => window.firebase.auth(),
-          getFirestore: () => window.firebase.firestore(),
-          default: window.firebase
-        };
-      }
-
-      // Log that our blocking system is active
-      console.log("Firebase persistence set");
+      console.log("Dependency interception system initialized successfully");
+      
+      // Force native Firebase to be mocked even if it tries to load
+      Object.defineProperty(window, 'firebase', {
+        value: {
+          initializeApp: () => ({
+            auth: () => ({
+              onAuthStateChanged: (cb) => { setTimeout(() => cb(null), 10); return () => {}; },
+              signOut: () => Promise.resolve()
+            }),
+            options: window.__FIREBASE_CONFIG__
+          })
+        },
+        writable: false,
+        configurable: false
+      });
     </script>
   </head>
   <body>
@@ -184,8 +143,8 @@
       </div>
     </div>
     
-    <!-- Super clean entry point with minimal dependencies -->
-    <script type="module" src="/src/clean-entry.tsx"></script>
+    <!-- Use main.tsx for dynamic app -->
+    <script type="module" src="/src/main.tsx"></script>
     
     <!-- Replit badge -->
     <script
