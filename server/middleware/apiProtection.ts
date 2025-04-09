@@ -120,6 +120,11 @@ export const sanitizeQueryParams = (req: Request, res: Response, next: NextFunct
  * Detect and prevent common API abuse patterns
  */
 export const preventApiAbuse = (req: Request, res: Response, next: NextFunction) => {
+  // Always allow the /minimal route (our fallback static page)
+  if (req.path === '/minimal') {
+    return next();
+  }
+
   // Check for suspicious user agent
   const userAgent = req.headers['user-agent'] || '';
   
@@ -142,6 +147,12 @@ export const preventApiAbuse = (req: Request, res: Response, next: NextFunction)
     isSuspiciousAgent && 
     (isEmptyReferer || req.path.includes('/api/auth/'))
   ) {
+    // Allow debugging from the local environment
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[SECURITY] Allowing potentially suspicious request to: ${req.path}`);
+      return next();
+    }
+
     return res.status(403).json({
       message: 'Access denied. Please contact support if you believe this is an error.'
     });
