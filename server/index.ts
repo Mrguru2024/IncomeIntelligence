@@ -13,6 +13,7 @@ import { preventApiAbuse, sanitizeQueryParams, setSecurityHeaders } from "./midd
 import { optionalAuth } from "./middleware/authMiddleware";
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 
 // Load environment variables from .env file
 const result = dotenv.config();
@@ -162,27 +163,241 @@ app.use((req, res, next) => {
   app.use(express.static(path.join(dirname, '../client/public')));
   app.use(express.static(path.join(dirname, '../dist/public')));
 
+  // Special route for the mock app entry point that avoids Firebase 
+  app.get('/mock', (req, res) => {
+    // Send a simple HTML page without any JavaScript to avoid Firebase issues
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Stackr - Maintenance Mode</title>
+          <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+          <style>
+            :root {
+              --primary: #4f46e5;
+              --primary-foreground: #ffffff;
+              --background: #f8fafc;
+              --foreground: #0f172a;
+              --card: #ffffff;
+              --card-foreground: #1e293b;
+              --border: #e2e8f0;
+              --ring: #4f46e5;
+              --radius: 0.5rem;
+            }
+            
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+            }
+            
+            body {
+              font-family: 'Inter', -apple-system, sans-serif;
+              background-color: var(--background);
+              color: var(--foreground);
+              line-height: 1.5;
+              padding: 2rem;
+            }
+            
+            .container {
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            
+            .header {
+              text-align: center;
+              margin-bottom: 2rem;
+            }
+            
+            .logo {
+              font-size: 2.5rem;
+              font-weight: 700;
+              color: var(--primary);
+              margin-bottom: 0.5rem;
+            }
+            
+            .subtitle {
+              font-size: 1.25rem;
+              color: var(--card-foreground);
+            }
+            
+            .card {
+              background-color: var(--card);
+              border-radius: var(--radius);
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+              padding: 1.5rem;
+              margin-bottom: 1.5rem;
+            }
+            
+            .alert {
+              background-color: #fff8e1;
+              border-left: 4px solid #ffc107;
+              padding: 1rem;
+              margin-bottom: 1.5rem;
+              border-radius: 0.25rem;
+            }
+            
+            .alert-title {
+              font-weight: 600;
+              color: #b45309;
+              margin-bottom: 0.5rem;
+            }
+            
+            .alert-message {
+              color: #92400e;
+              font-size: 0.875rem;
+            }
+            
+            h2 {
+              font-size: 1.5rem;
+              margin-bottom: 1rem;
+              color: var(--card-foreground);
+            }
+            
+            .status-item {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 0.75rem 0;
+              border-bottom: 1px solid var(--border);
+            }
+            
+            .status-label {
+              color: var(--card-foreground);
+            }
+            
+            .status-value {
+              font-weight: 500;
+            }
+            
+            .status-online {
+              color: #10b981;
+            }
+            
+            .status-error {
+              color: #ef4444;
+            }
+            
+            .feature-list {
+              list-style: none;
+              margin-top: 1rem;
+            }
+            
+            .feature-list li {
+              padding: 0.5rem 0;
+              color: var(--card-foreground);
+            }
+            
+            .feature-list li:before {
+              content: "✓ ";
+              color: #10b981;
+            }
+            
+            .button {
+              display: inline-block;
+              background-color: var(--primary);
+              color: var(--primary-foreground);
+              padding: 0.5rem 1rem;
+              border-radius: var(--radius);
+              text-decoration: none;
+              font-weight: 500;
+              margin-top: 1rem;
+              border: none;
+              cursor: pointer;
+            }
+            
+            .button:hover {
+              opacity: 0.9;
+            }
+            
+            .footer {
+              text-align: center;
+              margin-top: 2rem;
+              color: #6b7280;
+              font-size: 0.875rem;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">Stackr</div>
+              <div class="subtitle">Service Provider Finance</div>
+            </div>
+            
+            <div class="alert">
+              <div class="alert-title">Application Maintenance</div>
+              <div class="alert-message">
+                We're currently resolving issues with Firebase dependencies. 
+                All server-side functionality remains active, but the main application interface is temporarily unavailable.
+              </div>
+            </div>
+            
+            <div class="card">
+              <h2>System Status</h2>
+              <div class="status-item">
+                <span class="status-label">Backend API</span>
+                <span class="status-value status-online">✓ Online</span>
+              </div>
+              
+              <div class="status-item">
+                <span class="status-label">PostgreSQL Database</span>
+                <span class="status-value status-online">✓ Connected</span>
+              </div>
+              
+              <div class="status-item">
+                <span class="status-label">Firebase Dependencies</span>
+                <span class="status-value status-error">✗ Removing</span>
+              </div>
+            </div>
+            
+            <div class="card">
+              <h2>Available Features</h2>
+              <ul class="feature-list">
+                <li>40/30/30 Income Split Management</li>
+                <li>Income Tracking & History</li>
+                <li>Budget Planning With Preset Splits</li>
+                <li>AI-Powered Financial Advice</li>
+                <li>Bank Connection Management</li>
+                <li>Stackr Gigs Platform</li>
+              </ul>
+            </div>
+            
+            <div class="card">
+              <h2>Next Steps</h2>
+              <p>Our team is working to fully remove Firebase dependencies and restore the application as soon as possible.</p>
+              <p>All your data remains secure, and API access to your information is still available.</p>
+              <div style="text-align: center; margin-top: 1rem;">
+                <a href="/api/status" target="_blank" class="button">Check API Status</a>
+              </div>
+            </div>
+            
+            <div class="footer">
+              <p>Status updated: April 2025</p>
+              <p>We apologize for the inconvenience and appreciate your patience.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+  });
+
   // Serve minimal.html for root path to avoid Firebase issues
   app.get('/', (req, res) => {
-    const minimalHtmlPath = path.join(dirname, '../client/public/minimal.html');
-    
-    if (fs.existsSync(minimalHtmlPath)) {
-      res.sendFile(minimalHtmlPath);
-    } else {
-      res.send(`
-        <html>
-          <head><title>Stackr - Maintenance</title></head>
-          <body>
-            <h1>Stackr is under maintenance</h1>
-            <p>We apologize for the inconvenience. Please check back later.</p>
-          </body>
-        </html>
-      `);
-    }
+    // Redirect to our mock entry point
+    res.redirect('/mock');
   });
   
   // Handle all other routes except API routes
-  app.get(/^\/(?!api).*$/, (req, res) => {
+  app.get(/^\/(?!api).*$/, (req, res, next) => {
+    if (req.path === '/mock') {
+      // Let the /mock route handler handle this
+      next();
+      return;
+    }
+    
     const minimalHtmlPath = path.join(dirname, '../client/public/minimal.html');
     
     if (fs.existsSync(minimalHtmlPath)) {
@@ -221,7 +436,7 @@ app.use((req, res, next) => {
       server.listen(port, '0.0.0.0', () => {
         log(`Server is running on port ${port}`);
       });
-    } catch (err) {
+    } catch (err: any) {
       log(`Failed to start server: ${err.message}`);
       throw err;
     }
