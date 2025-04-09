@@ -58,7 +58,7 @@ const IncomeHub = () => {
       name: "Stackr Gigs",
       description: "Find quick remote tasks & micro-income opportunities",
       icon: <Briefcase className="h-8 w-8 text-blue-500" />,
-      route: "/income/gigs",
+      route: "/income-hub/gigs",
       proRequired: false,
       badge: "Popular",
     },
