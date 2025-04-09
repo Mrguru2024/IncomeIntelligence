@@ -30,7 +30,7 @@ import AppTutorial from "@/components/AppTutorial";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { AuthProvider } from "@/hooks/use-auth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
