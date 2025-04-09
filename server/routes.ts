@@ -3965,6 +3965,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.send(safeHtml);
   });
   
+  // Serve standalone HTML (completely separate from Vite/React)
+  app.get("/standalone", (req, res) => {
+    try {
+      const standalonePath = path.join(process.cwd(), "public", "standalone.html");
+      
+      // Set headers to prevent any scripts from loading
+      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none';");
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      
+      res.sendFile(standalonePath);
+    } catch (err) {
+      console.error("Error serving standalone HTML:", err);
+      res.status(500).send(`Error serving standalone HTML: ${err}`);
+    }
+  });
+  
   // API status endpoint for the clean version
   app.get("/api/status", (req, res) => {
     res.json({
