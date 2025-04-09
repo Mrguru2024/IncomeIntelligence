@@ -50,6 +50,7 @@ import Stripe from "stripe";
 import express from "express";
 import fs from "fs";
 import dotenv from "dotenv";
+import path from "path";
 
 // Load environment variables
 dotenv.config();
@@ -3833,6 +3834,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/minimal", (req, res, next) => {
     console.log("Serving minimal page");
     next();
+  });
+
+  // Serve the clean version that has no Firebase/Sanity dependencies
+  app.get("/clean", (req, res) => {
+    try {
+      const cleanHtmlPath = path.join(process.cwd(), "client", "clean.html");
+      console.log("Serving clean HTML from:", cleanHtmlPath);
+      res.sendFile(cleanHtmlPath);
+    } catch (err) {
+      console.error("Error serving clean app:", err);
+      res.status(500).send(`Error serving clean app: ${err}`);
+    }
+  });
+  
+  // API status endpoint for the clean version
+  app.get("/api/status", (req, res) => {
+    res.json({
+      api: "online",
+      version: "1.0.0",
+      database: "connected",
+      features: {
+        income: true,
+        banking: true,
+        ai: true,
+        goals: true,
+        export: true
+      },
+      timestamp: new Date().toISOString()
+    });
   });
   
   const httpServer = createServer(app);
