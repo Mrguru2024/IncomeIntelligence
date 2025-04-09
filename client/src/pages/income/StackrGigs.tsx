@@ -48,9 +48,8 @@ export default function StackrGigs() {
           createdAt
         }`;
 
-        // Use the mock client's fetch method which doesn't need a query parameter
-        // but we keep it for code readability
-        const result = await client.fetch();
+        // Pass the query to the fetch method as it's now required in our TS definition
+        const result = await client.fetch(query);
         setGigs(result);
       } catch (err) {
         setError('Failed to fetch gigs');
