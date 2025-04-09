@@ -3981,6 +3981,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Run direct.js server in a child process
+  app.get("/direct-html", async (req, res) => {
+    try {
+      // Start the direct.js server in a child process
+      const { exec } = await import('child_process');
+      const serverProcess = exec('node direct.js');
+      
+      // Give the server a moment to start
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Redirect to the standalone server
+      res.redirect('http://localhost:8080');
+    } catch (err) {
+      console.error("Error starting direct HTML server:", err);
+      res.status(500).send(`Error starting direct HTML server: ${err}`);
+    }
+  });
+  
   // API status endpoint for the clean version
   app.get("/api/status", (req, res) => {
     res.json({
