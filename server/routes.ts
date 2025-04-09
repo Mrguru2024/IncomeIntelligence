@@ -3830,6 +3830,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add a redirect from root to /minimal 
+  // This ensures users avoid Firebase/Sanity errors
+  app.get("/", (req, res) => {
+    res.redirect("/minimal");
+  });
+
+  // Verify that minimal page is accessible
+  app.get("/minimal", (req, res, next) => {
+    console.log("Serving minimal page");
+    next();
+  });
+  
   const httpServer = createServer(app);
 
   return httpServer;
