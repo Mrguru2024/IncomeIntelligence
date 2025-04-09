@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=yes, viewport-fit=cover"
+    />
+    <title>Stackr - Fallback App</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+    />
+    <style>
+      /* Base styles */
+      :root {
+        --primary: #4f46e5;
+        --primary-foreground: #ffffff;
+        --background: #f8fafc;
+        --foreground: #0f172a;
+        --card: #ffffff;
+        --card-foreground: #1e293b;
+        --border: #e2e8f0;
+        --input: #e2e8f0;
+        --ring: #4f46e5;
+        --radius: 0.5rem;
+      }
+      
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        background-color: var(--background);
+        color: var(--foreground);
+        line-height: 1.5;
+        padding: 2rem;
+      }
+      
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      
+      .logo {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+      }
+      
+      .subtitle {
+        font-size: 1.25rem;
+        color: var(--card-foreground);
+      }
+      
+      .card {
+        background-color: var(--card);
+        border-radius: var(--radius);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      .alert {
+        background-color: #fff8e1;
+        border-left: 4px solid #ffc107;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.25rem;
+      }
+      
+      .alert-title {
+        font-weight: 600;
+        color: #b45309;
+        margin-bottom: 0.5rem;
+      }
+      
+      .alert-message {
+        color: #92400e;
+        font-size: 0.875rem;
+      }
+      
+      h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--card-foreground);
+      }
+      
+      .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      
+      .status-label {
+        color: var(--card-foreground);
+      }
+      
+      .status-value {
+        font-weight: 500;
+      }
+      
+      .status-online {
+        color: #10b981;
+      }
+      
+      .status-error {
+        color: #ef4444;
+      }
+      
+      .feature-list {
+        list-style: none;
+        margin-top: 1rem;
+      }
+      
+      .feature-list li {
+        padding: 0.5rem 0;
+        color: var(--card-foreground);
+      }
+      
+      .feature-list li:before {
+        content: "✓ ";
+        color: #10b981;
+      }
+      
+      .footer {
+        text-align: center;
+        margin-top: 2rem;
+        color: #6b7280;
+        font-size: 0.875rem;
+      }
+      
+      .button {
+        display: inline-block;
+        background-color: var(--primary);
+        color: var(--primary-foreground);
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius);
+        text-decoration: none;
+        font-weight: 500;
+        margin-top: 1rem;
+      }
+      
+      .button:hover {
+        opacity: 0.9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="logo">Stackr</div>
+        <div class="subtitle">Your Personal Finance Manager</div>
+      </div>
+      
+      <div class="alert">
+        <div class="alert-title">Maintenance Mode</div>
+        <div class="alert-message">
+          We're currently experiencing technical difficulties with some external dependencies.
+          Our team is working to resolve these issues.
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>App Status</h2>
+        
+        <div class="status-item">
+          <span class="status-label">Backend API</span>
+          <span class="status-value status-online">✓ Online</span>
+        </div>
+        
+        <div class="status-item">
+          <span class="status-label">Database</span>
+          <span class="status-value status-online">✓ Connected</span>
+        </div>
+        
+        <div class="status-item">
+          <span class="status-label">Frontend</span>
+          <span class="status-value status-error">✗ Dependency Error</span>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>Available Features</h2>
+        <ul class="feature-list">
+          <li>40/30/30 Income Split</li>
+          <li>Income Tracking</li>
+          <li>Budget Planning</li>
+          <li>AI Financial Advice</li>
+          <li>Bank Connections API</li>
+        </ul>
+      </div>
+      
+      <div class="footer">
+        <p>Last updated: April 2025</p>
+        <p>
+          <a href="/api/status" class="button">Check API Status</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
