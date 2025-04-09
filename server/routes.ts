@@ -3888,13 +3888,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve the clean version that has no Firebase/Sanity dependencies
   app.get("/clean", (req, res) => {
     try {
+      // Add security headers to prevent script execution
+      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'nonce-stackr-safe' 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;");
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      
       const cleanHtmlPath = path.join(process.cwd(), "client", "clean.html");
       console.log("Serving clean HTML from:", cleanHtmlPath);
-      res.sendFile(cleanHtmlPath);
+      
+      // Read the HTML file
+      const cleanHtml = fs.readFileSync(cleanHtmlPath, 'utf8');
+      
+      // Add nonce to scripts we want to allow
+      const secureHtml = cleanHtml.replace(
+        /<script>/g, 
+        '<script nonce="stackr-safe">'
+      );
+      
+      // Send the modified HTML
+      res.send(secureHtml);
     } catch (err) {
       console.error("Error serving clean app:", err);
       res.status(500).send(`Error serving clean app: ${err}`);
     }
+  });
+  
+  app.get("/ultra-clean", (req, res) => {
+    // Directly send an inline HTML page with no external scripts
+    const safeHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stackr Finance - Ultra Clean</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.5; max-width: 800px; margin: 0 auto; padding: 2rem; }
+    h1 { color: #4f46e5; }
+    .card { background: #fff; border-radius: 8px; padding: 1.5rem; margin: 1rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .button { display: inline-block; background: #4f46e5; color: white; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; }
+  </style>
+  <script>
+    // Block any possible Firebase/Sanity initialization
+    window.firebase = null;
+    window.sanity = null;
+    Object.defineProperty(window, 'firebase', {
+      get: () => null,
+      set: () => {},
+      configurable: false
+    });
+  </script>
+</head>
+<body>
+  <h1>Stackr Finance</h1>
+  <div class="card">
+    <h2>Ultra Clean Mode</h2>
+    <p>This page is serving a completely isolated version of the app with no external scripts or dependencies.</p>
+    <p>Current status: <strong style="color: green;">✓ Online</strong></p>
+  </div>
+  <div class="card">
+    <h2>Available Features</h2>
+    <ul>
+      <li>Income tracking with 40/30/30 split</li>
+      <li>Budget planning</li>
+      <li>Goal setting</li>
+      <li>Financial advice</li>
+    </ul>
+    <p>All features are available through our API endpoints.</p>
+  </div>
+  <a href="/" class="button">Back to Main App</a>
+</body>
+</html>`;
+    
+    // Set strong security headers
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline';");
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    
+    res.send(safeHtml);
   });
   
   // API status endpoint for the clean version
