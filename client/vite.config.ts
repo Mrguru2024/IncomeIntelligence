@@ -7,15 +7,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, '../shared')
-    }
-  },
-  build: {
-    rollupOptions: {
-      external: [
-        // Firebase dependencies removed as we now use custom JWT auth
-        '@sanity/client'
-      ]
+      '@shared': path.resolve(__dirname, '../shared'),
+      // Mock external dependencies with internal implementations
+      '@sanity/client': path.resolve(__dirname, './src/lib/mocks/sanity-client.js'),
+      'firebase/app': path.resolve(__dirname, './src/lib/firebase.ts'),
+      'firebase/auth': path.resolve(__dirname, './src/lib/firebase.ts'),
+      'firebase/firestore': path.resolve(__dirname, './src/lib/firebase.ts')
     }
   }
 });
