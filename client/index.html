@@ -50,6 +50,81 @@
         overflow-wrap: break-word;
       }
     </style>
+    <!-- Inject script to disable Firebase and Sanity modules before any other JavaScript loads -->
+    <script>
+      // Create global flags to disable Firebase and Sanity
+      window.DISABLE_FIREBASE = true;
+      window.DISABLE_SANITY = true;
+      
+      // Prevent Firebase from initializing
+      window.__FIREBASE_DEFAULTS__ = {};
+      
+      // Mock Firebase API to prevent initialization errors
+      window.firebase = {
+        initializeApp: function() { return {}; },
+        auth: function() { return {}; },
+        firestore: function() { return {}; }
+      };
+      
+      // Create a log capture for debugging
+      console._originalLog = console.log;
+      console._originalError = console.error;
+      console._originalWarn = console.warn;
+      
+      console.log = function() {
+        const args = Array.from(arguments);
+        if (args[0] && typeof args[0] === 'string' && (args[0].includes('firebase') || args[0].includes('sanity'))) {
+          console._originalLog('[BLOCKED]', ...args);
+          return;
+        }
+        console._originalLog(...args);
+      };
+      
+      console.error = function() {
+        const args = Array.from(arguments);
+        if (args[0] && typeof args[0] === 'string' && (args[0].includes('firebase') || args[0].includes('sanity'))) {
+          console._originalError('[BLOCKED ERROR]', ...args);
+          return;
+        }
+        console._originalError(...args);
+      };
+      
+      // Redefine dynamic import to block loading of Firebase and Sanity modules
+      const originalImport = window.dynamicImport || (path => import(path));
+      window.dynamicImport = function(path) {
+        if (typeof path === 'string' && (path.includes('firebase') || path.includes('sanity'))) {
+          console._originalLog('[BLOCKED DYNAMIC IMPORT]', path);
+          return Promise.resolve({ 
+            default: {}, 
+            initializeApp: () => ({}),
+            getAuth: () => ({}),
+            createClient: () => ({})
+          });
+        }
+        return originalImport(path);
+      };
+      
+      // Block Firebase and Sanity network requests
+      const originalFetch = window.fetch;
+      window.fetch = function(url, options) {
+        if (typeof url === 'string' && (
+          url.includes('firebaseio.com') || 
+          url.includes('googleapis.com/identitytoolkit') ||
+          url.includes('firestore.googleapis.com') ||
+          url.includes('sanity.io/api') ||
+          url.includes('cdn.sanity.io')
+        )) {
+          console._originalLog('[BLOCKED FETCH]', url);
+          return Promise.resolve(new Response(JSON.stringify({}), { 
+            status: 200, 
+            headers: new Headers({ 'Content-Type': 'application/json' }) 
+          }));
+        }
+        return originalFetch(url, options);
+      };
+      
+      console._originalLog('Blocking system for Firebase and Sanity initialized');
+    </script>
   </head>
   <body>
     <div id="root">
@@ -59,8 +134,10 @@
         <p class="error-message">If this message persists, please try refreshing the page.</p>
       </div>
     </div>
+    
     <!-- Using clean entry point -->
     <script type="module" src="/src/clean-entry.tsx"></script>
+    
     <!-- This script injects a replit badge into the page, please feel free to remove this line -->
     <script
       type="text/javascript"
