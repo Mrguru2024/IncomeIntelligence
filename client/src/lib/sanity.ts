@@ -1,17 +1,77 @@
 /*
  * SANITY CLIENT REPLACEMENT
- * This is a clean replacement with no references to @sanity/client
+ * This is a standalone replacement that doesn't import anything from Sanity
  */
 
-import { mockClient } from './mocks/sanity-client';
+// Sample mock data for specific content types
+const MOCK_GIGS = [
+  {
+    _id: 'gig1',
+    title: 'Website Redesign',
+    description: 'Create a modern, responsive website for a service business',
+    amount: 750,
+    estimatedHours: 20,
+    location: 'Remote',
+    skills: ['HTML', 'CSS', 'JavaScript', 'React'],
+    createdAt: '2023-11-15T14:30:00Z'
+  },
+  {
+    _id: 'gig2',
+    title: 'Content Creation for Blog',
+    description: 'Write 5 SEO-optimized articles about financial management',
+    amount: 250,
+    estimatedHours: 10,
+    location: 'Remote',
+    skills: ['Content Writing', 'SEO', 'Research'],
+    createdAt: '2023-11-16T09:15:00Z'
+  },
+  {
+    _id: 'gig3',
+    title: 'Logo Design for New Business',
+    description: 'Create a professional logo for an accounting firm',
+    amount: 350,
+    estimatedHours: 8,
+    location: 'Remote',
+    skills: ['Graphic Design', 'Illustrator', 'Branding'],
+    createdAt: '2023-11-17T11:00:00Z'
+  }
+];
 
-// Direct export of the mock client
-export const client = mockClient;
+// Standalone mock client with better data
+export const client = {
+  fetch: async (query: string): Promise<any[]> => {
+    console.log('[Mock] Sanity fetch with query:', query);
+    
+    // Return appropriate mock data based on the query
+    if (query.includes('*[_type == "gig"]')) {
+      return MOCK_GIGS;
+    }
+    
+    // Default empty response
+    return [];
+  },
+  getDocument: async (_id: string): Promise<any | null> => null,
+  create: async (_document: any): Promise<any> => ({ _id: 'mock-id' }),
+  createOrReplace: async (_document: any): Promise<any> => ({ _id: 'mock-id' }),
+  patch: (_id: string) => ({
+    set: (_data: any) => ({ commit: async (): Promise<any> => ({ _id }) }),
+    unset: (_keys: string[]) => ({ commit: async (): Promise<any> => ({ _id }) }),
+    commit: async (): Promise<any> => ({ _id })
+  }),
+  delete: async (_id: string): Promise<any> => ({ _id }),
+  assets: {
+    upload: async (_type: string, _file: any): Promise<any> => ({ url: 'https://example.com/mock-asset.jpg' })
+  }
+};
 
-// Empty config for compatibility
+// Explicitly define config with projectId to prevent the specific error
 export const sanityConfig = {
-  projectId: 'mock-project-id',
-  dataset: 'mock-dataset',
-  apiVersion: '2024-01-01',
+  projectId: 'mock-project-id', // Having this value prevents the "Configuration must contain projectId" error
+  dataset: 'production',
+  apiVersion: '2023-11-01',
   useCdn: true
 };
+
+// Export anything else that might be imported from this module
+export const createClient = () => client;
+export default client;
