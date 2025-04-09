@@ -8,6 +8,12 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import { Route, Switch } from "wouter";
 import NotFound from "@/pages/not-found";
 
+// Import our custom components
+import Layout from "./firebase-free-components/Layout";
+import EnhancedDashboard from "./firebase-free-components/Dashboard";
+import IncomeHub from "./firebase-free-components/IncomeHub";
+import BudgetPlanner from "./firebase-free-components/BudgetPlanner";
+
 // Create a fully-functioning app that doesn't use Firebase
 
 // Simple auth context that doesn't use Firebase
@@ -26,14 +32,17 @@ interface User {
   subscriptionActive?: boolean;
 }
 
-// Create auth context
-const AuthContext = createContext<{
+// Create auth context type
+type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (email: string, username: string, password: string) => Promise<void>;
-} | undefined>(undefined);
+};
+
+// Create auth context
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Auth provider component
 function AuthProvider({ children }: { children: ReactNode }) {
@@ -169,6 +178,12 @@ function useAuth() {
   }
   return context;
 }
+
+// Expose auth context to window for components
+// This is a workaround since we're loading components from different files
+window.getAuthContext = () => {
+  return useContext(AuthContext) as AuthContextType;
+};
 
 // Basic auth page component
 function AuthPage() {
@@ -320,50 +335,41 @@ function ProtectedRoute({
   return <>{children}</>;
 }
 
-// Dashboard component
-function Dashboard() {
-  const { user } = useAuth();
-  
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-4">Welcome, {user?.username || 'User'}!</h1>
-      <p className="mb-6">This is a temporary dashboard page - all backend functionality works!</p>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-card p-6 rounded-lg shadow-sm border">
-          <h2 className="text-xl font-bold mb-2">40/30/30 Split</h2>
-          <p>Manage your income with our recommended split</p>
-        </div>
-        
-        <div className="bg-card p-6 rounded-lg shadow-sm border">
-          <h2 className="text-xl font-bold mb-2">Income Tracking</h2>
-          <p>Track and categorize all your revenue sources</p>
-        </div>
-        
-        <div className="bg-card p-6 rounded-lg shadow-sm border">
-          <h2 className="text-xl font-bold mb-2">Financial Goals</h2>
-          <p>Set and monitor progress towards your goals</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // App component
 function App() {
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-background text-foreground">
-        <Switch>
-          <Route path="/auth" component={AuthPage} />
-          <Route path="/">
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          </Route>
-          <Route component={NotFound} />
-        </Switch>
-      </div>
+      <Switch>
+        <Route path="/auth" component={AuthPage} />
+        
+        <Route path="/income-hub">
+          <ProtectedRoute>
+            <Layout>
+              <IncomeHub />
+            </Layout>
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/budget-planner">
+          <ProtectedRoute>
+            <Layout>
+              <BudgetPlanner />
+            </Layout>
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/">
+          <ProtectedRoute>
+            <Layout>
+              <EnhancedDashboard />
+            </Layout>
+          </ProtectedRoute>
+        </Route>
+        
+        <Route>
+          <NotFound />
+        </Route>
+      </Switch>
     </AuthProvider>
   );
 }
