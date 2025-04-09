@@ -1,26 +1,21 @@
-// This file is a clean entry point that doesn't use Firebase or Sanity
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from '@/hooks/use-theme';
 import CleanApp from './CleanApp';
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <CleanApp />
-      <Toaster />
-    </QueryClientProvider>
-  );
-}
+// This file serves as a clean entry point without Firebase or Sanity dependencies
 
-const root = document.getElementById('root');
-if (root) {
-  ReactDOM.createRoot(root).render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
-}
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <CleanApp />
+        <Toaster />
+      </ThemeProvider>
+    </QueryClientProvider>
+  </React.StrictMode>,
+);

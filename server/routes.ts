@@ -78,6 +78,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
 
+  // API health check
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok" });
+  });
+  
+  // System status check endpoint
+  app.get("/api/status", async (req, res) => {
+    try {
+      // Check database connection
+      let dbStatus = 'offline';
+      let stripeStatus = 'inactive';
+      let authStatus = 'configured';
+      
+      try {
+        // Test database connection with a quick query
+        const dbResult = await pool.query('SELECT NOW()');
+        dbStatus = dbResult.rows.length > 0 ? 'online' : 'error';
+      } catch (dbError) {
+        console.error('Database status check error:', dbError);
+        dbStatus = 'error';
+      }
+      
+      // Check Stripe initialization
+      stripeStatus = stripe ? 'configured' : 'not_configured';
+      
+      // Return all status information
+      res.json({
+        status: 'maintenance',
+        message: 'System is currently in maintenance mode while Firebase dependencies are being removed.',
+        services: {
+          api: 'online',
+          database: dbStatus,
+          stripe: stripeStatus,
+          authentication: authStatus
+        },
+        maintenance: {
+          reason: 'Removing Firebase dependencies',
+          estimatedCompletionDate: 'April 10, 2025'
+        }
+      });
+    } catch (error) {
+      console.error('Status check error:', error);
+      res.status(500).json({ 
+        status: 'error',
+        message: 'Failed to retrieve system status'
+      });
+    }
+  });
+
   // User profile and onboarding routes
   app.patch("/api/users/:userId/onboarding", requireAuth, async (req, res) => {
     try {
