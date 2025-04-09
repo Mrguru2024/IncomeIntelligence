@@ -384,27 +384,36 @@ app.use((req, res, next) => {
     `);
   });
 
-  // Serve minimal.html for root path to avoid Firebase issues
-  app.get('/', (req, res) => {
-    // Redirect to our mock entry point
-    res.redirect('/mock');
+  // Serve Firebase-free version
+  app.get('/firebase-free', (req, res) => {
+    const firebaseFreeHtmlPath = path.join(dirname, '../client/firebase-free.html');
+    
+    console.log('Serving Firebase-free HTML from:', firebaseFreeHtmlPath);
+    
+    if (fs.existsSync(firebaseFreeHtmlPath)) {
+      res.sendFile(firebaseFreeHtmlPath);
+    } else {
+      console.log('Firebase-free HTML file not found at:', firebaseFreeHtmlPath);
+      res.status(404).send('Firebase-free version not found');
+    }
   });
   
-  // Handle all other routes except API routes
+  // Serve minimal.html for root path to avoid Firebase issues
+  app.get('/', (req, res) => {
+    // Redirect to our Firebase-free version
+    res.redirect('/firebase-free');
+  });
+  
+  // Handle all other routes except API routes and special routes
   app.get(/^\/(?!api).*$/, (req, res, next) => {
-    if (req.path === '/mock') {
-      // Let the /mock route handler handle this
+    // Let special routes be handled by their handlers
+    if (req.path === '/mock' || req.path === '/firebase-free') {
       next();
       return;
     }
     
-    const minimalHtmlPath = path.join(dirname, '../client/public/minimal.html');
-    
-    if (fs.existsSync(minimalHtmlPath)) {
-      res.sendFile(minimalHtmlPath);
-    } else {
-      res.sendFile(path.join(dirname, '../dist/public/index.html'));
-    }
+    // Redirect to our Firebase-free version
+    res.redirect('/firebase-free');
   });
 
   // Basic error handling
