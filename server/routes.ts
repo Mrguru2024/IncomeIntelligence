@@ -50,7 +50,6 @@ import Stripe from "stripe";
 import express from "express";
 import fs from "fs";
 import dotenv from "dotenv";
-import { requireAuth } from "./middleware/authMiddleware";
 
 // Load environment variables
 dotenv.config();

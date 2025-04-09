@@ -6,8 +6,8 @@ import "./index.css";
 // Add enhanced debugging
 console.log("STARTUP: Application initialization beginning");
 
-// Validate that Firebase and Sanity modules are completely disabled
-console.log("CLEANUP: Firebase and Sanity modules have been removed");
+// Log that we're using the clean version without Firebase/Sanity
+console.log("CLEANUP: Using clean version without Firebase/Sanity dependencies");
 
 // Ensure the root element exists
 const rootElement = document.getElementById("root");
