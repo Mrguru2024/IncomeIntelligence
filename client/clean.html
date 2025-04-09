@@ -7,6 +7,69 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=yes, viewport-fit=cover"
     />
     <title>Stackr Finance - Service Provider Finance Tool</title>
+    <!-- Firebase Protection Script - MUST be the first script loaded -->
+    <script>
+      // Run this script as early as possible to prevent Firebase from ever being initialized
+      (function() {
+        // Create a defensive barrier against Firebase
+        const PROTECTED_OBJECTS = ['firebase', '_firebase_', 'fbInstance', 'fbApp', 'firebaseui', 'sanity'];
+        
+        // Block the Firebase API at window level by making it undefined/null
+        for (const name of PROTECTED_OBJECTS) {
+          // Make the property non-configurable and frozen with a getter that returns undefined
+          Object.defineProperty(window, name, {
+            get: () => undefined,
+            set: () => {}, // Noop setter
+            configurable: false,
+            enumerable: false
+          });
+        }
+        
+        // Create a null implementation of common Firebase methods
+        const nullFunction = () => null;
+        const nullPromise = () => Promise.resolve(null);
+        const nullObject = {};
+        
+        // Define firebase with all methods as null functions
+        Object.defineProperty(window, 'firebase', {
+          get: () => ({
+            initializeApp: nullFunction,
+            auth: () => ({
+              signInWithEmailAndPassword: nullPromise,
+              createUserWithEmailAndPassword: nullPromise,
+              onAuthStateChanged: () => nullFunction,
+              signOut: nullPromise,
+              currentUser: null
+            }),
+            firestore: () => ({
+              collection: nullFunction,
+              doc: nullFunction
+            }),
+            storage: () => ({
+              ref: nullFunction
+            }),
+            analytics: nullFunction
+          }),
+          set: () => {},
+          configurable: false,
+          enumerable: false
+        });
+        
+        // Block any Firebase-related errors from appearing in the console
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+          if (args[0] && typeof args[0] === 'string' && 
+              (args[0].includes('firebase') || args[0].includes('sanity') || 
+               args[0].includes('auth') || args[0].includes('project'))) {
+            console.warn('[Blocked Error]', args[0].substring(0, 50) + '...');
+            return;
+          }
+          return originalConsoleError.apply(this, args);
+        };
+        
+        console.log("Firebase protection initialized");
+      })();
+    </script>
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
@@ -200,30 +263,22 @@
     </div>
     
     <script>
+      // Main script
       console.log("Stackr Finance static page loaded successfully");
       
-      // Block any Firebase-related errors from appearing in the console
-      const originalConsoleError = console.error;
-      console.error = function(...args) {
-        if (args[0] && typeof args[0] === 'string' && 
-            (args[0].includes('firebase') || args[0].includes('sanity'))) {
-          console.warn('Blocked Firebase/Sanity error:', args[0]);
-          return;
-        }
-        return originalConsoleError.apply(this, args);
-      };
-      
       // Add some basic interaction for the demo
-      document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          alert('This feature will be available soon!');
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.nav-link').forEach(link => {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('This feature will be available soon!');
+          });
         });
-      });
-      
-      document.querySelector('.cta-button').addEventListener('click', (e) => {
-        e.preventDefault();
-        alert('Thank you for your interest in Stackr Finance! Registration will be available soon.');
+        
+        document.querySelector('.cta-button').addEventListener('click', (e) => {
+          e.preventDefault();
+          alert('Thank you for your interest in Stackr Finance! Registration will be available soon.');
+        });
       });
     </script>
   </body>
