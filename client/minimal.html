@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Minimal Stackr Demo</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        margin: 0;
+        padding: 0;
+        color: #333;
+        background-color: #f9fafb;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .title {
+        font-size: 2.5rem;
+        color: #0f172a;
+        margin-bottom: 0.5rem;
+      }
+      .subtitle {
+        font-size: 1.25rem;
+        color: #64748b;
+      }
+      .card {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+      .card-title {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: #0f172a;
+      }
+      .button {
+        background-color: #4f46e5;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      .button:hover {
+        background-color: #4338ca;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+      }
+      .split {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+      }
+      .amount {
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+      .tag {
+        background-color: #f1f5f9;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        color: #475569;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1 class="title">Stackr</h1>
+        <p class="subtitle">Your Personal Finance Manager</p>
+      </header>
+      
+      <div class="card">
+        <h2 class="card-title">Income Summary</h2>
+        <div class="split">
+          <span>Total Income (April 2023)</span>
+          <span class="amount">$4,120.00</span>
+        </div>
+        <div class="split">
+          <span>Needs (40%)</span>
+          <span class="amount">$1,648.00</span>
+        </div>
+        <div class="split">
+          <span>Investments (30%)</span>
+          <span class="amount">$1,236.00</span>
+        </div>
+        <div class="split">
+          <span>Savings (30%)</span>
+          <span class="amount">$1,236.00</span>
+        </div>
+        <button class="button" style="margin-top: 1rem;">Add New Income</button>
+      </div>
+      
+      <h2 class="card-title">Recent Transactions</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="split">
+            <span>Client Project</span>
+            <span class="tag">Service</span>
+          </div>
+          <div class="split">
+            <span>Apr 14, 2023</span>
+            <span class="amount">$1,200.00</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="split">
+            <span>Consultation</span>
+            <span class="tag">Service</span>
+          </div>
+          <div class="split">
+            <span>Apr 10, 2023</span>
+            <span class="amount">$420.00</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="split">
+            <span>Referral Bonus</span>
+            <span class="tag">Bonus</span>
+          </div>
+          <div class="split">
+            <span>Apr 5, 2023</span>
+            <span class="amount">$250.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      // Simple JavaScript functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        const addButton = document.querySelector('.button');
+        
+        addButton.addEventListener('click', function() {
+          alert('This is a static demo of Stackr.\n\nThe full application is currently unavailable due to technical issues.\n\nPlease check back later.');
+        });
+        
+        console.log('Minimal demo loaded successfully');
+      });
+    </script>
+  </body>
+</html>
