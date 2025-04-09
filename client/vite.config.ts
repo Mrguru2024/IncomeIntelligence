@@ -1,181 +1,103 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import bannedModulesPlugin from "./banned-modules-plugin";
 import fs from 'fs';
 
-// Create a function that creates an empty module to replace problematic packages
-const createEmptyModule = (moduleName) => {
-  // Create a mock module path
-  const mockPath = path.resolve(__dirname, './src/lib/mocks/empty-module.js');
+// Create an extremely simplified mock module to replace Firebase and Sanity
+// with just the minimal structure needed to prevent crashes
+const createMockModule = () => {
+  const mockPath = path.resolve(__dirname, './src/lib/mocks/dependency-mock.js');
   
-  // Create the mock module if it doesn't exist
-  if (!fs.existsSync(mockPath)) {
-    const mockDir = path.dirname(mockPath);
-    if (!fs.existsSync(mockDir)) {
-      fs.mkdirSync(mockDir, { recursive: true });
-    }
-    
-    fs.writeFileSync(mockPath, `
-      console.log('Empty module loaded as replacement for banned dependency');
-      export default {};
-      export const createClient = () => ({});
-      export const initializeApp = () => ({});
-      export const getAuth = () => ({});
-      export const getFirestore = () => ({});
-      export const collection = () => ({});
-      export const doc = () => ({});
-      export const getDoc = () => Promise.resolve({});
-      export const getDocs = () => Promise.resolve({});
-      export const query = () => ({});
-      export const where = () => ({});
-      export const onSnapshot = () => () => {};
-      export const onAuthStateChanged = () => () => {};
-    `);
+  // Create the mock directory if it doesn't exist
+  const mockDir = path.dirname(mockPath);
+  if (!fs.existsSync(mockDir)) {
+    fs.mkdirSync(mockDir, { recursive: true });
   }
+  
+  // Write an extremely minimal mock with just projectId
+  fs.writeFileSync(mockPath, `
+    // Super minimal mock providing only what is absolutely needed
+    console.log('Mock dependency loaded');
+    
+    // For Firebase
+    export const initializeApp = (config) => {
+      console.log('Mock initializeApp called');
+      return {
+        projectId: 'mock-project-id'
+      };
+    };
+    
+    // For Firebase Auth
+    export const getAuth = () => ({ 
+      currentUser: null,
+      onAuthStateChanged: (callback) => {
+        setTimeout(() => callback(null), 0);
+        return () => {};
+      }
+    });
+    
+    // For Sanity
+    export const createClient = (config) => ({
+      fetch: () => Promise.resolve([]),
+      getDocument: () => Promise.resolve(null),
+      create: () => Promise.resolve({ _id: 'mock-id' }),
+      patch: () => ({ commit: () => Promise.resolve({}) })
+    });
+    
+    // Default export catches import * scenarios
+    export default {
+      projectId: 'mock-project-id',
+      initializeApp,
+      getAuth,
+      createClient
+    };
+  `);
   
   return mockPath;
 };
 
-// Empty module for Firebase and Sanity
-const emptyModulePath = createEmptyModule('empty');
+const mockModulePath = createMockModule();
 
+// Simplified Vite config without banned-modules-plugin for cleaner approach
 export default defineConfig({
   plugins: [
-    // Run our banned-modules-plugin first to catch imports early
-    bannedModulesPlugin(),
     react(),
-    // Custom plugin to disable HMR for banned modules
+    // Simple plugin to log banned module imports
     {
-      name: 'no-hmr-for-banned',
-      handleHotUpdate({ file, modules }) {
-        if (file.includes('firebase') || file.includes('sanity')) {
-          // Don't trigger HMR for these files
-          return [];
+      name: 'log-imports',
+      enforce: "pre" as const,
+      resolveId(id, importer) {
+        if (id.includes('firebase') || id.includes('sanity')) {
+          console.log(`[Mock] Redirecting import: ${id} from ${importer || 'unknown'}`);
+          return mockModulePath;
         }
+        return null;
       }
     }
   ],
-  optimizeDeps: {
-    exclude: [
-      'firebase', 
-      'firebase/app', 
-      'firebase/auth', 
-      'firebase/firestore',
-      '@firebase/app',
-      '@firebase/auth',
-      '@firebase/firestore',
-      '@sanity/client',
-      'sanity'
-    ],
-  },
+  
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@shared': path.resolve(__dirname, '../shared'),
       '@assets': path.resolve(__dirname, '../attached_assets'),
       
-      // Block ALL Firebase modules
-      'firebase': emptyModulePath,
-      'firebase/app': emptyModulePath,
-      'firebase/auth': emptyModulePath,
-      'firebase/firestore': emptyModulePath,
-      'firebase/storage': emptyModulePath,
-      'firebase/functions': emptyModulePath,
-      'firebase/analytics': emptyModulePath,
-      'firebase/database': emptyModulePath,
-      'firebase/performance': emptyModulePath,
-      'firebase/remote-config': emptyModulePath,
-      'firebase/messaging': emptyModulePath,
-      '@firebase/app': emptyModulePath,
-      '@firebase/auth': emptyModulePath,
-      '@firebase/firestore': emptyModulePath,
-      '@firebase/storage': emptyModulePath,
-      '@firebase/functions': emptyModulePath,
-      '@firebase/analytics': emptyModulePath,
-      '@firebase/database': emptyModulePath,
-      '@firebase/performance': emptyModulePath,
-      '@firebase/remote-config': emptyModulePath,
-      '@firebase/messaging': emptyModulePath,
-      '@firebase/util': emptyModulePath,
-      '@firebase/app-compat': emptyModulePath,
-      '@firebase/auth-compat': emptyModulePath,
-      
-      // Block ALL Sanity modules
-      '@sanity/client': emptyModulePath,
-      '@sanity/image-url': emptyModulePath,
-      '@sanity/vision': emptyModulePath,
-      '@sanity/base': emptyModulePath,
-      '@sanity/desk-tool': emptyModulePath,
-      '@sanity/core': emptyModulePath,
-      'sanity': emptyModulePath,
-      'sanity/desk': emptyModulePath
+      // Map all problematic modules to our single mock
+      'firebase': mockModulePath,
+      'firebase/app': mockModulePath,
+      'firebase/auth': mockModulePath,
+      'firebase/firestore': mockModulePath,
+      '@firebase/app': mockModulePath,
+      '@firebase/auth': mockModulePath,
+      '@firebase/firestore': mockModulePath,
+      '@sanity/client': mockModulePath,
+      'sanity': mockModulePath
     }
   },
-  // Define empty environment variables to prevent errors
+  
+  // Define minimal environment variables
   define: {
-    // Mock all Firebase related environment variables
-    'import.meta.env.VITE_FIREBASE_API_KEY': JSON.stringify('mock-api-key'),
-    'import.meta.env.VITE_FIREBASE_AUTH_DOMAIN': JSON.stringify('mock-auth-domain'),
     'import.meta.env.VITE_FIREBASE_PROJECT_ID': JSON.stringify('mock-project-id'),
-    'import.meta.env.VITE_FIREBASE_STORAGE_BUCKET': JSON.stringify('mock-storage-bucket'),
-    'import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID': JSON.stringify('mock-messaging-sender-id'),
-    'import.meta.env.VITE_FIREBASE_APP_ID': JSON.stringify('mock-app-id'),
-    'import.meta.env.VITE_FIREBASE_MEASUREMENT_ID': JSON.stringify('mock-measurement-id'),
-    
-    // Mock all Sanity related environment variables
     'import.meta.env.VITE_SANITY_PROJECT_ID': JSON.stringify('mock-sanity-project-id'),
-    'import.meta.env.VITE_SANITY_DATASET': JSON.stringify('mock-sanity-dataset'),
-    'import.meta.env.VITE_SANITY_API_VERSION': JSON.stringify('mock-sanity-api-version'),
-    'import.meta.env.VITE_SANITY_TOKEN': JSON.stringify('mock-sanity-token'),
-    
-    // Force development features to disable problematic code paths
-    'import.meta.env.DEV': 'true',
-    'import.meta.env.PROD': 'false',
-    
-    // Global flags to disable Firebase and Sanity
-    'window.DISABLE_FIREBASE': 'true',
-    'window.DISABLE_SANITY': 'true',
-    
-    // Additional global constants to help prevent issues
-    'globalThis.__FIREBASE_DEFAULTS__': '{}'
-  },
-  build: {
-    rollupOptions: {
-      external: [
-        'firebase',
-        'firebase/app',
-        'firebase/auth',
-        'firebase/firestore',
-        'firebase/storage',
-        'firebase/functions',
-        'firebase/analytics',
-        'firebase/database',
-        'firebase/performance',
-        'firebase/remote-config',
-        'firebase/messaging',
-        '@firebase/app',
-        '@firebase/auth',
-        '@firebase/firestore',
-        '@firebase/storage',
-        '@firebase/functions',
-        '@firebase/analytics',
-        '@firebase/database',
-        '@firebase/performance',
-        '@firebase/remote-config',
-        '@firebase/messaging',
-        '@firebase/util',
-        '@firebase/app-compat',
-        '@firebase/auth-compat',
-        '@sanity/client',
-        '@sanity/image-url',
-        '@sanity/vision',
-        '@sanity/base',
-        '@sanity/desk-tool',
-        '@sanity/core',
-        'sanity',
-        'sanity/desk'
-      ]
-    }
   }
 });
