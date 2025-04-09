@@ -6,9 +6,6 @@ import "./index.css";
 // Add debugging to help track down initialization issues
 console.log("Starting application initialization...");
 
-// Only set firebase persistence once
-console.log("Firebase persistence set");
-
 // Ensure the root element exists
 const rootElement = document.getElementById("root");
 if (!rootElement) {
