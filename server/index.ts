@@ -157,11 +157,39 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
   const dirname = new URL('.', import.meta.url).pathname;
-  app.use(express.static(path.join(dirname, '../dist/public'))); // Serve static files
+  
+  // Serve static files from public directory
+  app.use(express.static(path.join(dirname, '../client/public')));
+  app.use(express.static(path.join(dirname, '../dist/public')));
 
-  // Handle client-side routing (MUST come AFTER other routes)
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(dirname, '../dist/public/index.html'));
+  // Serve minimal.html for root path to avoid Firebase issues
+  app.get('/', (req, res) => {
+    const minimalHtmlPath = path.join(dirname, '../client/public/minimal.html');
+    
+    if (fs.existsSync(minimalHtmlPath)) {
+      res.sendFile(minimalHtmlPath);
+    } else {
+      res.send(`
+        <html>
+          <head><title>Stackr - Maintenance</title></head>
+          <body>
+            <h1>Stackr is under maintenance</h1>
+            <p>We apologize for the inconvenience. Please check back later.</p>
+          </body>
+        </html>
+      `);
+    }
+  });
+  
+  // Handle all other routes except API routes
+  app.get(/^\/(?!api).*$/, (req, res) => {
+    const minimalHtmlPath = path.join(dirname, '../client/public/minimal.html');
+    
+    if (fs.existsSync(minimalHtmlPath)) {
+      res.sendFile(minimalHtmlPath);
+    } else {
+      res.sendFile(path.join(dirname, '../dist/public/index.html'));
+    }
   });
 
   // Basic error handling

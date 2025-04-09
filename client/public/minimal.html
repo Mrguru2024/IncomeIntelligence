@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=yes, viewport-fit=cover"
     />
-    <title>Stackr - Service Provider Finance</title>
+    <title>Stackr - Minimal Page</title>
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
@@ -165,10 +165,10 @@
       </div>
       
       <div class="alert">
-        <div class="alert-title">Maintenance Notice</div>
+        <div class="alert-title">Emergency Maintenance Mode</div>
         <div class="alert-message">
-          We're currently resolving an issue with Firebase dependencies.
-          This emergency maintenance page will allow you to access essential features.
+          This is a simple static page that doesn't use any React or Firebase components.
+          We've temporarily disabled the main application while we fix Firebase dependency issues.
         </div>
       </div>
       
@@ -186,13 +186,13 @@
         </div>
         
         <div class="status-item">
-          <span class="status-label">Firebase Dependencies</span>
-          <span class="status-value status-error">✗ Error (Removal in Progress)</span>
+          <span class="status-label">Frontend</span>
+          <span class="status-value status-error">✗ In Maintenance</span>
         </div>
       </div>
       
       <div class="card">
-        <h2>Core Features (Still Available)</h2>
+        <h2>Core Features (Still Available Via API)</h2>
         <ul class="feature-list">
           <li>40/30/30 Income Split Management</li>
           <li>Income Tracking & History</li>
@@ -204,29 +204,12 @@
         </ul>
       </div>
       
-      <div class="card">
-        <h2>Access Via API</h2>
-        <p>While we fix the frontend issues, you can still access your data via our API endpoints:</p>
-        <ul class="feature-list">
-          <li>GET /api/user - Your profile data</li>
-          <li>GET /api/income - View income records</li>
-          <li>POST /api/income - Add new income</li>
-          <li>GET /api/expenses - View expense history</li>
-        </ul>
-      </div>
-      
       <div class="footer">
         <p>Status updated: April 2025</p>
         <p>
-          <a href="mailto:support@stackr-finance.com" class="button">Contact Support</a>
+          <a href="/" class="button">Return to Home</a>
         </p>
       </div>
     </div>
-    
-    <!-- Replit badge -->
-    <script
-      type="text/javascript"
-      src="https://replit.com/public/js/replit-badge-v3.js"
-    ></script>
   </body>
 </html>
