@@ -427,10 +427,18 @@ app.use((req, res, next) => {
     }
   });
   
+  // Use an environment variable to determine which version to serve
+  const useCleanVersion = process.argv.includes('--clean') || process.env.USE_CLEAN_VERSION === 'true';
+  
   // Serve our primary entry point
   app.get('/', (req, res) => {
-    // Now redirect to our clean build
-    res.redirect('/clean');
+    if (useCleanVersion) {
+      console.log('Redirecting to clean version');
+      res.redirect('/clean');
+    } else {
+      console.log('Redirecting to firebase-free version (legacy)');
+      res.redirect('/firebase-free');
+    }
   });
   
   // Handle all other routes except API routes and special routes
