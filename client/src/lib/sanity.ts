@@ -1,21 +1,17 @@
-
-/**
- * Direct import of our mock Sanity client
- * 
- * We don't use the real '@sanity/client' at all to avoid configuration errors
- * Instead, we use our fully mocked implementation that includes sample data
+/*
+ * SANITY CLIENT REPLACEMENT
+ * This is a clean replacement with no references to @sanity/client
  */
-import { createClient, type MockClient } from './mocks/sanity-client';
 
-// Simple configuration - no project ID needed for our mock client
-const sanityConfig = {
-  // Empty configuration - our mock doesn't need these values
+import { mockClient } from './mocks/sanity-client';
+
+// Direct export of the mock client
+export const client = mockClient;
+
+// Empty config for compatibility
+export const sanityConfig = {
   projectId: 'mock-project-id',
   dataset: 'mock-dataset',
   apiVersion: '2024-01-01',
-  useCdn: true,
+  useCdn: true
 };
-
-// Create and export the client
-export const client: MockClient = createClient(sanityConfig);
-export { sanityConfig };

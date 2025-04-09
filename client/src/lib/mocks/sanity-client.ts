@@ -1,24 +1,7 @@
-/**
- * Fully self-contained Mock Sanity Client
- * This implements a mock client without importing anything from '@sanity/client'
+/*
+ * SANITY CLIENT REPLACEMENT
+ * This is a clean replacement with no references to @sanity/client
  */
-
-// Define mock client interface
-export interface MockClient {
-  fetch: <T = any>(query: string) => Promise<T[]>;
-  getDocument: <T = any>(id: string) => Promise<T | null>;
-  create: <T = any>(document: any) => Promise<{ _id: string } & T>;
-  createOrReplace: <T = any>(document: any) => Promise<{ _id: string } & T>;
-  patch: (id: string) => {
-    set: (data: any) => { commit: () => Promise<{ _id: string }> };
-    unset: (keys: string[]) => { commit: () => Promise<{ _id: string }> };
-    commit: () => Promise<{ _id: string }>;
-  };
-  delete: (id: string) => Promise<{ _id: string }>;
-  assets: {
-    upload: (type: string, file: any) => Promise<{ url: string }>;
-  };
-}
 
 // Sample mock data for specific pages
 const MOCK_GIGS = [
@@ -55,46 +38,36 @@ const MOCK_GIGS = [
 ];
 
 // Create mock client with better data
-const createMockClient = (): MockClient => ({
-  fetch: async <T = any>(query: string): Promise<T[]> => {
+export const mockClient = {
+  fetch: async (query: string): Promise<any[]> => {
     console.log('Mock Sanity fetch with query:', query);
     
     // Return appropriate mock data based on the query
     if (query.includes('*[_type == "gig"]')) {
-      return MOCK_GIGS as unknown as T[];
+      return MOCK_GIGS;
     }
     
     // Default empty response
-    return [] as T[];
+    return [];
   },
-  getDocument: async <T = any>(_id: string): Promise<T | null> => null,
-  create: async <T = any>(_document: any): Promise<{ _id: string } & T> => ({ _id: 'mock-id' } as { _id: string } & T),
-  createOrReplace: async <T = any>(_document: any): Promise<{ _id: string } & T> => ({ _id: 'mock-id' } as { _id: string } & T),
+  getDocument: async (_id: string): Promise<any | null> => null,
+  create: async (_document: any): Promise<any> => ({ _id: 'mock-id' }),
+  createOrReplace: async (_document: any): Promise<any> => ({ _id: 'mock-id' }),
   patch: (_id: string) => ({
-    set: (_data: any) => ({ commit: async (): Promise<{ _id: string }> => ({ _id: 'mock-id' }) }),
-    unset: (_keys: string[]) => ({ commit: async (): Promise<{ _id: string }> => ({ _id: 'mock-id' }) }),
-    commit: async (): Promise<{ _id: string }> => ({ _id: 'mock-id' })
+    set: (_data: any) => ({ commit: async (): Promise<any> => ({ _id: 'mock-id' }) }),
+    unset: (_keys: string[]) => ({ commit: async (): Promise<any> => ({ _id: 'mock-id' }) }),
+    commit: async (): Promise<any> => ({ _id: 'mock-id' })
   }),
-  delete: async (_id: string): Promise<{ _id: string }> => ({ _id: 'mock-id' }),
+  delete: async (_id: string): Promise<any> => ({ _id: 'mock-id' }),
   assets: {
-    upload: async (_type: string, _file: any): Promise<{ url: string }> => ({ url: 'https://example.com/mock-asset.jpg' })
+    upload: async (_type: string, _file: any): Promise<any> => ({ url: 'https://example.com/mock-asset.jpg' })
   }
-});
-
-// Configuration interface (kept for compatibility)
-export interface SanityConfig {
-  projectId: string;
-  dataset: string;
-  apiVersion?: string;
-  token?: string;
-  useCdn?: boolean;
-}
+};
 
 // Export createClient function that always returns the mock
-export const createClient = (_config: SanityConfig): MockClient => {
-  console.log('Using fully isolated mock Sanity client - no external dependencies');
-  return createMockClient();
+export const createClient = (): typeof mockClient => {
+  return mockClient;
 };
 
 // Export a default client instance for direct imports
-export default createMockClient();
+export default mockClient;

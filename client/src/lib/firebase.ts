@@ -1,107 +1,26 @@
-
-// Firebase has been replaced by our custom JWT authentication system
-// This file is kept as a stub for compatibility with any legacy code
-
-/**
- * Comprehensive mock Firebase implementation
- * This provides stub implementations for all commonly used Firebase methods
- * to prevent errors in code that still expects Firebase objects
+/*
+ * FIREBASE REPLACEMENT
+ * This is a completely empty module that replaces Firebase
+ * to ensure no Firebase code is ever loaded
  */
 
-// Mock Firebase initialization
-const defaultApp = {
-  name: '[DEFAULT]',
-  options: {
-    apiKey: 'mock-api-key',
-    authDomain: 'mock-auth-domain',
-    projectId: 'mock-project-id',
-    storageBucket: 'mock-storage-bucket',
-    messagingSenderId: 'mock-sender-id',
-    appId: 'mock-app-id'
-  }
-};
-
-// Mock Firebase Auth
-const auth = {
+export const app = {};
+export const auth = {
   currentUser: null,
-  onAuthStateChanged: (callback: any) => {
-    // Return unsubscribe function
-    return () => {};
-  },
-  signInWithEmailAndPassword: async () => ({ user: null }),
-  createUserWithEmailAndPassword: async () => ({ user: null }),
+  onAuthStateChanged: () => () => {},
+  signInWithEmailAndPassword: async () => ({}),
+  createUserWithEmailAndPassword: async () => ({}),
   signOut: async () => {},
   sendPasswordResetEmail: async () => {},
   setPersistence: async () => {}
 };
-
-// Mock Firestore
-const db = {
-  collection: () => ({
-    doc: () => ({
-      get: async () => ({
-        exists: false,
-        data: () => null,
-        id: 'mock-id'
-      }),
-      set: async () => {},
-      update: async () => {},
-      delete: async () => {}
-    }),
-    add: async () => ({ id: 'mock-id' }),
-    where: () => ({
-      get: async () => ({
-        empty: true,
-        docs: [],
-        forEach: () => {}
-      }),
-      orderBy: () => ({
-        limit: () => ({
-          get: async () => ({
-            empty: true,
-            docs: [],
-            forEach: () => {}
-          })
-        })
-      })
-    }),
-    orderBy: () => ({
-      limit: () => ({
-        get: async () => ({
-          empty: true,
-          docs: [],
-          forEach: () => {}
-        })
-      })
-    })
-  })
-};
-
-// Mock Analytics
-const analytics = {
-  logEvent: () => {}
-};
-
-// Mock Firebase Performance
-const performance = {
-  trace: () => ({
-    start: () => {},
-    stop: () => {}
-  })
-};
-
-// Export mock objects for compatibility
-export {
-  defaultApp as app,
-  auth,
-  db,
-  analytics,
-  performance
-};
+export const db = {};
+export const analytics = {};
+export const performance = {};
 
 // Export initialization function
-export const initializeApp = () => defaultApp;
-export const getAuth = () => auth;
-export const getFirestore = () => db;
-export const getAnalytics = () => analytics;
-export const getPerformance = () => performance;
+export const initializeApp = () => ({});
+export const getAuth = () => ({});
+export const getFirestore = () => ({});
+export const getAnalytics = () => ({});
+export const getPerformance = () => ({});
