@@ -1,6 +1,8 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth } from "./auth";
+import { pool } from "./db";
 import { 
   insertIncomeSchema, 
   insertGoalSchema, 
@@ -43,7 +45,6 @@ import { notificationService } from "./notification-service";
 import { requireAuth, checkUserMatch } from "./middleware/authMiddleware";
 import { requireAdmin } from "./middleware/adminMiddleware";
 import { requireProSubscription } from "./middleware/proSubscriptionMiddleware";
-import { setupAuth } from "./auth";
 import { spendingPersonalityService } from "./spending-personality-service";
 import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import Stripe from "stripe";
