@@ -11,12 +11,55 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
     />
+    <script>
+      // Intercept any attempts to load Firebase-related modules
+      window.ModuleError = function(message) {
+        this.message = message;
+        this.name = 'ModuleError';
+      };
+      
+      // Block Firebase imports completely
+      const originalImport = window.import;
+      window.import = function(...args) {
+        const modulePath = args[0];
+        if (typeof modulePath === 'string' && 
+            (modulePath.includes('firebase') || 
+             modulePath.includes('sanity'))) {
+          console.warn('Blocked import of', modulePath);
+          return Promise.reject(new window.ModuleError('Firebase import blocked'));
+        }
+        return originalImport.apply(this, args);
+      };
+      
+      // Create a completely empty mock for Firebase
+      window.firebase = {};
+      Object.defineProperty(window, 'firebase', {
+        value: {},
+        writable: false,
+        configurable: false
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module">
-      // We'll load the no-firebase-main.tsx module directly
-      import './src/no-firebase-main.tsx';
+      // Print a diagnostic message before import
+      console.log('Starting Firebase-free version');
+      
+      try {
+        // We'll load the no-firebase-main.tsx module directly
+        await import('./src/no-firebase-main.tsx');
+        console.log('Firebase-free app loaded successfully');
+      } catch (error) {
+        console.error('Error loading Firebase-free app:', error);
+        document.getElementById('root').innerHTML = `
+          <div style="padding: 20px; color: red; font-family: system-ui, sans-serif;">
+            <h2>Application Error</h2>
+            <p>Sorry, something went wrong while loading the application.</p>
+            <pre>${error instanceof Error ? error.message : String(error)}</pre>
+          </div>
+        `;
+      }
     </script>
   </body>
 </html>

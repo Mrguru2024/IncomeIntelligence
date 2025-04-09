@@ -384,13 +384,22 @@ app.use((req, res, next) => {
     `);
   });
 
-  // Serve Firebase-free version
+  // Create a variable to track if we're in Firebase-free mode
+  const isFirebaseFreeMode = process.argv.includes('firebase-free-mode');
+  
+  // Serve Firebase-free version (legacy approach)
   app.get('/firebase-free', (req, res) => {
     const firebaseFreeHtmlPath = path.join(dirname, '../client/firebase-free.html');
     
     console.log('Serving Firebase-free HTML from:', firebaseFreeHtmlPath);
     
     if (fs.existsSync(firebaseFreeHtmlPath)) {
+      // Set a cache control header to prevent caching
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+      
       res.sendFile(firebaseFreeHtmlPath);
     } else {
       console.log('Firebase-free HTML file not found at:', firebaseFreeHtmlPath);
@@ -398,22 +407,42 @@ app.use((req, res, next) => {
     }
   });
   
-  // Serve minimal.html for root path to avoid Firebase issues
+  // Serve the clean build
+  app.get('/clean', (req, res) => {
+    const cleanHtmlPath = path.join(dirname, '../client/clean.html');
+    
+    console.log('Serving clean HTML from:', cleanHtmlPath);
+    
+    if (fs.existsSync(cleanHtmlPath)) {
+      // Set a cache control header to prevent caching
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+      
+      res.sendFile(cleanHtmlPath);
+    } else {
+      console.log('Clean HTML file not found at:', cleanHtmlPath);
+      res.status(404).send('Clean version not found');
+    }
+  });
+  
+  // Serve our primary entry point
   app.get('/', (req, res) => {
-    // Redirect to our Firebase-free version
-    res.redirect('/firebase-free');
+    // Now redirect to our clean build
+    res.redirect('/clean');
   });
   
   // Handle all other routes except API routes and special routes
   app.get(/^\/(?!api).*$/, (req, res, next) => {
     // Let special routes be handled by their handlers
-    if (req.path === '/mock' || req.path === '/firebase-free') {
+    if (req.path === '/mock' || req.path === '/firebase-free' || req.path === '/clean') {
       next();
       return;
     }
     
-    // Redirect to our Firebase-free version
-    res.redirect('/firebase-free');
+    // Redirect to our clean version
+    res.redirect('/clean');
   });
 
   // Basic error handling
