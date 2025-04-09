@@ -9,7 +9,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@shared': path.resolve(__dirname, '../shared'),
       // Mock external dependencies with internal implementations
-      '@sanity/client': path.resolve(__dirname, './src/lib/mocks/sanity-client.js'),
+      '@sanity/client': path.resolve(__dirname, './src/lib/mocks/sanity-client.ts'),
       'firebase/app': path.resolve(__dirname, './src/lib/firebase.ts'),
       'firebase/auth': path.resolve(__dirname, './src/lib/firebase.ts'),
       'firebase/firestore': path.resolve(__dirname, './src/lib/firebase.ts')
