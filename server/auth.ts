@@ -1,176 +1,280 @@
-import { Express, Request, Response } from 'express';
-import { z } from 'zod';
-import { fromZodError } from 'zod-validation-error';
+import { Express, Request, Response, NextFunction } from 'express';
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import session from 'express-session';
+import { scrypt, randomBytes, timingSafeEqual } from 'crypto';
+import { promisify } from 'util';
 import { storage } from './storage';
+import MemoryStore from 'memorystore';
 import jwt from 'jsonwebtoken';
-import * as bcrypt from 'bcryptjs';
-import { JWTPayload, generateToken, verifyToken, extractTokenFromRequest } from './auth-utils';
-import { generateSecureToken } from './utils/security';
-import { authenticateToken, requireAuth } from './middleware/authMiddleware';
-import express from 'express';
-import { db } from './db';
-import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-const authRouter = express.Router();
-
-authRouter.post('/login', async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-    const user = await db.select().from(users).where(eq(users.email, email)).limit(1);
-
-    if (!user.length) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+// Types for authenticated users
+declare global {
+  namespace Express {
+    interface User {
+      id: number;
+      username: string;
+      email?: string;
+      role?: string;
+      subscriptionStatus?: 'free' | 'basic' | 'pro';
     }
-
-    const isValidPassword = await bcrypt.compare(password, user[0].password);
-    if (!isValidPassword) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    const token = jwt.sign({ userId: user[0].id }, JWT_SECRET, { expiresIn: '24h' });
-    res.json({ token, user: user[0] });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-authRouter.post('/register', async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-    const existingUser = await db.select().from(users).where(eq(users.email, email));
-
-    if (existingUser.length) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await db.insert(users).values({
-      email,
-      password: hashedPassword,
-      role: 'user',
-      accountStatus: 'active'
-    }).returning();
-
-    const token = jwt.sign({ userId: newUser[0].id }, JWT_SECRET, { expiresIn: '24h' });
-    res.json({ token, user: newUser[0] });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-
-export async function getCurrentUser(req: Request, res: Response) {
-  try {
-    // The user object should be attached by the auth middleware
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'Not authenticated' });
-    }
-
-    const { password: _, ...userWithoutPassword } = user;
-    res.json(userWithoutPassword);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to get user data' });
   }
 }
 
-/**
- * Setup authentication routes
- */
-export function setupAuth(app: Express) {
-  // Register a new user
-  app.use('/api/auth', authRouter);
+// Create memory store for sessions
+const MemStore = MemoryStore(session);
 
-  // Get current authenticated user
-  app.get('/api/auth/user', authenticateToken, getCurrentUser);
+// For secure password hashing
+const scryptAsync = promisify(scrypt);
 
-  // Logout (client-side only - just for API completeness)
-  app.post('/api/auth/logout', (req: Request, res: Response) => {
-    return res.status(200).json({ message: 'Logout successful' });
+// Hash a password using scrypt
+async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(16).toString('hex');
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString('hex')}.${salt}`;
+}
+
+// Compare a supplied password with a stored hashed password
+async function comparePasswords(supplied: string, stored: string): Promise<boolean> {
+  const [hashed, salt] = stored.split('.');
+  const hashedBuf = Buffer.from(hashed, 'hex');
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
+}
+
+// Create JWT token
+function createToken(user: Express.User): string {
+  const payload = {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+  };
+  
+  return jwt.sign(payload, process.env.JWT_SECRET || 'stackr-jwt-secret', {
+    expiresIn: '7d',
   });
+}
 
-  // Change password (authenticated)
-  app.post('/api/auth/change-password', authenticateToken, requireAuth, async (req: Request, res: Response) => {
-    try {
-        const { currentPassword, newPassword, confirmPassword } = z.object({
-            currentPassword: z.string().min(1),
-            newPassword: z.string().min(8).max(100),
-            confirmPassword: z.string()
-        }).refine(data => data.newPassword === data.confirmPassword, {
-            message: "Passwords don't match",
-            path: ["confirmPassword"]
-        }).parse(req.body);
+// Verify JWT token
+function verifyToken(token: string): any {
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET || 'stackr-jwt-secret');
+  } catch (err) {
+    return null;
+  }
+}
 
-        if (!req.user) {
-            return res.status(401).json({ message: 'Not authenticated' });
-        }
+// JWT authentication middleware
+export function authenticateToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) {
+    return res.sendStatus(401);
+  }
+  
+  const user = verifyToken(token);
+  if (!user) {
+    return res.sendStatus(403);
+  }
+  
+  req.user = user;
+  next();
+}
 
-        // Get the full user with password
-        const user = await storage.getUser(req.user.id);
+// Setup authentication for the Express app
+export function setupAuth(app: Express) {
+  // Configure session
+  const sessionOptions: session.SessionOptions = {
+    secret: process.env.SESSION_SECRET || 'stackr-session-secret',
+    resave: false,
+    saveUninitialized: false,
+    store: new MemStore({
+      checkPeriod: 86400000, // Prune expired entries every 24h
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  };
+  
+  app.use(session(sessionOptions));
+  app.use(passport.initialize());
+  app.use(passport.session());
+  
+  // Setup LocalStrategy for username/password login
+  passport.use(
+    new LocalStrategy(async (username, password, done) => {
+      try {
+        const user = await storage.getUserByUsername(username);
+        
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+          return done(null, false, { message: 'Incorrect username' });
         }
-
-        // Verify current password
-        const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Current password is incorrect' });
+        
+        const isValid = await comparePasswords(password, user.password);
+        if (!isValid) {
+          return done(null, false, { message: 'Incorrect password' });
         }
-
-        // Hash the new password
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        // Update password
-        await storage.updateUser(user.id, { password: hashedPassword });
-
-        return res.status(200).json({ message: 'Password changed successfully' });
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            const validationError = fromZodError(error);
-            return res.status(400).json({ message: validationError.message });
-        }
-        console.error('Change password error:', error);
-        return res.status(500).json({ message: 'Failed to change password' });
-    }
-});
-
-
-  // Update user profile (authenticated)
-  app.patch('/api/auth/profile', authenticateToken, requireAuth, async (req: Request, res: Response) => {
+        
+        // Don't include password in user object
+        const { password: _, ...userWithoutPassword } = user;
+        return done(null, userWithoutPassword);
+        
+      } catch (err) {
+        return done(err);
+      }
+    }),
+  );
+  
+  // Serialize user to session
+  passport.serializeUser((user, done) => {
+    done(null, user.id);
+  });
+  
+  // Deserialize user from session
+  passport.deserializeUser(async (id: number, done) => {
     try {
-      if (!req.user) {
+      const user = await storage.getUser(id);
+      if (!user) {
+        return done(null, false);
+      }
+      
+      const { password: _, ...userWithoutPassword } = user;
+      done(null, userWithoutPassword);
+    } catch (err) {
+      done(err);
+    }
+  });
+  
+  // Register route
+  app.post('/api/register', async (req: Request, res: Response) => {
+    try {
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(req.body.username);
+      if (existingUser) {
+        return res.status(400).json({ message: 'Username already exists' });
+      }
+      
+      // Create new user with hashed password
+      const newUser = await storage.createUser({
+        ...req.body,
+        password: await hashPassword(req.body.password),
+        role: 'user',
+        subscriptionStatus: 'free',
+      });
+      
+      // Don't include password in response
+      const { password: _, ...userWithoutPassword } = newUser;
+      
+      // Log in the new user automatically
+      req.login(userWithoutPassword, (err) => {
+        if (err) {
+          return res.status(500).json({ message: 'Login error after registration' });
+        }
+        
+        // Generate JWT token for API access
+        const token = createToken(userWithoutPassword);
+        
+        res.status(201).json({
+          ...userWithoutPassword,
+          token,
+        });
+      });
+    } catch (err) {
+      console.error('Registration error:', err);
+      res.status(500).json({ message: 'Server error during registration' });
+    }
+  });
+  
+  // Login route
+  app.post('/api/login', (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate('local', (err, user, info) => {
+      if (err) {
+        return next(err);
+      }
+      
+      if (!user) {
+        return res.status(401).json({ message: info?.message || 'Authentication failed' });
+      }
+      
+      req.login(user, (err) => {
+        if (err) {
+          return next(err);
+        }
+        
+        // Generate JWT token for API access
+        const token = createToken(user);
+        
+        res.json({
+          ...user,
+          token,
+        });
+      });
+    })(req, res, next);
+  });
+  
+  // Get current user route
+  app.get('/api/user', (req: Request, res: Response) => {
+    if (!req.isAuthenticated()) {
+      // Check JWT token if session-based auth fails
+      const authHeader = req.headers['authorization'];
+      const token = authHeader && authHeader.split(' ')[1];
+      
+      if (!token) {
         return res.status(401).json({ message: 'Not authenticated' });
       }
-
-      const validatedData = insertUserSchema.partial().omit({
-        password: true,
-        username: true,
-        email: true
-      }).parse(req.body);
-
-      // Update user
-      const updatedUser = await storage.updateUser(req.user.id, validatedData);
-      if (!updatedUser) {
+      
+      const user = verifyToken(token);
+      if (!user) {
+        return res.status(401).json({ message: 'Invalid token' });
+      }
+      
+      return res.json(user);
+    }
+    
+    res.json(req.user);
+  });
+  
+  // Logout route
+  app.post('/api/logout', (req: Request, res: Response) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: 'Logout error' });
+      }
+      res.status(200).json({ message: 'Logged out successfully' });
+    });
+  });
+  
+  // Change password route
+  app.post('/api/change-password', authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Both current and new password are required' });
+      }
+      
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
-
-      // Remove password from response
-      const { password, ...userWithoutPassword } = updatedUser;
-
-      return res.status(200).json({
-        message: 'Profile updated successfully',
-        user: userWithoutPassword
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const validationError = fromZodError(error);
-        return res.status(400).json({ message: validationError.message });
+      
+      const isValid = await comparePasswords(currentPassword, user.password);
+      if (!isValid) {
+        return res.status(401).json({ message: 'Current password is incorrect' });
       }
-      console.error('Update profile error:', error);
-      return res.status(500).json({ message: 'Failed to update profile' });
+      
+      // Update password
+      await storage.updateUser(user.id, {
+        password: await hashPassword(newPassword),
+      });
+      
+      res.json({ message: 'Password updated successfully' });
+    } catch (err) {
+      console.error('Password change error:', err);
+      res.status(500).json({ message: 'Server error during password change' });
     }
   });
 }
