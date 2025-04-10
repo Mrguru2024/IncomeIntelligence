@@ -9,73 +9,14 @@
   <meta name="theme-color" content="#4F46E5" />
   <!-- No Firebase scripts or modules are loaded -->
   
-  <!-- Block all Firebase imports and initialize a proper mock -->
+  <!-- No Firebase code at all - we're using a completely Firebase-free entry point -->
   <script>
-    // Create a valid Firebase app configuration with a projectId
-    var firebaseConfig = {
-      apiKey: "mock-api-key",
-      authDomain: "mock-project-id.firebaseapp.com",
-      projectId: "mock-project-id", 
-      storageBucket: "mock-project-id.appspot.com",
-      messagingSenderId: "123456789012",
-      appId: "1:123456789012:web:abcdef1234567890"
-    };
-    
-    // Mock Firebase completely before any imports
-    window.firebase = {
-      // Main app
-      apps: [],
-      initializeApp: function(config) {
-        console.log("Firebase mock: initializeApp called with config:", config || firebaseConfig);
-        var app = {
-          name: "[DEFAULT]",
-          options: config || firebaseConfig,
-          auth: function() { return window.firebase.auth; }
-        };
-        window.firebase.apps.push(app);
-        return app;
-      },
-      app: function() { 
-        return window.firebase.apps.length ? window.firebase.apps[0] : window.firebase.initializeApp(firebaseConfig);
-      },
-      
-      // Auth module
-      auth: {
-        Auth: function() { return this; },
-        currentUser: null,
-        onAuthStateChanged: function(callback) {
-          setTimeout(function() { callback && callback(null); }, 0);
-          return function() {};
-        },
-        signOut: function() { return Promise.resolve(); },
-        setPersistence: function() { 
-          console.log("Firebase persistence set");
-          return Promise.resolve(); 
-        },
-        signInWithEmailAndPassword: function() {
-          return Promise.resolve({ user: null });
-        }
-      },
-      
-      // Auth provider
-      GoogleAuthProvider: {
-        PROVIDER_ID: 'google.com',
-        credentialFromResult: function() { return null; },
-        credentialFromError: function() { return null; }
-      }
-    };
-    
-    // Ensure auth() method works
-    window.firebase.auth.Auth.prototype = window.firebase.auth;
-    
-    // Automatically initialize default app
-    var defaultApp = window.firebase.initializeApp(firebaseConfig);
-    console.log('[PRE-MOCK] Firebase completely mocked with valid projectId:', defaultApp.options.projectId);
+    console.log('[NO-FIREBASE] Using completely Firebase-free entry point');
   </script>
 </head>
 <body>
   <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
+  <script type="module" src="/src/no-firebase-entry.tsx"></script>
 
   <!-- Replit badge -->
   <script
