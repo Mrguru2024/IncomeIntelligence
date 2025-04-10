@@ -1,60 +1,55 @@
-import React from 'react';
-import { Route, Switch } from 'wouter';
-import { useAuth } from '@/hooks/use-auth';
-import { ProtectedRoute } from '@/lib/protected-route';
+import { useState, useEffect } from "react";
+import { Switch, Route } from "wouter";
 
-// Import pages
-import NotFound from '@/pages/not-found';
-import AuthPage from '@/pages/auth-page';
-import Dashboard from '@/pages/Dashboard';
-import Settings from '@/pages/Settings';
-import BudgetPlanner from '@/pages/BudgetPlanner';
-import Goals from '@/pages/Goals';
-import IncomeHub from '@/pages/IncomeHub';
-import Expenses from '@/pages/Expenses';
-import Profile from '@/pages/Profile';
-import FinancialAdvice from '@/pages/FinancialAdvice';
-import PricingPage from '@/pages/PricingPage';
-import CheckoutPage from '@/pages/checkout-page';
-import CheckoutSuccess from '@/pages/checkout-success';
-
-// This is a completely clean implementation that doesn't rely on Firebase at all
+// A minimal app component for testing
 function CleanApp() {
-  const { user, isLoading } = useAuth();
-  
-  // While checking authentication status, show a loading spinner
-  if (isLoading) {
+  const [initialized, setInitialized] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Simple initialization effect
+  useEffect(() => {
+    console.log("Clean App initializing...");
+    
+    // Simulate loading process
+    const timer = setTimeout(() => {
+      setInitialized(true);
+      setLoading(false);
+      console.log("Clean App initialized successfully");
+    }, 800);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Loading state
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-12 w-12 border-4 border-t-transparent border-primary rounded-full animate-spin"></div>
+          <h1 className="text-xl font-semibold">
+            Loading Stackr Finance...
+          </h1>
+        </div>
       </div>
     );
   }
 
   return (
-    <Switch>
-      {/* Authentication route */}
-      <Route path="/auth" component={AuthPage} />
-      
-      {/* Checkout routes */}
-      <Route path="/pricing" component={PricingPage} />
-      <Route path="/checkout" component={CheckoutPage} />
-      <Route path="/checkout-success" component={CheckoutSuccess} />
-
-      {/* Protected routes - requires authentication */}
-      <ProtectedRoute path="/" component={Dashboard} />
-      <ProtectedRoute path="/dashboard" component={Dashboard} />
-      <ProtectedRoute path="/settings" component={Settings} />
-      <ProtectedRoute path="/budget" component={BudgetPlanner} />
-      <ProtectedRoute path="/goals" component={Goals} />
-      <ProtectedRoute path="/income" component={IncomeHub} />
-      <ProtectedRoute path="/expenses" component={Expenses} />
-      <ProtectedRoute path="/profile" component={Profile} />
-      <ProtectedRoute path="/advice" component={FinancialAdvice} />
-      
-      {/* 404 route - must be last */}
-      <Route component={NotFound} />
-    </Switch>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <h1 className="text-4xl font-bold mb-6">Stackr Finance</h1>
+      <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+        <h2 className="text-2xl font-semibold mb-4">Welcome to Stackr</h2>
+        <p className="mb-4">Your financial tracker for service providers.</p>
+        <div className="space-y-4">
+          <button className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+            Login
+          </button>
+          <button className="w-full py-2 px-4 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition">
+            Register
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

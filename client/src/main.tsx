@@ -9,6 +9,10 @@ import './index.css';
 // Import App component with custom Auth provider (no Firebase)
 import App from './App';
 
+// Load our completely persistence-free Firebase mock
+// This eliminates the setPersistence call that's causing the error
+import './lib/persistence-free-firebase';
+
 // Add enhanced debugging
 console.log("STARTUP: Application initialization beginning");
 

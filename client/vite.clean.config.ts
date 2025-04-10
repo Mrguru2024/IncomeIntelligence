@@ -10,76 +10,111 @@ function serveCleanHtmlPlugin(): Plugin {
   return {
     name: 'serve-clean-html',
     configureServer(server) {
-      // Intercept requests to the root and serve clean.html instead
-      server.middlewares.use((req, res, next) => {
-        if (req.url === '/' || req.url === '/index.html') {
-          req.url = '/clean.html';
-        }
-        next();
-      });
+      return () => {
+        server.middlewares.use((req, res, next) => {
+          if (req.url === '/') {
+            req.url = '/clean.html';
+          }
+          next();
+        });
+      };
     }
   };
 }
 
-// A simple plugin to block any Firebase imports
+// Define a very aggressive blocking plugin for Firebase/Firestore
 function blockFirebasePlugin(): Plugin {
   return {
-    name: 'block-firebase-imports',
+    name: 'block-firebase-modules',
     enforce: 'pre' as const,
     resolveId(id) {
-      // Block any imports that contain 'firebase'
-      if (id.includes('firebase')) {
-        console.log('[CLEAN] Blocking Firebase import:', id);
-        // Return a path to a mock module
-        return path.resolve(__dirname, './src/mock-modules/empty-module.js');
+      // Block all firebase imports at resolve time
+      if (id.includes('firebase') || id.includes('firestore')) {
+        console.log(`[BLOCK] Blocking import of: ${id}`);
+        
+        // Return a virtual module ID
+        return '\0blocked:' + id;
+      }
+      return null;
+    },
+    load(id) {
+      // Replace blocked modules with empty mocks
+      if (id.startsWith('\0blocked:')) {
+        console.log(`[MOCK] Loading mock for: ${id.slice(9)}`);
+        return `
+    // Mock replacement for banned modules
+    console.log('[MOCK] Using mock module instead of banned dependency');
+    
+    // Mock necessary exports
+    export const initializeApp = () => ({ 
+      name: 'mock-app',
+      options: { projectId: 'mock-project' },
+      projectId: 'mock-project'
+    });
+    export const getAuth = () => ({
+      currentUser: null,
+      onAuthStateChanged: (cb) => { cb(null); return () => {}; },
+      signInWithEmailAndPassword: () => Promise.resolve({ user: null }),
+      createUserWithEmailAndPassword: () => Promise.resolve({ user: null }),
+      signOut: () => Promise.resolve()
+    });
+    export const getFirestore = () => ({});
+    export const collection = () => ({});
+    export const doc = () => ({});
+    export const getDoc = () => Promise.resolve({});
+    export const setDoc = () => Promise.resolve();
+    export const updateDoc = () => Promise.resolve();
+    export const deleteDoc = () => Promise.resolve();
+    export const query = () => ({});
+    export const where = () => ({});
+    export const orderBy = () => ({});
+    export const limit = () => ({});
+    export const startAfter = () => ({});
+    export const getDocs = () => Promise.resolve({ docs: [] });
+    export const onSnapshot = () => () => {};
+    
+    // Default export for mocking modules that use default imports
+    export default {
+      initializeApp,
+      getAuth,
+      getFirestore,
+      collection,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      deleteDoc,
+      query,
+      where,
+      orderBy,
+      limit,
+      startAfter,
+      getDocs,
+      onSnapshot
+    };
+    `;
       }
       return null;
     }
   };
 }
 
-// Create an empty module for blocked imports
-const emptyModulePath = path.resolve(__dirname, './src/mock-modules/empty-module.js');
-import fs from 'fs';
-if (!fs.existsSync(path.dirname(emptyModulePath))) {
-  fs.mkdirSync(path.dirname(emptyModulePath), { recursive: true });
-}
-fs.writeFileSync(emptyModulePath, `
-// Empty module for blocked imports
-export default {};
-export const getAuth = () => ({});
-export const initializeApp = () => ({});
-export const setPersistence = () => Promise.resolve();
-export const browserLocalPersistence = {};
-export const browserSessionPersistence = {};
-`);
-
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
-    serveCleanHtmlPlugin(),
     blockFirebasePlugin(),
+    serveCleanHtmlPlugin(),
+    react()
   ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@shared': path.resolve(__dirname, '../shared'),
       '@assets': path.resolve(__dirname, '../attached_assets'),
-      
-      // Alias all Firebase imports to our empty module
-      'firebase': emptyModulePath,
-      'firebase/app': emptyModulePath,
-      'firebase/auth': emptyModulePath,
-      'firebase/firestore': emptyModulePath,
-      '@firebase/app': emptyModulePath,
-      '@firebase/auth': emptyModulePath,
-      '@firebase/firestore': emptyModulePath,
-    }
+    },
   },
-  
-  // Define placeholder environment variables
-  define: {
-    'import.meta.env.VITE_FIREBASE_PROJECT_ID': JSON.stringify('placeholder-project-id'),
-    'import.meta.env.VITE_SANITY_PROJECT_ID': JSON.stringify('placeholder-sanity-project-id'),
+  server: {
+    port: 5173,
+    strictPort: true
   }
 });

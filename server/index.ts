@@ -34,8 +34,8 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.openai.com", "https://plaid.com", "https://replit.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://replit.com"],
+      connectSrc: ["'self'", "https://api.openai.com", "https://plaid.com", "https://replit.com", "https://*.replit.dev", "wss://*.replit.dev"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://replit.com", "https://cdn.replit.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
       imgSrc: ["'self'", "data:", "blob:"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
@@ -43,6 +43,7 @@ app.use(helmet({
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
+      workerSrc: ["'self'", "blob:"],
     }
   },
   xssFilter: true,
@@ -428,11 +429,11 @@ app.use((req, res, next) => {
     }
   });
   
-  // Always use clean version
-  const useCleanVersion = true;
+  // Always use the React app from Vite in development
+  const useCleanVersion = false;
   
-  // We don't need to handle the root route separately as it will be handled by Vite in development
-  // or by the static file server in production
+  // We need to make sure Vite handles the root route to serve the React app
+  // Remove any static HTML routes for the root path
   
   // These special routes are still needed for testing specific versions
   app.get('/demo', (req, res) => {
@@ -467,7 +468,7 @@ app.use((req, res, next) => {
 
   // IMPORTANT: Replit workflows are configured for port 5000
   // use this port or the workflow won't be able to connect
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
   
   // Start server
   server.listen(port, '0.0.0.0', () => {

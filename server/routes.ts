@@ -96,25 +96,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Route for standalone version - but only accessible via /standalone path
-  app.get('/standalone', (req, res) => {
-    try {
-      const standaloneHtmlPath = path.resolve(process.cwd(), 'client', 'standalone-clean.html');
-      console.log('Serving standalone HTML from:', standaloneHtmlPath);
-      
-      if (fs.existsSync(standaloneHtmlPath)) {
-        const html = fs.readFileSync(standaloneHtmlPath, 'utf-8');
-        res.set('Content-Type', 'text/html');
-        res.send(html);
-      } else {
-        console.error('Standalone HTML file not found at:', standaloneHtmlPath);
-        res.status(404).send('Standalone Firebase-free version not available');
-      }
-    } catch (error) {
-      console.error('Error serving standalone HTML:', error);
-      res.status(500).send('Error loading standalone Firebase-free version');
-    }
-  });
+  // This route is intentionally disabled - we want to use the Vite dev server
+  // for serving the React application at the root route instead of static files
   
   // Route for serving the React application with JWT auth
   app.get('/firebase-free', (req, res) => {
