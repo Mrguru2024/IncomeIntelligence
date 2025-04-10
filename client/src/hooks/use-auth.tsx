@@ -1,35 +1,31 @@
-import { createContext, ReactNode, useContext, useEffect } from "react";
+import { createContext, ReactNode, useContext, useState, useEffect } from "react";
 import {
   useQuery,
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
-// User type definition
 interface User {
   id: number;
   username: string;
   email?: string;
   role?: string;
-  createdAt?: string;
-  updatedAt?: string;
   subscriptionStatus?: 'free' | 'basic' | 'pro';
 }
 
-// Login data interface
 interface LoginData {
   username: string;
   password: string;
 }
 
-// Register data interface
-interface RegisterData extends LoginData {
-  email: string;
+interface RegisterData {
+  username: string;
+  password: string;
+  email?: string;
 }
 
-// Auth context type
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
@@ -39,14 +35,10 @@ type AuthContextType = {
   registerMutation: UseMutationResult<User, Error, RegisterData>;
 };
 
-// Create context
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-// Auth provider component
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-
-  // Get current user
   const {
     data: user,
     error,
@@ -58,20 +50,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const res = await apiRequest("GET", "/api/user");
         if (res.status === 401) return null;
         return await res.json();
-      } catch (err) {
-        // Don't throw on 401, just return null to indicate no user
-        if (err instanceof Response && err.status === 401) {
-          return null;
-        }
-        throw err;
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        return null;
       }
     },
   });
 
-  // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
       const res = await apiRequest("POST", "/api/login", credentials);
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error || "Failed to login");
+      }
       return await res.json();
     },
     onSuccess: (user: User) => {
@@ -84,35 +76,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     onError: (error: Error) => {
       toast({
         title: "Login failed",
-        description: error.message || "Invalid username or password",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterData) => {
       const res = await apiRequest("POST", "/api/register", credentials);
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error || "Failed to register");
+      }
       return await res.json();
     },
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Registration successful",
-        description: `Welcome to Stackr Finance, ${user.username}!`,
+        description: `Welcome to Stackr, ${user.username}!`,
       });
     },
     onError: (error: Error) => {
       toast({
         title: "Registration failed",
-        description: error.message || "Could not create account",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", "/api/logout");
@@ -121,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       queryClient.setQueryData(["/api/user"], null);
       toast({
         title: "Logged out",
-        description: "You have been logged out successfully",
+        description: "You have been successfully logged out.",
       });
     },
     onError: (error: Error) => {
@@ -147,9 +141,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-// Hook to use auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
