@@ -13,38 +13,73 @@ let plaidLinkHandler = null;
  * @returns {Object} - Plaid Link handler
  */
 function createPlaidLink(linkToken, onSuccess, onExit) {
-  // Dynamically load the Plaid Link script if it's not already loaded
-  if (!document.getElementById('plaid-link-script')) {
-    const script = document.createElement('script');
-    script.id = 'plaid-link-script';
-    script.src = 'https://cdn.plaid.com/link/v2/stable/link-initialize.js';
-    script.async = true;
-    document.head.appendChild(script);
-    
-    // Wait for script to load before initializing
-    return new Promise((resolve, reject) => {
-      script.onload = () => {
-        // Add a small delay to make sure Plaid is fully initialized
-        setTimeout(() => {
-          initializePlaidLink(linkToken, onSuccess, onExit)
-            .then(resolve)
-            .catch(error => {
-              console.error('Failed to initialize Plaid Link after script load:', error);
-              reject(error);
-            });
-        }, 500);
-      };
-      
-      script.onerror = (error) => {
-        console.error('Failed to load Plaid Link script:', error);
-        showError('Failed to load Plaid integration. Please try again later.');
-        reject(new Error('Failed to load Plaid script'));
-      };
-    });
-  } else {
-    // Script already loaded, initialize Plaid Link
+  // Log important information for debugging
+  console.log('Creating Plaid Link with token:', typeof linkToken === 'string' ? `${linkToken.substring(0, 10)}...` : 'Invalid token');
+  
+  // Check if we already have the script
+  const existingScript = document.getElementById('plaid-link-script');
+  const plaidExists = typeof window.Plaid !== 'undefined';
+  
+  console.log('Plaid script status:', {
+    scriptExists: !!existingScript,
+    plaidGlobalExists: plaidExists
+  });
+  
+  // If Plaid is already available, use it directly
+  if (plaidExists) {
+    console.log('Plaid already loaded, initializing directly');
     return initializePlaidLink(linkToken, onSuccess, onExit);
   }
+  
+  // Clean up any existing script that might be broken
+  if (existingScript) {
+    console.log('Removing existing Plaid script element');
+    existingScript.remove();
+  }
+  
+  // Create and load a new script
+  console.log('Loading fresh Plaid Link script');
+  const script = document.createElement('script');
+  script.id = 'plaid-link-script';
+  script.src = 'https://cdn.plaid.com/link/v2/stable/link-initialize.js';
+  script.async = true;
+  script.crossOrigin = 'anonymous'; // Add proper CORS handling
+  document.head.appendChild(script);
+  
+  // Wait for script to load before initializing
+  return new Promise((resolve, reject) => {
+    script.onload = () => {
+      console.log('Plaid script loaded successfully');
+      
+      // Add a delay to make sure Plaid is fully initialized
+      setTimeout(() => {
+        if (typeof window.Plaid === 'undefined') {
+          console.error('Plaid object not available after script load');
+          showError('Failed to initialize Plaid. Please try again later.');
+          reject(new Error('Plaid not available after script load'));
+          return;
+        }
+        
+        console.log('Initializing Plaid Link after script load');
+        initializePlaidLink(linkToken, onSuccess, onExit)
+          .then(handler => {
+            console.log('Plaid Link handler created successfully');
+            resolve(handler);
+          })
+          .catch(error => {
+            console.error('Failed to initialize Plaid Link after script load:', error);
+            showError('Could not initialize Plaid. Please try again later.');
+            reject(error);
+          });
+      }, 1000); // Increased delay to 1 second for more reliable initialization
+    };
+    
+    script.onerror = (error) => {
+      console.error('Failed to load Plaid Link script:', error);
+      showError('Failed to load Plaid integration. Please try again later.');
+      reject(new Error('Failed to load Plaid script'));
+    };
+  });
 }
 
 /**
