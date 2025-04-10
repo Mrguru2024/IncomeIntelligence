@@ -76,48 +76,8 @@ if (stripeSecretKey) {
 // JWT Authentication is now handled by the auth middleware
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Route for serving our Firebase-free version
-  app.get('/clean', (req, res) => {
-    try {
-      const cleanHtmlPath = path.resolve(process.cwd(), 'client', 'clean.html');
-      console.log('Serving clean HTML from:', cleanHtmlPath);
-      
-      if (fs.existsSync(cleanHtmlPath)) {
-        const html = fs.readFileSync(cleanHtmlPath, 'utf-8');
-        res.set('Content-Type', 'text/html');
-        res.send(html);
-      } else {
-        console.error('Clean HTML file not found at:', cleanHtmlPath);
-        res.status(404).send('Firebase-free version not available');
-      }
-    } catch (error) {
-      console.error('Error serving clean HTML:', error);
-      res.status(500).send('Error loading Firebase-free version');
-    }
-  });
-  
-  // This route is intentionally disabled - we want to use the Vite dev server
-  // for serving the React application at the root route instead of static files
-  
-  // Route for serving the React application with JWT auth
-  app.get('/firebase-free', (req, res) => {
-    try {
-      const firebaseFreeHtmlPath = path.resolve(process.cwd(), 'client', 'firebase-free.html');
-      console.log('Serving Firebase-free React app from:', firebaseFreeHtmlPath);
-      
-      if (fs.existsSync(firebaseFreeHtmlPath)) {
-        const html = fs.readFileSync(firebaseFreeHtmlPath, 'utf-8');
-        res.set('Content-Type', 'text/html');
-        res.send(html);
-      } else {
-        console.error('Firebase-free HTML file not found at:', firebaseFreeHtmlPath);
-        res.status(404).send('Firebase-free React app not available');
-      }
-    } catch (error) {
-      console.error('Error serving Firebase-free React app:', error);
-      res.status(500).send('Error loading Firebase-free React app');
-    }
-  });
+  // Note: We've removed all static HTML serving routes in favor of the dynamic React application
+  // The Vite dev server will handle serving the React application at the root route
   
   // Setup authentication routes
   setupAuth(app);

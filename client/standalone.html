@@ -1,690 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stackr Finance - Service Provider Finance</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stackr Finance Standalone - The Smart Way to Manage Your Money</title>
+  <meta name="description" content="Stackr Finance helps you track income, plan budgets with 40/30/30 splits, set financial goals, and get AI-powered financial advice." />
   <style>
-    :root {
-      --primary: #4f46e5;
-      --primary-foreground: #ffffff;
-      --background: #f8fafc;
-      --foreground: #0f172a;
-      --card: #ffffff;
-      --card-foreground: #1e293b;
-      --border: #e2e8f0;
-      --ring: #4f46e5;
-      --radius: 0.5rem;
-    }
-    
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --primary: #4f46e5;
-        --primary-foreground: #ffffff;
-        --background: #0f172a;
-        --foreground: #f8fafc;
-        --card: #1e293b;
-        --card-foreground: #f8fafc;
-        --border: #334155;
-        --ring: #4f46e5;
-      }
-    }
-    
-    * {
-      box-sizing: border-box;
+    body, html {
       margin: 0;
       padding: 0;
-    }
-    
-    body {
-      font-family: 'Inter', -apple-system, sans-serif;
-      background-color: var(--background);
-      color: var(--foreground);
-      line-height: 1.5;
-      padding: 0;
-      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f9fafb;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
     
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 0 1rem;
-    }
-    
-    header {
-      background-color: var(--card);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 0;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-    
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--primary);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .logo-icon {
-      width: 2rem;
-      height: 2rem;
-      background-color: var(--primary);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--primary-foreground);
-      font-weight: 700;
-    }
-    
-    nav ul {
-      display: flex;
-      list-style: none;
-      gap: 1.5rem;
-    }
-    
-    nav a {
-      color: var(--card-foreground);
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 0.875rem;
-      padding: 0.5rem;
-      border-radius: var(--radius);
-      transition: all 0.2s;
-    }
-    
-    nav a:hover {
-      background-color: var(--background);
-    }
-    
-    .auth-buttons {
-      display: flex;
-      gap: 0.5rem;
-    }
-    
-    .button {
-      padding: 0.5rem 1rem;
-      border-radius: var(--radius);
-      font-weight: 500;
-      font-size: 0.875rem;
-      cursor: pointer;
-      border: none;
-      outline: none;
-      transition: all 0.2s;
-    }
-    
-    .button-primary {
-      background-color: var(--primary);
-      color: var(--primary-foreground);
-    }
-    
-    .button-secondary {
-      background-color: transparent;
-      color: var(--card-foreground);
-      border: 1px solid var(--border);
-    }
-    
-    .button:hover {
-      opacity: 0.9;
+      padding: 2rem;
+      width: 100%;
+      box-sizing: border-box;
     }
     
     .hero {
-      padding: 6rem 0;
-      text-align: center;
-    }
-    
-    .hero h1 {
-      font-size: 3rem;
-      font-weight: 800;
-      margin-bottom: 1.5rem;
-      background: linear-gradient(to right, var(--primary), #9333ea);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .hero p {
-      font-size: 1.25rem;
-      color: var(--card-foreground);
-      max-width: 36rem;
-      margin: 0 auto 2rem;
-    }
-    
-    .hero-buttons {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-    }
-    
-    .features {
-      padding: 4rem 0;
-      background-color: var(--card);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    
-    .section-title {
-      text-align: center;
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 3rem;
-    }
-    
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 2rem;
-    }
-    
-    .feature-card {
-      background-color: var(--background);
-      border-radius: var(--radius);
-      padding: 2rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
-    
-    .feature-icon {
-      width: 3rem;
-      height: 3rem;
-      border-radius: var(--radius);
-      background-color: var(--primary);
-      color: var(--primary-foreground);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-    
-    .feature-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 0.75rem;
-    }
-    
-    .feature-description {
-      color: var(--card-foreground);
-      font-size: 0.875rem;
-    }
-    
-    .cta {
-      padding: 6rem 0;
-      text-align: center;
-    }
-    
-    .cta h2 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-    }
-    
-    .cta p {
-      font-size: 1.25rem;
-      color: var(--card-foreground);
-      max-width: 36rem;
-      margin: 0 auto 2rem;
-    }
-    
-    .pricing {
-      padding: 4rem 0;
-      background-color: var(--card);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-      margin-top: 3rem;
-    }
-    
-    .pricing-card {
-      background-color: var(--background);
-      border-radius: var(--radius);
-      padding: 2rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-    }
-    
-    .pricing-header {
-      margin-bottom: 2rem;
-    }
-    
-    .pricing-name {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-    
-    .pricing-price {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-    
-    .pricing-description {
-      color: var(--card-foreground);
-      font-size: 0.875rem;
-    }
-    
-    .pricing-features {
-      list-style: none;
-      margin-bottom: 2rem;
-      flex-grow: 1;
-    }
-    
-    .pricing-features li {
-      padding: 0.5rem 0;
-      display: flex;
+      justify-content: center;
       align-items: center;
-      font-size: 0.875rem;
+      text-align: center;
     }
     
-    .pricing-features li::before {
-      content: "✓";
-      color: var(--primary);
-      margin-right: 0.5rem;
-      font-weight: bold;
-    }
-    
-    .pricing-card .button {
-      width: 100%;
-      padding: 0.75rem;
-    }
-    
-    .featured {
-      border: 2px solid var(--primary);
-    }
-    
-    footer {
-      background-color: var(--card);
-      padding: 4rem 0 2rem;
-      border-top: 1px solid var(--border);
-    }
-    
-    .footer-content {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 2rem;
-      margin-bottom: 3rem;
-    }
-    
-    .footer-column h3 {
-      font-size: 1rem;
-      font-weight: 600;
+    h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #4F46E5;
       margin-bottom: 1rem;
     }
     
-    .footer-links {
-      list-style: none;
-    }
-    
-    .footer-links li {
-      margin-bottom: 0.5rem;
-    }
-    
-    .footer-links a {
-      color: var(--card-foreground);
-      text-decoration: none;
-      font-size: 0.875rem;
-      transition: color 0.2s;
-    }
-    
-    .footer-links a:hover {
-      color: var(--primary);
-    }
-    
-    .footer-bottom {
-      text-align: center;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border);
-      color: var(--card-foreground);
-      font-size: 0.75rem;
-    }
-    
-    /* Start of split ratio visualization */
-    .split-visual {
-      display: flex;
-      padding: 1.5rem 0;
-      justify-content: space-between;
-      gap: 1rem;
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #1F2937;
       margin-bottom: 2rem;
     }
     
-    .split-segment {
-      height: 1.5rem;
-      border-radius: var(--radius);
+    p {
+      font-size: 1.125rem;
+      color: #4B5563;
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      padding: 2rem;
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    
+    .button-primary {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1.5rem;
+      background-color: #4F46E5;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-bottom: 1rem;
+    }
+    
+    .button-primary:hover {
+      background-color: #4338CA;
+    }
+    
+    .button-secondary {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1.5rem;
+      background-color: white;
+      color: #4F46E5;
+      border: 1px solid #4F46E5;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .button-secondary:hover {
+      background-color: #F3F4F6;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 4rem;
+    }
+
+    .feature {
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      background-color: white;
+      box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06);
+    }
+
+    .feature h3 {
+      color: #1F2937;
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .feature p {
+      font-size: 1rem;
+      color: #6B7280;
+      margin-bottom: 0;
+    }
+
+    .split-example {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 0.75rem;
-      color: var(--primary-foreground);
-      position: relative;
-    }
-    
-    .split-segment span {
-      z-index: 1;
-    }
-    
-    .needs {
-      width: 40%;
-      background-color: #f59e0b;
-    }
-    
-    .savings {
-      width: 30%;
-      background-color: #10b981;
-    }
-    
-    .investing {
-      width: 30%;
-      background-color: #3b82f6;
-    }
-    
-    .split-labels {
-      display: flex;
-      justify-content: space-between;
       gap: 1rem;
-      margin-top: 0.5rem;
+      margin: 2rem 0;
     }
-    
-    .split-label {
-      font-size: 0.75rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+
+    .split-portion {
+      flex: 1;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      text-align: center;
+      color: white;
+      font-weight: 600;
     }
-    
-    .split-dot {
-      width: 0.75rem;
-      height: 0.75rem;
-      border-radius: 50%;
-      margin-bottom: 0.25rem;
+
+    .split-portion.needs {
+      background-color: #4F46E5;
     }
-    
-    .dot-needs {
-      background-color: #f59e0b;
+
+    .split-portion.investments {
+      background-color: #7C3AED;
     }
-    
-    .dot-savings {
-      background-color: #10b981;
-    }
-    
-    .dot-investing {
-      background-color: #3b82f6;
-    }
-    
-    @media (max-width: 768px) {
-      .nav-links {
-        display: none;
-      }
-      
-      .hero h1 {
-        font-size: 2rem;
-      }
-      
-      .hero p {
-        font-size: 1rem;
-      }
-      
-      .section-title {
-        font-size: 1.5rem;
-      }
-      
-      .cta h2 {
-        font-size: 1.75rem;
-      }
-      
-      .cta p {
-        font-size: 1rem;
-      }
+
+    .split-portion.savings {
+      background-color: #EC4899;
     }
   </style>
 </head>
 <body>
-  <!-- No Firebase references or JavaScript -->
-  <header>
-    <div class="container">
-      <div class="header-content">
-        <a href="#" class="logo">
-          <div class="logo-icon">S</div>
-          Stackr
-        </a>
-        
-        <nav class="nav-links">
-          <ul>
-            <li><a href="#">Features</a></li>
-            <li><a href="#">Pricing</a></li>
-            <li><a href="#">Testimonials</a></li>
-            <li><a href="#">Support</a></li>
-          </ul>
-        </nav>
-        
-        <div class="auth-buttons">
-          <a href="/auth" class="button button-secondary">Sign In</a>
-          <a href="/auth" class="button button-primary">Get Started</a>
-        </div>
+  <div class="container hero">
+    <h1>Stackr Finance</h1>
+    <h2>The Smart Way to Manage Your Service Income</h2>
+    <p>Track your income, plan your budget with our 40/30/30 split, set financial goals, and get AI-powered financial advice.</p>
+    
+    <div class="split-example">
+      <div class="split-portion needs">40% Needs</div>
+      <div class="split-portion investments">30% Investments</div>
+      <div class="split-portion savings">30% Savings</div>
+    </div>
+    
+    <div class="card">
+      <h2>Welcome to Stackr</h2>
+      <p>Your financial tracker designed specifically for service providers. Get started today.</p>
+      <button class="button-primary" onclick="alert('Login functionality would be here')">Login</button>
+      <button class="button-secondary" onclick="alert('Registration functionality would be here')">Register</button>
+    </div>
+    
+    <div class="features">
+      <div class="feature">
+        <h3>Income Tracking</h3>
+        <p>Record and categorize all your service income with easy input options.</p>
+      </div>
+      <div class="feature">
+        <h3>40/30/30 Split</h3>
+        <p>Automatically allocate your income with our proven allocation strategy.</p>
+      </div>
+      <div class="feature">
+        <h3>AI Financial Advice</h3>
+        <p>Get personalized financial guidance powered by AI.</p>
       </div>
     </div>
-  </header>
-  
-  <main>
-    <section class="hero">
-      <div class="container">
-        <h1>Manage your service income with Stackr</h1>
-        <p>The financial platform designed specifically for service providers. Track income, plan with our 40/30/30 split, and get AI-powered financial advice.</p>
-        
-        <div class="split-visual">
-          <div class="split-segment needs"><span>40% Needs</span></div>
-          <div class="split-segment savings"><span>30% Savings</span></div>
-          <div class="split-segment investing"><span>30% Investing</span></div>
-        </div>
-        
-        <div class="split-labels">
-          <div class="split-label">
-            <div class="split-dot dot-needs"></div>
-            <span>Essential Expenses</span>
-          </div>
-          <div class="split-label">
-            <div class="split-dot dot-savings"></div>
-            <span>Emergency Fund</span>
-          </div>
-          <div class="split-label">
-            <div class="split-dot dot-investing"></div>
-            <span>Future Growth</span>
-          </div>
-        </div>
-        
-        <div class="hero-buttons">
-          <a href="/auth" class="button button-primary">Start for Free</a>
-          <a href="#features" class="button button-secondary">Learn More</a>
-        </div>
-      </div>
-    </section>
+  </div>
+
+  <script>
+    console.log('Standalone Stackr Finance loaded successfully');
     
-    <section class="features" id="features">
-      <div class="container">
-        <h2 class="section-title">Why Stackr?</h2>
-        
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">40/30/30</div>
-            <h3 class="feature-title">Income Split</h3>
-            <p class="feature-description">Automatically divide your income using the 40/30/30 rule: 40% for needs, 30% for savings, and 30% for investments.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon">AI</div>
-            <h3 class="feature-title">Smart Advice</h3>
-            <p class="feature-description">Get personalized financial advice powered by AI based on your income patterns and spending habits.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon">🎯</div>
-            <h3 class="feature-title">Goal Setting</h3>
-            <p class="feature-description">Set and track financial goals with visual progress indicators and automated reminders.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon">📊</div>
-            <h3 class="feature-title">Income Dashboard</h3>
-            <p class="feature-description">Track all your service income in one place with beautiful visualizations and detailed analytics.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon">📱</div>
-            <h3 class="feature-title">Voice Commands</h3>
-            <p class="feature-description">Add income or expenses on the go using natural language voice commands while you work.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon">🔄</div>
-            <h3 class="feature-title">Bank Sync</h3>
-            <p class="feature-description">Connect your bank accounts to automatically track income and expenses in real-time.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <section class="cta">
-      <div class="container">
-        <h2>Ready to take control of your finances?</h2>
-        <p>Join thousands of service providers who are growing their wealth with Stackr's 40/30/30 approach.</p>
-        <a href="/auth" class="button button-primary">Start Your Free Trial</a>
-      </div>
-    </section>
-    
-    <section class="pricing" id="pricing">
-      <div class="container">
-        <h2 class="section-title">Simple, Transparent Pricing</h2>
-        
-        <div class="pricing-grid">
-          <div class="pricing-card">
-            <div class="pricing-header">
-              <h3 class="pricing-name">Free</h3>
-              <div class="pricing-price">$0</div>
-              <p class="pricing-description">Perfect for getting started</p>
-            </div>
-            
-            <ul class="pricing-features">
-              <li>Income tracking with 40/30/30 split</li>
-              <li>Basic expense categorization</li>
-              <li>Manual income entry</li>
-              <li>Up to 3 financial goals</li>
-              <li>Limited AI financial insights</li>
-            </ul>
-            
-            <a href="/auth" class="button button-primary">Get Started</a>
-          </div>
-          
-          <div class="pricing-card featured">
-            <div class="pricing-header">
-              <h3 class="pricing-name">Pro</h3>
-              <div class="pricing-price">$9.99<span style="font-size: 1rem; font-weight: 400;">/month</span></div>
-              <p class="pricing-description">For serious financial growth</p>
-            </div>
-            
-            <ul class="pricing-features">
-              <li>Everything in Free plan</li>
-              <li>Bank account sync</li>
-              <li>Unlimited goals</li>
-              <li>Advanced AI financial advice</li>
-              <li>Custom income split ratios</li>
-              <li>Voice command support</li>
-              <li>Income opportunity alerts</li>
-              <li>Priority support</li>
-            </ul>
-            
-            <a href="/auth" class="button button-primary">Choose Pro</a>
-          </div>
-          
-          <div class="pricing-card">
-            <div class="pricing-header">
-              <h3 class="pricing-name">Lifetime</h3>
-              <div class="pricing-price">$99</div>
-              <p class="pricing-description">One-time payment, forever access</p>
-            </div>
-            
-            <ul class="pricing-features">
-              <li>Everything in Pro plan</li>
-              <li>No monthly payments ever</li>
-              <li>All future Pro features included</li>
-              <li>Stackr Gigs platform access</li>
-              <li>Affiliate program eligibility</li>
-              <li>Early access to new features</li>
-              <li>Premium community membership</li>
-            </ul>
-            
-            <a href="/auth" class="button button-primary">Get Lifetime Access</a>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-  
-  <footer>
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-column">
-          <h3>Product</h3>
-          <ul class="footer-links">
-            <li><a href="#">Features</a></li>
-            <li><a href="#">Pricing</a></li>
-            <li><a href="#">Testimonials</a></li>
-            <li><a href="#">Roadmap</a></li>
-          </ul>
-        </div>
-        
-        <div class="footer-column">
-          <h3>Resources</h3>
-          <ul class="footer-links">
-            <li><a href="#">Documentation</a></li>
-            <li><a href="#">Blog</a></li>
-            <li><a href="#">Help Center</a></li>
-            <li><a href="#">Community</a></li>
-          </ul>
-        </div>
-        
-        <div class="footer-column">
-          <h3>Company</h3>
-          <ul class="footer-links">
-            <li><a href="#">About Us</a></li>
-            <li><a href="#">Careers</a></li>
-            <li><a href="#">Contact</a></li>
-            <li><a href="#">Press</a></li>
-          </ul>
-        </div>
-        
-        <div class="footer-column">
-          <h3>Legal</h3>
-          <ul class="footer-links">
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Cookie Policy</a></li>
-            <li><a href="#">Security</a></li>
-          </ul>
-        </div>
-      </div>
-      
-      <div class="footer-bottom">
-        <p>&copy; 2025 Stackr Finance. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
+    // Simple JavaScript to verify the page is working without any external dependencies
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM fully loaded and parsed');
+    });
+  </script>
 </body>
 </html>
