@@ -3,31 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stackr Finance - Minimal</title>
-  <meta name="description" content="Financial tracking application for service providers" />
+  <title>Stackr Finance - Clean Version</title>
+  <meta name="description" content="Stackr Finance - Clean Firebase-free version" />
   <link rel="icon" type="image/svg+xml" href="/stackr-logo.svg" />
   <meta name="theme-color" content="#4F46E5" />
-  
-  <script>
-    console.log('[MINIMAL] Using completely Firebase-free minimal version');
-  </script>
 </head>
 <body>
-  <div id="root">
-    <!-- Initial loading state -->
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #4f46e5; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-      <p style="margin-top: 16px; color: #6b7280;">Loading Stackr Finance...</p>
-    </div>
-  </div>
-
+  <div id="root"></div>
+  
+  <!-- Load our minimal React application entry point -->
   <script type="module" src="/src/minimal-entry.tsx"></script>
 
-  <style>
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    body { margin: 0; padding: 0; }
-  </style>
+  <!-- Replit badge -->
+  <script
+    type="text/javascript"
+    src="https://replit.com/public/js/replit-badge-v3.js"
+  ></script>
 </body>
 </html>
