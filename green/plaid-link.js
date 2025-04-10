@@ -16,7 +16,7 @@ function createPlaidLink(linkToken, onSuccess, onExit) {
   // Log important information for debugging
   console.log('Creating Plaid Link with token:', typeof linkToken === 'string' ? `${linkToken.substring(0, 10)}...` : 'Invalid token');
   
-  // Check if we already have the script
+  // Check if Plaid Link script is loaded via CDN
   const existingScript = document.getElementById('plaid-link-script');
   const plaidExists = typeof window.Plaid !== 'undefined';
   
@@ -30,55 +30,85 @@ function createPlaidLink(linkToken, onSuccess, onExit) {
     console.log('Plaid already loaded, initializing directly');
     return initializePlaidLink(linkToken, onSuccess, onExit);
   }
+
+  // Instead of dynamically loading the script, we'll use a different approach
+  // that directly initializes Plaid Link: create a Plaid Link iframe manually
   
-  // Clean up any existing script that might be broken
-  if (existingScript) {
-    console.log('Removing existing Plaid script element');
-    existingScript.remove();
-  }
+  console.log('Creating Plaid Link directly (embed approach)');
   
-  // Create and load a new script
-  console.log('Loading fresh Plaid Link script');
-  const script = document.createElement('script');
-  script.id = 'plaid-link-script';
-  script.src = 'https://cdn.plaid.com/link/v2/stable/link-initialize.js';
-  script.async = true;
-  script.crossOrigin = 'anonymous'; // Add proper CORS handling
-  document.head.appendChild(script);
-  
-  // Wait for script to load before initializing
   return new Promise((resolve, reject) => {
-    script.onload = () => {
-      console.log('Plaid script loaded successfully');
+    try {
+      // Create a container for Plaid Link
+      const plaidContainer = document.createElement('div');
+      plaidContainer.id = 'plaid-link-container';
+      plaidContainer.style.position = 'fixed';
+      plaidContainer.style.top = '0';
+      plaidContainer.style.left = '0';
+      plaidContainer.style.width = '100%';
+      plaidContainer.style.height = '100%';
+      plaidContainer.style.zIndex = '9999';
+      plaidContainer.style.display = 'none';
+      document.body.appendChild(plaidContainer);
       
-      // Add a delay to make sure Plaid is fully initialized
-      setTimeout(() => {
-        if (typeof window.Plaid === 'undefined') {
-          console.error('Plaid object not available after script load');
-          showError('Failed to initialize Plaid. Please try again later.');
-          reject(new Error('Plaid not available after script load'));
-          return;
-        }
-        
-        console.log('Initializing Plaid Link after script load');
-        initializePlaidLink(linkToken, onSuccess, onExit)
-          .then(handler => {
-            console.log('Plaid Link handler created successfully');
-            resolve(handler);
-          })
-          .catch(error => {
-            console.error('Failed to initialize Plaid Link after script load:', error);
-            showError('Could not initialize Plaid. Please try again later.');
-            reject(error);
+      // Instead of trying to load the script, let's create a simple handler
+      // that will redirect to Plaid when opened
+      const simplifiedHandler = {
+        open: () => {
+          console.log('Opening Plaid Link...');
+          
+          showLoading('Opening Plaid Link...');
+          
+          // Create an iframe for the Plaid Link interface
+          const iframe = document.createElement('iframe');
+          iframe.src = `https://cdn.plaid.com/link/v2/stable/link.html?token=${linkToken}`;
+          iframe.style.width = '100%';
+          iframe.style.height = '100%';
+          iframe.style.border = 'none';
+          
+          // Handle messages from the iframe
+          window.addEventListener('message', function plaidLinkMessageHandler(event) {
+            // Make sure the message is from Plaid
+            if (event.data.action && event.data.action.indexOf('plaid_link_') === 0) {
+              console.log('Received Plaid Link message:', event.data.action);
+              
+              if (event.data.action === 'plaid_link_exit') {
+                // User exited Plaid Link
+                hideLoading();
+                plaidContainer.style.display = 'none';
+                plaidContainer.innerHTML = '';
+                window.removeEventListener('message', plaidLinkMessageHandler);
+                
+                if (onExit) {
+                  onExit(event.data.error || null, event.data.metadata || {});
+                }
+              } else if (event.data.action === 'plaid_link_success') {
+                // User successfully linked an account
+                hideLoading();
+                plaidContainer.style.display = 'none';
+                plaidContainer.innerHTML = '';
+                window.removeEventListener('message', plaidLinkMessageHandler);
+                
+                if (onSuccess) {
+                  onSuccess(event.data.public_token, event.data.metadata || {});
+                }
+              }
+            }
           });
-      }, 1000); // Increased delay to 1 second for more reliable initialization
-    };
-    
-    script.onerror = (error) => {
-      console.error('Failed to load Plaid Link script:', error);
-      showError('Failed to load Plaid integration. Please try again later.');
-      reject(new Error('Failed to load Plaid script'));
-    };
+          
+          // Display the iframe
+          plaidContainer.innerHTML = '';
+          plaidContainer.appendChild(iframe);
+          plaidContainer.style.display = 'block';
+          hideLoading();
+        }
+      };
+      
+      console.log('Created simplified Plaid Link handler');
+      resolve(simplifiedHandler);
+    } catch (error) {
+      console.error('Error creating simplified Plaid Link handler:', error);
+      reject(error);
+    }
   });
 }
 
