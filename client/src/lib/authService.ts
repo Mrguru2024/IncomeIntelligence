@@ -12,7 +12,13 @@ export interface User {
   username: string;
   email?: string;
   role?: string;
-  subscriptionStatus?: 'free' | 'basic' | 'pro';
+  subscriptionStatus?: 'free' | 'basic' | 'pro' | 'lifetime';
+  subscriptionTier?: string;
+  subscriptionPlanId?: string;
+  subscriptionStartDate?: string;
+  subscriptionEndDate?: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
   createdAt?: string;
   updatedAt?: string;
   profileImageUrl?: string;
