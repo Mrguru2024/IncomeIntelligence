@@ -3132,7 +3132,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 status: subscription.status,
                 currentPeriodEnd: subscription.current_period_end,
                 plan: subscription.items.data[0]?.price.nickname || 'Stackr Pro',
-                isPro: true
+                tier: user.subscriptionTier || 'pro',
+                isPro: true,
+                stripeId: subscription.id,
+                cancelAtPeriodEnd: subscription.cancel_at_period_end
               };
               
               return res.json({
@@ -3150,14 +3153,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           } catch (error) {
             console.error('Error verifying subscription with Stripe:', error);
-            // If we can't verify with Stripe, trust the database
-            return res.json({
-              verified: user.subscriptionTier !== 'free' && user.subscriptionActive === true,
-              subscription: {
-                tier: user.subscriptionTier,
-                active: user.subscriptionActive
-              }
-            });
+            // Check if user has subscription data in our database
+            if (user.subscriptionTier && user.subscriptionTier !== 'free' && user.subscriptionActive) {
+              // We'll trust our database in this case
+              return res.json({
+                verified: true,
+                subscription: {
+                  status: 'active',
+                  tier: user.subscriptionTier,
+                  startDate: user.subscriptionStartDate,
+                  endDate: user.subscriptionEndDate,
+                  isLifetime: user.subscriptionTier === 'lifetime',
+                  stripeSync: false
+                }
+              });
+            } else {
+              return res.json({
+                verified: false,
+                reason: 'Error verifying subscription with payment provider'
+              });
+            }
           }
         } 
         // For lifetime subscribers without a Stripe subscription or users on free tier
