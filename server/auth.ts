@@ -16,7 +16,10 @@ declare global {
       username: string;
       email?: string;
       role?: string;
-      subscriptionStatus?: 'free' | 'basic' | 'pro';
+      subscriptionTier?: 'free' | 'pro' | 'lifetime';
+      subscriptionActive?: boolean;
+      onboardingCompleted?: boolean;
+      onboardingStep?: string;
     }
   }
 }
@@ -49,6 +52,10 @@ function createToken(user: Express.User): string {
     username: user.username,
     email: user.email,
     role: user.role,
+    subscriptionTier: user.subscriptionTier,
+    subscriptionActive: user.subscriptionActive,
+    onboardingCompleted: user.onboardingCompleted,
+    onboardingStep: user.onboardingStep
   };
   
   return jwt.sign(payload, process.env.JWT_SECRET || 'stackr-jwt-secret', {
@@ -162,7 +169,10 @@ export function setupAuth(app: Express) {
         ...req.body,
         password: await hashPassword(req.body.password),
         role: 'user',
-        subscriptionStatus: 'free',
+        subscriptionTier: 'free',
+        subscriptionActive: false,
+        onboardingCompleted: false,
+        onboardingStep: 'welcome',
       });
       
       // Don't include password in response
