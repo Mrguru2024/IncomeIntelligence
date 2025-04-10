@@ -370,7 +370,7 @@ function createFAQSection() {
     },
     {
       question: 'What is the refund policy?',
-      answer: 'We offer a 30-day money-back guarantee for Pro subscriptions. If you're not satisfied with our service, contact our support team within 30 days of purchase for a full refund. Lifetime purchases are eligible for refunds within 60 days of purchase.'
+      answer: 'We offer a 30-day money-back guarantee for Pro subscriptions. If you\'re not satisfied with our service, contact our support team within 30 days of purchase for a full refund. Lifetime purchases are eligible for refunds within 60 days of purchase.'
     }
   ];
   
