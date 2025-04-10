@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import fs from 'fs';
+import bannedModulesPlugin from './banned-modules-plugin.js';
 
 // Create an extremely simplified mock module to replace Firebase and Sanity
 // with just the minimal structure needed to prevent crashes
@@ -62,18 +63,8 @@ const mockModulePath = createMockModule();
 export default defineConfig({
   plugins: [
     react(),
-    // Simple plugin to log banned module imports
-    {
-      name: 'log-imports',
-      enforce: "pre" as const,
-      resolveId(id, importer) {
-        if (id.includes('firebase') || id.includes('sanity')) {
-          console.log(`[Mock] Redirecting import: ${id} from ${importer || 'unknown'}`);
-          return mockModulePath;
-        }
-        return null;
-      }
-    }
+    // Use our aggressive banned modules plugin to block Firebase and Sanity
+    bannedModulesPlugin(),
   ],
   
   resolve: {
@@ -82,14 +73,14 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, '../shared'),
       '@assets': path.resolve(__dirname, '../attached_assets'),
       
-      // Map all problematic modules to our single mock
-      'firebase': mockModulePath,
-      'firebase/app': mockModulePath,
-      'firebase/auth': mockModulePath,
-      'firebase/firestore': mockModulePath,
-      '@firebase/app': mockModulePath,
-      '@firebase/auth': mockModulePath,
-      '@firebase/firestore': mockModulePath,
+      // Map all problematic modules to our mock implementations
+      'firebase': path.resolve(__dirname, './src/lib/mocks/firebase-mock.ts'),
+      'firebase/app': path.resolve(__dirname, './src/lib/mocks/firebase-mock.ts'),
+      'firebase/auth': path.resolve(__dirname, './src/lib/mocks/firebase-mock.ts'),
+      'firebase/firestore': path.resolve(__dirname, './src/lib/mocks/firebase-mock.ts'),
+      '@firebase/app': path.resolve(__dirname, './src/lib/mocks/firebase-mock.ts'),
+      '@firebase/auth': path.resolve(__dirname, './src/lib/mocks/firebase-mock.ts'),
+      '@firebase/firestore': path.resolve(__dirname, './src/lib/mocks/firebase-mock.ts'),
       '@sanity/client': mockModulePath,
       'sanity': mockModulePath
     }

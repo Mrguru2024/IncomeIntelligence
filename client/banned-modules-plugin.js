@@ -3,165 +3,107 @@
  * This implementation uses multiple strategies to block these modules at various stages
  */
 export default function bannedModulesPlugin() {
-  // Complete list of all Firebase and Sanity related modules to block
-  const bannedModules = [
-    // Firebase core and direct imports
-    'firebase', 
-    'firebase/app', 
-    'firebase/auth', 
-    'firebase/firestore',
-    'firebase/storage',
-    'firebase/functions',
-    'firebase/analytics',
-    'firebase/database',
-    'firebase/performance',
-    'firebase/remote-config',
-    'firebase/messaging',
+  // Path to our mock module
+  const mockedContent = `
+    // Mock replacement for banned modules
+    console.log('[MOCK] Using mock module instead of banned dependency');
     
-    // Firebase namespaced packages
-    '@firebase/app',
-    '@firebase/auth',
-    '@firebase/firestore',
-    '@firebase/storage',
-    '@firebase/functions',
-    '@firebase/analytics',
-    '@firebase/database',
-    '@firebase/performance',
-    '@firebase/remote-config',
-    '@firebase/messaging',
-    '@firebase/util',
-    '@firebase/app-compat',
-    '@firebase/auth-compat',
+    // Mock necessary exports
+    export const initializeApp = () => ({ 
+      name: 'mock-app',
+      options: { projectId: 'mock-project' } 
+    });
+    export const getAuth = () => ({
+      currentUser: null,
+      onAuthStateChanged: (cb) => { 
+        setTimeout(() => cb(null), 0); 
+        return () => {};
+      },
+      signOut: () => Promise.resolve(),
+      setPersistence: () => Promise.resolve(),
+      createUserWithEmailAndPassword: () => Promise.resolve({ user: null }),
+      signInWithEmailAndPassword: () => Promise.resolve({ user: null })
+    });
+    export const getFirestore = () => ({});
+    export const auth = { currentUser: null };
+    export const db = {};
+    export const app = { name: 'mock-app' };
+    export const browserLocalPersistence = 'mock';
+    export const GoogleAuthProvider = { PROVIDER_ID: 'google.com' };
+    export const signInWithRedirect = () => Promise.resolve();
+    export const getRedirectResult = () => Promise.resolve(null);
     
-    // Sanity packages
-    '@sanity/client',
-    '@sanity/image-url',
-    '@sanity/vision',
-    '@sanity/base',
-    '@sanity/desk-tool',
-    '@sanity/core',
-    'sanity',
-    'sanity/desk'
-  ];
-  
-  // More aggressive pattern matching for partial module names
-  const isBannedModule = (id) => {
-    // Exact matches
-    if (bannedModules.includes(id)) {
-      return true;
-    }
-    
-    // Check for firebase or sanity in the path
-    if (
-      id.includes('firebase') || 
-      id.includes('Firebase') || 
-      id.includes('sanity') || 
-      id.includes('Sanity')
-    ) {
-      return true;
-    }
-    
-    return false;
-  };
-  
+    // Default export
+    export default { 
+      initializeApp, getAuth, getFirestore, auth, db, app,
+      browserLocalPersistence, GoogleAuthProvider
+    };
+  `;
+
   return {
     name: 'banned-modules-plugin',
-    enforce: 'pre', // Run this plugin before all others
+    enforce: 'pre',
     
-    // Called when resolving import specifiers
     resolveId(id, importer) {
-      if (isBannedModule(id)) {
-        console.log(`⛔ BLOCKED IMPORT: "${id}" imported from ${importer || 'unknown'}`);
+      // Check if the module ID contains any banned keywords
+      const isBanned = 
+        id.includes('firebase') || 
+        id.includes('@firebase') || 
+        id.includes('sanity') || 
+        id.includes('@sanity');
+      
+      if (isBanned) {
+        console.log(`[BANNED] Intercepted import of '${id}' from '${importer || 'unknown'}'`);
+        // Return a virtual module ID that we'll handle in the load hook
         return `\0banned:${id}`;
       }
+      
       return null;
     },
     
-    // Called when loading modules
     load(id) {
+      // Handle our virtual banned module IDs
       if (id.startsWith('\0banned:')) {
-        const originalId = id.slice(8); // Remove '\0banned:' prefix
-        console.log(`🚫 BANNED MODULE REPLACED: ${originalId}`);
-        
-        // Create a comprehensive mock that prevents any initialization
-        return `
-          console.log('BLOCKED: "${originalId}" module was prevented from loading by security policy');
-          
-          // Default export is an empty object
-          const emptyFn = () => ({});
-          const emptyObj = {};
-          const emptyPromise = () => Promise.resolve({});
-          
-          // Comprehensive mocks for Firebase
-          export const initializeApp = emptyFn;
-          export const getApp = emptyFn;
-          export const getApps = () => [];
-          export const deleteApp = emptyFn;
-          export const getAuth = emptyFn;
-          export const createUserWithEmailAndPassword = emptyPromise;
-          export const signInWithEmailAndPassword = emptyPromise;
-          export const signOut = emptyPromise;
-          export const onAuthStateChanged = () => emptyFn;
-          export const getFirestore = emptyFn;
-          export const collection = emptyFn;
-          export const doc = emptyFn;
-          export const getDoc = emptyPromise;
-          export const getDocs = emptyPromise;
-          export const setDoc = emptyPromise;
-          export const updateDoc = emptyPromise;
-          export const deleteDoc = emptyPromise;
-          export const query = emptyFn;
-          export const where = emptyFn;
-          export const orderBy = emptyFn;
-          export const limit = emptyFn;
-          
-          // Comprehensive mocks for Sanity
-          export const createClient = () => ({
-            fetch: () => Promise.resolve([]),
-            create: () => Promise.resolve({}),
-            createOrReplace: () => Promise.resolve({}),
-            createIfNotExists: () => Promise.resolve({}),
-            patch: () => ({ commit: () => Promise.resolve({}) }),
-            delete: () => Promise.resolve({}),
-            getDocument: () => Promise.resolve(null),
-            listen: () => ({ unsubscribe: () => {} })
-          });
-          export const groq = (strings, ...keys) => strings.join('');
-          export const imageUrlBuilder = () => ({ image: emptyFn, width: emptyFn, height: emptyFn, url: () => '' });
-          
-          // Default export as catch-all
-          export default emptyObj;
-        `;
-      }
-      return null;
-    },
-    
-    // Transform imports in source code
-    transform(code, id) {
-      // Don't transform our virtual modules
-      if (id.startsWith('\0banned:')) {
-        return null;
+        console.log(`[BANNED] Providing mock implementation for: ${id.slice(8)}`);
+        return mockedContent;
       }
       
-      // Look for dynamic imports of banned modules
-      if (code.includes('import(') && bannedModules.some(mod => code.includes(`import('${mod}')`))) {
-        console.log(`🔄 TRANSFORM: Replacing dynamic imports in ${id}`);
+      return null;
+    },
+    
+    transform(code, id) {
+      // As a final safety measure, transform any import statements that might have slipped through
+      if (
+        (code.includes('firebase') || code.includes('sanity')) &&
+        (code.includes('import') || code.includes('require'))
+      ) {
+        console.log(`[BANNED] Sanitizing code in ${id}`);
         
-        let transformedCode = code;
+        // Very aggressive replacement of import statements
+        let newCode = code;
         
-        // Replace dynamic imports of banned modules with empty promises
-        bannedModules.forEach(mod => {
-          const dynamicImportPattern = new RegExp(`import\\(['"](${mod})['"]\\)`, 'g');
-          transformedCode = transformedCode.replace(
-            dynamicImportPattern, 
-            `Promise.resolve({ default: {}, createClient: () => ({}), initializeApp: () => ({}) })`
-          );
-        });
+        // Replace dynamic imports
+        newCode = newCode.replace(
+          /import\s*\(\s*["'].*?(firebase|sanity).*?["']\s*\)/g,
+          `Promise.resolve({})`
+        );
         
-        return {
-          code: transformedCode,
-          map: null
-        };
+        // Replace static imports
+        newCode = newCode.replace(
+          /import\s+(?:(?:\* as )?[^;]*?|\{[^}]*?\})\s+from\s+["'].*?(firebase|sanity).*?["'];?/g,
+          `// BANNED IMPORT REMOVED`
+        );
+        
+        // Replace require calls
+        newCode = newCode.replace(
+          /(?:const|let|var)\s+(?:\w+|\{[^}]*?\})\s+=\s+require\s*\(\s*["'].*?(firebase|sanity).*?["']\s*\);?/g,
+          `// BANNED REQUIRE REMOVED`
+        );
+        
+        if (newCode !== code) {
+          console.log(`[BANNED] Modified imports in ${id}`);
+          return { code: newCode };
+        }
       }
       
       return null;

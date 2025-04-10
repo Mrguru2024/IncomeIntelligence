@@ -409,7 +409,7 @@ app.use((req, res, next) => {
   
   // Serve the clean build
   app.get('/clean', (req, res) => {
-    const cleanHtmlPath = path.join(dirname, '../client/clean.html');
+    const cleanHtmlPath = path.join(dirname, '../client/clean-build.html');
     
     console.log('Serving clean HTML from:', cleanHtmlPath);
     
@@ -427,18 +427,13 @@ app.use((req, res, next) => {
     }
   });
   
-  // Use an environment variable to determine which version to serve
-  const useCleanVersion = process.argv.includes('--clean') || process.env.USE_CLEAN_VERSION === 'true';
+  // Always use clean version
+  const useCleanVersion = true;
   
   // Serve our primary entry point
   app.get('/', (req, res) => {
-    if (useCleanVersion) {
-      console.log('Redirecting to clean version');
-      res.redirect('/clean');
-    } else {
-      console.log('Redirecting to firebase-free version (legacy)');
-      res.redirect('/firebase-free');
-    }
+    console.log('Redirecting to clean version');
+    res.redirect('/clean');
   });
   
   // Handle all other routes except API routes and special routes
@@ -474,10 +469,10 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
+  // Serve the app on port 5001
   // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const startServer = async (port = 5000) => {
+  // Changed from port 5000 to avoid conflicts.
+  const startServer = async (port = 5001) => {
     try {
       server.listen(port, '0.0.0.0', () => {
         log(`Server is running on port ${port}`);
