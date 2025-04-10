@@ -30,7 +30,7 @@ type OnboardingStep =
 export default function OnboardingPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("welcome");
   const [progress, setProgress] = useState(0);
 
