@@ -28,6 +28,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Icons } from '@/components/ui/icons';
+import { Loader2 } from 'lucide-react';
 
 // Login form schema
 const loginSchema = z.object({
@@ -311,7 +312,7 @@ export default function AuthPage() {
             
             <div className="flex items-start space-x-3">
               <div className="bg-white/20 p-2 rounded-full">
-                <Icons.chart className="h-6 w-6" />
+                <Icons.pieChart className="h-6 w-6" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold">AI-Powered Insights</h3>
@@ -321,7 +322,7 @@ export default function AuthPage() {
             
             <div className="flex items-start space-x-3">
               <div className="bg-white/20 p-2 rounded-full">
-                <Icons.goal className="h-6 w-6" />
+                <Icons.target className="h-6 w-6" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold">Goal Setting</h3>
@@ -331,7 +332,7 @@ export default function AuthPage() {
             
             <div className="flex items-start space-x-3">
               <div className="bg-white/20 p-2 rounded-full">
-                <Icons.bank className="h-6 w-6" />
+                <Icons.dollarSign className="h-6 w-6" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold">Bank Integration</h3>
