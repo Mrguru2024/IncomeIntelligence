@@ -207,17 +207,17 @@ function renderLoginForm() {
   
   const emailLabel = document.createElement('label');
   emailLabel.htmlFor = 'email';
-  emailLabel.textContent = 'Email';
+  emailLabel.textContent = 'Username or Email';
   emailLabel.style.display = 'block';
   emailLabel.style.marginBottom = '8px';
   emailLabel.style.fontWeight = '500';
   emailLabel.style.color = '#333333';
   
   const emailInput = document.createElement('input');
-  emailInput.type = 'email';
+  emailInput.type = "text";
   emailInput.id = 'email';
   emailInput.name = 'email';
-  emailInput.placeholder = 'Enter your email';
+  emailInput.placeholder = 'Enter your username or email';
   emailInput.required = true;
   emailInput.style.width = '100%';
   emailInput.style.padding = '10px 14px';
