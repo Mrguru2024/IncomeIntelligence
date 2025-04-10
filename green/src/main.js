@@ -1819,19 +1819,47 @@ function renderSettingsPage() {
 
 // Main render function
 function renderApp() {
-  const root = document.getElementById('root');
-  root.innerHTML = ''; // Clear previous content
+  const rootElement = document.getElementById('root');
+  rootElement.innerHTML = ''; // Clear previous content
   
   // Add responsive viewport classes to the body
   const width = window.innerWidth;
   document.body.classList.remove('viewport-mobile', 'viewport-tablet', 'viewport-desktop');
   
+  // Standard breakpoints:
+  // Mobile: < 640px
+  // Tablet: 640px - 1023px
+  // Desktop: >= 1024px
   if (width < 640) {
     document.body.classList.add('viewport-mobile');
+    console.log('Viewport: mobile');
   } else if (width < 1024) {
     document.body.classList.add('viewport-tablet');
+    console.log('Viewport: tablet');
   } else {
     document.body.classList.add('viewport-desktop');
+    console.log('Viewport: desktop');
+  }
+  
+  // Add responsive styles to root document
+  const htmlRoot = document.documentElement;
+  
+  // Set responsive spacing variables
+  if (width < 640) {
+    // Mobile spacing adjustments
+    htmlRoot.style.setProperty('--container-padding', 'var(--space-4)');
+    htmlRoot.style.setProperty('--card-gap', 'var(--space-4)');
+    htmlRoot.style.setProperty('--section-gap', 'var(--space-6)');
+  } else if (width < 1024) {
+    // Tablet spacing adjustments
+    htmlRoot.style.setProperty('--container-padding', 'var(--space-6)');
+    htmlRoot.style.setProperty('--card-gap', 'var(--space-5)');
+    htmlRoot.style.setProperty('--section-gap', 'var(--space-8)');
+  } else {
+    // Desktop spacing adjustments
+    htmlRoot.style.setProperty('--container-padding', 'var(--space-8)');
+    htmlRoot.style.setProperty('--card-gap', 'var(--space-6)');
+    htmlRoot.style.setProperty('--section-gap', 'var(--space-10)');
   }
   
   // Create application structure with responsive container
@@ -1895,7 +1923,7 @@ function renderApp() {
   appContainer.appendChild(footer);
   
   // Append the entire container to the root
-  root.appendChild(appContainer);
+  rootElement.appendChild(appContainer);
   
   // Debug info
   console.log(`Page rendered: ${appState.currentPage}`);
