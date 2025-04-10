@@ -484,6 +484,7 @@ function createFooter() {
         { name: 'Dashboard', url: '#dashboard' },
         { name: 'Income', url: '#income' },
         { name: 'Bank Accounts', url: '#bankconnections' },
+        { name: 'Affiliates', url: '#affiliates' },
         { name: 'Gigs', url: '#gigs' },
         { name: 'Settings', url: '#settings' }
       ]
@@ -1919,6 +1920,15 @@ function renderApp() {
       break;
     case 'gigs':
       main.appendChild(renderGigsPage());
+      break;
+    case 'affiliates':
+      // Import the affiliates hub page module
+      import('./affiliates-hub.js').then(module => {
+        main.appendChild(module.renderAffiliateHub(appState.user.id));
+      }).catch(error => {
+        console.error('Error loading affiliates hub module:', error);
+        main.appendChild(createErrorMessage('Failed to load affiliates hub module'));
+      });
       break;
     case 'bankconnections':
       // Import the bank connections page module if needed
