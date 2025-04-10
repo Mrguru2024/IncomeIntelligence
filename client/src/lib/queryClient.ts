@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryKey, QueryFunction } from "@tanstack/react-query";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,21 +43,27 @@ interface QueryFnOptions {
   on401?: 'throw' | 'returnNull';
 }
 
-export const getQueryFn = (options: QueryFnOptions = { on401: 'throw' }) => {
-  return async ({ queryKey }: { queryKey: string[] }) => {
-    const [endpoint] = queryKey;
+type QueryFnContext = {
+  queryKey: QueryKey;
+  signal: AbortSignal;
+  meta: Record<string, unknown> | undefined;
+};
+
+export const getQueryFn = <TData = unknown>(options: QueryFnOptions = { on401: 'throw' }): QueryFunction<TData, QueryKey> => {
+  return async ({ queryKey, signal }: QueryFnContext): Promise<TData> => {
+    const [endpoint] = queryKey as string[];
     
     try {
       const response = await apiRequest('GET', endpoint);
       
       if (!response.ok) {
         if (response.status === 401 && options.on401 === 'returnNull') {
-          return null;
+          return null as unknown as TData;
         }
         throw new Error(`Failed to fetch data from ${endpoint}`);
       }
       
-      return await response.json();
+      return await response.json() as TData;
     } catch (error) {
       console.error(`Error fetching from ${endpoint}:`, error);
       throw error;
