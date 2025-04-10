@@ -82,6 +82,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
 
+  // Redirect root to GREEN version
+  app.get("/", (req, res) => {
+    res.redirect('/green');
+  });
+
   // API health check
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
