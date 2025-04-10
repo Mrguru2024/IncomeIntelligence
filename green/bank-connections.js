@@ -95,8 +95,8 @@ function createConnectionCard(connection) {
   const card = document.createElement('div');
   card.classList.add('bank-connection-card');
   card.style.border = '1px solid var(--color-border)';
-  card.style.borderRadius = 'var(--border-radius)';
-  card.style.background = 'var(--color-card-bg)';
+  card.style.borderRadius = 'var(--radius-lg)';
+  card.style.background = 'var(--color-card)';
   card.style.overflow = 'hidden';
   card.style.marginBottom = '16px';
   card.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
@@ -403,8 +403,8 @@ export function renderBankConnectionsPage(userId) {
       emptyState.style.textAlign = 'center';
       emptyState.style.padding = '40px 0';
       emptyState.style.color = 'var(--color-text-secondary)';
-      emptyState.style.background = 'var(--color-background-alt)';
-      emptyState.style.borderRadius = 'var(--border-radius)';
+      emptyState.style.background = 'var(--color-card)';
+      emptyState.style.borderRadius = 'var(--radius-lg)';
       emptyState.style.marginBottom = '24px';
       
       const emptyIcon = document.createElement('div');
