@@ -7,6 +7,8 @@
   <meta name="description" content="Stackr Finance helps you track income, plan budgets with 40/30/30 splits, set financial goals, and get AI-powered financial advice." />
   <link rel="icon" type="image/svg+xml" href="/stackr-logo.svg" />
   <meta name="theme-color" content="#4F46E5" />
+  <!-- Allow scripts to run with permissive CSP -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://replit.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.stripe.com https://fonts.googleapis.com https://api.plaid.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://js.stripe.com; object-src 'none';" />
   
   <!-- Enhanced debugging directly in HTML -->
   <style>
@@ -105,36 +107,41 @@
 <body>
   <div id="root"></div>
   
-  <!-- Inline a minimal app to show we can render without Firebase -->
+  <!-- Load our Firebase-free entry point -->
   <script type="module">
-    import React from 'react';
-    import ReactDOM from 'react-dom/client';
-    
-    window.debugLog("Loading minimal React app...");
+    window.debugLog("Loading Firebase-free entry point...");
     
     try {
-      // Render a minimal app first to verify React is working
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(
-        React.createElement('div', { style: { padding: '20px', marginTop: '220px' } },
-          React.createElement('h1', null, 'Stackr Finance - Clean Mode'),
-          React.createElement('p', null, 'Firebase-free implementation loading...'),
-          React.createElement('p', null, 'Check debug panel for details.')
-        )
-      );
-      window.debugLog("Minimal React app rendered successfully");
-      
-      // Now try to load our actual app entry point
-      window.debugLog("Loading clean entry point...");
-      import('/src/clean-entry.tsx')
+      // Import our no-firebase entry instead of regular entry point
+      import('/src/no-firebase-entry.tsx')
         .then(() => {
-          window.debugLog("Clean entry point loaded successfully");
+          window.debugLog("Firebase-free entry point loaded successfully");
         })
         .catch(err => {
-          window.debugLog("Error loading clean entry: " + err.message, true);
+          window.debugLog("Error loading Firebase-free entry: " + err.message, true);
+          
+          // We need to use a different syntax for React imports with dynamic imports
+          window.debugLog("Loading fallback minimal React app...");
+          
+          Promise.all([
+            import('react'),
+            import('react-dom/client')
+          ]).then(([React, ReactDOM]) => {
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(
+              React.createElement('div', { style: { padding: '20px', marginTop: '220px' } },
+                React.createElement('h1', null, 'Stackr Finance - Clean Mode'),
+                React.createElement('p', null, 'Error loading Firebase-free implementation'),
+                React.createElement('p', null, 'Check debug panel for details.')
+              )
+            );
+            window.debugLog("Fallback React app rendered successfully");
+          }).catch(importErr => {
+            window.debugLog("Error importing React: " + importErr.message, true);
+          });
         });
     } catch (err) {
-      window.debugLog("Fatal render error: " + err.message, true);
+      window.debugLog("Fatal error: " + err.message, true);
     }
   </script>
 

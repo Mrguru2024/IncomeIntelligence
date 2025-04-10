@@ -76,6 +76,46 @@ if (stripeSecretKey) {
 // JWT Authentication is now handled by the auth middleware
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Route for serving our Firebase-free version
+  app.get('/clean', (req, res) => {
+    try {
+      const cleanHtmlPath = path.resolve(process.cwd(), 'client', 'clean.html');
+      console.log('Serving clean HTML from:', cleanHtmlPath);
+      
+      if (fs.existsSync(cleanHtmlPath)) {
+        const html = fs.readFileSync(cleanHtmlPath, 'utf-8');
+        res.set('Content-Type', 'text/html');
+        res.send(html);
+      } else {
+        console.error('Clean HTML file not found at:', cleanHtmlPath);
+        res.status(404).send('Firebase-free version not available');
+      }
+    } catch (error) {
+      console.error('Error serving clean HTML:', error);
+      res.status(500).send('Error loading Firebase-free version');
+    }
+  });
+  
+  // Route for serving our completely standalone Firebase-free version
+  app.get('/standalone', (req, res) => {
+    try {
+      const standaloneHtmlPath = path.resolve(process.cwd(), 'client', 'standalone-clean.html');
+      console.log('Serving standalone HTML from:', standaloneHtmlPath);
+      
+      if (fs.existsSync(standaloneHtmlPath)) {
+        const html = fs.readFileSync(standaloneHtmlPath, 'utf-8');
+        res.set('Content-Type', 'text/html');
+        res.send(html);
+      } else {
+        console.error('Standalone HTML file not found at:', standaloneHtmlPath);
+        res.status(404).send('Standalone Firebase-free version not available');
+      }
+    } catch (error) {
+      console.error('Error serving standalone HTML:', error);
+      res.status(500).send('Error loading standalone Firebase-free version');
+    }
+  });
+  
   // Setup authentication routes
   setupAuth(app);
 
