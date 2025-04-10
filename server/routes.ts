@@ -50,7 +50,7 @@ import { requireProSubscription } from "./middleware/proSubscriptionMiddleware";
 import { spendingPersonalityService } from "./spending-personality-service";
 import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import Stripe from "stripe";
-import express from "express";
+// Express already imported at top
 import dotenv from "dotenv";
 
 // Load environment variables
