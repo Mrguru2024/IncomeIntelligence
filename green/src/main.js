@@ -1923,7 +1923,7 @@ function renderApp() {
       break;
     case 'affiliates':
       // Import the affiliates hub page module
-      import('./affiliates-hub.js').then(module => {
+      import('../affiliates-hub.js').then(module => {
         main.appendChild(module.renderAffiliateHub(appState.user.id));
       }).catch(error => {
         console.error('Error loading affiliates hub module:', error);
@@ -1932,7 +1932,7 @@ function renderApp() {
       break;
     case 'bankconnections':
       // Import the bank connections page module if needed
-      import('./bank-connections.js').then(module => {
+      import('../bank-connections.js').then(module => {
         main.appendChild(module.renderBankConnectionsPage(appState.user.id));
       }).catch(error => {
         console.error('Error loading bank connections module:', error);
