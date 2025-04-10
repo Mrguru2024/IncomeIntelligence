@@ -34,16 +34,17 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.openai.com", "https://plaid.com", "https://replit.com", "https://*.replit.dev", "wss://*.replit.dev"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://replit.com", "https://cdn.replit.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'", "https://api.openai.com", "https://plaid.com", "https://*.plaid.com", "https://cdn.plaid.com", "https://replit.com", "https://*.replit.dev", "wss://*.replit.dev"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://replit.com", "https://cdn.replit.com", "https://cdn.plaid.com", "https://*.plaid.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://cdn.plaid.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://*.plaid.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
       frameAncestors: ["'none'"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
       workerSrc: ["'self'", "blob:"],
+      frameSrc: ["'self'", "https://*.plaid.com"], // Allow Plaid iframes
     }
   },
   xssFilter: true,
