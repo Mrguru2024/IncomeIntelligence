@@ -1,220 +1,241 @@
 /**
- * Authentication Service
+ * Custom Authentication Service
  * 
- * This service replaces Firebase Authentication with a direct JWT-based authentication
- * system that works with our backend authentication routes.
+ * A Firebase-free authentication service that handles user authentication
+ * using our own backend API and JWT tokens.
  */
 
-// Types
+import { apiRequest } from './queryClient';
+
 export interface User {
   id: number;
   username: string;
   email?: string;
   role?: string;
-  token?: string;
   subscriptionStatus?: 'free' | 'basic' | 'pro';
+  createdAt?: string;
+  updatedAt?: string;
+  profileImageUrl?: string;
 }
 
-export interface RegisterCredentials {
+interface LoginCredentials {
+  username: string;
+  password: string;
+}
+
+interface RegisterCredentials {
   username: string;
   email: string;
   password: string;
 }
 
-export interface LoginCredentials {
-  username: string;
-  password: string;
+interface AuthChangeListener {
+  (user: User | null): void;
 }
 
-// Auth state management
-interface AuthState {
-  currentUser: User | null;
-  listeners: ((user: User | null) => void)[];
-}
-
-const authState: AuthState = {
-  currentUser: null,
-  listeners: [],
-};
-
-// Initialize auth state from local storage on load
-const initializeAuth = () => {
-  console.log('[AUTH] Initializing auth service');
-  const token = localStorage.getItem('token');
-  const userData = localStorage.getItem('user');
+class AuthService {
+  private currentUser: User | null = null;
+  private token: string | null = null;
+  private listeners: AuthChangeListener[] = [];
   
-  if (token && userData) {
+  constructor() {
+    // Check for existing auth session on init
+    this.checkAuthStatus();
+  }
+
+  /**
+   * Check if user is already authenticated from previous session
+   */
+  private async checkAuthStatus(): Promise<void> {
     try {
-      const user = JSON.parse(userData) as User;
-      authState.currentUser = user;
-      console.log('[AUTH] User loaded from local storage');
+      const response = await apiRequest('GET', '/api/user');
+      if (response.ok) {
+        const user = await response.json();
+        this.setCurrentUser(user);
+      } else {
+        this.setCurrentUser(null);
+      }
     } catch (error) {
-      console.error('[AUTH] Error parsing user data from local storage', error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      console.error('Error checking auth status:', error);
+      this.setCurrentUser(null);
     }
   }
-};
 
-// Initialize on import
-initializeAuth();
+  /**
+   * Update current user and notify listeners
+   */
+  private setCurrentUser(user: User | null): void {
+    this.currentUser = user;
+    // Notify all listeners about the auth state change
+    this.listeners.forEach(listener => listener(user));
+  }
 
-// Auth service functions
-export const authService = {
   /**
    * Register a new user
    */
   async register(credentials: RegisterCredentials): Promise<User> {
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'Registration failed' }));
-      throw new Error(errorData.message || 'Registration failed');
-    }
-    
-    const userData = await response.json() as User;
-    
-    // Store auth data
-    if (userData.token) {
-      localStorage.setItem('token', userData.token);
-      localStorage.setItem('user', JSON.stringify(userData));
+    try {
+      const response = await apiRequest('POST', '/api/register', credentials);
       
-      // Update state
-      authState.currentUser = userData;
-      authState.listeners.forEach(listener => listener(userData));
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+      
+      const user = await response.json();
+      this.setCurrentUser(user);
+      return user;
+    } catch (error) {
+      throw error;
     }
-    
-    return userData;
-  },
-  
+  }
+
   /**
-   * Login an existing user
+   * Log in an existing user
    */
   async login(credentials: LoginCredentials): Promise<User> {
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'Login failed' }));
-      throw new Error(errorData.message || 'Login failed');
-    }
-    
-    const userData = await response.json() as User;
-    
-    // Store auth data
-    if (userData.token) {
-      localStorage.setItem('token', userData.token);
-      localStorage.setItem('user', JSON.stringify(userData));
+    try {
+      const response = await apiRequest('POST', '/api/login', credentials);
       
-      // Update state
-      authState.currentUser = userData;
-      authState.listeners.forEach(listener => listener(userData));
+      if (!response.ok) {
+        throw new Error('Login failed. Please check your credentials.');
+      }
+      
+      const user = await response.json();
+      this.setCurrentUser(user);
+      return user;
+    } catch (error) {
+      throw error;
     }
-    
-    return userData;
-  },
-  
+  }
+
   /**
-   * Logout the current user
+   * Log out the current user
    */
   async logout(): Promise<void> {
     try {
-      await fetch('/api/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      await apiRequest('POST', '/api/logout');
+      this.setCurrentUser(null);
+      this.token = null;
     } catch (error) {
-      console.error('[AUTH] Error during logout', error);
-    } finally {
-      // Clear local storage and state regardless of logout API success
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      authState.currentUser = null;
-      authState.listeners.forEach(listener => listener(null));
+      console.error('Error during logout:', error);
+      throw error;
     }
-  },
-  
+  }
+
   /**
-   * Get the current user
+   * Get the current authenticated user
    */
   getCurrentUser(): User | null {
-    return authState.currentUser;
-  },
-  
+    return this.currentUser;
+  }
+
   /**
-   * Subscribe to auth state changes
-   * Returns unsubscribe function
+   * Check if user is authenticated
    */
-  onAuthStateChanged(callback: (user: User | null) => void): () => void {
-    authState.listeners.push(callback);
+  isAuthenticated(): boolean {
+    return !!this.currentUser;
+  }
+
+  /**
+   * Subscribe to authentication state changes
+   * Returns an unsubscribe function
+   */
+  onAuthStateChanged(listener: AuthChangeListener): () => void {
+    this.listeners.push(listener);
     
     // Call immediately with current state
-    callback(authState.currentUser);
+    listener(this.currentUser);
     
     // Return unsubscribe function
     return () => {
-      authState.listeners = authState.listeners.filter(listener => listener !== callback);
+      this.listeners = this.listeners.filter(l => l !== listener);
     };
-  },
-  
-  /**
-   * Check if the user is logged in
-   */
-  isLoggedIn(): boolean {
-    return !!authState.currentUser;
-  },
-  
-  /**
-   * Get auth token
-   */
-  getToken(): string | null {
-    return localStorage.getItem('token');
-  },
-  
-  /**
-   * Set persistence (mock function for Firebase compatibility)
-   */
-  setPersistence(): Promise<void> {
-    console.log('[AUTH] Auth persistence set to local');
-    return Promise.resolve();
-  },
-};
+  }
 
-// Firebase compatibility layer - export functions that match Firebase API
-export const getAuth = () => {
-  console.log('[AUTH-COMPAT] GetAuth called');
-  
-  return {
-    currentUser: authState.currentUser,
-    onAuthStateChanged: authService.onAuthStateChanged,
-    signInWithEmailAndPassword: (email: string, password: string) => {
-      return authService.login({ username: email, password });
-    },
-    createUserWithEmailAndPassword: (email: string, password: string) => {
-      return authService.register({ 
-        username: email.split('@')[0], 
-        email, 
-        password 
+  /**
+   * Update user profile
+   */
+  async updateProfile(updates: Partial<User>): Promise<User> {
+    if (!this.currentUser) {
+      throw new Error('No authenticated user');
+    }
+    
+    try {
+      const response = await apiRequest('PATCH', `/api/user/${this.currentUser.id}`, updates);
+      
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
+      }
+      
+      const updatedUser = await response.json();
+      this.setCurrentUser(updatedUser);
+      return updatedUser;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Change user password
+   */
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    if (!this.currentUser) {
+      throw new Error('No authenticated user');
+    }
+    
+    try {
+      const response = await apiRequest('POST', '/api/change-password', {
+        currentPassword,
+        newPassword
       });
-    },
-    signOut: authService.logout,
-    setPersistence: () => Promise.resolve(),
-  };
-};
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to change password');
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  /**
+   * Request password reset
+   */
+  async requestPasswordReset(email: string): Promise<void> {
+    try {
+      const response = await apiRequest('POST', '/api/request-password-reset', { email });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to request password reset');
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  /**
+   * Reset password with token
+   */
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    try {
+      const response = await apiRequest('POST', '/api/reset-password', {
+        token,
+        newPassword
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to reset password');
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+}
 
-// Default export for module compatibility
+// Create a singleton instance of the auth service
+const authService = new AuthService();
+
 export default authService;

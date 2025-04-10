@@ -46,10 +46,10 @@ function Router() {
       <ProtectedRoute path="/security" component={TwoFactorAuthPage} />
       <ProtectedRoute path="/voice-commands" component={VoiceCommands} />
       <ProtectedRoute path="/onboarding" component={OnboardingPage} />
-      <ProtectedRoute path="/subscribe" component={SubscribePage} />
+      <ProtectedRoute path="/subscribe-page" component={SubscribePage} />
       <ProtectedRoute path="/subscription" component={SubscriptionPage} />
-      <ProtectedRoute path="/checkout" component={CheckoutPage} />
-      <ProtectedRoute path="/checkout/success" component={CheckoutSuccessPage} />
+      <ProtectedRoute path="/checkout-page" component={CheckoutPage} />
+      <ProtectedRoute path="/checkout-success" component={CheckoutSuccessPage} />
       <ProtectedRoute path="/income-hub" component={IncomeHub} />
       <ProtectedRoute path="/pricing" component={PricingPage} />
       <ProtectedRoute path="/income-hub/gigs" component={StackrGigs} />
