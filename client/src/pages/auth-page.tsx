@@ -97,6 +97,10 @@ export default function AuthPage() {
           title: 'Registration successful',
           description: 'Welcome to Stackr Finance!',
         });
+        // Redirect new users to onboarding flow
+        setTimeout(() => {
+          navigate('/onboarding');
+        }, 1000);
       },
     });
   };

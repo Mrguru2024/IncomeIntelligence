@@ -48,12 +48,9 @@ export function usePlaidLink(userId: number): UsePlaidLinkResult {
 
     try {
       // Request link token from our server
-      const response = await apiRequest("/api/plaid/create-link-token", {
-        method: "POST",
-        body: JSON.stringify({ userId }),
-      });
-
-      setLinkToken(response.linkToken);
+      const response = await apiRequest("POST", "/api/plaid/create-link-token", { userId });
+      const data = await response.json();
+      setLinkToken(data.linkToken);
     } catch (err) {
       console.error("Error creating link token:", err);
       setError(err as Error);
@@ -75,13 +72,10 @@ export function usePlaidLink(userId: number): UsePlaidLinkResult {
 
       try {
         // Send to our backend to exchange token and save connection
-        await apiRequest("/api/plaid/exchange-token", {
-          method: "POST",
-          body: JSON.stringify({
-            userId,
-            publicToken,
-            metadata,
-          }),
+        await apiRequest("POST", "/api/plaid/exchange-token", {
+          userId,
+          publicToken,
+          metadata,
         });
 
         toast({
