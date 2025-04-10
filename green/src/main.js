@@ -109,6 +109,42 @@ const appState = {
   }
 };
 
+// Check user authentication status and load user data
+function checkAuthentication() {
+  // Import authentication functions from login.js
+  import('../login.js').then(auth => {
+    // Check if user is authenticated
+    const isAuthenticated = auth.isAuthenticated();
+    appState.user.isAuthenticated = isAuthenticated;
+    
+    if (isAuthenticated) {
+      // Get user data from localStorage
+      const userData = auth.getCurrentUser();
+      if (userData) {
+        appState.user.id = userData.id || 1;
+        appState.user.name = userData.username || 'User';
+        appState.user.email = userData.email || '';
+        appState.user.role = userData.role || 'user';
+        appState.user.subscriptionStatus = userData.subscriptionStatus || 'free';
+        
+        console.log('User authenticated:', userData.username);
+        
+        // Re-render the app with authenticated user data
+        renderApp();
+      }
+    } else {
+      // If the user is trying to access a protected route, redirect to login
+      const nonAuthRoutes = ['login', 'register', 'about', 'pricing'];
+      if (!nonAuthRoutes.includes(appState.currentPage)) {
+        console.log('User not authenticated, redirecting to login page');
+        navigateTo('login');
+      }
+    }
+  }).catch(error => {
+    console.error('Failed to load authentication module:', error);
+  });
+}
+
 // Load data from localStorage if available
 function loadStateFromStorage() {
   const savedState = localStorage.getItem('stackrGreenState');
@@ -116,14 +152,17 @@ function loadStateFromStorage() {
     const parsedState = JSON.parse(savedState);
     // Merge with existing state
     appState.incomeEntries = parsedState.incomeEntries || [];
-    if (parsedState.user) {
-      appState.user.id = parsedState.user.id || 1; // Preserve user ID or use default
+    if (parsedState.user && !appState.user.isAuthenticated) { 
+      // Only use localStorage user data if not authenticated via login
+      appState.user.id = parsedState.user.id || 1;
       appState.user.name = parsedState.user.name || 'User';
       appState.user.splitRatio = parsedState.user.splitRatio || { needs: 40, investments: 30, savings: 30 };
-      appState.user.isAuthenticated = parsedState.user.isAuthenticated || false;
     }
     console.log('Data loaded from localStorage');
   }
+  
+  // Check authentication status after loading local state
+  checkAuthentication();
 }
 
 // Save data to localStorage
@@ -1916,40 +1955,67 @@ function renderApp() {
     document.head.appendChild(style);
   }
   
-  // Render different pages based on the current page state
-  switch(appState.currentPage) {
-    case 'dashboard':
-      main.appendChild(renderDashboardPage());
-      break;
-    case 'income':
-      main.appendChild(renderIncomePage());
-      break;
-    case 'gigs':
-      main.appendChild(renderGigsPage());
-      break;
-    case 'affiliates':
-      // Import the affiliates hub page module
-      import('../affiliates-hub.js').then(module => {
-        main.appendChild(module.renderAffiliateHub(appState.user.id));
-      }).catch(error => {
-        console.error('Error loading affiliates hub module:', error);
-        main.appendChild(createErrorMessage('Failed to load affiliates hub module'));
-      });
-      break;
-    case 'bankconnections':
-      // Import the bank connections page module if needed
-      import('../bank-connections.js').then(module => {
-        main.appendChild(module.renderBankConnectionsPage(appState.user.id));
-      }).catch(error => {
-        console.error('Error loading bank connections module:', error);
-        main.appendChild(createErrorMessage('Failed to load bank connections module'));
-      });
-      break;
-    case 'settings':
-      main.appendChild(renderSettingsPage());
-      break;
-    default:
-      main.appendChild(renderDashboardPage());
+  // Special cases for login/register pages - they don't need the full app layout
+  if (appState.currentPage === 'login' || appState.currentPage === 'register') {
+    // Don't show the header for authentication pages
+    appContainer.removeChild(header);
+    
+    // Import and render the auth page
+    import('../login.js').then(module => {
+      main.appendChild(module.renderAuthPage());
+    }).catch(error => {
+      console.error('Error loading auth module:', error);
+      main.appendChild(createErrorMessage('Failed to load authentication module'));
+    });
+    
+    // Add special full-height styling for auth page
+    main.style.padding = '0';
+    main.style.maxWidth = 'none';
+  } else {
+    // Only check for auth on protected pages
+    if (!appState.user.isAuthenticated) {
+      const nonAuthRoutes = ['login', 'register', 'about', 'pricing'];
+      if (!nonAuthRoutes.includes(appState.currentPage)) {
+        console.log('User not authenticated, redirecting to login page');
+        navigateTo('login');
+        return; // Stop rendering protected page
+      }
+    }
+    
+    // Render different pages based on the current page state
+    switch(appState.currentPage) {
+      case 'dashboard':
+        main.appendChild(renderDashboardPage());
+        break;
+      case 'income':
+        main.appendChild(renderIncomePage());
+        break;
+      case 'gigs':
+        main.appendChild(renderGigsPage());
+        break;
+      case 'affiliates':
+        // Import the affiliates hub page module
+        import('../affiliates-hub.js').then(module => {
+          main.appendChild(module.renderAffiliateHub(appState.user.id));
+        }).catch(error => {
+          console.error('Error loading affiliates hub module:', error);
+          main.appendChild(createErrorMessage('Failed to load affiliates hub module'));
+        });
+        break;
+      case 'bankconnections':
+        // Import the bank connections page module if needed
+        import('../bank-connections.js').then(module => {
+          main.appendChild(module.renderBankConnectionsPage(appState.user.id));
+        }).catch(error => {
+          console.error('Error loading bank connections module:', error);
+          main.appendChild(createErrorMessage('Failed to load bank connections module'));
+        });
+        break;
+      case 'settings':
+        main.appendChild(renderSettingsPage());
+        break;
+      default:
+        main.appendChild(renderDashboardPage());
   }
   
   appContainer.appendChild(main);
