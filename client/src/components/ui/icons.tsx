@@ -23,13 +23,12 @@ import {
   Twitter,
   User,
   X,
-  type Icon as LucideIcon,
+  Menu,
   
   // Icons for income categories
   Wrench,
   Bell,
   MessageSquare,
-  Tool,
   ShoppingBag,
   Briefcase,
   Link,
@@ -39,6 +38,7 @@ import {
   TrendingUp,
   Package,
   Award,
+  Hammer, // Instead of Tool
   
   // Icons for financial features
   DollarSign,
@@ -78,7 +78,7 @@ import {
   ArrowUp,
   Maximize,
   Minimize,
-  Rotate3D,
+  RotateCw,
   Share2,
   Copy,
   List,
@@ -88,16 +88,8 @@ import {
   CornerRightDown
 } from 'lucide-react';
 
-import type { LucideProps } from 'lucide-react';
-
-export type Icon = typeof LucideIcon;
-
-type IconsType = {
-  [key: string]: Icon;
-};
-
-// Define the icons mapping
-export const Icons: IconsType = {
+// A simple object mapping of icon names to components
+export const Icons = {
   // Core icons
   logo: Command,
   close: X,
@@ -121,12 +113,13 @@ export const Icons: IconsType = {
   moon: Moon,
   laptop: Laptop,
   twitter: Twitter,
+  menu: Menu,
   
   // Income categories
   wrench: Wrench,
   bell: Bell,
   messagesSquare: MessageSquare,
-  tool: Tool,
+  tool: Hammer, // Using Hammer instead of Tool
   shoppingBag: ShoppingBag,
   briefcase: Briefcase,
   link: Link,
@@ -177,7 +170,7 @@ export const Icons: IconsType = {
   arrowUp: ArrowUp,
   maximize: Maximize,
   minimize: Minimize,
-  rotate: Rotate3D,
+  rotate: RotateCw,
   share: Share2,
   copy: Copy,
   list: List,
@@ -185,16 +178,4 @@ export const Icons: IconsType = {
   columns: Columns,
   enter: CornerDownLeft,
   exit: CornerRightDown,
-};
-
-/**
- * Retrieves an icon by its name with the specified props
- */
-interface IconProps extends LucideProps {
-  name: keyof typeof Icons;
-}
-
-export const Icon = ({ name, ...props }: IconProps) => {
-  const LucideIcon = Icons[name];
-  return <LucideIcon {...props} />;
 };
