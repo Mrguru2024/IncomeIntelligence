@@ -223,13 +223,58 @@ function renderLoginForm() {
   passwordGroup.appendChild(passwordInput);
   formEl.appendChild(passwordGroup);
   
+  // Remember Me checkbox
+  const rememberMeGroup = document.createElement('div');
+  rememberMeGroup.classList.add('form-group');
+  rememberMeGroup.style.marginBottom = '20px';
+  rememberMeGroup.style.display = 'flex';
+  rememberMeGroup.style.alignItems = 'center';
+  
+  const rememberMeCheckbox = document.createElement('input');
+  rememberMeCheckbox.type = 'checkbox';
+  rememberMeCheckbox.id = 'rememberMe';
+  rememberMeCheckbox.name = 'rememberMe';
+  rememberMeCheckbox.style.marginRight = '8px';
+  
+  const rememberMeLabel = document.createElement('label');
+  rememberMeLabel.htmlFor = 'rememberMe';
+  rememberMeLabel.textContent = 'Remember me';
+  rememberMeLabel.style.fontSize = '14px';
+  rememberMeLabel.style.cursor = 'pointer';
+  rememberMeLabel.style.color = '#555';
+  
+  rememberMeGroup.appendChild(rememberMeCheckbox);
+  rememberMeGroup.appendChild(rememberMeLabel);
+  formEl.appendChild(rememberMeGroup);
+  
   // Submit button
   const submitButton = document.createElement('button');
   submitButton.type = 'submit';
   submitButton.textContent = 'Log In';
   submitButton.classList.add('btn', 'btn-primary');
   submitButton.style.width = '100%';
+  submitButton.style.padding = '12px';
   submitButton.style.marginBottom = '16px';
+  submitButton.style.borderRadius = '8px';
+  submitButton.style.fontSize = '16px';
+  submitButton.style.fontWeight = '600';
+  submitButton.style.color = 'white';
+  submitButton.style.background = 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)';
+  submitButton.style.border = 'none';
+  submitButton.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.1)';
+  submitButton.style.cursor = 'pointer';
+  submitButton.style.transition = 'all 0.2s ease';
+
+  // Add hover effect
+  submitButton.onmouseover = () => {
+    submitButton.style.transform = 'translateY(-2px)';
+    submitButton.style.boxShadow = '0 6px 15px rgba(0, 0, 0, 0.15)';
+  };
+  submitButton.onmouseout = () => {
+    submitButton.style.transform = 'translateY(0)';
+    submitButton.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.1)';
+  };
+  
   formEl.appendChild(submitButton);
   
   // Switch to register link
@@ -405,7 +450,28 @@ function renderRegisterForm() {
   submitButton.textContent = 'Create Account';
   submitButton.classList.add('btn', 'btn-primary');
   submitButton.style.width = '100%';
+  submitButton.style.padding = '12px';
   submitButton.style.marginBottom = '16px';
+  submitButton.style.borderRadius = '8px';
+  submitButton.style.fontSize = '16px';
+  submitButton.style.fontWeight = '600';
+  submitButton.style.color = 'white';
+  submitButton.style.background = 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)';
+  submitButton.style.border = 'none';
+  submitButton.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.1)';
+  submitButton.style.cursor = 'pointer';
+  submitButton.style.transition = 'all 0.2s ease';
+
+  // Add hover effect
+  submitButton.onmouseover = () => {
+    submitButton.style.transform = 'translateY(-2px)';
+    submitButton.style.boxShadow = '0 6px 15px rgba(0, 0, 0, 0.15)';
+  };
+  submitButton.onmouseout = () => {
+    submitButton.style.transform = 'translateY(0)';
+    submitButton.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.1)';
+  };
+  
   formEl.appendChild(submitButton);
   
   // Switch to login link
