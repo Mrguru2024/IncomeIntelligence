@@ -51,9 +51,7 @@ import { spendingPersonalityService } from "./spending-personality-service";
 import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import Stripe from "stripe";
 import express from "express";
-import fs from "fs";
 import dotenv from "dotenv";
-import path from "path";
 
 // Load environment variables
 dotenv.config();
@@ -3883,6 +3881,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Error serving minimal app:", err);
       res.status(500).send(`Error serving minimal app: ${err}`);
+    }
+  });
+  
+  // Special route for Firebase-free version
+  app.get('/fb-free', (req, res) => {
+    try {
+      // Use the client/firebase-free.html file we created
+      const fbFreePath = path.join(process.cwd(), 'client', 'firebase-free.html');
+      console.log("Serving Firebase-free HTML from:", fbFreePath);
+      
+      const content = fs.readFileSync(fbFreePath, 'utf-8');
+      res.setHeader('Content-Type', 'text/html');
+      res.send(content);
+    } catch (err) {
+      console.error("Error serving Firebase-free app:", err);
+      res.status(500).send(`Error serving Firebase-free app: ${err}`);
     }
   });
 
