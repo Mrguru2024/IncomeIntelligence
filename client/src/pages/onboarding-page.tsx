@@ -76,7 +76,7 @@ export default function OnboardingPage() {
   // If the user has already completed onboarding, redirect to the dashboard
   useEffect(() => {
     if (userData?.onboardingCompleted) {
-      navigate("/");
+      setLocation("/");
     } else if (
       userData?.onboardingStep &&
       userData.onboardingStep !== "welcome"
@@ -84,7 +84,7 @@ export default function OnboardingPage() {
       // Resume from the saved step
       setCurrentStep(userData.onboardingStep as OnboardingStep);
     }
-  }, [userData, navigate]);
+  }, [userData, setLocation]);
 
   // Calculate progress percentage based on current step
   useEffect(() => {
@@ -139,7 +139,7 @@ export default function OnboardingPage() {
 
       // Redirect after a short delay
       setTimeout(() => {
-        navigate("/");
+        setLocation("/");
       }, 1500);
     }
   };
@@ -425,7 +425,7 @@ export default function OnboardingPage() {
             </CardContent>
             <CardFooter className="flex justify-center">
               <Button
-                onClick={() => navigate("/")}
+                onClick={() => setLocation("/")}
                 className="flex items-center"
               >
                 Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
