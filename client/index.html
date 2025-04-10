@@ -8,10 +8,33 @@
   <link rel="icon" type="image/svg+xml" href="/stackr-logo.svg" />
   <meta name="theme-color" content="#4F46E5" />
   <!-- No Firebase scripts or modules are loaded -->
+  
+  <!-- Directly add Firebase mocking to avoid any import issues -->
+  <script>
+    // Immediately mock Firebase to prevent any real initialization
+    window.firebase = {
+      initializeApp: () => ({
+        name: 'mock-app',
+        options: { projectId: 'mock-project-id' }
+      }),
+      auth: {
+        getAuth: () => ({
+          currentUser: null,
+          onAuthStateChanged: (cb) => { setTimeout(() => cb && cb(null), 0); return () => {}; },
+          signOut: () => Promise.resolve(),
+          // Completely remove setPersistence - don't even define it
+          signInWithEmailAndPassword: () => Promise.resolve({ user: null })
+        })
+      }
+    };
+    
+    // Log that we've pre-mocked Firebase
+    console.log('[PRE-MOCK] Firebase pre-mocked before any module imports');
+  </script>
 </head>
 <body>
   <div id="root"></div>
-  <script type="module" src="/src/clean-entry.tsx"></script>
+  <script type="module" src="/src/standalone-main.tsx"></script>
 
   <!-- Replit badge -->
   <script

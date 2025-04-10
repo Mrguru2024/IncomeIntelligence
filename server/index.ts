@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { createServer } from "http"; // Add this import explicitly
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
@@ -430,10 +431,49 @@ app.use((req, res, next) => {
   // Always use clean version
   const useCleanVersion = true;
   
-  // Serve our primary entry point
+  // Serve our primary entry point with a completely static version that has ZERO JavaScript
   app.get('/', (req, res) => {
-    console.log('Redirecting to clean version');
-    res.redirect('/clean');
+    console.log('Serving complete static version with no JavaScript at all');
+    
+    // Path to our static HTML file
+    const staticHtmlPath = path.join(dirname, '../client/standalone.html');
+    
+    if (fs.existsSync(staticHtmlPath)) {
+      // Set cache-control headers to ensure fresh content
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+      
+      // Send the static file
+      res.sendFile(staticHtmlPath);
+    } else {
+      console.error('Static HTML file not found at:', staticHtmlPath);
+      // Fall back to the simple maintenance page
+      res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Stackr - Maintenance</title>
+          <style>
+            body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+            h1 { color: #4f46e5; }
+            .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+          </style>
+        </head>
+        <body>
+          <h1>Stackr Finance</h1>
+          <div class="card">
+            <h2>Maintenance Mode</h2>
+            <p>We're currently performing maintenance to remove Firebase dependencies. Please check back shortly.</p>
+            <p>The backend API remains fully functional during this maintenance.</p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
   });
   
   // Handle all other routes except API routes and special routes
@@ -469,19 +509,12 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Serve the app on port 5001
-  // this serves both the API and the client.
-  // Changed from port 5000 to avoid conflicts.
-  const startServer = async (port = 5001) => {
-    try {
-      server.listen(port, '0.0.0.0', () => {
-        log(`Server is running on port ${port}`);
-      });
-    } catch (err: any) {
-      log(`Failed to start server: ${err.message}`);
-      throw err;
-    }
-  };
-
-  startServer();
+  // IMPORTANT: Replit workflows are configured for port 5000
+  // use this port or the workflow won't be able to connect
+  const port = 5000;
+  
+  // Start server
+  server.listen(port, '0.0.0.0', () => {
+    log(`Server is running on port ${port} - Replit compatible`);
+  });
 })();

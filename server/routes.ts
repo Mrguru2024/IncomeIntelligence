@@ -4017,6 +4017,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
+  // Special route to serve the Firebase-free version
+  app.get("/firebase-free", (req, res) => {
+    try {
+      const standaloneHtmlPath = path.resolve(process.cwd(), "client", "standalone.html");
+      console.log(`Serving Firebase-free version from: ${standaloneHtmlPath}`);
+      res.sendFile(standaloneHtmlPath);
+    } catch (error) {
+      console.error("Error serving Firebase-free HTML:", error);
+      res.status(500).send("Error loading Firebase-free version");
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

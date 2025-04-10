@@ -42,7 +42,7 @@ export default function bannedModulesPlugin() {
 
   return {
     name: 'banned-modules-plugin',
-    enforce: 'pre',
+    enforce: "pre", // must be "pre" or "post" or undefined
     
     resolveId(id, importer) {
       // Check if the module ID contains any banned keywords
