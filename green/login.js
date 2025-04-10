@@ -568,7 +568,7 @@ export function renderAuthPage() {
   layoutContainer.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.1)';
   layoutContainer.style.maxWidth = '1000px';
   layoutContainer.style.width = '100%';
-  layoutContainer.style.background = 'var(--color-card)';
+  layoutContainer.style.background = 'white';
   
   // Create hero column
   const heroCol = document.createElement('div');
@@ -647,6 +647,8 @@ export function renderAuthPage() {
   formCol.style.display = 'flex';
   formCol.style.flexDirection = 'column';
   formCol.style.justifyContent = 'center';
+  formCol.style.backgroundColor = 'white';
+  formCol.style.color = '#333333';
   
   // Determine if user wants login or register based on hash
   const authContainer = document.createElement('div');
