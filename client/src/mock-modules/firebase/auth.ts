@@ -1,21 +1,8 @@
 /**
- * COMPLETE FIREBASE MOCK MODULE
- * 
- * This provides a fully compatible Firebase API without using any real Firebase services
+ * Complete mock for firebase/auth
  */
 
-console.log("[FIREBASE-MOCK] Loading complete Firebase mock implementation");
-
-// Create a mock Firebase app object with all required properties and methods
-const mockApp = {
-  name: 'stackr-mock-app',
-  options: {
-    projectId: 'stackr-finance-mock',
-    apiKey: 'mock-api-key-123456',
-    authDomain: 'mock-auth-domain.example.com'
-  },
-  automaticDataCollectionEnabled: false
-};
+console.log('[FIREBASE-MOCK] Loading firebase/auth mock');
 
 // Mock auth functions and state
 const mockAuthState = {
@@ -24,7 +11,7 @@ const mockAuthState = {
 };
 
 // Mock auth provider
-const mockAuth = {
+export const mockAuth = {
   signInWithEmailAndPassword: (email: string, password: string) => {
     console.log('[FIREBASE-MOCK] Mock sign in:', email);
     return Promise.resolve({ 
@@ -70,55 +57,39 @@ const mockAuth = {
   }
 };
 
-// Main exported functions that follow the Firebase API
-export function initializeApp(config?: any) {
-  console.log('[FIREBASE-MOCK] InitializeApp called with config:', config || 'default config');
-  return mockApp;
-}
-
+// Main exported functions for auth
 export function getAuth() {
-  console.log('[FIREBASE-MOCK] GetAuth called');
+  console.log('[FIREBASE-MOCK] getAuth called from firebase/auth');
   return mockAuth;
 }
 
-export function getFirestore() {
-  console.log('[FIREBASE-MOCK] GetFirestore called');
-  return {};
-}
-
-// Direct exports for commonly imported objects
-export const app = mockApp;
-export const auth = mockAuth;
-export const db = {};
-
 // Auth related exports
-export const GoogleAuthProvider = class {
+export class GoogleAuthProvider {
   static credential() { return {}; }
   static PROVIDER_ID = 'google.com';
-};
+}
 
-export const signInWithRedirect = () => {
-  console.log('[FIREBASE-MOCK] SignInWithRedirect called');
+export function signInWithRedirect() {
+  console.log('[FIREBASE-MOCK] SignInWithRedirect called from firebase/auth');
   return Promise.resolve();
-};
+}
 
-export const getRedirectResult = () => {
-  console.log('[FIREBASE-MOCK] GetRedirectResult called');
+export function getRedirectResult() {
+  console.log('[FIREBASE-MOCK] GetRedirectResult called from firebase/auth');
   return Promise.resolve(null);
-};
+}
 
 // Persistence types for auth
 export const browserLocalPersistence = 'LOCAL';
 export const browserSessionPersistence = 'SESSION';
-export const setPersistence = () => Promise.resolve();
+export function setPersistence() {
+  console.log('[FIREBASE-MOCK] setPersistence called from firebase/auth');
+  return Promise.resolve();
+}
 
-// Default export for compatibility with 'import firebase from "firebase/app"'
+// Default export
 export default {
-  initializeApp,
-  app: mockApp,
-  auth: mockAuth,
   getAuth,
-  getFirestore,
   GoogleAuthProvider,
   signInWithRedirect,
   getRedirectResult,

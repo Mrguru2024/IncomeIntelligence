@@ -73,14 +73,14 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, '../shared'),
       '@assets': path.resolve(__dirname, '../attached_assets'),
       
-      // Map all problematic modules to our persistence-free mock implementation
-      'firebase': path.resolve(__dirname, './src/lib/mocks/persistence-free-firebase.ts'),
-      'firebase/app': path.resolve(__dirname, './src/lib/mocks/persistence-free-firebase.ts'),
-      'firebase/auth': path.resolve(__dirname, './src/lib/mocks/persistence-free-firebase.ts'),
-      'firebase/firestore': path.resolve(__dirname, './src/lib/mocks/persistence-free-firebase.ts'),
-      '@firebase/app': path.resolve(__dirname, './src/lib/mocks/persistence-free-firebase.ts'),
-      '@firebase/auth': path.resolve(__dirname, './src/lib/mocks/persistence-free-firebase.ts'),
-      '@firebase/firestore': path.resolve(__dirname, './src/lib/mocks/persistence-free-firebase.ts'),
+      // Map all Firebase-related modules to our comprehensive mock implementations
+      'firebase': path.resolve(__dirname, './src/lib/firebase.ts'),
+      'firebase/app': path.resolve(__dirname, './src/mock-modules/firebase/app.ts'),
+      'firebase/auth': path.resolve(__dirname, './src/mock-modules/firebase/auth.ts'),
+      'firebase/firestore': path.resolve(__dirname, './src/lib/firebase.ts'),
+      '@firebase/app': path.resolve(__dirname, './src/mock-modules/firebase/app.ts'),
+      '@firebase/auth': path.resolve(__dirname, './src/mock-modules/firebase/auth.ts'),
+      '@firebase/firestore': path.resolve(__dirname, './src/lib/firebase.ts'),
       '@sanity/client': mockModulePath,
       'sanity': mockModulePath
     }
