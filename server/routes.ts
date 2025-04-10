@@ -3105,6 +3105,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
     
+    // Verify subscription status - used by checkout success page
+    app.get('/api/verify-subscription', requireAuth, async (req, res) => {
+      try {
+        const userId = req.user?.id;
+        if (!userId) {
+          return res.status(401).json({ message: 'Unauthorized' });
+        }
+        
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        
+        // If user has a Stripe subscription ID, verify it with Stripe
+        if (user.stripeSubscriptionId && stripe) {
+          try {
+            const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+            
+            // Check if subscription is active
+            const isActive = ['active', 'trialing'].includes(subscription.status);
+            
+            if (isActive) {
+              // Get subscription details
+              const subscriptionInfo = {
+                status: subscription.status,
+                currentPeriodEnd: subscription.current_period_end,
+                plan: subscription.items.data[0]?.price.nickname || 'Stackr Pro',
+                isPro: true
+              };
+              
+              return res.json({
+                verified: true,
+                subscription: subscriptionInfo
+              });
+            } else {
+              // Inactive subscription
+              await storage.updateUserSubscription(userId, 'free', false, undefined, undefined);
+              return res.json({
+                verified: false,
+                reason: 'Subscription inactive',
+                subscription: { status: subscription.status }
+              });
+            }
+          } catch (error) {
+            console.error('Error verifying subscription with Stripe:', error);
+            // If we can't verify with Stripe, trust the database
+            return res.json({
+              verified: user.subscriptionTier !== 'free' && user.subscriptionActive === true,
+              subscription: {
+                tier: user.subscriptionTier,
+                active: user.subscriptionActive
+              }
+            });
+          }
+        } 
+        // For lifetime subscribers without a Stripe subscription or users on free tier
+        else if (user.subscriptionTier === 'lifetime' || user.subscriptionTier === 'free') {
+          return res.json({
+            verified: true,
+            subscription: {
+              tier: user.subscriptionTier,
+              isPro: user.subscriptionTier !== 'free',
+              isLifetime: user.subscriptionTier === 'lifetime'
+            }
+          });
+        } 
+        // No subscription
+        else {
+          return res.json({
+            verified: false,
+            reason: 'No subscription found'
+          });
+        }
+      } catch (error) {
+        console.error('Error verifying subscription:', error);
+        return res.status(500).json({ message: 'Failed to verify subscription' });
+      }
+    });
+  
     // One-time payment routes for Stackr services and products
     app.post('/api/create-payment-intent', requireAuth, async (req, res) => {
       try {
@@ -3178,6 +3257,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
     
     app.post('/api/create-payment-intent', requireAuth, (req, res) => {
+      res.status(503).json(stripeDisabledMessage);
+    });
+    
+    app.get('/api/verify-subscription', requireAuth, (req, res) => {
       res.status(503).json(stripeDisabledMessage);
     });
   }

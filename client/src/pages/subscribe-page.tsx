@@ -152,7 +152,7 @@ export default function SubscribePage() {
                         <ul className="space-y-2">
                           {plan.limitedFeatures.map((limitation, index) => (
                             <li key={index} className="flex items-center">
-                              <Icons.moreVertical className="h-4 w-4 mr-2 text-amber-500" />
+                              <Icons.ellipsis className="h-4 w-4 mr-2 text-amber-500" />
                               <span className="text-muted-foreground">{limitation}</span>
                             </li>
                           ))}
