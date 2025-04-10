@@ -1138,61 +1138,6 @@ export class MemStorage implements IStorage {
       };
     });
   }
-  
-  // Affiliate Program methods
-  async getAffiliatePrograms(): Promise<AffiliateProgram[]> {
-    return Array.from(this.affiliatePrograms.values());
-  }
-
-  async getAffiliateProgramById(id: number): Promise<AffiliateProgram | undefined> {
-    return this.affiliatePrograms.get(id);
-  }
-
-  async getAffiliateProgramsByCategory(category: string): Promise<AffiliateProgram[]> {
-    return Array.from(this.affiliatePrograms.values()).filter(
-      program => program.category === category
-    );
-  }
-
-  async createAffiliateProgram(program: InsertAffiliateProgram): Promise<AffiliateProgram> {
-    const id = this.affiliateProgramCurrentId++;
-    const now = new Date();
-    
-    const programObj: AffiliateProgram = {
-      id,
-      name: program.name,
-      description: program.description,
-      company: program.company,
-      category: program.category,
-      commissionRate: program.commissionRate,
-      payoutThreshold: program.payoutThreshold || null,
-      payoutSchedule: program.payoutSchedule || null,
-      termsUrl: program.termsUrl || null,
-      signupUrl: program.signupUrl,
-      logoUrl: program.logoUrl || null,
-      status: program.status || "active",
-      tags: program.tags || [],
-      aiRecommendationScore: program.aiRecommendationScore || 50,
-      createdAt: now,
-      featured: program.featured || false
-    };
-    
-    this.affiliatePrograms.set(id, programObj);
-    return programObj;
-  }
-
-  async updateAffiliateProgram(id: number, program: Partial<InsertAffiliateProgram>): Promise<AffiliateProgram | undefined> {
-    const existingProgram = this.affiliatePrograms.get(id);
-    if (!existingProgram) return undefined;
-    
-    const updatedProgram: AffiliateProgram = {
-      ...existingProgram,
-      ...program
-    };
-    
-    this.affiliatePrograms.set(id, updatedProgram);
-    return updatedProgram;
-  }
 
   async deleteAffiliateProgram(id: number): Promise<boolean> {
     const exists = this.affiliatePrograms.has(id);
