@@ -8,7 +8,10 @@
   <link rel="icon" type="image/svg+xml" href="/stackr-logo.svg" />
   <meta name="theme-color" content="#4F46E5" />
   
-  <!-- Firebase-free implementation tracking -->
+  <!-- Load our comprehensive Firebase mock module before any other scripts -->
+  <script type="module" src="/src/firebase-mock.js"></script>
+  
+  <!-- Firebase mock implementation to intercept any Firebase dependencies -->
   <script>
     console.log('[FIREBASE-FREE] Loading Stackr Finance without Firebase dependencies');
     
@@ -18,14 +21,94 @@
       console[method](`[Stackr Finance] ${message}`);
     };
     
-    window.debugLog('Application initialization starting');
+    // Block any attempts to load Firebase
+    window.FIREBASE_DISABLED = true;
+    
+    // Enhanced Firebase mock with proper projectId
+    window.firebase = {
+      initializeApp: function(config) {
+        console.log("Firebase mock initialized with config:", config);
+        return {
+          name: "stackr-finance",
+          options: {
+            apiKey: "mock-api-key",
+            authDomain: "stackr-finance-mock.firebaseapp.com",
+            projectId: "stackr-finance-mock",
+            storageBucket: "stackr-finance-mock.appspot.com",
+            messagingSenderId: "000000000000",
+            appId: "1:000000000000:web:0000000000000000000000",
+            measurementId: "G-00000000"
+          },
+          projectId: "stackr-finance-mock"
+        };
+      },
+      auth: function() {
+        return {
+          currentUser: null,
+          onAuthStateChanged: function(callback) {
+            console.log("Firebase persistence set");
+            if (callback) callback(null);
+            return function() {};
+          },
+          setPersistence: function() {
+            console.log("Firebase mock: setPersistence called");
+            return Promise.resolve();
+          },
+          signInWithEmailAndPassword: function() {
+            return Promise.reject(new Error("Firebase auth not available"));
+          },
+          createUserWithEmailAndPassword: function() {
+            return Promise.reject(new Error("Firebase auth not available"));
+          },
+          signOut: function() {
+            return Promise.resolve();
+          }
+        };
+      }
+    };
+    
+    // Create global mocks for common Firebase modules with proper projectId
+    window.firebaseApp = {
+      name: "stackr-finance",
+      options: {
+        apiKey: "mock-api-key",
+        authDomain: "stackr-finance-mock.firebaseapp.com",
+        projectId: "stackr-finance-mock",
+        storageBucket: "stackr-finance-mock.appspot.com",
+        messagingSenderId: "000000000000",
+        appId: "1:000000000000:web:0000000000000000000000",
+        measurementId: "G-00000000"
+      },
+      projectId: "stackr-finance-mock"
+    };
+    window.firebaseAuth = window.firebase.auth();
+    
+    // In case Firebase is loaded as a module
+    window.mockFirebaseModule = function() {
+      return {
+        initializeApp: window.firebase.initializeApp,
+        auth: window.firebase.auth
+      };
+    };
+    
+    // Intercept any dynamic imports of Firebase
+    const originalImport = window.import;
+    window.import = function(moduleSpecifier) {
+      if (typeof moduleSpecifier === 'string' && moduleSpecifier.includes('firebase')) {
+        console.log(`Intercepted dynamic import of Firebase module: ${moduleSpecifier}`);
+        return Promise.resolve(window.mockFirebaseModule());
+      }
+      return originalImport.apply(this, arguments);
+    };
+    
+    window.debugLog('Clean application initialization starting');
   </script>
 </head>
 <body>
   <div id="root"></div>
   
-  <!-- Load our standard React application -->
-  <script type="module" src="/src/main.tsx"></script>
+  <!-- Load our clean React application entry point -->
+  <script type="module" src="/src/clean-main.tsx"></script>
 
   <!-- Replit badge -->
   <script

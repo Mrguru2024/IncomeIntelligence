@@ -1,32 +1,46 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/hooks/use-auth';
+import { ThemeProvider } from '@/hooks/useTheme';
 import './index.css';
 
-// Absolute minimal entry point with no dependencies
-console.log('Super clean main entry point loaded - no extra dependencies');
+// Import App component with custom Auth provider (no Firebase)
+import App from './App';
 
-// Import just our minimal clean component
-import CleanApp from './CleanApp';
+// Console message for debugging
+console.log("STARTUP: Using completely clean Firebase-free version");
 
-// Render directly without any providers or extra dependencies
+// Configure the query client for API requests
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
+
+// Ensure the root element exists
 const rootElement = document.getElementById("root");
-
-if (rootElement) {
-  try {
-    ReactDOM.createRoot(rootElement).render(
-      <React.StrictMode>
-        <CleanApp />
-      </React.StrictMode>
-    );
-    console.log("Clean App rendered successfully");
-  } catch (error) {
-    console.error("Error rendering app:", error);
-    rootElement.innerHTML = `
-      <div style="padding: 20px; color: red; font-family: system-ui, sans-serif;">
-        <h2>Application Error</h2>
-        <p>Sorry, something went wrong while loading the application.</p>
-        <pre>${error instanceof Error ? error.message : String(error)}</pre>
-      </div>
-    `;
-  }
+if (!rootElement) {
+  console.error("ERROR: Root element #root not found in the DOM!");
+} else {
+  console.log("DOM: Root element found, rendering React application");
+  
+  // Create React root and render the app with all required providers
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ThemeProvider>
+            <App />
+            <Toaster />
+          </ThemeProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
+  );
 }
