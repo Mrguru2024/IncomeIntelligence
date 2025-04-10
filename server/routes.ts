@@ -116,6 +116,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Route for serving the React application with JWT auth
+  app.get('/firebase-free', (req, res) => {
+    try {
+      const firebaseFreeHtmlPath = path.resolve(process.cwd(), 'client', 'firebase-free.html');
+      console.log('Serving Firebase-free React app from:', firebaseFreeHtmlPath);
+      
+      if (fs.existsSync(firebaseFreeHtmlPath)) {
+        const html = fs.readFileSync(firebaseFreeHtmlPath, 'utf-8');
+        res.set('Content-Type', 'text/html');
+        res.send(html);
+      } else {
+        console.error('Firebase-free HTML file not found at:', firebaseFreeHtmlPath);
+        res.status(404).send('Firebase-free React app not available');
+      }
+    } catch (error) {
+      console.error('Error serving Firebase-free React app:', error);
+      res.status(500).send('Error loading Firebase-free React app');
+    }
+  });
+  
   // Setup authentication routes
   setupAuth(app);
 
