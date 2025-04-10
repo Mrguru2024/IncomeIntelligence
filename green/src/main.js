@@ -310,6 +310,11 @@ function createHeader() {
       icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>'
     },
     { 
+      id: 'affiliates', 
+      title: 'Affiliates',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline><polyline points="7.5 19.79 7.5 14.6 3 12"></polyline><polyline points="21 12 16.5 14.6 16.5 19.79"></polyline><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>'
+    },
+    { 
       id: 'gigs', 
       title: 'Stackr Gigs',
       icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>'
@@ -478,6 +483,7 @@ function createFooter() {
       links: [
         { name: 'Dashboard', url: '#dashboard' },
         { name: 'Income', url: '#income' },
+        { name: 'Bank Accounts', url: '#bankconnections' },
         { name: 'Gigs', url: '#gigs' },
         { name: 'Settings', url: '#settings' }
       ]
@@ -1914,6 +1920,15 @@ function renderApp() {
     case 'gigs':
       main.appendChild(renderGigsPage());
       break;
+    case 'bankconnections':
+      // Import the bank connections page module if needed
+      import('./bank-connections.js').then(module => {
+        main.appendChild(module.renderBankConnectionsPage(appState.user.id));
+      }).catch(error => {
+        console.error('Error loading bank connections module:', error);
+        main.appendChild(createErrorMessage('Failed to load bank connections module'));
+      });
+      break;
     case 'settings':
       main.appendChild(renderSettingsPage());
       break;
@@ -1954,6 +1969,37 @@ function debounce(func, wait) {
       func.apply(context, args);
     }, wait);
   };
+}
+
+// Create an error message element 
+function createErrorMessage(message) {
+  const container = document.createElement('div');
+  container.style.padding = '40px';
+  container.style.textAlign = 'center';
+  container.style.backgroundColor = 'var(--color-error-light, #FFEBEE)';
+  container.style.color = 'var(--color-error, #EA4335)';
+  container.style.borderRadius = 'var(--radius-lg, 12px)';
+  container.style.marginBottom = '24px';
+  
+  const icon = document.createElement('div');
+  icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+  icon.style.marginBottom = '16px';
+  
+  const title = document.createElement('h3');
+  title.textContent = 'Error';
+  title.style.marginBottom = '8px';
+  title.style.fontSize = '20px';
+  title.style.fontWeight = 'bold';
+  
+  const text = document.createElement('p');
+  text.textContent = message;
+  text.style.fontSize = '16px';
+  
+  container.appendChild(icon);
+  container.appendChild(title);
+  container.appendChild(text);
+  
+  return container;
 }
 
 // Initialize the app when DOM is loaded
