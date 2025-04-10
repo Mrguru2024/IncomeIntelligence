@@ -8,88 +8,23 @@
   <link rel="icon" type="image/svg+xml" href="/stackr-logo.svg" />
   <meta name="theme-color" content="#4F46E5" />
   
-  <!-- Pre-initialize Firebase mock before any modules load -->
+  <!-- Firebase-free implementation tracking -->
   <script>
-    console.log('[COMPLETE-FIREBASE-MOCK] Setting up mock Firebase module with projectId');
+    console.log('[FIREBASE-FREE] Loading Stackr Finance without Firebase dependencies');
     
-    // Create a complete mock of Firebase to prevent initialization errors
-    const mockApp = {
-      name: 'mock-firebase-app',
-      options: { 
-        projectId: 'mock-firebase-project',
-        apiKey: 'mock-api-key',
-        authDomain: 'mock-auth-domain.firebaseapp.com'
-      },
-      automaticDataCollectionEnabled: false,
-      auth: function() {
-        return mockAuth;
-      }
-    };
-
-    const mockAuth = {
-      signInWithEmailAndPassword: function() { return Promise.resolve({ user: null }); },
-      createUserWithEmailAndPassword: function() { return Promise.resolve({ user: null }); },
-      signOut: function() { return Promise.resolve(); },
-      onAuthStateChanged: function(callback) { 
-        callback(null); 
-        return function() {}; 
-      },
-      setPersistence: function() {
-        console.log("Firebase persistence set");
-        return Promise.resolve();
-      },
-      currentUser: null
-    };
-
-    // Global mock of Firebase module
-    window.firebase = {
-      initializeApp: function(config) {
-        console.log('Firebase initializeApp called with config:', config || 'default');
-        return config ? mockApp : mockApp;
-      },
-      apps: [mockApp],
-      auth: function() { return mockAuth; },
-      setPersistence: function() { return Promise.resolve(); },
-      GoogleAuthProvider: function() { return {}; },
-      signInWithRedirect: function() { return Promise.resolve(); },
-      getRedirectResult: function() { return Promise.resolve(null); },
-      browserLocalPersistence: 'LOCAL',
-      browserSessionPersistence: 'SESSION'
+    // Add a debug logger for development
+    window.debugLog = function(message, isError = false) {
+      const method = isError ? 'error' : 'log';
+      console[method](`[Stackr Finance] ${message}`);
     };
     
-    // Intercept any attempts to import firebase modules
-    // This script runs before any module imports
-    const originalImport = window.importShim || window.__vite_import__;
-    if (originalImport) {
-      window.importShim = window.__vite_import__ = function(specifier) {
-        if (specifier.includes('firebase') || specifier.includes('app-check') || specifier.includes('auth')) {
-          console.log('[IMPORT-INTERCEPT] Intercepted import of Firebase module:', specifier);
-          return Promise.resolve({
-            getAuth: () => mockAuth,
-            initializeApp: () => mockApp,
-            signInWithEmailAndPassword: () => Promise.resolve({ user: null }),
-            createUserWithEmailAndPassword: () => Promise.resolve({ user: null }),
-            signOut: () => Promise.resolve(),
-            onAuthStateChanged: (callback) => {
-              callback(null);
-              return () => {};
-            },
-            setPersistence: () => Promise.resolve(),
-            browserLocalPersistence: 'LOCAL',
-            browserSessionPersistence: 'SESSION',
-            default: { 
-              apps: [mockApp],
-              initializeApp: () => mockApp
-            }
-          });
-        }
-        return originalImport(specifier);
-      };
-    }
+    window.debugLog('Application initialization starting');
   </script>
 </head>
 <body>
   <div id="root"></div>
+  
+  <!-- Load our Firebase-free implementation -->
   <script type="module" src="/src/main.tsx"></script>
 
   <!-- Replit badge -->
