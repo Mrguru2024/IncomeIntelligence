@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import express, { type Express, type Request, type Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
@@ -82,9 +82,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
 
-  // Redirect root to GREEN version
+  // Serve static assets from green folder directly
+  app.use(express.static(path.join(process.cwd(), 'green')));
+  
+  // Serve GREEN version directly at root path
   app.get("/", (req, res) => {
-    res.redirect('/green');
+    const greenHtmlPath = path.join(process.cwd(), 'green', 'index.html');
+    
+    if (fs.existsSync(greenHtmlPath)) {
+      res.sendFile(greenHtmlPath);
+    } else {
+      console.error('GREEN version HTML file not found at path:', greenHtmlPath);
+      res.status(500).send('GREEN version not available. Please check server logs.');
+    }
   });
 
   // API health check
