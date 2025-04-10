@@ -4,8 +4,11 @@
  * setPersistence and provides static configuration with projectId.
  */
 
-// Log when this mock is loaded for debugging
-console.log('[PERSISTENCE-FREE] Loading persistence-free Firebase mock');
+// Log when this mock is loaded for debugging with timestamp
+console.log('[PERSISTENCE-FREE] Loading persistence-free Firebase mock at', new Date().toISOString());
+
+// Create a stack trace to identify caller
+console.log('[PERSISTENCE-FREE] Stack trace:', new Error().stack);
 
 // Static app with valid projectId that won't change
 export const app = {
@@ -37,8 +40,12 @@ export const db = {};
 export const browserLocalPersistence = 'local';
 export const browserSessionPersistence = 'session';
 
-// Basic functions
-export function initializeApp() {
+// Basic functions with enhanced debugging
+export function initializeApp(config?: any) {
+  console.log('[PERSISTENCE-FREE] initializeApp called with config:', config);
+  console.log('[PERSISTENCE-FREE] initializeApp caller stack:', new Error().stack);
+  
+  // Always return our mock app regardless of the config passed
   return app;
 }
 
