@@ -96,7 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Route for serving our completely standalone Firebase-free version
+  // Route for standalone version - but only accessible via /standalone path
   app.get('/standalone', (req, res) => {
     try {
       const standaloneHtmlPath = path.resolve(process.cwd(), 'client', 'standalone-clean.html');
