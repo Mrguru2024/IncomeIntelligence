@@ -93,6 +93,7 @@ const appState = {
   currentPage: 'dashboard',
   incomeEntries: [],
   user: {
+    id: 1, // Add a default user ID for API calls
     name: 'User',
     splitRatio: {
       needs: 40,
@@ -112,6 +113,7 @@ function loadStateFromStorage() {
     // Merge with existing state
     appState.incomeEntries = parsedState.incomeEntries || [];
     if (parsedState.user) {
+      appState.user.id = parsedState.user.id || 1; // Preserve user ID or use default
       appState.user.name = parsedState.user.name || 'User';
       appState.user.splitRatio = parsedState.user.splitRatio || { needs: 40, investments: 30, savings: 30 };
       appState.user.isAuthenticated = parsedState.user.isAuthenticated || false;

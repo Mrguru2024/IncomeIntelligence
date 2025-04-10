@@ -501,6 +501,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AFFILIATE ENDPOINTS
+
+  // Get user's affiliate programs
+  app.get("/api/user/:userId/affiliates", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // For now, return empty array as mock data
+      // In a real implementation, this would fetch from the database
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching affiliate data:', error);
+      res.status(500).json({ message: "Failed to fetch affiliate data" });
+    }
+  });
+  
+  // Join affiliate program
+  app.post("/api/user/join-affiliate-program", async (req, res) => {
+    try {
+      const schema = z.object({
+        userId: z.number().int().positive(),
+        programId: z.string()
+      });
+      
+      const { userId, programId } = schema.parse(req.body);
+      
+      // Mock successful join
+      res.json({ 
+        success: true, 
+        programId,
+        joinedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error joining affiliate program:', error);
+      res.status(500).json({ message: "Failed to join affiliate program" });
+    }
+  });
+
   // BANK CONNECTION ENDPOINTS
   
   // Get create link token for Plaid Link
