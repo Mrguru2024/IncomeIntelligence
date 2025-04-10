@@ -5,8 +5,13 @@
  * and helps identify where they're being used.
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Function to recursively find all .ts and .tsx files
 function findFiles(dir, fileList = []) {
