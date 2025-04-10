@@ -2,6 +2,8 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
+import fs from "fs";
+import path from "path";
 import { pool } from "./db";
 import { 
   insertIncomeSchema, 
@@ -3871,19 +3873,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Special route for minimal HTML page that doesn't use Firebase or Sanity
   app.get('/minimal', (req, res) => {
     try {
-      const minimalPath = new URL('../client/minimal.html', import.meta.url);
+      // Use the public/minimal.html file we created
+      const minimalPath = path.join(process.cwd(), 'public', 'minimal.html');
+      console.log("Serving static minimal HTML from:", minimalPath);
+      
       const content = fs.readFileSync(minimalPath, 'utf-8');
       res.setHeader('Content-Type', 'text/html');
       res.send(content);
     } catch (err) {
+      console.error("Error serving minimal app:", err);
       res.status(500).send(`Error serving minimal app: ${err}`);
     }
-  });
-
-  // Minimal page is still accessible but no longer redirected from root
-  app.get("/minimal", (req, res, next) => {
-    console.log("Serving minimal page");
-    next();
   });
 
   // Serve the clean version that has no Firebase/Sanity dependencies
