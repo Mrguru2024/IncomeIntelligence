@@ -186,6 +186,7 @@ function renderLoginForm() {
   titleEl.style.marginBottom = '24px';
   titleEl.style.fontSize = '24px';
   titleEl.style.fontWeight = 'bold';
+  titleEl.style.color = '#333333';
   formEl.appendChild(titleEl);
   
   // Error message container
@@ -210,6 +211,7 @@ function renderLoginForm() {
   emailLabel.style.display = 'block';
   emailLabel.style.marginBottom = '8px';
   emailLabel.style.fontWeight = '500';
+  emailLabel.style.color = '#333333';
   
   const emailInput = document.createElement('input');
   emailInput.type = 'email';
@@ -237,6 +239,7 @@ function renderLoginForm() {
   passwordLabel.style.display = 'block';
   passwordLabel.style.marginBottom = '8px';
   passwordLabel.style.fontWeight = '500';
+  passwordLabel.style.color = '#333333';
   
   const passwordInput = document.createElement('input');
   passwordInput.type = 'password';
@@ -271,7 +274,7 @@ function renderLoginForm() {
   rememberMeLabel.textContent = 'Remember me';
   rememberMeLabel.style.fontSize = '14px';
   rememberMeLabel.style.cursor = 'pointer';
-  rememberMeLabel.style.color = '#555';
+  rememberMeLabel.style.color = '#333333';
   
   rememberMeGroup.appendChild(rememberMeCheckbox);
   rememberMeGroup.appendChild(rememberMeLabel);
@@ -311,10 +314,12 @@ function renderLoginForm() {
   const switchText = document.createElement('p');
   switchText.style.textAlign = 'center';
   switchText.style.fontSize = '14px';
+  switchText.style.color = '#333333';
   
   const switchLink = document.createElement('a');
   switchLink.href = '#';
   switchLink.textContent = 'Create an account';
+  switchLink.style.color = 'var(--color-primary)';
   switchLink.onclick = (e) => {
     e.preventDefault();
     const authContainer = document.querySelector('.auth-container');
@@ -340,6 +345,11 @@ function renderRegisterForm() {
   
   const formEl = document.createElement('form');
   formEl.classList.add('register-form');
+  formEl.style.backgroundColor = 'white';
+  formEl.style.padding = '32px';
+  formEl.style.borderRadius = '12px';
+  formEl.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.08)';
+  
   formEl.onsubmit = (e) => {
     e.preventDefault();
     const username = e.target.elements.username.value;
@@ -354,6 +364,7 @@ function renderRegisterForm() {
   titleEl.style.marginBottom = '24px';
   titleEl.style.fontSize = '24px';
   titleEl.style.fontWeight = 'bold';
+  titleEl.style.color = '#333333';
   formEl.appendChild(titleEl);
   
   // Error message container
@@ -378,6 +389,7 @@ function renderRegisterForm() {
   usernameLabel.style.display = 'block';
   usernameLabel.style.marginBottom = '8px';
   usernameLabel.style.fontWeight = '500';
+  usernameLabel.style.color = '#333333';
   
   const usernameInput = document.createElement('input');
   usernameInput.type = 'text';
@@ -405,6 +417,7 @@ function renderRegisterForm() {
   emailLabel.style.display = 'block';
   emailLabel.style.marginBottom = '8px';
   emailLabel.style.fontWeight = '500';
+  emailLabel.style.color = '#333333';
   
   const emailInput = document.createElement('input');
   emailInput.type = 'email';
@@ -432,6 +445,7 @@ function renderRegisterForm() {
   passwordLabel.style.display = 'block';
   passwordLabel.style.marginBottom = '8px';
   passwordLabel.style.fontWeight = '500';
+  passwordLabel.style.color = '#333333';
   
   const passwordInput = document.createElement('input');
   passwordInput.type = 'password';
@@ -467,6 +481,7 @@ function renderRegisterForm() {
   termsLabel.htmlFor = 'terms';
   termsLabel.style.fontSize = '14px';
   termsLabel.style.lineHeight = '1.5';
+  termsLabel.style.color = '#333333';
   
   termsLabel.innerHTML = 'I agree to the <a href="#terms" style="color: var(--color-primary);">Terms of Service</a> and <a href="#privacy" style="color: var(--color-primary);">Privacy Policy</a>';
   
@@ -508,10 +523,12 @@ function renderRegisterForm() {
   const switchText = document.createElement('p');
   switchText.style.textAlign = 'center';
   switchText.style.fontSize = '14px';
+  switchText.style.color = '#333333';
   
   const switchLink = document.createElement('a');
   switchLink.href = '#';
   switchLink.textContent = 'Log in';
+  switchLink.style.color = 'var(--color-primary)';
   switchLink.onclick = (e) => {
     e.preventDefault();
     const authContainer = document.querySelector('.auth-container');
@@ -726,44 +743,44 @@ export function logout() {
     } catch (error) {
       console.error('Logout error:', error);
       
-      // Still clear both localStorage and sessionStorage on error
+      // Even if there's an error, still clear the storage
       localStorage.removeItem('stackrToken');
       localStorage.removeItem('stackrUser');
       sessionStorage.removeItem('stackrToken');
       sessionStorage.removeItem('stackrUser');
-      window.location.href = '#login';
-      
-      // Force reload as a backup plan
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
       
       reject(error);
     }
   });
 }
 
-// Check if the user is authenticated
+// Function to check if user is authenticated
 export function isAuthenticated() {
-  // Check both localStorage and sessionStorage for the token
+  // Check both localStorage and sessionStorage
   const localToken = localStorage.getItem('stackrToken');
   const sessionToken = sessionStorage.getItem('stackrToken');
-  return !!(localToken || sessionToken);
+  
+  return !!localToken || !!sessionToken;
 }
 
-// Get the current user data
+// Function to get current user data
 export function getCurrentUser() {
-  // Try to get user data from localStorage first, then sessionStorage
-  const localUserStr = localStorage.getItem('stackrUser');
-  const sessionUserStr = sessionStorage.getItem('stackrUser');
-  const userStr = localUserStr || sessionUserStr;
-  
-  if (!userStr) return null;
-  
   try {
-    return JSON.parse(userStr);
+    // Try localStorage first
+    const localUserData = localStorage.getItem('stackrUser');
+    if (localUserData) {
+      return JSON.parse(localUserData);
+    }
+    
+    // Then try sessionStorage
+    const sessionUserData = sessionStorage.getItem('stackrUser');
+    if (sessionUserData) {
+      return JSON.parse(sessionUserData);
+    }
+    
+    return null;
   } catch (error) {
-    console.error('Error parsing user data:', error);
+    console.error('Error getting current user:', error);
     return null;
   }
 }
