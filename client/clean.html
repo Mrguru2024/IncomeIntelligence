@@ -3,14 +3,145 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stackr Finance - The Smart Way to Manage Your Money</title>
+  <title>Stackr Finance - CLEAN (Firebase-Free)</title>
   <meta name="description" content="Stackr Finance helps you track income, plan budgets with 40/30/30 splits, set financial goals, and get AI-powered financial advice." />
   <link rel="icon" type="image/svg+xml" href="/stackr-logo.svg" />
   <meta name="theme-color" content="#4F46E5" />
-  <!-- No Firebase scripts or modules are loaded -->
+  
+  <!-- Enhanced debugging directly in HTML -->
+  <style>
+    #debug-info {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #f8f9fa;
+      color: #333;
+      font-family: monospace;
+      padding: 10px;
+      border-bottom: 1px solid #dee2e6;
+      z-index: 9999;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .debug-msg {
+      margin: 5px 0;
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    .debug-error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+  
+  <script>
+    // Create debug info panel
+    window.addEventListener('DOMContentLoaded', () => {
+      const debugPanel = document.createElement('div');
+      debugPanel.id = 'debug-info';
+      debugPanel.innerHTML = '<h3>Firebase-Free Debug Panel</h3>';
+      document.body.prepend(debugPanel);
+      
+      // Add debug logging function
+      window.debugLog = function(msg, isError) {
+        console.log(msg);
+        const msgEl = document.createElement('div');
+        msgEl.className = isError ? 'debug-msg debug-error' : 'debug-msg';
+        msgEl.textContent = msg;
+        debugPanel.appendChild(msgEl);
+      };
+      
+      window.debugLog("[CLEAN] Firebase-free app loading...");
+      
+      // Prevent any Firebase from loading by providing mock implementation
+      window.firebase = {
+        // Complete mock of Firebase with projectId
+        initializeApp: function(config) {
+          window.debugLog("Mock Firebase initializeApp called with: " + (config ? JSON.stringify(config) : "default"));
+          return {
+            name: 'mock-firebase-app',
+            options: { 
+              projectId: 'mock-firebase-project-id',
+              apiKey: 'mock-api-key',
+              authDomain: 'mock-auth-domain.example.com'
+            }
+          };
+        },
+        apps: [{
+          name: 'mock-firebase-app',
+          options: { 
+            projectId: 'mock-firebase-project-id',
+            apiKey: 'mock-api-key',
+            authDomain: 'mock-auth-domain.example.com'
+          }
+        }],
+        auth: function() {
+          window.debugLog("Mock Firebase auth() called");
+          return {
+            signInWithEmailAndPassword: () => Promise.resolve({ user: null }),
+            createUserWithEmailAndPassword: () => Promise.resolve({ user: null }),
+            signOut: () => Promise.resolve(),
+            onAuthStateChanged: (cb) => { cb(null); return () => {}; },
+            setPersistence: () => Promise.resolve(),
+            currentUser: null
+          };
+        },
+        setPersistence: () => Promise.resolve(),
+        browserLocalPersistence: 'LOCAL',
+        browserSessionPersistence: 'SESSION',
+        GoogleAuthProvider: function() { return {}; }
+      };
+      
+      window.firebaseui = null;
+      
+      // Try to catch script loading errors
+      window.addEventListener('error', function(e) {
+        window.debugLog('Script Error: ' + e.message, true);
+      });
+    });
+  </script>
 </head>
 <body>
   <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
+  
+  <!-- Inline a minimal app to show we can render without Firebase -->
+  <script type="module">
+    import React from 'react';
+    import ReactDOM from 'react-dom/client';
+    
+    window.debugLog("Loading minimal React app...");
+    
+    try {
+      // Render a minimal app first to verify React is working
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(
+        React.createElement('div', { style: { padding: '20px', marginTop: '220px' } },
+          React.createElement('h1', null, 'Stackr Finance - Clean Mode'),
+          React.createElement('p', null, 'Firebase-free implementation loading...'),
+          React.createElement('p', null, 'Check debug panel for details.')
+        )
+      );
+      window.debugLog("Minimal React app rendered successfully");
+      
+      // Now try to load our actual app entry point
+      window.debugLog("Loading clean entry point...");
+      import('/src/clean-entry.tsx')
+        .then(() => {
+          window.debugLog("Clean entry point loaded successfully");
+        })
+        .catch(err => {
+          window.debugLog("Error loading clean entry: " + err.message, true);
+        });
+    } catch (err) {
+      window.debugLog("Fatal render error: " + err.message, true);
+    }
+  </script>
+
+  <!-- Replit badge -->
+  <script
+    type="text/javascript"
+    src="https://replit.com/public/js/replit-badge-v3.js"
+  ></script>
 </body>
 </html>
