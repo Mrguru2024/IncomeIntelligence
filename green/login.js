@@ -36,12 +36,18 @@ async function handleLogin(email, password) {
       email: userData.email,
       username: userData.username,
       role: userData.role || 'user',
-      subscriptionStatus: userData.subscriptionStatus || 'free'
+      subscriptionTier: userData.subscriptionTier || 'free',
+      subscriptionActive: userData.subscriptionActive || false,
+      onboardingCompleted: userData.onboardingCompleted || false,
+      onboardingStep: userData.onboardingStep || 'welcome'
     }));
     
     // Redirect to dashboard or specified redirect URL
     const urlParams = new URLSearchParams(window.location.search);
-    const redirectUrl = urlParams.get('redirect') || '#dashboard';
+    // If onboarding is not completed, redirect to onboarding page
+    const redirectUrl = userData.onboardingCompleted ? 
+      (urlParams.get('redirect') || '#dashboard') : 
+      '#onboarding';
     window.location.href = redirectUrl;
     
   } catch (error) {
@@ -96,7 +102,10 @@ async function handleRegister(username, email, password) {
       email: userData.email,
       username: userData.username,
       role: userData.role || 'user',
-      subscriptionStatus: userData.subscriptionStatus || 'free'
+      subscriptionTier: userData.subscriptionTier || 'free',
+      subscriptionActive: userData.subscriptionActive || false,
+      onboardingCompleted: userData.onboardingCompleted || false,
+      onboardingStep: userData.onboardingStep || 'welcome'
     }));
     
     // Redirect to onboarding
