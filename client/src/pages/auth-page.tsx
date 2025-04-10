@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { Redirect } from 'wouter';
+import { Redirect, useLocation } from 'wouter';
 
 // UI Components
 import {
@@ -53,6 +53,7 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>('login');
   const { user, loginMutation, registerMutation } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   
   // Set up login form
   const loginForm = useForm<LoginFormValues>({
@@ -99,7 +100,7 @@ export default function AuthPage() {
         });
         // Redirect new users to onboarding flow
         setTimeout(() => {
-          navigate('/onboarding');
+          setLocation('/onboarding');
         }, 1000);
       },
     });
