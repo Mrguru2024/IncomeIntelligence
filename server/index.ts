@@ -34,11 +34,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.openai.com", "https://plaid.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      connectSrc: ["'self'", "https://api.openai.com", "https://plaid.com", "https://replit.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://replit.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
       imgSrc: ["'self'", "data:", "blob:"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
       frameAncestors: ["'none'"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
@@ -431,24 +431,24 @@ app.use((req, res, next) => {
   // Always use clean version
   const useCleanVersion = true;
   
-  // Serve our primary entry point with a completely static version that has ZERO JavaScript
+  // Serve our primary entry point with a completely static demo version
   app.get('/', (req, res) => {
-    console.log('Serving complete static version with no JavaScript at all');
+    console.log('Serving Stackr Finance demo page');
     
-    // Path to our static HTML file
-    const staticHtmlPath = path.join(dirname, '../client/standalone.html');
+    // Path to our demo HTML file
+    const demoHtmlPath = path.join(dirname, '../client/stackr-demo.html');
     
-    if (fs.existsSync(staticHtmlPath)) {
+    if (fs.existsSync(demoHtmlPath)) {
       // Set cache-control headers to ensure fresh content
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
       res.setHeader('Surrogate-Control', 'no-store');
       
-      // Send the static file
-      res.sendFile(staticHtmlPath);
+      // Send the demo file
+      res.sendFile(demoHtmlPath);
     } else {
-      console.error('Static HTML file not found at:', staticHtmlPath);
+      console.error('Demo HTML file not found at:', demoHtmlPath);
       // Fall back to the simple maintenance page
       res.send(`
         <!DOCTYPE html>
