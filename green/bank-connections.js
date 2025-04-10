@@ -109,7 +109,7 @@ function createConnectionCard(connection) {
   header.style.display = 'flex';
   header.style.alignItems = 'center';
   header.style.justifyContent = 'space-between';
-  header.style.background = 'var(--color-card-header-bg)';
+  header.style.background = 'var(--color-card)';
   
   // Institution info
   const institutionInfo = document.createElement('div');
@@ -287,7 +287,7 @@ function createConnectionCard(connection) {
       // Account info cell
       const accountCell = document.createElement('td');
       accountCell.style.padding = '8px 4px';
-      accountCell.style.borderBottom = '1px solid var(--color-border-light)';
+      accountCell.style.borderBottom = '1px solid var(--color-border)';
       
       const accountInfo = document.createElement('div');
       
@@ -308,14 +308,14 @@ function createConnectionCard(connection) {
       const availableCell = document.createElement('td');
       availableCell.style.padding = '8px 4px';
       availableCell.style.textAlign = 'right';
-      availableCell.style.borderBottom = '1px solid var(--color-border-light)';
+      availableCell.style.borderBottom = '1px solid var(--color-border)';
       availableCell.textContent = formatCurrency(account.balanceAvailable);
       
       // Current balance cell
       const currentCell = document.createElement('td');
       currentCell.style.padding = '8px 4px';
       currentCell.style.textAlign = 'right';
-      currentCell.style.borderBottom = '1px solid var(--color-border-light)';
+      currentCell.style.borderBottom = '1px solid var(--color-border)';
       currentCell.textContent = formatCurrency(account.balanceCurrent);
       
       tr.appendChild(accountCell);
