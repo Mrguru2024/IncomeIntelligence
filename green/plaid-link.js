@@ -22,12 +22,27 @@ function createPlaidLink(linkToken, onSuccess, onExit) {
     document.head.appendChild(script);
     
     // Wait for script to load before initializing
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       script.onload = () => {
-        initializePlaidLink(linkToken, onSuccess, onExit).then(resolve);
+        // Add a small delay to make sure Plaid is fully initialized
+        setTimeout(() => {
+          initializePlaidLink(linkToken, onSuccess, onExit)
+            .then(resolve)
+            .catch(error => {
+              console.error('Failed to initialize Plaid Link after script load:', error);
+              reject(error);
+            });
+        }, 500);
+      };
+      
+      script.onerror = (error) => {
+        console.error('Failed to load Plaid Link script:', error);
+        showError('Failed to load Plaid integration. Please try again later.');
+        reject(new Error('Failed to load Plaid script'));
       };
     });
   } else {
+    // Script already loaded, initialize Plaid Link
     return initializePlaidLink(linkToken, onSuccess, onExit);
   }
 }
@@ -40,28 +55,42 @@ function createPlaidLink(linkToken, onSuccess, onExit) {
  * @returns {Promise<Object>} - Plaid Link handler
  */
 function initializePlaidLink(linkToken, onSuccess, onExit) {
-  return new Promise((resolve) => {
-    const handler = window.Plaid.create({
-      token: linkToken,
-      onSuccess: (public_token, metadata) => {
-        if (onSuccess) {
-          onSuccess(public_token, metadata);
-        }
-      },
-      onExit: (err, metadata) => {
-        if (onExit) {
-          onExit(err, metadata);
-        }
-      },
-      onLoad: () => {
-        // Handler is ready to use
-        plaidLinkHandler = handler;
-        resolve(handler);
-      },
-      onEvent: (eventName, metadata) => {
-        console.log('Plaid Link Event:', eventName, metadata);
-      },
-    });
+  return new Promise((resolve, reject) => {
+    // Check if Plaid is available
+    if (!window.Plaid) {
+      console.error('Plaid script not loaded or initialized correctly');
+      showError('Plaid integration not available. Please try again later.');
+      reject(new Error('Plaid not initialized'));
+      return;
+    }
+    
+    try {
+      const handler = window.Plaid.create({
+        token: linkToken,
+        onSuccess: (public_token, metadata) => {
+          if (onSuccess) {
+            onSuccess(public_token, metadata);
+          }
+        },
+        onExit: (err, metadata) => {
+          if (onExit) {
+            onExit(err, metadata);
+          }
+        },
+        onLoad: () => {
+          // Handler is ready to use
+          plaidLinkHandler = handler;
+          resolve(handler);
+        },
+        onEvent: (eventName, metadata) => {
+          console.log('Plaid Link Event:', eventName, metadata);
+        },
+      });
+    } catch (error) {
+      console.error('Error creating Plaid Link handler:', error);
+      showError('Failed to initialize Plaid Link. Please try again later.');
+      reject(error);
+    }
   });
 }
 
@@ -94,60 +123,76 @@ export async function connectBankAccount(userId) {
     // Create and open Plaid Link
     hideLoading();
     
-    const handler = await createPlaidLink(
-      linkToken,
-      async (public_token, metadata) => {
-        showLoading('Connecting to your bank...');
-        
-        // Exchange public token for access token
-        try {
-          const exchangeResponse = await fetch('/api/plaid/exchange-token', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId,
-              publicToken: public_token,
-              metadata,
-            }),
-          });
+    try {
+      const handler = await createPlaidLink(
+        linkToken,
+        async (public_token, metadata) => {
+          showLoading('Connecting to your bank...');
           
-          if (!exchangeResponse.ok) {
-            const errorData = await exchangeResponse.json();
-            throw new Error(errorData.message || 'Failed to exchange token');
+          // Exchange public token for access token
+          try {
+            const exchangeResponse = await fetch('/api/plaid/exchange-token', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId,
+                publicToken: public_token,
+                metadata,
+              }),
+            });
+            
+            if (!exchangeResponse.ok) {
+              const errorData = await exchangeResponse.json();
+              throw new Error(errorData.message || 'Failed to exchange token');
+            }
+            
+            const { connectionId } = await exchangeResponse.json();
+            
+            // Sync transactions for the new connection
+            await syncTransactions(connectionId);
+            
+            showSuccess('Bank connected successfully!');
+            // Reload connection data
+            setTimeout(() => {
+              window.location.hash = '#bankconnections';
+              window.location.reload();
+            }, 1500);
+          } catch (error) {
+            console.error('Error in onSuccess callback:', error);
+            showError(error.message || 'Failed to connect bank account');
+          } finally {
+            hideLoading();
           }
-          
-          const { connectionId } = await exchangeResponse.json();
-          
-          // Sync transactions for the new connection
-          await syncTransactions(connectionId);
-          
-          showSuccess('Bank connected successfully!');
-          // Reload connection data
-          setTimeout(() => {
-            window.location.hash = '#bankconnections';
-            window.location.reload();
-          }, 1500);
-        } catch (error) {
-          showError(error.message || 'Failed to connect bank account');
-        } finally {
+        },
+        (err, metadata) => {
           hideLoading();
+          if (err) {
+            console.log('User exited Plaid Link:', err);
+            showError(err.message || 'Error connecting to bank');
+          } else {
+            console.log('User exited Plaid Link without error');
+          }
         }
-      },
-      (err, metadata) => {
-        if (err) {
-          showError(err.message || 'Error connecting to bank');
-        }
+      );
+      
+      if (handler) {
+        handler.open();
+        return handler;
+      } else {
+        throw new Error('Could not create Plaid Link handler');
       }
-    );
-    
-    handler.open();
-    return handler;
+    } catch (error) {
+      console.error('Error creating or opening Plaid Link:', error);
+      showError('Could not initialize Plaid Link. Please try again later.');
+      return null;
+    }
   } catch (error) {
+    console.error('Error in connectBankAccount:', error);
     hideLoading();
     showError(error.message || 'Failed to connect bank account');
-    throw error;
+    return null;
   }
 }
 
