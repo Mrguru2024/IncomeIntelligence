@@ -29,9 +29,8 @@ async function handleLogin(email, password, rememberMe = false) {
     // Get user data
     const userData = await response.json();
     
-    // Store auth token in localStorage
-    localStorage.setItem('stackrToken', userData.token);
-    localStorage.setItem('stackrUser', JSON.stringify({
+    // Create the user data object to store
+    const userDataToStore = JSON.stringify({
       id: userData.id,
       email: userData.email,
       username: userData.username,
@@ -40,7 +39,30 @@ async function handleLogin(email, password, rememberMe = false) {
       subscriptionActive: userData.subscriptionActive || false,
       onboardingCompleted: userData.onboardingCompleted || false,
       onboardingStep: userData.onboardingStep || 'welcome'
-    }));
+    });
+    
+    // Store auth data based on "Remember Me" selection
+    if (rememberMe) {
+      // Use localStorage for persistent login (stays after browser is closed)
+      localStorage.setItem('stackrToken', userData.token);
+      localStorage.setItem('stackrUser', userDataToStore);
+      
+      // Clear sessionStorage to avoid conflicts
+      sessionStorage.removeItem('stackrToken');
+      sessionStorage.removeItem('stackrUser');
+      
+      console.log('User credentials saved to localStorage (persistent)');
+    } else {
+      // Use sessionStorage for temporary login (cleared when browser is closed)
+      sessionStorage.setItem('stackrToken', userData.token);
+      sessionStorage.setItem('stackrUser', userDataToStore);
+      
+      // Clear localStorage to avoid conflicts
+      localStorage.removeItem('stackrToken');
+      localStorage.removeItem('stackrUser');
+      
+      console.log('User credentials saved to sessionStorage (session only)');
+    }
     
     // Redirect to dashboard or specified redirect URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -95,9 +117,8 @@ async function handleRegister(username, email, password) {
     // Get user data
     const userData = await response.json();
     
-    // Store auth token in localStorage
-    localStorage.setItem('stackrToken', userData.token);
-    localStorage.setItem('stackrUser', JSON.stringify({
+    // Create the user data object to store
+    const userDataToStore = JSON.stringify({
       id: userData.id,
       email: userData.email,
       username: userData.username,
@@ -106,7 +127,16 @@ async function handleRegister(username, email, password) {
       subscriptionActive: userData.subscriptionActive || false,
       onboardingCompleted: userData.onboardingCompleted || false,
       onboardingStep: userData.onboardingStep || 'welcome'
-    }));
+    });
+    
+    // For registration, we default to storing in localStorage for convenience
+    // Clear sessionStorage to avoid conflicts
+    sessionStorage.removeItem('stackrToken');
+    sessionStorage.removeItem('stackrUser');
+    
+    // Store auth data in localStorage
+    localStorage.setItem('stackrToken', userData.token);
+    localStorage.setItem('stackrUser', userDataToStore);
     
     // Redirect to onboarding
     window.location.href = '#onboarding';
@@ -666,17 +696,22 @@ export function logout() {
   return new Promise(async (resolve, reject) => {
     try {
       // Call the logout API
+      // Get token from either localStorage or sessionStorage
+      const token = localStorage.getItem('stackrToken') || sessionStorage.getItem('stackrToken');
+      
       const response = await fetch('/api/logout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('stackrToken')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
-      // Clear local storage regardless of API response
+      // Clear both localStorage and sessionStorage regardless of API response
       localStorage.removeItem('stackrToken');
       localStorage.removeItem('stackrUser');
+      sessionStorage.removeItem('stackrToken');
+      sessionStorage.removeItem('stackrUser');
       
       // Redirect to login page
       window.location.href = '#login';
@@ -691,9 +726,11 @@ export function logout() {
     } catch (error) {
       console.error('Logout error:', error);
       
-      // Still clear local storage and redirect on error
+      // Still clear both localStorage and sessionStorage on error
       localStorage.removeItem('stackrToken');
       localStorage.removeItem('stackrUser');
+      sessionStorage.removeItem('stackrToken');
+      sessionStorage.removeItem('stackrUser');
       window.location.href = '#login';
       
       // Force reload as a backup plan
@@ -708,13 +745,19 @@ export function logout() {
 
 // Check if the user is authenticated
 export function isAuthenticated() {
-  const token = localStorage.getItem('stackrToken');
-  return !!token;
+  // Check both localStorage and sessionStorage for the token
+  const localToken = localStorage.getItem('stackrToken');
+  const sessionToken = sessionStorage.getItem('stackrToken');
+  return !!(localToken || sessionToken);
 }
 
 // Get the current user data
 export function getCurrentUser() {
-  const userStr = localStorage.getItem('stackrUser');
+  // Try to get user data from localStorage first, then sessionStorage
+  const localUserStr = localStorage.getItem('stackrUser');
+  const sessionUserStr = sessionStorage.getItem('stackrUser');
+  const userStr = localUserStr || sessionUserStr;
+  
   if (!userStr) return null;
   
   try {

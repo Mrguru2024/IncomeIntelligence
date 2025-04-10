@@ -1990,7 +1990,7 @@ function renderApp() {
     document.head.appendChild(style);
   }
   
-  // Special cases for login/register pages - they don't need the full app layout
+  // Special cases for pages that don't need the full app layout
   if (appState.currentPage === 'login' || appState.currentPage === 'register') {
     // Don't show the header for authentication pages
     appContainer.removeChild(header);
@@ -2006,10 +2006,25 @@ function renderApp() {
     // Add special full-height styling for auth page
     main.style.padding = '0';
     main.style.maxWidth = 'none';
+  } else if (appState.currentPage === 'landing') {
+    // Don't show the header for landing page
+    appContainer.removeChild(header);
+    
+    // Import and render the landing page
+    import('../landing.js').then(module => {
+      main.appendChild(module.renderLandingPage());
+    }).catch(error => {
+      console.error('Error loading landing page module:', error);
+      main.appendChild(createErrorMessage('Failed to load landing page module'));
+    });
+    
+    // Add special full-width styling for landing page
+    main.style.padding = '0';
+    main.style.maxWidth = 'none';
   } else {
     // Only check for auth on protected pages
     if (!appState.user.isAuthenticated) {
-      const nonAuthRoutes = ['login', 'register', 'about', 'pricing'];
+      const nonAuthRoutes = ['login', 'register', 'about', 'pricing', 'landing'];
       if (!nonAuthRoutes.includes(appState.currentPage)) {
         console.log('User not authenticated, redirecting to login page');
         navigateTo('login');
@@ -2044,6 +2059,15 @@ function renderApp() {
         }).catch(error => {
           console.error('Error loading bank connections module:', error);
           main.appendChild(createErrorMessage('Failed to load bank connections module'));
+        });
+        break;
+      case 'subscriptions':
+        // Import the subscriptions page module
+        import('../subscriptions.js').then(module => {
+          main.appendChild(module.renderSubscriptionsPage());
+        }).catch(error => {
+          console.error('Error loading subscriptions module:', error);
+          main.appendChild(createErrorMessage('Failed to load subscriptions module'));
         });
         break;
       case 'settings':
@@ -2128,8 +2152,13 @@ document.addEventListener('DOMContentLoaded', () => {
   loadStateFromStorage();
   
   // Check URL for initial navigation
-  const hash = window.location.hash.replace('#', '') || 'dashboard';
-  appState.currentPage = hash;
+  const hash = window.location.hash.replace('#', '');
+  // If no hash is provided, show landing page for unauthenticated and dashboard for authenticated users
+  if (!hash) {
+    appState.currentPage = appState.user.isAuthenticated ? 'dashboard' : 'landing';
+  } else {
+    appState.currentPage = hash;
+  }
   
   // Render the initial state
   renderApp();

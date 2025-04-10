@@ -354,7 +354,7 @@ function createFAQSection() {
   const faqs = [
     {
       question: 'Can I upgrade or downgrade my plan later?',
-      answer: 'Yes, you can upgrade your plan at any time. If you upgrade from Free to Pro, you'll have immediate access to all Pro features. If you want to downgrade, you can do so at the end of your billing period.'
+      answer: 'Yes, you can upgrade your plan at any time. If you upgrade from Free to Pro, you\'ll have immediate access to all Pro features. If you want to downgrade, you can do so at the end of your billing period.'
     },
     {
       question: 'Is my payment information secure?',
@@ -362,7 +362,7 @@ function createFAQSection() {
     },
     {
       question: 'What happens when my Pro subscription ends?',
-      answer: 'If you choose not to renew your Pro subscription, your account will automatically revert to the Free plan. You'll still have access to your data, but Pro features will no longer be available.'
+      answer: 'If you choose not to renew your Pro subscription, your account will automatically revert to the Free plan. You\'ll still have access to your data, but Pro features will no longer be available.'
     },
     {
       question: 'Is there a trial period for Pro?',

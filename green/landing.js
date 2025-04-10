@@ -322,7 +322,7 @@ function createHeroSection() {
   ctaButtons.style.marginBottom = '60px';
   
   const primaryButton = document.createElement('a');
-  primaryButton.textContent = 'Get Started — It's Free';
+  primaryButton.textContent = 'Get Started — It\'s Free';
   primaryButton.href = '#register';
   primaryButton.style.padding = '16px 32px';
   primaryButton.style.backgroundColor = 'var(--color-primary)';
