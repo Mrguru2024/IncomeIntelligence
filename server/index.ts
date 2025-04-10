@@ -431,61 +431,17 @@ app.use((req, res, next) => {
   // Always use clean version
   const useCleanVersion = true;
   
-  // Serve our primary entry point with a completely static demo version
-  app.get('/', (req, res) => {
-    console.log('Serving Stackr Finance demo page');
-    
-    // Path to our demo HTML file
+  // We don't need to handle the root route separately as it will be handled by Vite in development
+  // or by the static file server in production
+  
+  // These special routes are still needed for testing specific versions
+  app.get('/demo', (req, res) => {
     const demoHtmlPath = path.join(dirname, '../client/stackr-demo.html');
-    
     if (fs.existsSync(demoHtmlPath)) {
-      // Set cache-control headers to ensure fresh content
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      res.setHeader('Surrogate-Control', 'no-store');
-      
-      // Send the demo file
       res.sendFile(demoHtmlPath);
     } else {
-      console.error('Demo HTML file not found at:', demoHtmlPath);
-      // Fall back to the simple maintenance page
-      res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Stackr - Maintenance</title>
-          <style>
-            body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
-            h1 { color: #4f46e5; }
-            .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
-          </style>
-        </head>
-        <body>
-          <h1>Stackr Finance</h1>
-          <div class="card">
-            <h2>Maintenance Mode</h2>
-            <p>We're currently performing maintenance to remove Firebase dependencies. Please check back shortly.</p>
-            <p>The backend API remains fully functional during this maintenance.</p>
-          </div>
-        </body>
-        </html>
-      `);
+      res.status(404).send('Demo page not found');
     }
-  });
-  
-  // Handle all other routes except API routes and special routes
-  app.get(/^\/(?!api).*$/, (req, res, next) => {
-    // Let special routes be handled by their handlers
-    if (req.path === '/mock' || req.path === '/firebase-free' || req.path === '/clean') {
-      next();
-      return;
-    }
-    
-    // Redirect to our clean version
-    res.redirect('/clean');
   });
 
   // Basic error handling

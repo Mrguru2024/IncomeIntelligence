@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ path, component: Component }: ProtectedRouteProps) {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading, user } = useAuth();
 
   return (
     <Route path={path}>
@@ -21,7 +21,8 @@ export function ProtectedRoute({ path, component: Component }: ProtectedRoutePro
           );
         }
 
-        if (!isAuthenticated) {
+        // If no user, redirect to auth page
+        if (!user) {
           return <Redirect to="/auth" />;
         }
 
