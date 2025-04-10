@@ -9,30 +9,17 @@ import './index.css';
 // Import App component with custom Auth provider (no Firebase)
 import App from './App';
 
-// Block any potential real Firebase imports by patching global objects
-// This will prevent the Firebase SDK from initializing properly
-console.log("STARTUP: Setting up Firebase blocking");
+// No Firebase setup needed - we're using our own auth system
+console.log("STARTUP: Using custom authentication system");
+// Clean up any potential Firebase leftovers
 if (typeof window !== 'undefined') {
-  // Create a fake indexedDB that throws on any attempt to use it (for Firebase persistence)
-  Object.defineProperty(window, 'indexedDB', {
-    value: {
-      open: () => { 
-        console.log("Blocked indexedDB access attempt");
-        throw new Error("indexedDB access blocked");
-      }
-    },
-    writable: false
-  });
-  
-  // Block the Firebase persistence key
-  console.log("STARTUP: Blocking Firebase persistence");
-  window.localStorage.removeItem('firebase:previous-user');
-  
-  // Prevent any Firebase Web initialization
-  window.__FIREBASE_CONFIG__ = {
-    projectId: 'stackr-app-blocked',
-    disabled: true
-  };
+  // Remove any previous storage keys
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.includes('firebase')) {
+      localStorage.removeItem(key);
+    }
+  }
 }
 
 // Add enhanced debugging

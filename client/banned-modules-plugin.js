@@ -3,41 +3,34 @@
  * This implementation uses multiple strategies to block these modules at various stages
  */
 export default function bannedModulesPlugin() {
-  // Path to our mock module
+  // Ultra minimal completely empty response with only error throwing
   const mockedContent = `
-    // Mock replacement for banned modules
-    console.log('[MOCK] Using mock module instead of banned dependency');
+    // No Firebase or Sanity dependencies allowed - throws error when accessed
+    console.error('[BANNED MODULE] Attempted to use banned dependency - Firebase/Sanity are forbidden');
     
-    // Mock necessary exports
-    export const initializeApp = () => ({ 
-      name: 'mock-app',
-      options: { projectId: 'mock-project' } 
-    });
-    export const getAuth = () => ({
-      currentUser: null,
-      onAuthStateChanged: (cb) => { 
-        setTimeout(() => cb(null), 0); 
-        return () => {};
-      },
-      signOut: () => Promise.resolve(),
-      setPersistence: () => Promise.resolve(),
-      createUserWithEmailAndPassword: () => Promise.resolve({ user: null }),
-      signInWithEmailAndPassword: () => Promise.resolve({ user: null })
-    });
-    export const getFirestore = () => ({});
-    export const auth = { currentUser: null };
-    export const db = {};
-    export const app = { name: 'mock-app' };
-    export const browserLocalPersistence = 'mock';
-    export const GoogleAuthProvider = { PROVIDER_ID: 'google.com' };
-    export const signInWithRedirect = () => Promise.resolve();
-    export const getRedirectResult = () => Promise.resolve(null);
-    
-    // Default export
-    export default { 
-      initializeApp, getAuth, getFirestore, auth, db, app,
-      browserLocalPersistence, GoogleAuthProvider
+    // All exports throw errors
+    const createError = () => { 
+      throw new Error('Firebase/Sanity dependencies are banned in this application'); 
     };
+    
+    // Export error-throwing functions for all common Firebase methods
+    export const initializeApp = createError;
+    export const getAuth = createError;
+    export const getFirestore = createError;
+    export const setPersistence = createError;
+    export const browserLocalPersistence = 'banned';
+    export const signInWithEmailAndPassword = createError;
+    export const createUserWithEmailAndPassword = createError;
+    export const signOut = createError;
+    export const onAuthStateChanged = createError;
+    export const signInWithRedirect = createError;
+    export const getRedirectResult = createError;
+    export const GoogleAuthProvider = { new: createError };
+    
+    // Default export also throws
+    export default new Proxy({}, {
+      get() { createError(); }
+    });
   `;
 
   return {
