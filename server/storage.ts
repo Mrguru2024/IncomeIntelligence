@@ -16,7 +16,9 @@ import { users, type User, type InsertUser, incomes, type Income, type InsertInc
   spendingPersonalityResults, type SpendingPersonalityResult, type InsertSpendingPersonalityResult,
   professionalServices, type ProfessionalService, type InsertProfessionalService,
   budgets, type Budget, type InsertBudget,
-  stackrGigs, type StackrGig, type InsertStackrGig
+  stackrGigs, type StackrGig, type InsertStackrGig,
+  affiliatePrograms, type AffiliateProgram, type InsertAffiliateProgram,
+  userAffiliates, type UserAffiliate, type InsertUserAffiliate
 } from "@shared/schema";
 import { eq, sql, and, or, desc, asc } from 'drizzle-orm';
 import { db } from './db';
@@ -47,6 +49,24 @@ export interface IStorage {
   getUserProfile(userId: number): Promise<UserProfile | undefined>;
   createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
   updateUserProfile(userId: number, profile: Partial<InsertUserProfile>): Promise<UserProfile | undefined>;
+  
+  // Affiliate methods
+  getAffiliatePrograms(): Promise<AffiliateProgram[]>;
+  getAffiliateProgramById(id: number): Promise<AffiliateProgram | undefined>;
+  getAffiliateProgramsByCategory(category: string): Promise<AffiliateProgram[]>;
+  createAffiliateProgram(program: InsertAffiliateProgram): Promise<AffiliateProgram>;
+  updateAffiliateProgram(id: number, program: Partial<InsertAffiliateProgram>): Promise<AffiliateProgram | undefined>;
+  deleteAffiliateProgram(id: number): Promise<boolean>;
+  getFeaturedAffiliatePrograms(): Promise<AffiliateProgram[]>;
+  
+  // User Affiliate methods
+  getUserAffiliatePrograms(userId: number): Promise<UserAffiliate[]>;
+  getUserAffiliateById(id: number): Promise<UserAffiliate | undefined>;
+  joinAffiliateProgram(userAffiliate: InsertUserAffiliate): Promise<UserAffiliate>;
+  updateUserAffiliate(id: number, userAffiliate: Partial<InsertUserAffiliate>): Promise<UserAffiliate | undefined>;
+  leaveAffiliateProgram(userId: number, programId: number): Promise<boolean>;
+  updateUserAffiliateEarnings(id: number, earnings: string): Promise<UserAffiliate | undefined>;
+  getUserAffiliateProgramDetails(userId: number): Promise<Array<AffiliateProgram & { joined: boolean, joinedDate?: Date }>>;
   
   // Income methods
   getIncomes(userId: number): Promise<Income[]>;
@@ -215,6 +235,8 @@ export class MemStorage implements IStorage {
   private budgets: Map<number, Budget>;
   private professionalServices: Map<number, ProfessionalService>;
   private stackrGigs: Map<number, StackrGig>;
+  private affiliatePrograms: Map<number, AffiliateProgram>;
+  private userAffiliates: Map<number, UserAffiliate>;
   
   private userCurrentId: number;
   private userProfileCurrentId: number;
@@ -237,6 +259,8 @@ export class MemStorage implements IStorage {
   private budgetCurrentId: number;
   private professionalServiceCurrentId: number;
   private stackrGigCurrentId: number;
+  private affiliateProgramCurrentId: number;
+  private userAffiliateCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -260,6 +284,8 @@ export class MemStorage implements IStorage {
     this.budgets = new Map();
     this.professionalServices = new Map();
     this.stackrGigs = new Map();
+    this.affiliatePrograms = new Map();
+    this.userAffiliates = new Map();
     
     this.userCurrentId = 1;
     this.userProfileCurrentId = 1;
@@ -282,12 +308,69 @@ export class MemStorage implements IStorage {
     this.budgetCurrentId = 1;
     this.professionalServiceCurrentId = 1;
     this.stackrGigCurrentId = 1;
+    this.affiliateProgramCurrentId = 1;
+    this.userAffiliateCurrentId = 1;
     
     // Add some initial data
     this.setupInitialData();
   }
 
   private setupInitialData() {
+    // Add sample affiliate programs
+    const sampleAffiliatePrograms: InsertAffiliateProgram[] = [
+      {
+        name: "LockPro Commission",
+        description: "Earn commissions by referring customers to LockPro's high-security locksmith products.",
+        company: "LockPro Security",
+        category: "security",
+        commissionRate: "10%",
+        payoutThreshold: "50.00",
+        payoutSchedule: "monthly",
+        termsUrl: "https://lockpro.example.com/affiliates/terms",
+        signupUrl: "https://lockpro.example.com/affiliates/signup",
+        logoUrl: "https://lockpro.example.com/logo.png",
+        status: "active",
+        tags: ["security", "locksmith", "hardware"],
+        aiRecommendationScore: 85,
+        featured: true,
+      },
+      {
+        name: "ToolMaster Affiliate",
+        description: "Refer clients to ToolMaster and get 8% on professional-grade tools for tradespeople.",
+        company: "ToolMaster Inc.",
+        category: "tools",
+        commissionRate: "8%",
+        payoutThreshold: "100.00",
+        payoutSchedule: "monthly",
+        termsUrl: "https://toolmaster.example.com/affiliate-terms",
+        signupUrl: "https://toolmaster.example.com/affiliate-program",
+        logoUrl: "https://toolmaster.example.com/logo.png",
+        status: "active",
+        tags: ["tools", "tradesperson", "equipment"],
+        aiRecommendationScore: 78,
+        featured: false,
+      },
+      {
+        name: "ServicePro Software Partner",
+        description: "Earn ongoing commissions by referring service businesses to ServicePro scheduling software.",
+        company: "ServicePro",
+        category: "software",
+        commissionRate: "20% recurring",
+        payoutThreshold: "25.00",
+        payoutSchedule: "monthly",
+        termsUrl: "https://servicepro.example.com/partners/terms",
+        signupUrl: "https://servicepro.example.com/partners/apply",
+        logoUrl: "https://servicepro.example.com/logo.png",
+        status: "active",
+        tags: ["software", "scheduling", "service-business"],
+        aiRecommendationScore: 92,
+        featured: true,
+      }
+    ];
+    
+    sampleAffiliatePrograms.forEach(program => {
+      this.createAffiliateProgram(program);
+    });
     // Add some sample gigs
     const sampleGigs: InsertStackrGig[] = [
       {
@@ -896,6 +979,324 @@ export class MemStorage implements IStorage {
   async createProfessionalService(service: InsertProfessionalService): Promise<ProfessionalService> { return {} as ProfessionalService; }
   async updateProfessionalService(id: number, service: Partial<InsertProfessionalService>): Promise<ProfessionalService | undefined> { return undefined; }
   async deleteProfessionalService(id: number): Promise<boolean> { return true; }
+
+  // Affiliate Program methods
+  async getAffiliatePrograms(): Promise<AffiliateProgram[]> {
+    return Array.from(this.affiliatePrograms.values());
+  }
+
+  async getAffiliateProgramById(id: number): Promise<AffiliateProgram | undefined> {
+    return this.affiliatePrograms.get(id);
+  }
+
+  async getAffiliateProgramsByCategory(category: string): Promise<AffiliateProgram[]> {
+    return Array.from(this.affiliatePrograms.values()).filter(
+      program => program.category === category
+    );
+  }
+
+  async createAffiliateProgram(program: InsertAffiliateProgram): Promise<AffiliateProgram> {
+    const id = this.affiliateProgramCurrentId++;
+    const now = new Date();
+    
+    const programObj: AffiliateProgram = {
+      id,
+      name: program.name,
+      description: program.description,
+      company: program.company,
+      category: program.category,
+      commissionRate: program.commissionRate,
+      payoutThreshold: program.payoutThreshold || null,
+      payoutSchedule: program.payoutSchedule || null,
+      termsUrl: program.termsUrl || null,
+      signupUrl: program.signupUrl,
+      logoUrl: program.logoUrl || null,
+      status: program.status || "active",
+      tags: program.tags || [],
+      aiRecommendationScore: program.aiRecommendationScore || 50,
+      createdAt: now,
+      featured: program.featured || false
+    };
+    
+    this.affiliatePrograms.set(id, programObj);
+    return programObj;
+  }
+
+  async updateAffiliateProgram(id: number, program: Partial<InsertAffiliateProgram>): Promise<AffiliateProgram | undefined> {
+    const existingProgram = this.affiliatePrograms.get(id);
+    if (!existingProgram) return undefined;
+    
+    const updatedProgram: AffiliateProgram = {
+      ...existingProgram,
+      ...program
+    };
+    
+    this.affiliatePrograms.set(id, updatedProgram);
+    return updatedProgram;
+  }
+
+  async deleteAffiliateProgram(id: number): Promise<boolean> {
+    const exists = this.affiliatePrograms.has(id);
+    if (exists) {
+      this.affiliatePrograms.delete(id);
+      return true;
+    }
+    return false;
+  }
+
+  async getFeaturedAffiliatePrograms(): Promise<AffiliateProgram[]> {
+    return Array.from(this.affiliatePrograms.values()).filter(
+      program => program.featured === true
+    );
+  }
+
+  // User Affiliate methods
+  async getUserAffiliatePrograms(userId: number): Promise<UserAffiliate[]> {
+    return Array.from(this.userAffiliates.values()).filter(
+      affiliate => affiliate.userId === userId
+    );
+  }
+
+  async getUserAffiliateById(id: number): Promise<UserAffiliate | undefined> {
+    return this.userAffiliates.get(id);
+  }
+
+  async joinAffiliateProgram(userAffiliate: InsertUserAffiliate): Promise<UserAffiliate> {
+    const id = this.userAffiliateCurrentId++;
+    const now = new Date();
+    
+    const userAffiliateObj: UserAffiliate = {
+      id,
+      userId: userAffiliate.userId,
+      programId: userAffiliate.programId,
+      affiliateId: userAffiliate.affiliateId || null,
+      referralCode: userAffiliate.referralCode || null,
+      referralUrl: userAffiliate.referralUrl || null,
+      dateJoined: now,
+      totalEarnings: userAffiliate.totalEarnings || "0",
+      status: userAffiliate.status || "active",
+      lastPayout: userAffiliate.lastPayout || null,
+      notes: userAffiliate.notes || null
+    };
+    
+    this.userAffiliates.set(id, userAffiliateObj);
+    return userAffiliateObj;
+  }
+
+  async updateUserAffiliate(id: number, userAffiliate: Partial<InsertUserAffiliate>): Promise<UserAffiliate | undefined> {
+    const existingUserAffiliate = this.userAffiliates.get(id);
+    if (!existingUserAffiliate) return undefined;
+    
+    const updatedUserAffiliate: UserAffiliate = {
+      ...existingUserAffiliate,
+      ...userAffiliate
+    };
+    
+    this.userAffiliates.set(id, updatedUserAffiliate);
+    return updatedUserAffiliate;
+  }
+
+  async leaveAffiliateProgram(userId: number, programId: number): Promise<boolean> {
+    const userAffiliates = Array.from(this.userAffiliates.values());
+    const affiliateToRemove = userAffiliates.find(
+      affiliate => affiliate.userId === userId && affiliate.programId === programId
+    );
+    
+    if (affiliateToRemove) {
+      this.userAffiliates.delete(affiliateToRemove.id);
+      return true;
+    }
+    return false;
+  }
+
+  async updateUserAffiliateEarnings(id: number, earnings: string): Promise<UserAffiliate | undefined> {
+    const userAffiliate = this.userAffiliates.get(id);
+    if (!userAffiliate) return undefined;
+    
+    const updatedUserAffiliate: UserAffiliate = {
+      ...userAffiliate,
+      totalEarnings: earnings,
+      lastPayout: new Date()
+    };
+    
+    this.userAffiliates.set(id, updatedUserAffiliate);
+    return updatedUserAffiliate;
+  }
+
+  async getUserAffiliateProgramDetails(userId: number): Promise<Array<AffiliateProgram & { joined: boolean, joinedDate?: Date }>> {
+    const allPrograms = await this.getAffiliatePrograms();
+    const userAffiliates = await this.getUserAffiliatePrograms(userId);
+    
+    return allPrograms.map(program => {
+      const joined = userAffiliates.some(affiliate => affiliate.programId === program.id);
+      const affiliate = userAffiliates.find(affiliate => affiliate.programId === program.id);
+      
+      return {
+        ...program,
+        joined,
+        joinedDate: affiliate ? affiliate.dateJoined : undefined
+      };
+    });
+  }
+  
+  // Affiliate Program methods
+  async getAffiliatePrograms(): Promise<AffiliateProgram[]> {
+    return Array.from(this.affiliatePrograms.values());
+  }
+
+  async getAffiliateProgramById(id: number): Promise<AffiliateProgram | undefined> {
+    return this.affiliatePrograms.get(id);
+  }
+
+  async getAffiliateProgramsByCategory(category: string): Promise<AffiliateProgram[]> {
+    return Array.from(this.affiliatePrograms.values()).filter(
+      program => program.category === category
+    );
+  }
+
+  async createAffiliateProgram(program: InsertAffiliateProgram): Promise<AffiliateProgram> {
+    const id = this.affiliateProgramCurrentId++;
+    const now = new Date();
+    
+    const programObj: AffiliateProgram = {
+      id,
+      name: program.name,
+      description: program.description,
+      company: program.company,
+      category: program.category,
+      commissionRate: program.commissionRate,
+      payoutThreshold: program.payoutThreshold || null,
+      payoutSchedule: program.payoutSchedule || null,
+      termsUrl: program.termsUrl || null,
+      signupUrl: program.signupUrl,
+      logoUrl: program.logoUrl || null,
+      status: program.status || "active",
+      tags: program.tags || [],
+      aiRecommendationScore: program.aiRecommendationScore || 50,
+      createdAt: now,
+      featured: program.featured || false
+    };
+    
+    this.affiliatePrograms.set(id, programObj);
+    return programObj;
+  }
+
+  async updateAffiliateProgram(id: number, program: Partial<InsertAffiliateProgram>): Promise<AffiliateProgram | undefined> {
+    const existingProgram = this.affiliatePrograms.get(id);
+    if (!existingProgram) return undefined;
+    
+    const updatedProgram: AffiliateProgram = {
+      ...existingProgram,
+      ...program
+    };
+    
+    this.affiliatePrograms.set(id, updatedProgram);
+    return updatedProgram;
+  }
+
+  async deleteAffiliateProgram(id: number): Promise<boolean> {
+    const exists = this.affiliatePrograms.has(id);
+    if (exists) {
+      this.affiliatePrograms.delete(id);
+      return true;
+    }
+    return false;
+  }
+
+  async getFeaturedAffiliatePrograms(): Promise<AffiliateProgram[]> {
+    return Array.from(this.affiliatePrograms.values()).filter(
+      program => program.featured === true
+    );
+  }
+
+  // User Affiliate methods
+  async getUserAffiliatePrograms(userId: number): Promise<UserAffiliate[]> {
+    return Array.from(this.userAffiliates.values()).filter(
+      affiliate => affiliate.userId === userId
+    );
+  }
+
+  async getUserAffiliateById(id: number): Promise<UserAffiliate | undefined> {
+    return this.userAffiliates.get(id);
+  }
+
+  async joinAffiliateProgram(userAffiliate: InsertUserAffiliate): Promise<UserAffiliate> {
+    const id = this.userAffiliateCurrentId++;
+    const now = new Date();
+    
+    const userAffiliateObj: UserAffiliate = {
+      id,
+      userId: userAffiliate.userId,
+      programId: userAffiliate.programId,
+      affiliateId: userAffiliate.affiliateId || null,
+      referralCode: userAffiliate.referralCode || null,
+      referralUrl: userAffiliate.referralUrl || null,
+      dateJoined: now,
+      totalEarnings: userAffiliate.totalEarnings || "0",
+      status: userAffiliate.status || "active",
+      lastPayout: userAffiliate.lastPayout || null,
+      notes: userAffiliate.notes || null
+    };
+    
+    this.userAffiliates.set(id, userAffiliateObj);
+    return userAffiliateObj;
+  }
+
+  async updateUserAffiliate(id: number, userAffiliate: Partial<InsertUserAffiliate>): Promise<UserAffiliate | undefined> {
+    const existingUserAffiliate = this.userAffiliates.get(id);
+    if (!existingUserAffiliate) return undefined;
+    
+    const updatedUserAffiliate: UserAffiliate = {
+      ...existingUserAffiliate,
+      ...userAffiliate
+    };
+    
+    this.userAffiliates.set(id, updatedUserAffiliate);
+    return updatedUserAffiliate;
+  }
+
+  async leaveAffiliateProgram(userId: number, programId: number): Promise<boolean> {
+    const userAffiliates = Array.from(this.userAffiliates.values());
+    const affiliateToRemove = userAffiliates.find(
+      affiliate => affiliate.userId === userId && affiliate.programId === programId
+    );
+    
+    if (affiliateToRemove) {
+      this.userAffiliates.delete(affiliateToRemove.id);
+      return true;
+    }
+    return false;
+  }
+
+  async updateUserAffiliateEarnings(id: number, earnings: string): Promise<UserAffiliate | undefined> {
+    const userAffiliate = this.userAffiliates.get(id);
+    if (!userAffiliate) return undefined;
+    
+    const updatedUserAffiliate: UserAffiliate = {
+      ...userAffiliate,
+      totalEarnings: earnings,
+      lastPayout: new Date()
+    };
+    
+    this.userAffiliates.set(id, updatedUserAffiliate);
+    return updatedUserAffiliate;
+  }
+
+  async getUserAffiliateProgramDetails(userId: number): Promise<Array<AffiliateProgram & { joined: boolean, joinedDate?: Date }>> {
+    const allPrograms = await this.getAffiliatePrograms();
+    const userAffiliates = await this.getUserAffiliatePrograms(userId);
+    
+    return allPrograms.map(program => {
+      const joined = userAffiliates.some(affiliate => affiliate.programId === program.id);
+      const affiliate = userAffiliates.find(affiliate => affiliate.programId === program.id);
+      
+      return {
+        ...program,
+        joined,
+        joinedDate: affiliate ? affiliate.dateJoined : undefined
+      };
+    });
+  }
 }
 
 export const storage = new MemStorage();
