@@ -29,7 +29,9 @@ import {
   insertCreativeGrantSchema,
   insertGrantApplicationSchema,
   insertReferralSchema,
-  insertProfessionalServiceSchema
+  insertProfessionalServiceSchema,
+  InsertUserAffiliate,
+  insertAffiliateProgramSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -1198,7 +1200,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid parameters" });
       }
       
-      const result = await storage.joinAffiliateProgram(programId, userId);
+      const userAffiliate: InsertUserAffiliate = {
+        userId,
+        programId,
+        ...req.body
+      };
+      
+      const result = await storage.joinAffiliateProgram(userAffiliate);
       res.status(201).json(result);
     } catch (error) {
       console.error('Error joining affiliate program:', error);
@@ -1214,7 +1222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized" });
       }
       
-      const affiliates = await storage.getUserAffiliates(userId);
+      const affiliates = await storage.getUserAffiliatePrograms(userId);
       res.json(affiliates);
     } catch (error) {
       console.error('Error getting user affiliates:', error);
