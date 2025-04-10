@@ -690,6 +690,46 @@ export function renderAuthPage() {
       }
     }
     
+    /* Form elements styling */
+    .auth-form-col input[type="text"], 
+    .auth-form-col input[type="password"], 
+    .auth-form-col input[type="email"] {
+      color: #333333;
+      background-color: white;
+    }
+    
+    .auth-form-col input::placeholder {
+      color: #888888;
+      opacity: 1;
+    }
+    
+    .auth-form-col label {
+      color: #333333;
+    }
+    
+    .login-form, .register-form {
+      background-color: white;
+      color: #333333;
+    }
+    
+    .login-error, .register-error {
+      color: #e53e3e;
+      background-color: #fed7d7;
+    }
+    
+    .auth-form-col p {
+      color: #333333;
+    }
+    
+    .auth-form-col a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+    
+    .auth-form-col a:hover {
+      text-decoration: underline;
+    }
+    
     .spinner {
       width: 20px;
       height: 20px;
