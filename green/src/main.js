@@ -1822,6 +1822,41 @@ function renderSettingsPage() {
   
   container.appendChild(splitCard);
   
+  // Account Management Card
+  const accountCard = document.createElement('div');
+  accountCard.style.backgroundColor = '#f5f5f5';
+  accountCard.style.borderRadius = '8px';
+  accountCard.style.padding = '20px';
+  accountCard.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+  accountCard.style.marginBottom = '30px';
+  
+  const accountHeading = document.createElement('h3');
+  accountHeading.textContent = 'Account Management';
+  accountHeading.style.marginTop = '0';
+  accountCard.appendChild(accountHeading);
+  
+  const accountInfo = document.createElement('div');
+  accountInfo.style.marginBottom = '20px';
+  
+  // Import login module to use the logout function
+  import('../login.js').then(loginModule => {
+    // Create logout button
+    const logoutButton = createButton('Logout', async () => {
+      try {
+        await loginModule.logout();
+        // The logout function already handles redirecting to login page
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+    }, '#EA4335', '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>');
+    
+    logoutButton.style.marginTop = '10px';
+    accountInfo.appendChild(logoutButton);
+  });
+  
+  accountCard.appendChild(accountInfo);
+  container.appendChild(accountCard);
+  
   // Data management card
   const dataCard = document.createElement('div');
   dataCard.style.backgroundColor = '#f5f5f5';
@@ -2016,6 +2051,7 @@ function renderApp() {
         break;
       default:
         main.appendChild(renderDashboardPage());
+    }
   }
   
   appContainer.appendChild(main);
