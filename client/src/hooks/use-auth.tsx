@@ -1,167 +1,116 @@
-import { createContext, ReactNode, useContext, useState, useEffect } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import {
   useQuery,
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
+import { queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import authService, { User } from "@/lib/authService";
 
-// Define user type
-export interface User {
-  id: number;
-  username: string;
-  email?: string;
-  role?: string;
-  subscriptionStatus?: 'free' | 'basic' | 'pro';
-  createdAt?: string;
-  onboardingCompleted?: boolean;
-}
-
-// Define login data type
-interface LoginData {
-  username: string;
-  password: string;
-}
-
-// Define register data type
-interface RegisterData {
-  username: string;
-  email: string;
-  password: string;
-}
-
-// Define auth context type
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  isAuthenticated: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<User, Error, LoginData>;
+  loginMutation: UseMutationResult<User, Error, { username: string; password: string }>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<User, Error, RegisterData>;
+  registerMutation: UseMutationResult<User, Error, { username: string; email: string; password: string }>;
 }
 
-// Create the auth context
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-// Create the auth provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  
-  // Query to get the current user
-  const {
-    data: user,
-    error,
-    isLoading,
-    refetch,
-  } = useQuery<User | null, Error>({
-    queryKey: ["/api/user"],
-    queryFn: async () => {
-      try {
-        const res = await apiRequest("GET", "/api/user");
-        if (res.status === 401) {
-          return null;
-        }
-        return await res.json();
-      } catch (err) {
-        console.error("Error fetching user data:", err);
-        return null;
-      }
-    },
-  });
-  
-  // Set authentication status based on user data
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  // Initialize auth state from the auth service
   useEffect(() => {
-    setIsAuthenticated(!!user);
-  }, [user]);
-  
+    const unsubscribe = authService.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+      setIsLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+
   // Login mutation
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginData) => {
-      const res = await apiRequest("POST", "/api/login", credentials);
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Login failed");
-      }
-      return await res.json();
+    mutationFn: async (credentials: { username: string; password: string }) => {
+      return authService.login(credentials);
     },
-    onSuccess: () => {
-      refetch(); // Refetch user data after successful login
+    onSuccess: (loggedInUser: User) => {
+      setUser(loggedInUser);
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       toast({
-        title: "Login successful",
-        description: "Welcome back to Stackr Finance!",
+        title: "Login Successful",
+        description: `Welcome ${loggedInUser.username}!`,
       });
     },
     onError: (error: Error) => {
+      setError(error);
       toast({
-        title: "Login failed",
+        title: "Login Failed",
         description: error.message,
         variant: "destructive",
       });
     },
   });
-  
+
   // Register mutation
   const registerMutation = useMutation({
-    mutationFn: async (userData: RegisterData) => {
-      const res = await apiRequest("POST", "/api/register", userData);
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Registration failed");
-      }
-      return await res.json();
+    mutationFn: async (credentials: { username: string; email: string; password: string }) => {
+      return authService.register(credentials);
     },
-    onSuccess: () => {
-      refetch(); // Refetch user data after successful registration
+    onSuccess: (registeredUser: User) => {
+      setUser(registeredUser);
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       toast({
-        title: "Registration successful",
-        description: "Welcome to Stackr Finance!",
+        title: "Registration Successful",
+        description: "Your account has been created successfully.",
       });
     },
     onError: (error: Error) => {
+      setError(error);
       toast({
-        title: "Registration failed",
+        title: "Registration Failed",
         description: error.message,
         variant: "destructive",
       });
     },
   });
-  
+
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/logout");
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Logout failed");
-      }
+      return authService.logout();
     },
     onSuccess: () => {
-      // Clear all query cache on logout
+      setUser(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       queryClient.clear();
-      setIsAuthenticated(false);
       toast({
-        title: "Logged out",
-        description: "You have successfully logged out.",
+        title: "Logout Successful",
+        description: "You have been logged out.",
       });
     },
     onError: (error: Error) => {
+      setError(error);
       toast({
-        title: "Logout failed",
+        title: "Logout Failed",
         description: error.message,
         variant: "destructive",
       });
     },
   });
-  
+
   return (
     <AuthContext.Provider
       value={{
-        user: user || null,
+        user,
         isLoading,
-        isAuthenticated,
         error,
         loginMutation,
         logoutMutation,
@@ -173,7 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook to use the auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

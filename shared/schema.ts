@@ -2,6 +2,81 @@ import { pgTable, text, serial, integer, boolean, timestamp, numeric, json } fro
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+/**
+ * Stackr Subscription Plans Definition
+ * 
+ * This defines the subscription plans available in the application:
+ * - Free: Basic features with limited functionality
+ * - Pro: Advanced features with premium functionality
+ * - Lifetime: One-time purchase for permanent Pro access
+ */
+export const subscriptionPlans = [
+  {
+    id: "free",
+    name: "Stackr Free",
+    description: "Basic financial tracking and management tools",
+    price: 0,
+    billingPeriod: "monthly",
+    features: [
+      "Manual income tracking",
+      "Basic expense categorization",
+      "Simple budget planning",
+      "40/30/30 allocation tracking",
+      "Simple goal setting",
+      "Basic financial insights",
+      "2 active goals limit"
+    ],
+    limitedFeatures: [
+      "No AI-powered financial advice",
+      "Limited voice commands",
+      "No offline mode",
+      "No customizable categories",
+      "Standard notifications only"
+    ]
+  },
+  {
+    id: "pro",
+    name: "Stackr Pro",
+    description: "Advanced financial tools for professionals",
+    price: 9.99,
+    trialDays: 14,
+    billingPeriod: "monthly",
+    annualPrice: 99.99,
+    features: [
+      "Unlimited manual income tracking",
+      "AI-powered expense categorization",
+      "Advanced budget planning",
+      "Custom income allocation ratios",
+      "Unlimited goals with tracking",
+      "AI financial analysis and advice",
+      "Voice commands and automation",
+      "Offline mode access",
+      "Custom categories and tags",
+      "Priority notifications",
+      "Income generation features",
+      "Affiliate program access",
+      "Access to money challenges",
+      "Invoice generator tools",
+      "Early access to new features"
+    ]
+  },
+  {
+    id: "lifetime",
+    name: "Stackr Lifetime",
+    description: "One-time purchase for permanent Pro access",
+    price: 99.99,
+    billingPeriod: "onetime",
+    features: [
+      "All Pro features",
+      "Lifetime access",
+      "No recurring payments",
+      "Premium support",
+      "Early access to all future features",
+      "Exclusive content and guides"
+    ]
+  }
+];
+
 // User profile options and enums
 export const occupationTypes = [
   { id: "tradesperson", name: "Tradesperson" },

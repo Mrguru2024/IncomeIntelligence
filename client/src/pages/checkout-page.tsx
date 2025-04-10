@@ -1,340 +1,213 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
-import {
-  Elements,
-  PaymentElement,
-  useStripe,
-  useElements,
-} from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
-import { apiRequest } from "@/lib/queryClient";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2, ShoppingCart, ArrowLeft } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { AlertCircle, CheckCircle, ArrowLeft, LoaderIcon } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { subscriptionPlans } from '@shared/schema';
+import { useAuth } from '@/hooks/use-auth';
 
-// Initialize Stripe in a component to make sure it has access to the environment variables
-import type { Stripe } from "@stripe/stripe-js";
+// Initialize Stripe outside component to avoid recreating on each render
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
-// Create a lazy-loaded stripePromise that is only instantiated when needed
-let stripePromise: Promise<Stripe | null> | null = null;
-
-const getStripePromise = () => {
-  if (!stripePromise) {
-    try {
-      const key = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-      if (!key) {
-        console.error("Missing Stripe public key (VITE_STRIPE_PUBLIC_KEY)");
-        return Promise.resolve(null);
-      }
-      console.log("Initializing Stripe with public key:", key.substring(0, 8) + "...");
-      stripePromise = loadStripe(key);
-    } catch (error) {
-      console.error("Failed to initialize Stripe:", error);
-      return Promise.resolve(null);
-    }
-  }
-  return stripePromise;
-};
-
-interface CheckoutFormProps {
-  amount: number;
-  productName: string;
-  onSuccess: () => void;
-}
-
-const CheckoutForm = ({
-  amount,
-  productName,
-  onSuccess,
-}: CheckoutFormProps) => {
+// Component that handles the actual payment form
+function CheckoutForm({ planId }: { planId: string }) {
   const stripe = useStripe();
   const elements = useElements();
-  const [isLoading, setIsLoading] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { toast } = useToast();
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!stripe || !elements) {
+      // Stripe.js has not loaded yet
       return;
     }
 
-    setIsLoading(true);
+    setProcessing(true);
+    setErrorMessage(null);
 
     try {
-      const { error, paymentIntent } = await stripe.confirmPayment({
+      const { error } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: window.location.origin + "/checkout/success",
+          return_url: `${window.location.origin}/checkout-success?planId=${planId}`,
         },
-        redirect: "if_required",
       });
 
       if (error) {
+        // Payment failed
+        setErrorMessage(error.message || 'An error occurred during payment.');
         toast({
           title: "Payment Failed",
+          description: error.message || 'An error occurred during payment.',
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+        toast({
+          title: "Payment Error",
           description: error.message,
           variant: "destructive",
         });
-      } else if (paymentIntent && paymentIntent.status === "succeeded") {
-        toast({
-          title: "Payment Successful",
-          description: `Thank you for your purchase of ${productName}!`,
-        });
-        onSuccess();
       }
-    } catch (err) {
-      toast({
-        title: "Payment Error",
-        description:
-          "An unexpected error occurred while processing your payment.",
-        variant: "destructive",
-      });
     } finally {
-      setIsLoading(false);
+      setProcessing(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement />
-      <Button type="submit" disabled={!stripe || isLoading} className="w-full">
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Processing...
-          </>
-        ) : (
-          `Pay $${amount.toFixed(2)}`
-        )}
-      </Button>
-    </form>
-  );
-};
+    <form onSubmit={handleSubmit}>
+      {errorMessage && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
 
-const CheckoutPage = () => {
-  const [clientSecret, setClientSecret] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [productDetails, setProductDetails] = useState({
-    name: "",
-    amount: 0,
-    description: "",
-    id: "",
-  });
-  const { user } = useAuth();
-  const [location, navigate] = useLocation();
-  const { toast } = useToast();
-
-  // Extract query params to determine what's being purchased
-  useEffect(() => {
-    const params = new URLSearchParams(location.split("?")[1]);
-    const productId = params.get("product") || "";
-    const productName = params.get("name") || "Stackr Product";
-    const productAmount = Number(params.get("amount")) || 0;
-    const productDescription = params.get("description") || "One-time purchase";
-
-    if (productAmount <= 0) {
-      setError("Invalid product information. Please try again.");
-      return;
-    }
-
-    setProductDetails({
-      name: productName,
-      amount: productAmount,
-      description: productDescription,
-      id: productId,
-    });
-  }, [location]);
-
-  useEffect(() => {
-    // Redirect if not logged in
-    if (user === null) {
-      navigate("/auth");
-      return;
-    }
-
-    // Skip creating payment intent if there was an error in product info
-    if (error || productDetails.amount <= 0) {
-      return;
-    }
-
-    const createPaymentIntent = async () => {
-      setIsLoading(true);
-      try {
-        const response = await apiRequest(
-          "POST",
-          "/api/create-payment-intent",
-          {
-            amount: productDetails.amount,
-            description: productDetails.description,
-            metadata: {
-              productId: productDetails.id,
-            },
-          },
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to initialize payment");
-        }
-
-        if (data.clientSecret) {
-          setClientSecret(data.clientSecret);
-        } else {
-          setError("Unable to initialize payment. Please try again later.");
-        }
-      } catch (err) {
-        setError("Error initializing payment. Please try again later.");
-        console.error("Payment error:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (productDetails.amount > 0) {
-      createPaymentIntent();
-    }
-  }, [user, navigate, productDetails, error]);
-
-  const handlePaymentSuccess = () => {
-    // Redirect to success page or dashboard
-    navigate("/dashboard");
-  };
-
-  if (isLoading && !clientSecret) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <h2 className="text-2xl font-semibold">Preparing your checkout...</h2>
-        <p className="text-muted-foreground">This will only take a moment</p>
+      <div className="mb-6">
+        <PaymentElement />
       </div>
-    );
-  }
 
-  if (error || productDetails.amount <= 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="bg-red-100 text-red-800 p-4 rounded-lg max-w-md text-center">
-          <h2 className="text-2xl font-semibold mb-2">Checkout Error</h2>
-          <p>{error || "Invalid product information. Please try again."}</p>
-        </div>
-        <Button
-          onClick={() => navigate("/dashboard")}
-          className="mt-6"
-          variant="outline"
+      <div className="flex justify-between">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => setLocation('/subscribe-page')}
+          disabled={processing}
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Return to Dashboard
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+        </Button>
+        <Button type="submit" disabled={!stripe || processing}>
+          {processing ? (
+            <>
+              <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            'Complete Payment'
+          )}
         </Button>
       </div>
+    </form>
+  );
+}
+
+export default function CheckoutPage() {
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [planId, setPlanId] = useState<string | null>(null);
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Get the client secret from URL parameters
+  useEffect(() => {
+    // Extract params from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const secret = urlParams.get('clientSecret');
+    const plan = urlParams.get('planId');
+    
+    if (secret) {
+      setClientSecret(secret);
+    } else {
+      // No client secret found, redirect back to subscription page
+      toast({
+        title: 'Missing Payment Information',
+        description: 'There was a problem with your payment session. Please try again.',
+        variant: 'destructive',
+      });
+      setLocation('/subscribe-page');
+    }
+
+    if (plan) {
+      setPlanId(plan);
+    }
+  }, [setLocation, toast]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!user) {
+      setLocation('/auth');
+    }
+  }, [user, setLocation]);
+
+  // Find the selected plan details
+  const selectedPlan = planId ? 
+    subscriptionPlans.find(plan => plan.id === planId) : 
+    null;
+
+  if (!clientSecret || !planId || !selectedPlan) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoaderIcon className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-12 px-4 max-w-3xl">
-      <Button
-        variant="ghost"
-        onClick={() => navigate("/dashboard")}
-        className="mb-6"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Dashboard
-      </Button>
-
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold mb-2">Checkout</h1>
-        <p className="text-muted-foreground">Complete your purchase</p>
-      </div>
-
-      <div className="grid md:grid-cols-5 gap-8">
-        <div className="md:col-span-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Details</CardTitle>
-              <CardDescription>
-                Enter your payment information to complete your purchase
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {clientSecret ? (
-                <Elements
-                  stripe={getStripePromise()}
-                  options={{
-                    clientSecret,
-                    appearance: {
-                      theme: "stripe",
-                      variables: {
-                        colorPrimary: "#6366f1",
-                      },
-                    },
-                  }}
-                >
-                  <CheckoutForm
-                    amount={productDetails.amount}
-                    productName={productDetails.name}
-                    onSuccess={handlePaymentSuccess}
-                  />
-                </Elements>
-              ) : (
-                <div className="flex justify-center py-4">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    <div className="container py-8 mx-auto">
+      <div className="max-w-xl mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Complete Your Subscription</CardTitle>
+            <CardDescription>
+              You're subscribing to <strong>{selectedPlan.name}</strong>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-6">
+              <h3 className="font-medium mb-2">Subscription Summary</h3>
+              <div className="bg-muted p-4 rounded-md">
+                <div className="flex justify-between mb-2">
+                  <span>Plan:</span>
+                  <span className="font-medium">{selectedPlan.name}</span>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="md:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <ShoppingCart className="mr-3 h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium">{productDetails.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {productDetails.description}
-                    </p>
+                <div className="flex justify-between mb-2">
+                  <span>Price:</span>
+                  <span className="font-medium">
+                    {selectedPlan.id === 'lifetime' 
+                      ? `$${selectedPlan.price} (one-time payment)` 
+                      : `$${selectedPlan.price}/month`}
+                  </span>
+                </div>
+                {selectedPlan.trialDays && (
+                  <div className="flex justify-between">
+                    <span>Free trial:</span>
+                    <span className="font-medium">{selectedPlan.trialDays} days</span>
                   </div>
-                </div>
-                <p className="font-semibold">
-                  ${productDetails.amount.toFixed(2)}
-                </p>
+                )}
               </div>
+            </div>
 
-              <Separator />
-
-              <div className="flex justify-between items-center font-bold text-lg">
-                <p>Total</p>
-                <p>${productDetails.amount.toFixed(2)}</p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <p className="text-xs text-muted-foreground w-full text-center">
-                Secure payment processing by Stripe
-              </p>
-            </CardFooter>
-          </Card>
-        </div>
+            <Elements 
+              stripe={stripePromise} 
+              options={{ 
+                clientSecret,
+                appearance: { 
+                  theme: 'stripe',
+                  variables: {
+                    colorPrimary: '#6366f1',
+                  }
+                }
+              }}
+            >
+              <CheckoutForm planId={planId} />
+            </Elements>
+          </CardContent>
+          <CardFooter className="text-xs text-muted-foreground">
+            Your payment is secure and processed through Stripe. We don't store your card details on our servers.
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );
-};
-
-export default CheckoutPage;
+}

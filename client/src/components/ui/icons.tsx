@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   AlertTriangle,
   ArrowRight,
@@ -12,7 +13,6 @@ import {
   Image,
   Laptop,
   Loader2,
-  LucideProps,
   Moon,
   MoreVertical,
   Pizza,
@@ -23,77 +23,178 @@ import {
   Twitter,
   User,
   X,
-  Menu,
-  Home,
-  BarChart,
-  DollarSign,
-  PieChart,
-  Calendar,
+  type Icon as LucideIcon,
+  
+  // Icons for income categories
+  Wrench,
   Bell,
-  Headphones,
-  LogOut,
-  Wallet,
-  ChevronsUpDown,
-  LayoutDashboard,
-  Sparkles
-} from "lucide-react";
+  MessageSquare,
+  Tool,
+  ShoppingBag,
+  Briefcase,
+  Link,
+  UserPlus,
+  Smartphone,
+  Target,
+  TrendingUp,
+  Package,
+  Award,
+  
+  // Icons for financial features
+  DollarSign,
+  CreditCard as Card,
+  PieChart,
+  BarChart2,
+  Calendar,
+  Clock,
+  Send,
+  Download,
+  Upload,
+  Search,
+  Filter,
+  Sliders,
+  Save,
+  Edit,
+  RefreshCw,
+  AlertCircle,
+  Info,
+  Eye,
+  EyeOff,
+  Lock,
+  Unlock,
+  Key,
+  Shield,
+  Home,
+  Inbox,
+  Bell as Notification,
+  Star,
+  Heart,
+  ThumbsUp,
+  Zap,
+  Flag,
+  
+  // Additional utility icons
+  ArrowDown,
+  ArrowUp,
+  Maximize,
+  Minimize,
+  Rotate3D,
+  Share2,
+  Copy,
+  List,
+  LayoutGrid,
+  Columns,
+  CornerDownLeft,
+  CornerRightDown
+} from 'lucide-react';
 
-// Merge all icons into a single object
-export const Icons = {
+import type { LucideProps } from 'lucide-react';
+
+export type Icon = typeof LucideIcon;
+
+type IconsType = {
+  [key: string]: Icon;
+};
+
+// Define the icons mapping
+export const Icons: IconsType = {
+  // Core icons
   logo: Command,
   close: X,
+  help: HelpCircle,
   spinner: Loader2,
   chevronLeft: ChevronLeft,
   chevronRight: ChevronRight,
   trash: Trash,
+  post: FileText,
+  page: File,
+  media: Image,
   settings: Settings,
   billing: CreditCard,
-  arrowRight: ArrowRight,
-  help: HelpCircle,
-  user: User,
+  ellipsis: MoreVertical,
+  add: Plus,
   warning: AlertTriangle,
-  image: Image,
-  pizza: Pizza,
+  arrow: ArrowRight,
+  user: User,
+  check: Check,
   sun: SunMedium,
   moon: Moon,
   laptop: Laptop,
-  menu: Menu,
-  home: Home,
-  chart: BarChart,
-  dollar: DollarSign,
-  pieChart: PieChart,
-  calendar: Calendar,
-  notification: Bell,
-  voiceCommand: Headphones,
-  logout: LogOut,
-  wallet: Wallet,
-  file: File,
-  fileText: FileText,
-  check: Check,
-  plus: Plus,
-  moreVertical: MoreVertical,
-  chevronUpDown: ChevronsUpDown,
-  dashboard: LayoutDashboard,
-  sparkles: Sparkles,
-
-  // Social icons  
   twitter: Twitter,
+  
+  // Income categories
+  wrench: Wrench,
+  bell: Bell,
+  messagesSquare: MessageSquare,
+  tool: Tool,
+  shoppingBag: ShoppingBag,
+  briefcase: Briefcase,
+  link: Link,
+  userPlus: UserPlus,
+  smartphone: Smartphone,
+  target: Target,
+  trendingUp: TrendingUp,
+  package: Package,
+  award: Award,
+  fileText: FileText,
+  moreHorizontal: MoreVertical,
+  
+  // Financial features
+  dollarSign: DollarSign,
+  card: Card,
+  pieChart: PieChart,
+  barChart: BarChart2,
+  calendar: Calendar,
+  clock: Clock,
+  send: Send,
+  download: Download,
+  upload: Upload,
+  search: Search,
+  filter: Filter,
+  sliders: Sliders,
+  save: Save,
+  edit: Edit,
+  refresh: RefreshCw,
+  alertCircle: AlertCircle,
+  info: Info,
+  eye: Eye,
+  eyeOff: EyeOff,
+  lock: Lock,
+  unlock: Unlock,
+  key: Key,
+  shield: Shield,
+  home: Home,
+  inbox: Inbox,
+  notification: Notification,
+  star: Star,
+  heart: Heart,
+  thumbsUp: ThumbsUp,
+  zap: Zap,
+  flag: Flag,
+  
+  // Additional utility icons
+  arrowDown: ArrowDown,
+  arrowUp: ArrowUp,
+  maximize: Maximize,
+  minimize: Minimize,
+  rotate: Rotate3D,
+  share: Share2,
+  copy: Copy,
+  list: List,
+  grid: LayoutGrid,
+  columns: Columns,
+  enter: CornerDownLeft,
+  exit: CornerRightDown,
+};
 
-  // Custom icon components can be added here
-  stackr: (props: LucideProps) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <rect width="18" height="4" x="3" y="16" rx="1" />
-      <rect width="18" height="4" x="3" y="10" rx="1" />
-      <rect width="18" height="4" x="3" y="4" rx="1" />
-    </svg>
-  ),
+/**
+ * Retrieves an icon by its name with the specified props
+ */
+interface IconProps extends LucideProps {
+  name: keyof typeof Icons;
+}
+
+export const Icon = ({ name, ...props }: IconProps) => {
+  const LucideIcon = Icons[name];
+  return <LucideIcon {...props} />;
 };
