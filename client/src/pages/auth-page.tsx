@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,7 +19,6 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -27,8 +26,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Icons } from '@/components/ui/icons';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Check, PieChart, Target, DollarSign } from 'lucide-react';
 
 // Login form schema
 const loginSchema = z.object({
@@ -175,7 +173,7 @@ export default function AuthPage() {
                       >
                         {loginMutation.isPending ? (
                           <>
-                            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Logging in...
                           </>
                         ) : (
@@ -271,7 +269,7 @@ export default function AuthPage() {
                       >
                         {registerMutation.isPending ? (
                           <>
-                            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Registering...
                           </>
                         ) : (
@@ -302,7 +300,7 @@ export default function AuthPage() {
           <div className="space-y-6">
             <div className="flex items-start space-x-3">
               <div className="bg-white/20 p-2 rounded-full">
-                <Icons.check className="h-6 w-6" />
+                <Check className="h-6 w-6" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold">Income Splitting</h3>
@@ -312,7 +310,7 @@ export default function AuthPage() {
             
             <div className="flex items-start space-x-3">
               <div className="bg-white/20 p-2 rounded-full">
-                <Icons.pieChart className="h-6 w-6" />
+                <PieChart className="h-6 w-6" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold">AI-Powered Insights</h3>
@@ -322,7 +320,7 @@ export default function AuthPage() {
             
             <div className="flex items-start space-x-3">
               <div className="bg-white/20 p-2 rounded-full">
-                <Icons.target className="h-6 w-6" />
+                <Target className="h-6 w-6" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold">Goal Setting</h3>
@@ -332,7 +330,7 @@ export default function AuthPage() {
             
             <div className="flex items-start space-x-3">
               <div className="bg-white/20 p-2 rounded-full">
-                <Icons.dollarSign className="h-6 w-6" />
+                <DollarSign className="h-6 w-6" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold">Bank Integration</h3>
