@@ -9,9 +9,31 @@ import './index.css';
 // Import App component with custom Auth provider (no Firebase)
 import App from './App';
 
-// Load our completely persistence-free Firebase mock
-// This eliminates the setPersistence call that's causing the error
-import './lib/persistence-free-firebase';
+// Block any potential real Firebase imports by patching global objects
+// This will prevent the Firebase SDK from initializing properly
+console.log("STARTUP: Setting up Firebase blocking");
+if (typeof window !== 'undefined') {
+  // Create a fake indexedDB that throws on any attempt to use it (for Firebase persistence)
+  Object.defineProperty(window, 'indexedDB', {
+    value: {
+      open: () => { 
+        console.log("Blocked indexedDB access attempt");
+        throw new Error("indexedDB access blocked");
+      }
+    },
+    writable: false
+  });
+  
+  // Block the Firebase persistence key
+  console.log("STARTUP: Blocking Firebase persistence");
+  window.localStorage.removeItem('firebase:previous-user');
+  
+  // Prevent any Firebase Web initialization
+  window.__FIREBASE_CONFIG__ = {
+    projectId: 'stackr-app-blocked',
+    disabled: true
+  };
+}
 
 // Add enhanced debugging
 console.log("STARTUP: Application initialization beginning");
