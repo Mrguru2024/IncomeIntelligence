@@ -12,8 +12,8 @@ import App from './App';
 // Add enhanced debugging
 console.log("STARTUP: Application initialization beginning");
 
-// Log that we're using a version without Firebase/Sanity
-console.log("DIRECT: Using App without Firebase/Sanity dependencies");
+// Log that we're using Firebase-free version
+console.log("STARTUP: Using Firebase-free version of Stackr Finance");
 
 // Configure the query client for API requests
 const queryClient = new QueryClient({
@@ -35,13 +35,20 @@ if (!rootElement) {
   
   // Wrap in try/catch to display any rendering errors
   try {
-    // Create React root and render the app directly
+    // Create React root and render the app with all required providers
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
-        <App />
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ThemeProvider>
+              <App />
+              <Toaster />
+            </ThemeProvider>
+          </AuthProvider>
+        </QueryClientProvider>
       </React.StrictMode>
     );
-    console.log("RENDER: App rendered successfully");
+    console.log("RENDER: App rendered successfully with Firebase-free authentication");
   } catch (error) {
     console.error("CRITICAL ERROR rendering app:", error);
     

@@ -1,7 +1,4 @@
 import { Switch, Route, useLocation } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import IncomeHistory from "@/pages/IncomeHistory";
@@ -28,14 +25,12 @@ import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import AppTutorial from "@/components/AppTutorial";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { ThemeProvider } from "@/hooks/useTheme";
-import { AuthProvider } from "@/hooks/use-auth";
 import { useState, useEffect } from "react";
 import { ProtectedRoute } from "./lib/protected-route";
+import { Icons } from "@/components/ui/icons";
 
+// Firebase-free router component
 function Router() {
-  const [location] = useLocation();
-
   return (
     <Switch>
       <ProtectedRoute path="/" component={Dashboard} />
@@ -49,18 +44,12 @@ function Router() {
       <ProtectedRoute path="/reminders" component={Reminders} />
       <ProtectedRoute path="/settings" component={Settings} />
       <ProtectedRoute path="/security" component={TwoFactorAuthPage} />
-      <ProtectedRoute
-        path="/voice-commands"
-        component={() => <VoiceCommands />}
-      />
+      <ProtectedRoute path="/voice-commands" component={VoiceCommands} />
       <ProtectedRoute path="/onboarding" component={OnboardingPage} />
       <ProtectedRoute path="/subscribe" component={SubscribePage} />
       <ProtectedRoute path="/subscription" component={SubscriptionPage} />
       <ProtectedRoute path="/checkout" component={CheckoutPage} />
-      <ProtectedRoute
-        path="/checkout/success"
-        component={CheckoutSuccessPage}
-      />
+      <ProtectedRoute path="/checkout/success" component={CheckoutSuccessPage} />
       <ProtectedRoute path="/income-hub" component={IncomeHub} />
       <ProtectedRoute path="/pricing" component={PricingPage} />
       <ProtectedRoute path="/income-hub/gigs" component={StackrGigs} />
@@ -70,87 +59,91 @@ function Router() {
   );
 }
 
+// Main App component (Firebase-free)
 function App() {
   const [initialized, setInitialized] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  // Simple initialization effect
   useEffect(() => {
-    setInitialized(true);
+    console.log("App initializing...");
+    
+    // Simulate loading process
+    const timer = setTimeout(() => {
+      setInitialized(true);
+      setLoading(false);
+      console.log("App initialized successfully");
+    }, 800);
+    
+    return () => clearTimeout(timer);
   }, []);
 
-  if (!initialized) {
-    return <div>Loading...</div>;
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center space-y-4">
+          <Icons.spinner className="h-12 w-12 animate-spin text-primary" />
+          <h1 className="text-xl font-semibold text-foreground">
+            Loading Stackr Finance...
+          </h1>
+        </div>
+      </div>
+    );
   }
+
   const [location] = useLocation();
   const isAuthPage = location === "/auth";
   const isOnboardingPage = location === "/onboarding";
   const isFullScreenPage = isAuthPage || isOnboardingPage;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ThemeProvider>
-          {isFullScreenPage ? (
-            <main className="w-full">
+    <>
+      {isFullScreenPage ? (
+        <main className="w-full">
+          <Router />
+        </main>
+      ) : (
+        <div className="flex min-h-screen w-full max-w-[100vw] overflow-x-hidden">
+          <Sidebar
+            mobileMenuOpen={mobileMenuOpen}
+            setMobileMenuOpen={setMobileMenuOpen}
+          />
+          <div className="flex-1 flex flex-col w-full max-w-[100vw]">
+            <header className="lg:hidden bg-card-background border-b border-border p-4 flex items-center justify-between sticky top-0 z-[100] w-full">
+              <h1 className="text-xl font-semibold text-foreground">
+                Stackr
+              </h1>
+              <div className="flex items-center space-x-2">
+                <ThemeToggle />
+                <button
+                  className="text-foreground hover:bg-accent active:bg-muted p-2 rounded-md bg-muted-background flex items-center justify-center cursor-pointer relative z-[300] transition-colors duration-200"
+                  onClick={() => {
+                    setMobileMenuOpen(true);
+                  }}
+                  type="button"
+                  style={{
+                    touchAction: "manipulation",
+                    WebkitTapHighlightColor: "transparent", // Remove tap highlight on mobile
+                  }}
+                  aria-label="Open menu"
+                >
+                  <div className="p-1">
+                    <Icons.menu className="h-6 w-6" />
+                  </div>
+                </button>
+              </div>
+            </header>
+            <main className="flex-1 w-full overflow-x-hidden max-w-[100vw]">
               <Router />
             </main>
-          ) : (
-            <div className="flex min-h-screen w-full max-w-[100vw] overflow-x-hidden">
-              <Sidebar
-                mobileMenuOpen={mobileMenuOpen}
-                setMobileMenuOpen={setMobileMenuOpen}
-              />
-              <div className="flex-1 flex flex-col w-full max-w-[100vw]">
-                <header className="lg:hidden bg-card-background border-b border-border p-4 flex items-center justify-between sticky top-0 z-[100] w-full">
-                  <h1 className="text-xl font-semibold text-foreground">
-                    Stackr
-                  </h1>
-                  <div className="flex items-center space-x-2">
-                    <ThemeToggle />
-                    <button
-                      className="text-foreground hover:bg-accent active:bg-muted p-2 rounded-md bg-muted-background flex items-center justify-center cursor-pointer relative z-[300] transition-colors duration-200"
-                      onClick={() => {
-                        setMobileMenuOpen(true);
-                      }}
-                      type="button"
-                      style={{
-                        touchAction: "manipulation",
-                        WebkitTapHighlightColor: "transparent", // Remove tap highlight on mobile
-                      }}
-                      aria-label="Open menu"
-                    >
-                      <div className="p-1">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <line x1="3" y1="12" x2="21" y2="12"></line>
-                          <line x1="3" y1="6" x2="21" y2="6"></line>
-                          <line x1="3" y1="18" x2="21" y2="18"></line>
-                        </svg>
-                      </div>
-                    </button>
-                  </div>
-                </header>
-                <main className="flex-1 w-full overflow-x-hidden max-w-[100vw]">
-                  <Router />
-                </main>
-              </div>
-              <VoiceCommandWidget />
-              <AppTutorial />
-            </div>
-          )}
-          <Toaster />
-        </ThemeProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+          </div>
+          <VoiceCommandWidget />
+          <AppTutorial />
+        </div>
+      )}
+    </>
   );
 }
 
