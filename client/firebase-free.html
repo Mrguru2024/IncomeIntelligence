@@ -47,8 +47,8 @@
       console.log('Starting Firebase-free version');
       
       try {
-        // We'll load the no-firebase-main.tsx module directly
-        await import('./src/no-firebase-main.tsx');
+        // We'll load the main.tsx module which uses CleanApp
+        await import('./src/main.tsx');
         console.log('Firebase-free app loaded successfully');
       } catch (error) {
         console.error('Error loading Firebase-free app:', error);

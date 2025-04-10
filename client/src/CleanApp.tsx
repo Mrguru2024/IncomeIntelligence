@@ -1,102 +1,61 @@
 import React from 'react';
-import { Route, Switch, useLocation } from 'wouter';
+import { Route, Switch } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
-
-// Import clean pages (no Firebase dependencies)
-import AuthPage from '@/pages/auth-page';
-import Dashboard from '@/pages/Dashboard';
-import IncomeHub from '@/pages/IncomeHub';
-import BudgetPlanner from '@/pages/BudgetPlanner';
-import Goals from '@/pages/Goals';
-import FinancialAdvice from '@/pages/FinancialAdvice';
-import Settings from '@/pages/Settings';
-import NotFound from '@/pages/not-found';
-import { Loader2 } from 'lucide-react';
-
-// Import clean layout components
-import { MainLayout } from '@/components/layouts/main-layout';
 import { ProtectedRoute } from '@/lib/protected-route';
 
-export default function CleanApp() {
-  const { user, isLoading } = useAuth();
-  const [location] = useLocation();
+// Import pages
+import NotFound from '@/pages/not-found';
+import AuthPage from '@/pages/auth-page';
+import Dashboard from '@/pages/Dashboard';
+import Settings from '@/pages/Settings';
+import BudgetPlanner from '@/pages/BudgetPlanner';
+import Goals from '@/pages/Goals';
+import IncomeHub from '@/pages/IncomeHub';
+import Expenses from '@/pages/Expenses';
+import Profile from '@/pages/Profile';
+import FinancialAdvice from '@/pages/FinancialAdvice';
+import PricingPage from '@/pages/PricingPage';
+import CheckoutPage from '@/pages/checkout-page';
+import CheckoutSuccess from '@/pages/checkout-success';
 
-  // Show loading state while auth is being checked
+// This is a completely clean implementation that doesn't rely on Firebase at all
+function CleanApp() {
+  const { user, isLoading } = useAuth();
+  
+  // While checking authentication status, show a loading spinner
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <span className="ml-2 text-xl">Loading Stackr Finance...</span>
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
     <Switch>
-      {/* Public routes */}
-      <Route path="/auth">
-        {user ? <Dashboard /> : <AuthPage />}
-      </Route>
+      {/* Authentication route */}
+      <Route path="/auth" component={AuthPage} />
+      
+      {/* Checkout routes */}
+      <Route path="/pricing" component={PricingPage} />
+      <Route path="/checkout" component={CheckoutPage} />
+      <Route path="/checkout-success" component={CheckoutSuccess} />
 
-      {/* Protected routes */}
-      <ProtectedRoute 
-        path="/"
-        component={() => (
-          <MainLayout>
-            <Dashboard />
-          </MainLayout>
-        )}
-      />
+      {/* Protected routes - requires authentication */}
+      <ProtectedRoute path="/" component={Dashboard} />
+      <ProtectedRoute path="/dashboard" component={Dashboard} />
+      <ProtectedRoute path="/settings" component={Settings} />
+      <ProtectedRoute path="/budget" component={BudgetPlanner} />
+      <ProtectedRoute path="/goals" component={Goals} />
+      <ProtectedRoute path="/income" component={IncomeHub} />
+      <ProtectedRoute path="/expenses" component={Expenses} />
+      <ProtectedRoute path="/profile" component={Profile} />
+      <ProtectedRoute path="/advice" component={FinancialAdvice} />
       
-      <ProtectedRoute 
-        path="/income"
-        component={() => (
-          <MainLayout>
-            <IncomeHub />
-          </MainLayout>
-        )}
-      />
-      
-      <ProtectedRoute 
-        path="/budget"
-        component={() => (
-          <MainLayout>
-            <BudgetPlanner />
-          </MainLayout>
-        )}
-      />
-      
-      <ProtectedRoute 
-        path="/goals"
-        component={() => (
-          <MainLayout>
-            <Goals />
-          </MainLayout>
-        )}
-      />
-      
-      <ProtectedRoute 
-        path="/advice"
-        component={() => (
-          <MainLayout>
-            <FinancialAdvice />
-          </MainLayout>
-        )}
-      />
-      
-      <ProtectedRoute 
-        path="/settings"
-        component={() => (
-          <MainLayout>
-            <Settings />
-          </MainLayout>
-        )}
-      />
-
-      {/* 404 route */}
-      <Route>
-        <NotFound />
-      </Route>
+      {/* 404 route - must be last */}
+      <Route component={NotFound} />
     </Switch>
   );
 }
+
+export default CleanApp;
