@@ -4143,6 +4143,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).send("Error loading Firebase-free version");
     }
   });
+  
+  // ========== GREEN VERSION ROUTES (Firebase-free implementation) ==========
+  // Serve the GREEN version at /green path
+  app.get('/green', (req, res) => {
+    const greenHtmlPath = path.join(process.cwd(), 'green', 'index.html');
+    try {
+      if (fs.existsSync(greenHtmlPath)) {
+        res.sendFile(greenHtmlPath);
+      } else {
+        console.error('GREEN version HTML file not found at path:', greenHtmlPath);
+        res.status(404).send('GREEN version not found');
+      }
+    } catch (error) {
+      console.error('Error serving GREEN version:', error);
+      res.status(500).send('Error loading GREEN version');
+    }
+  });
+  
+  // Serve GREEN version static files
+  app.use('/green', express.static(path.join(process.cwd(), 'green')));
+  
+  // GREEN version API status endpoint
+  app.get('/api/green/status', (req, res) => {
+    res.json({
+      status: 'active',
+      version: 'green',
+      firebaseFree: true,
+      message: 'The GREEN version is running successfully!'
+    });
+  });
+  
+  // GREEN version gigs data endpoint
+  app.get('/api/green/gigs', (req, res) => {
+    try {
+      const gigsDataPath = path.join(process.cwd(), 'green', 'gigs.js');
+      if (fs.existsSync(gigsDataPath)) {
+        res.sendFile(gigsDataPath);
+      } else {
+        res.status(404).json({ error: 'Gigs data not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to load gigs data' });
+    }
+  });
+  
+  // GREEN version affiliates data endpoint
+  app.get('/api/green/affiliates', (req, res) => {
+    try {
+      const affiliatesDataPath = path.join(process.cwd(), 'green', 'affiliates.js');
+      if (fs.existsSync(affiliatesDataPath)) {
+        res.sendFile(affiliatesDataPath);
+      } else {
+        res.status(404).json({ error: 'Affiliates data not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to load affiliates data' });
+    }
+  });
 
   const httpServer = createServer(app);
 
