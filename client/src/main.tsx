@@ -3,16 +3,17 @@ import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth';
+import { ThemeProvider } from '@/hooks/useTheme';
 import './index.css';
 
-// Import the clean app components (with no Firebase dependencies)
-import CleanApp from './CleanApp';
+// Import App component with custom Auth provider (no Firebase)
+import App from './App';
 
 // Add enhanced debugging
 console.log("STARTUP: Application initialization beginning");
 
-// Log that we're using the clean version without Firebase/Sanity
-console.log("CLEANUP: Using clean version without Firebase/Sanity dependencies");
+// Log that we're using a version without Firebase/Sanity
+console.log("DIRECT: Using App without Firebase/Sanity dependencies");
 
 // Configure the query client for API requests
 const queryClient = new QueryClient({
@@ -34,15 +35,10 @@ if (!rootElement) {
   
   // Wrap in try/catch to display any rendering errors
   try {
-    // Create React root and render the app
+    // Create React root and render the app directly
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <CleanApp />
-            <Toaster />
-          </AuthProvider>
-        </QueryClientProvider>
+        <App />
       </React.StrictMode>
     );
     console.log("RENDER: App rendered successfully");

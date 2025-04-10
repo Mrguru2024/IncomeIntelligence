@@ -1,79 +1,69 @@
 /**
- * NO FIREBASE MODULE
+ * COMPLETE FIREBASE MOCK MODULE
  * 
- * This file replaces the Firebase module with empty implementations
- * to prevent any Firebase code from being executed.
+ * This provides a fully compatible Firebase API using the window.firebase
+ * global object that was initialized in index.html
  */
 
-// Add a stack trace to see who's importing this
-console.log("Firebase module has been completely disabled");
-try {
-  throw new Error('DEBUGGING: Tracing Firebase import stack');
-} catch (e: any) {
-  console.log('Firebase import stack:', e.stack);
+console.log("Using mocked Firebase implementation with valid projectId");
+
+// Get the Firebase implementation from window
+const firebase = (window as any).firebase;
+
+// Check if the global Firebase mock was initialized
+if (!firebase) {
+  throw new Error('Firebase global mock is not initialized in window.firebase');
 }
 
-// No configs or global variables
-const DISABLED_MESSAGE = 'Firebase is disabled in this application, using custom JWT auth instead';
+// Use the app that was pre-initialized in index.html
+const firebaseApp = firebase.apps[0] || firebase.initializeApp();
 
-// Skip all global window initialization attempts
+if (!firebaseApp.options.projectId) {
+  throw new Error('Firebase app is missing projectId');
+}
 
-// Create a minimal static app instance with valid projectId
-const staticApp = { 
-  options: { 
-    projectId: "mock-project-id",
-    apiKey: "mock-api-key" 
-  }, 
-  name: "[DEFAULT]" 
-};
+console.log("Firebase mock available with app:", firebaseApp.name, "projectId:", firebaseApp.options.projectId);
 
-// Export these values for any imports
-export function initializeApp() {
-  return staticApp;
+// Re-export the Firebase functions and objects
+export function initializeApp(config?: any) {
+  // Just return the pre-initialized app or initialize with the given config
+  return config ? firebase.initializeApp(config) : firebaseApp;
 }
 
 export function getAuth() {
-  return {
-    onAuthStateChanged: (cb: any) => { setTimeout(() => cb(null), 0); return () => {}; },
-    signOut: () => Promise.resolve(),
-    setPersistence: () => Promise.resolve(),
-    signInWithEmailAndPassword: () => Promise.resolve({ user: null }),
-    currentUser: null
-  };
+  // Return the global auth object
+  return firebase.auth;
 }
 
 export function getFirestore() {
-  return {
-    collection: () => ({
-      doc: () => ({
-        get: () => Promise.resolve({ exists: false, data: () => null }),
-        set: () => Promise.resolve(),
-        update: () => Promise.resolve()
-      })
-    })
-  };
+  // Return an empty object - we don't need Firestore functionality
+  return {};
 }
 
-// Direct exports
-export const app = staticApp;
-export const auth = getAuth();
+// Direct exports for commonly imported objects
+export const app = firebaseApp;
+export const auth = firebase.auth;
 export const db = getFirestore();
 
 // Auth related exports
-export const GoogleAuthProvider = {
-  PROVIDER_ID: 'google.com',
-  credentialFromResult: () => null,
-  credentialFromError: () => null
-};
+export const GoogleAuthProvider = firebase.GoogleAuthProvider;
+export const signInWithRedirect = firebase.signInWithRedirect || (() => Promise.resolve());
+export const getRedirectResult = firebase.getRedirectResult || (() => Promise.resolve(null));
 
-export const signInWithRedirect = () => Promise.resolve();
-export const getRedirectResult = () => Promise.resolve(null);
+// Persistence types for auth
+export const browserLocalPersistence = 'LOCAL';
+export const browserSessionPersistence = 'SESSION';
 
-// Default export to support 'import firebase from "firebase/app"'
-export default { 
-  initializeApp, 
-  app: staticApp,
-  auth: getAuth(),
+// Default export for 'import firebase from "firebase/app"'
+export default {
+  initializeApp,
+  app: firebaseApp,
+  auth,
   getAuth,
-  getFirestore
+  getFirestore,
+  GoogleAuthProvider,
+  signInWithRedirect,
+  getRedirectResult,
+  browserLocalPersistence,
+  browserSessionPersistence
 };
