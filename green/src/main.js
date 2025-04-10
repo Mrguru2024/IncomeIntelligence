@@ -146,10 +146,13 @@ window.addEventListener('popstate', () => {
 
 // Create common layout elements
 function createHeader() {
+  const width = window.innerWidth;
+  const isMobile = width < 640;
+  
   const header = document.createElement('header');
   header.style.background = 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)';
   header.style.color = 'white';
-  header.style.padding = '20px';
+  header.style.padding = isMobile ? 'var(--space-4)' : 'var(--space-6) var(--space-4)';
   header.style.boxShadow = 'var(--shadow-md)';
   
   // Create top section with logo and user info
@@ -157,7 +160,7 @@ function createHeader() {
   topSection.style.display = 'flex';
   topSection.style.justifyContent = 'space-between';
   topSection.style.alignItems = 'center';
-  topSection.style.marginBottom = '16px';
+  topSection.style.marginBottom = isMobile ? 'var(--space-3)' : 'var(--space-4)';
   
   // Logo container with gradient effect
   const logoContainer = document.createElement('div');
@@ -165,27 +168,33 @@ function createHeader() {
   logoContainer.addEventListener('click', () => navigateTo('dashboard'));
   
   const logo = document.createElement('h1');
-  logo.textContent = 'Stackr Finance';
+  logo.textContent = isMobile ? 'Stackr' : 'Stackr Finance';
   logo.style.margin = '0';
-  logo.style.fontSize = 'var(--font-size-2xl)';
+  logo.style.fontSize = isMobile ? 'var(--font-size-xl)' : 'var(--font-size-2xl)';
   logo.style.fontWeight = 'var(--font-bold)';
   logoContainer.appendChild(logo);
   
   const subtitle = document.createElement('p');
   subtitle.textContent = 'GREEN Edition';
   subtitle.style.margin = '4px 0 0 0';
-  subtitle.style.fontSize = 'var(--font-size-sm)';
+  subtitle.style.fontSize = 'var(--font-size-xs)';
   subtitle.style.opacity = '0.9';
   logoContainer.appendChild(subtitle);
   
   topSection.appendChild(logoContainer);
+  
+  // User profile and mobile menu buttons container
+  const rightContainer = document.createElement('div');
+  rightContainer.style.display = 'flex';
+  rightContainer.style.alignItems = 'center';
+  rightContainer.style.gap = 'var(--space-2)';
   
   // User profile button
   const userButton = document.createElement('button');
   userButton.style.background = 'rgba(255, 255, 255, 0.2)';
   userButton.style.border = 'none';
   userButton.style.color = 'white';
-  userButton.style.padding = '8px 16px';
+  userButton.style.padding = isMobile ? '6px 10px' : '8px 16px';
   userButton.style.borderRadius = 'var(--radius-full)';
   userButton.style.cursor = 'pointer';
   userButton.style.display = 'flex';
@@ -193,10 +202,13 @@ function createHeader() {
   userButton.style.gap = '8px';
   userButton.style.fontSize = 'var(--font-size-sm)';
   userButton.style.transition = 'all var(--transition-fast) ease';
-  userButton.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"></path></svg>
-    <span>${appState.user.name}</span>
-  `;
+  
+  // In mobile view, just show the icon
+  userButton.innerHTML = isMobile 
+    ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"></path></svg>` 
+    : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"></path></svg>
+      <span>${appState.user.name}</span>`;
+      
   userButton.addEventListener('mouseover', () => {
     userButton.style.background = 'rgba(255, 255, 255, 0.3)';
   });
@@ -205,16 +217,82 @@ function createHeader() {
   });
   userButton.addEventListener('click', () => navigateTo('settings'));
   
-  topSection.appendChild(userButton);
+  rightContainer.appendChild(userButton);
+  
+  // Mobile menu toggle button
+  if (isMobile) {
+    const menuButton = document.createElement('button');
+    menuButton.id = 'mobile-menu-toggle';
+    menuButton.style.background = 'rgba(255, 255, 255, 0.2)';
+    menuButton.style.border = 'none';
+    menuButton.style.color = 'white';
+    menuButton.style.padding = '6px 10px';
+    menuButton.style.borderRadius = 'var(--radius-md)';
+    menuButton.style.cursor = 'pointer';
+    menuButton.style.display = 'flex';
+    menuButton.style.alignItems = 'center';
+    menuButton.style.justifyContent = 'center';
+    menuButton.style.transition = 'all var(--transition-fast) ease';
+    
+    // Menu icon (hamburger)
+    menuButton.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    `;
+    
+    menuButton.addEventListener('mouseover', () => {
+      menuButton.style.background = 'rgba(255, 255, 255, 0.3)';
+    });
+    menuButton.addEventListener('mouseout', () => {
+      menuButton.style.background = 'rgba(255, 255, 255, 0.2)';
+    });
+    
+    // Toggle mobile menu
+    menuButton.addEventListener('click', () => {
+      const mobileMenu = document.getElementById('mobile-nav');
+      if (mobileMenu) {
+        const isVisible = mobileMenu.style.height !== '0px';
+        if (isVisible) {
+          // Close menu
+          mobileMenu.style.height = '0px';
+          mobileMenu.style.padding = '0';
+          mobileMenu.style.opacity = '0';
+          
+          // Change icon to hamburger
+          menuButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          `;
+        } else {
+          // Open menu
+          mobileMenu.style.height = 'auto';
+          mobileMenu.style.padding = 'var(--space-2)';
+          mobileMenu.style.opacity = '1';
+          
+          // Change icon to X
+          menuButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          `;
+        }
+      }
+    });
+    
+    rightContainer.appendChild(menuButton);
+  }
+  
+  topSection.appendChild(rightContainer);
   header.appendChild(topSection);
   
-  // Create modern navigation
-  const nav = document.createElement('nav');
-  nav.style.display = 'flex';
-  nav.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-  nav.style.borderRadius = 'var(--radius-lg)';
-  nav.style.overflow = 'hidden';
-  
+  // Pages configuration - shared between mobile and desktop
   const pages = [
     { 
       id: 'dashboard', 
@@ -238,43 +316,112 @@ function createHeader() {
     }
   ];
   
-  pages.forEach(page => {
-    const link = document.createElement('a');
-    link.href = `#${page.id}`;
-    link.style.color = 'white';
-    link.style.textDecoration = 'none';
-    link.style.padding = '12px 16px';
-    link.style.display = 'flex';
-    link.style.alignItems = 'center';
-    link.style.gap = '8px';
-    link.style.fontSize = 'var(--font-size-sm)';
-    link.style.fontWeight = 'var(--font-medium)';
-    link.style.flex = '1';
-    link.style.justifyContent = 'center';
-    link.style.transition = 'all var(--transition-fast) ease';
+  if (isMobile) {
+    // Create mobile navigation (collapsed by default)
+    const mobileNav = document.createElement('nav');
+    mobileNav.id = 'mobile-nav';
+    mobileNav.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+    mobileNav.style.borderRadius = 'var(--radius-lg)';
+    mobileNav.style.overflow = 'hidden';
+    mobileNav.style.display = 'flex';
+    mobileNav.style.flexDirection = 'column';
+    mobileNav.style.transition = 'all var(--transition-fast) ease';
+    mobileNav.style.height = '0px';
+    mobileNav.style.opacity = '0';
+    mobileNav.style.marginTop = '0';
     
-    if (appState.currentPage === page.id) {
-      link.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-      link.style.fontWeight = 'var(--font-semibold)';
-    } else {
-      link.addEventListener('mouseover', () => {
-        link.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+    pages.forEach(page => {
+      const link = document.createElement('a');
+      link.href = `#${page.id}`;
+      link.style.color = 'white';
+      link.style.textDecoration = 'none';
+      link.style.padding = 'var(--space-3) var(--space-4)';
+      link.style.display = 'flex';
+      link.style.alignItems = 'center';
+      link.style.gap = 'var(--space-3)';
+      link.style.fontSize = 'var(--font-size-sm)';
+      link.style.fontWeight = 'var(--font-medium)';
+      link.style.borderRadius = 'var(--radius-md)';
+      link.style.margin = 'var(--space-1) 0';
+      
+      if (appState.currentPage === page.id) {
+        link.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        link.style.fontWeight = 'var(--font-semibold)';
+      }
+      
+      link.innerHTML = `${page.icon} <span>${page.title}</span>`;
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateTo(page.id);
+        
+        // Close the menu after clicking
+        mobileNav.style.height = '0px';
+        mobileNav.style.padding = '0';
+        mobileNav.style.opacity = '0';
+        
+        // Change hamburger icon back
+        const menuButton = document.getElementById('mobile-menu-toggle');
+        if (menuButton) {
+          menuButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          `;
+        }
       });
-      link.addEventListener('mouseout', () => {
-        link.style.backgroundColor = 'transparent';
-      });
-    }
-    
-    link.innerHTML = `${page.icon} <span>${page.title}</span>`;
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      navigateTo(page.id);
+      
+      mobileNav.appendChild(link);
     });
     
-    nav.appendChild(link);
-  });
-  
-  header.appendChild(nav);
+    header.appendChild(mobileNav);
+  } else {
+    // Create desktop navigation
+    const desktopNav = document.createElement('nav');
+    desktopNav.style.display = 'flex';
+    desktopNav.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+    desktopNav.style.borderRadius = 'var(--radius-lg)';
+    desktopNav.style.overflow = 'hidden';
+    
+    pages.forEach(page => {
+      const link = document.createElement('a');
+      link.href = `#${page.id}`;
+      link.style.color = 'white';
+      link.style.textDecoration = 'none';
+      link.style.padding = '12px 16px';
+      link.style.display = 'flex';
+      link.style.alignItems = 'center';
+      link.style.gap = '8px';
+      link.style.fontSize = 'var(--font-size-sm)';
+      link.style.fontWeight = 'var(--font-medium)';
+      link.style.flex = '1';
+      link.style.justifyContent = 'center';
+      link.style.transition = 'all var(--transition-fast) ease';
+      
+      if (appState.currentPage === page.id) {
+        link.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        link.style.fontWeight = 'var(--font-semibold)';
+      } else {
+        link.addEventListener('mouseover', () => {
+          link.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        });
+        link.addEventListener('mouseout', () => {
+          link.style.backgroundColor = 'transparent';
+        });
+      }
+      
+      link.innerHTML = `${page.icon} <span>${page.title}</span>`;
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateTo(page.id);
+      });
+      
+      desktopNav.appendChild(link);
+    });
+    
+    header.appendChild(desktopNav);
+  }
   
   return header;
 }
@@ -833,68 +980,339 @@ function calculateIncomeStats() {
 
 // Page Components
 function renderDashboardPage() {
+  const isMobile = window.innerWidth < 640;
   const container = document.createElement('div');
   
+  // Animated welcome heading with gradient text
   const welcomeHeading = document.createElement('h2');
-  welcomeHeading.textContent = `Welcome to your dashboard, ${appState.user.name}!`;
-  welcomeHeading.style.marginBottom = '20px';
+  welcomeHeading.textContent = `Welcome, ${appState.user.name}!`;
+  welcomeHeading.style.marginBottom = 'var(--space-6)';
+  welcomeHeading.style.fontSize = isMobile ? 'var(--font-size-xl)' : 'var(--font-size-3xl)';
+  welcomeHeading.style.fontWeight = 'var(--font-bold)';
+  welcomeHeading.style.background = 'linear-gradient(to right, var(--color-primary), var(--color-accent))';
+  welcomeHeading.style.WebkitBackgroundClip = 'text';
+  welcomeHeading.style.WebkitTextFillColor = 'transparent';
+  welcomeHeading.style.backgroundClip = 'text';
+  welcomeHeading.style.textFillColor = 'transparent';
+  welcomeHeading.style.animation = 'fadeIn 0.6s ease-out';
   container.appendChild(welcomeHeading);
+
+  // Dashboard summary - shows total income and quick stats
+  const dashboardSummary = document.createElement('div');
+  dashboardSummary.style.marginBottom = 'var(--space-8)';
+  dashboardSummary.style.display = 'flex';
+  dashboardSummary.style.flexDirection = isMobile ? 'column' : 'row';
+  dashboardSummary.style.gap = 'var(--space-4)';
   
-  // Income summary card
+  // Calculate the stats
   const stats = calculateIncomeStats();
-  const incomeSummary = document.createElement('div');
   
-  const totalIncomeHeading = document.createElement('h3');
-  totalIncomeHeading.textContent = `Total Income: $${stats.total.toFixed(2)}`;
-  totalIncomeHeading.style.color = '#34A853';
-  incomeSummary.appendChild(totalIncomeHeading);
+  // Create summary cards grid
+  const summaryGrid = document.createElement('div');
+  summaryGrid.style.display = 'grid';
+  summaryGrid.style.gridTemplateColumns = isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))';
+  summaryGrid.style.gap = 'var(--space-4)';
+  summaryGrid.style.width = '100%';
   
-  // Allocations list
-  const allocations = document.createElement('ul');
-  allocations.style.listStyleType = 'none';
-  allocations.style.padding = '0';
+  // Total Income Card (larger and more prominent)
+  const totalIncomeCard = document.createElement('div');
+  totalIncomeCard.style.background = 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))';
+  totalIncomeCard.style.color = 'white';
+  totalIncomeCard.style.borderRadius = 'var(--radius-lg)';
+  totalIncomeCard.style.padding = 'var(--space-6)';
+  totalIncomeCard.style.display = 'flex';
+  totalIncomeCard.style.flexDirection = 'column';
+  totalIncomeCard.style.justifyContent = 'center';
+  totalIncomeCard.style.textAlign = 'center';
+  totalIncomeCard.style.boxShadow = 'var(--shadow-md)';
+  totalIncomeCard.style.transition = 'transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease';
   
-  const needsItem = document.createElement('li');
-  needsItem.innerHTML = `<strong>Needs (${appState.user.splitRatio.needs}%):</strong> $${stats.needs}`;
-  needsItem.style.marginBottom = '10px';
-  allocations.appendChild(needsItem);
+  // Add hover effect
+  totalIncomeCard.addEventListener('mouseenter', () => {
+    totalIncomeCard.style.transform = 'translateY(-5px)';
+    totalIncomeCard.style.boxShadow = 'var(--shadow-lg)';
+  });
   
-  const investmentsItem = document.createElement('li');
-  investmentsItem.innerHTML = `<strong>Investments (${appState.user.splitRatio.investments}%):</strong> $${stats.investments}`;
-  investmentsItem.style.marginBottom = '10px';
-  allocations.appendChild(investmentsItem);
+  totalIncomeCard.addEventListener('mouseleave', () => {
+    totalIncomeCard.style.transform = 'translateY(0)';
+    totalIncomeCard.style.boxShadow = 'var(--shadow-md)';
+  });
   
-  const savingsItem = document.createElement('li');
-  savingsItem.innerHTML = `<strong>Savings (${appState.user.splitRatio.savings}%):</strong> $${stats.savings}`;
-  allocations.appendChild(savingsItem);
+  const totalIncomeLabel = document.createElement('div');
+  totalIncomeLabel.textContent = 'Total Income';
+  totalIncomeLabel.style.fontSize = 'var(--font-size-sm)';
+  totalIncomeLabel.style.opacity = '0.9';
+  totalIncomeLabel.style.marginBottom = 'var(--space-2)';
+  totalIncomeCard.appendChild(totalIncomeLabel);
   
-  incomeSummary.appendChild(allocations);
+  const totalIncomeValue = document.createElement('div');
+  totalIncomeValue.textContent = `$${stats.total.toFixed(2)}`;
+  totalIncomeValue.style.fontSize = isMobile ? 'var(--font-size-2xl)' : 'var(--font-size-3xl)';
+  totalIncomeValue.style.fontWeight = 'var(--font-bold)';
+  totalIncomeCard.appendChild(totalIncomeValue);
   
-  const incomeCard = createCard('Income Summary', incomeSummary);
-  container.appendChild(incomeCard);
+  // Add change percentage if there's history
+  if (appState.incomeEntries.length > 0) {
+    const changeText = document.createElement('div');
+    changeText.textContent = '+12.5% from last month';
+    changeText.style.fontSize = 'var(--font-size-xs)';
+    changeText.style.marginTop = 'var(--space-1)';
+    changeText.style.opacity = '0.8';
+    totalIncomeCard.appendChild(changeText);
+  }
   
-  // Split ratio visualization card
+  summaryGrid.appendChild(totalIncomeCard);
+  
+  // Create three allocation cards
+  const allocations = [
+    { 
+      name: 'Needs', 
+      percentage: appState.user.splitRatio.needs, 
+      amount: stats.needs,
+      color: 'var(--color-success)',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"></path><circle cx="12" cy="12" r="5"></circle></svg>'
+    },
+    { 
+      name: 'Investments', 
+      percentage: appState.user.splitRatio.investments, 
+      amount: stats.investments,
+      color: 'var(--color-accent)',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>'
+    },
+    { 
+      name: 'Savings', 
+      percentage: appState.user.splitRatio.savings, 
+      amount: stats.savings,
+      color: 'var(--color-secondary)',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"></circle><path d="M14 14c0-3.314-2.686-6-6-6s-6 2.686-6 6H14z"></path><path d="M18 14c0-3.314-2.686-6-6-6s-6 2.686-6 6H18z"></path><path d="M12 14v7"></path><path d="M16 19h-8"></path></svg>'
+    }
+  ];
+  
+  allocations.forEach(allocation => {
+    const allocationCard = document.createElement('div');
+    allocationCard.style.backgroundColor = 'var(--color-card)';
+    allocationCard.style.borderRadius = 'var(--radius-lg)';
+    allocationCard.style.padding = 'var(--space-4)';
+    allocationCard.style.boxShadow = 'var(--shadow-sm)';
+    allocationCard.style.border = '1px solid var(--color-border)';
+    allocationCard.style.display = 'flex';
+    allocationCard.style.flexDirection = 'row';
+    allocationCard.style.alignItems = 'center';
+    allocationCard.style.gap = 'var(--space-3)';
+    allocationCard.style.transition = 'transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease';
+    
+    // Add hover effect
+    allocationCard.addEventListener('mouseenter', () => {
+      allocationCard.style.transform = 'translateY(-2px)';
+      allocationCard.style.boxShadow = 'var(--shadow-md)';
+    });
+    
+    allocationCard.addEventListener('mouseleave', () => {
+      allocationCard.style.transform = 'translateY(0)';
+      allocationCard.style.boxShadow = 'var(--shadow-sm)';
+    });
+    
+    // Icon for category
+    const iconContainer = document.createElement('div');
+    iconContainer.style.width = '36px';
+    iconContainer.style.height = '36px';
+    iconContainer.style.borderRadius = 'var(--radius-md)';
+    iconContainer.style.backgroundColor = `${allocation.color}20`; // 20 is hex for 12% opacity
+    iconContainer.style.color = allocation.color;
+    iconContainer.style.display = 'flex';
+    iconContainer.style.alignItems = 'center';
+    iconContainer.style.justifyContent = 'center';
+    iconContainer.innerHTML = allocation.icon;
+    allocationCard.appendChild(iconContainer);
+    
+    // Text content
+    const textContent = document.createElement('div');
+    textContent.style.flex = '1';
+    
+    const nameAndPercentage = document.createElement('div');
+    nameAndPercentage.style.display = 'flex';
+    nameAndPercentage.style.justifyContent = 'space-between';
+    nameAndPercentage.style.alignItems = 'center';
+    
+    const name = document.createElement('div');
+    name.textContent = allocation.name;
+    name.style.fontSize = 'var(--font-size-sm)';
+    name.style.fontWeight = 'var(--font-medium)';
+    name.style.color = 'var(--color-text)';
+    nameAndPercentage.appendChild(name);
+    
+    const percentage = document.createElement('div');
+    percentage.textContent = `${allocation.percentage}%`;
+    percentage.style.fontSize = 'var(--font-size-xs)';
+    percentage.style.color = 'var(--color-text-secondary)';
+    percentage.style.fontWeight = 'var(--font-medium)';
+    nameAndPercentage.appendChild(percentage);
+    
+    textContent.appendChild(nameAndPercentage);
+    
+    // Amount
+    const amount = document.createElement('div');
+    amount.textContent = `$${allocation.amount}`;
+    amount.style.fontSize = 'var(--font-size-lg)';
+    amount.style.fontWeight = 'var(--font-bold)';
+    amount.style.color = allocation.color;
+    amount.style.marginTop = 'var(--space-1)';
+    textContent.appendChild(amount);
+    
+    allocationCard.appendChild(textContent);
+    summaryGrid.appendChild(allocationCard);
+  });
+  
+  dashboardSummary.appendChild(summaryGrid);
+  container.appendChild(dashboardSummary);
+  
+  // Split visualization
   const splitVisual = createSplitVisualization(appState.user.splitRatio);
-  const splitCard = createCard('Stackr Split', splitVisual);
+  const splitCard = createCard('Income Allocation', splitVisual, true, 
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path d="M9 12h6"/><path d="M12 9v6"/></svg>'
+  );
   container.appendChild(splitCard);
   
-  // Quick actions
-  const actionsContainer = document.createElement('div');
-  actionsContainer.style.display = 'flex';
-  actionsContainer.style.flexWrap = 'wrap';
-  actionsContainer.style.gap = '10px';
-  actionsContainer.style.marginTop = '20px';
+  // Quick actions section 
+  const actionsHeading = document.createElement('h3');
+  actionsHeading.textContent = 'Quick Actions';
+  actionsHeading.style.fontSize = 'var(--font-size-lg)';
+  actionsHeading.style.marginTop = 'var(--space-8)';
+  actionsHeading.style.marginBottom = 'var(--space-4)';
+  actionsHeading.style.fontWeight = 'var(--font-semibold)';
+  container.appendChild(actionsHeading);
   
-  const addIncomeBtn = createButton('Add Income', () => navigateTo('income'), '#34A853');
-  actionsContainer.appendChild(addIncomeBtn);
+  // Actions grid for better responsive layout
+  const actionsGrid = document.createElement('div');
+  actionsGrid.style.display = 'grid';
+  actionsGrid.style.gridTemplateColumns = isMobile 
+    ? 'repeat(2, 1fr)' 
+    : 'repeat(auto-fill, minmax(200px, 1fr))';
+  actionsGrid.style.gap = 'var(--space-4)';
   
-  const viewGigsBtn = createButton('Find Gigs', () => navigateTo('gigs'), '#4285F4');
-  actionsContainer.appendChild(viewGigsBtn);
+  // Action cards 
+  const actions = [
+    {
+      title: 'Add Income',
+      description: 'Record your income and track your earnings.',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>',
+      color: 'var(--color-success)',
+      onClick: () => navigateTo('income')
+    },
+    {
+      title: 'Find Gigs',
+      description: 'Discover opportunities to earn more income.',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
+      color: 'var(--color-accent)',
+      onClick: () => navigateTo('gigs')
+    },
+    {
+      title: 'Adjust Split',
+      description: 'Customize your income allocation percentages.',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>',
+      color: 'var(--color-secondary)',
+      onClick: () => navigateTo('settings')
+    }
+  ];
   
-  const settingsBtn = createButton('Adjust Split', () => navigateTo('settings'), '#FBBC05');
-  actionsContainer.appendChild(settingsBtn);
+  actions.forEach(action => {
+    const actionCard = document.createElement('div');
+    actionCard.style.backgroundColor = 'var(--color-card)';
+    actionCard.style.borderRadius = 'var(--radius-lg)';
+    actionCard.style.padding = 'var(--space-5)';
+    actionCard.style.boxShadow = 'var(--shadow-sm)';
+    actionCard.style.border = '1px solid var(--color-border)';
+    actionCard.style.cursor = 'pointer';
+    actionCard.style.transition = 'all var(--transition-normal) ease';
+    
+    // Add hover effect
+    actionCard.addEventListener('mouseenter', () => {
+      actionCard.style.transform = 'translateY(-3px)';
+      actionCard.style.boxShadow = 'var(--shadow-md)';
+      actionCard.style.borderColor = action.color;
+    });
+    
+    actionCard.addEventListener('mouseleave', () => {
+      actionCard.style.transform = 'translateY(0)';
+      actionCard.style.boxShadow = 'var(--shadow-sm)';
+      actionCard.style.borderColor = 'var(--color-border)';
+    });
+    
+    actionCard.addEventListener('click', action.onClick);
+    
+    // Icon
+    const iconContainer = document.createElement('div');
+    iconContainer.style.width = '40px';
+    iconContainer.style.height = '40px';
+    iconContainer.style.borderRadius = 'var(--radius-md)';
+    iconContainer.style.backgroundColor = `${action.color}20`; // 20 is hex for 12% opacity
+    iconContainer.style.color = action.color;
+    iconContainer.style.display = 'flex';
+    iconContainer.style.alignItems = 'center';
+    iconContainer.style.justifyContent = 'center';
+    iconContainer.style.marginBottom = 'var(--space-3)';
+    iconContainer.innerHTML = action.icon;
+    actionCard.appendChild(iconContainer);
+    
+    // Title
+    const title = document.createElement('div');
+    title.textContent = action.title;
+    title.style.fontWeight = 'var(--font-semibold)';
+    title.style.fontSize = 'var(--font-size-base)';
+    title.style.marginBottom = 'var(--space-2)';
+    actionCard.appendChild(title);
+    
+    // Description (hidden on small mobile)
+    if (!isMobile || window.innerWidth > 400) {
+      const description = document.createElement('div');
+      description.textContent = action.description;
+      description.style.color = 'var(--color-text-secondary)';
+      description.style.fontSize = 'var(--font-size-sm)';
+      actionCard.appendChild(description);
+    }
+    
+    actionsGrid.appendChild(actionCard);
+  });
   
-  container.appendChild(actionsContainer);
+  container.appendChild(actionsGrid);
+  
+  // Prompt for first time users
+  if (appState.incomeEntries.length === 0) {
+    const emptyState = document.createElement('div');
+    emptyState.style.marginTop = 'var(--space-8)';
+    emptyState.style.padding = 'var(--space-6)';
+    emptyState.style.backgroundColor = 'rgba(66, 133, 244, 0.1)';
+    emptyState.style.borderRadius = 'var(--radius-lg)';
+    emptyState.style.textAlign = 'center';
+    emptyState.style.border = '1px dashed var(--color-accent)';
+    
+    const emptyIcon = document.createElement('div');
+    emptyIcon.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+    `;
+    emptyIcon.style.marginBottom = 'var(--space-4)';
+    emptyState.appendChild(emptyIcon);
+    
+    const emptyTitle = document.createElement('h3');
+    emptyTitle.textContent = 'Track your first income entry';
+    emptyTitle.style.fontWeight = 'var(--font-semibold)';
+    emptyTitle.style.marginBottom = 'var(--space-2)';
+    emptyTitle.style.color = 'var(--color-accent)';
+    emptyState.appendChild(emptyTitle);
+    
+    const emptyDesc = document.createElement('p');
+    emptyDesc.textContent = 'Start by adding your income to see your Stackr Split in action.';
+    emptyDesc.style.marginBottom = 'var(--space-4)';
+    emptyDesc.style.color = 'var(--color-text-secondary)';
+    emptyState.appendChild(emptyDesc);
+    
+    const emptyButton = createButton('Add Your First Income', () => navigateTo('income'), 'var(--color-accent)');
+    emptyState.appendChild(emptyButton);
+    
+    container.appendChild(emptyState);
+  }
   
   return container;
 }
@@ -1404,15 +1822,53 @@ function renderApp() {
   const root = document.getElementById('root');
   root.innerHTML = ''; // Clear previous content
   
+  // Add responsive viewport classes to the body
+  const width = window.innerWidth;
+  document.body.classList.remove('viewport-mobile', 'viewport-tablet', 'viewport-desktop');
+  
+  if (width < 640) {
+    document.body.classList.add('viewport-mobile');
+  } else if (width < 1024) {
+    document.body.classList.add('viewport-tablet');
+  } else {
+    document.body.classList.add('viewport-desktop');
+  }
+  
+  // Create application structure with responsive container
+  const appContainer = document.createElement('div');
+  appContainer.className = 'app-container';
+  appContainer.style.display = 'flex';
+  appContainer.style.flexDirection = 'column';
+  appContainer.style.minHeight = '100vh'; // Full height
+  
   // Build page structure
   const header = createHeader();
-  root.appendChild(header);
+  appContainer.appendChild(header);
   
-  // Create main content container
+  // Create main content container with responsive padding
   const main = document.createElement('main');
-  main.style.padding = '40px 20px';
-  main.style.maxWidth = '1000px';
+  main.style.padding = width < 640 ? 'var(--space-4)' : 'var(--space-8) var(--space-6)';
+  main.style.maxWidth = '1200px';
+  main.style.width = '100%';
   main.style.margin = '0 auto';
+  main.style.flex = '1'; // Takes up available space
+  main.style.boxSizing = 'border-box';
+  
+  // Add page transition effects
+  main.style.animation = 'fadeIn 0.3s ease-in-out';
+  
+  // Create and append a keyframe animation
+  if (!document.querySelector('#fadeInAnimation')) {
+    const style = document.createElement('style');
+    style.id = 'fadeInAnimation';
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
   
   // Render different pages based on the current page state
   switch(appState.currentPage) {
@@ -1432,11 +1888,39 @@ function renderApp() {
       main.appendChild(renderDashboardPage());
   }
   
-  root.appendChild(main);
+  appContainer.appendChild(main);
   
   // Add footer
   const footer = createFooter();
-  root.appendChild(footer);
+  appContainer.appendChild(footer);
+  
+  // Append the entire container to the root
+  root.appendChild(appContainer);
+  
+  // Debug info
+  console.log(`Page rendered: ${appState.currentPage}`);
+  console.log(`Viewport: ${width < 640 ? 'mobile' : width < 1024 ? 'tablet' : 'desktop'}`);
+  
+  // Setup responsive event listener
+  if (!window.resizeListenerAttached) {
+    window.addEventListener('resize', debounce(() => {
+      renderApp();
+    }, 250));
+    window.resizeListenerAttached = true;
+  }
+}
+
+// Helper function to limit how often the resize event fires
+function debounce(func, wait) {
+  let timeout;
+  return function() {
+    const context = this;
+    const args = arguments;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      func.apply(context, args);
+    }, wait);
+  };
 }
 
 // Initialize the app when DOM is loaded
