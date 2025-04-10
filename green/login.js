@@ -4,7 +4,7 @@
  */
 
 // Function to handle login form submission
-async function handleLogin(email, password) {
+async function handleLogin(email, password, rememberMe = false) {
   try {
     // Show loading state
     const submitButton = document.querySelector('.login-form button[type="submit"]');
@@ -18,7 +18,7 @@ async function handleLogin(email, password) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ username: email, password, rememberMe })
     });
     
     if (!response.ok) {
@@ -137,11 +137,17 @@ function renderLoginForm() {
   
   const formEl = document.createElement('form');
   formEl.classList.add('login-form');
+  formEl.style.backgroundColor = 'white';
+  formEl.style.padding = '32px';
+  formEl.style.borderRadius = '12px';
+  formEl.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.08)';
+  
   formEl.onsubmit = (e) => {
     e.preventDefault();
     const email = e.target.elements.email.value;
     const password = e.target.elements.password.value;
-    handleLogin(email, password);
+    const rememberMe = e.target.elements.rememberMe?.checked || false;
+    handleLogin(email, password, rememberMe);
   };
   
   // Form title
