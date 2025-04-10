@@ -5,23 +5,128 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Stackr Finance - GREEN (Firebase-free)</title>
   <meta name="description" content="Stackr Finance - Smart income tracking with the 40/30/30 split method" />
-  <meta name="theme-color" content="#34A853">
+  <meta name="theme-color" content="#4F46E5">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Base styles */
-    * {
+    /* Modern UI Design System */
+    :root {
+      /* Brand Colors */
+      --color-primary: #4F46E5;
+      --color-primary-dark: #4338CA;
+      --color-primary-light: #6366F1;
+      --color-secondary: #0EA5E9;
+      --color-accent: #8B5CF6;
+      
+      /* Neutral Colors */
+      --color-bg: #F9FAFB;
+      --color-card: #FFFFFF;
+      --color-text: #1F2937;
+      --color-text-secondary: #4B5563;
+      --color-text-tertiary: #6B7280;
+      --color-border: #E5E7EB;
+      
+      /* Semantic Colors */
+      --color-success: #10B981;
+      --color-warning: #F59E0B;
+      --color-error: #EF4444;
+      --color-info: #3B82F6;
+      
+      /* Elevation/Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      
+      /* Spacing System */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+      --space-12: 48px;
+      --space-16: 64px;
+      
+      /* Border Radius */
+      --radius-sm: 0.125rem;
+      --radius-md: 0.375rem;
+      --radius-lg: 0.5rem;
+      --radius-xl: 0.75rem;
+      --radius-2xl: 1rem;
+      --radius-full: 9999px;
+      
+      /* Typography */
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.25rem;
+      --font-size-2xl: 1.5rem;
+      --font-size-3xl: 1.875rem;
+      --font-size-4xl: 2.25rem;
+      
+      /* Font Weights */
+      --font-light: 300;
+      --font-normal: 400;
+      --font-medium: 500;
+      --font-semibold: 600;
+      --font-bold: 700;
+      
+      /* Transitions */
+      --transition-fast: 150ms;
+      --transition-normal: 250ms;
+      --transition-slow: 350ms;
+    }
+    
+    /* Base Reset */
+    *, *::before, *::after {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    html, body {
+      height: 100%;
+      width: 100%;
     }
     
     body {
-      background-color: #f9f9f9;
-      color: #333;
-      line-height: 1.6;
+      font-family: var(--font-family);
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.5;
+      overflow-x: hidden;
     }
     
-    /* Loading state */
+    /* Typography Base */
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: var(--font-semibold);
+      line-height: 1.2;
+      margin-bottom: var(--space-4);
+    }
+    
+    p {
+      margin-bottom: var(--space-4);
+    }
+    
+    a {
+      color: var(--color-primary);
+      text-decoration: none;
+      transition: color var(--transition-fast) ease;
+    }
+    
+    a:hover {
+      color: var(--color-primary-dark);
+    }
+    
+    /* Loading Animation */
     .loading {
       position: fixed;
       top: 0;
@@ -32,33 +137,52 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      background-color: #34A853;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
       color: white;
-      z-index: 1000;
+      z-index: 9999;
       transition: opacity 0.5s ease-out;
     }
     
     .loading h1 {
-      margin-bottom: 20px;
-      font-size: 2.5rem;
+      font-size: var(--font-size-4xl);
+      margin-bottom: var(--space-4);
+      background: linear-gradient(to right, #fff, #e2e8f0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: var(--font-bold);
     }
     
     .loading p {
-      margin-bottom: 30px;
-      font-size: 1.2rem;
+      margin-bottom: var(--space-6);
+      font-size: var(--font-size-lg);
+      opacity: 0.9;
     }
     
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 1s ease-in-out infinite;
+    .loading-bar {
+      position: relative;
+      width: 200px;
+      height: 8px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-bottom: var(--space-8);
     }
     
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .loading-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 40%;
+      background-color: white;
+      border-radius: var(--radius-full);
+      animation: loading 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes loading {
+      0% { left: -40%; }
+      100% { left: 100%; }
     }
     
     /* Hide loading screen once app is loaded */
@@ -66,20 +190,53 @@
       opacity: 0;
       pointer-events: none;
     }
+    
+    /* App container */
+    #root {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: var(--radius-full);
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.25);
+    }
   </style>
   <script>
     console.log('Starting GREEN Firebase-free version of Stackr Finance');
+    
     // Hide loading screen after the app has loaded
     window.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
+      const progressInterval = setInterval(() => {
         const loader = document.getElementById('loading');
-        if (loader) {
-          loader.classList.add('loaded');
-          setTimeout(() => {
-            loader.style.display = 'none';
-          }, 500);
-        }
-      }, 1000);
+        if (Math.random() < 0.3) return; // Add some randomness to make it feel more natural
+        
+        setTimeout(() => {
+          if (loader) {
+            loader.classList.add('loaded');
+            setTimeout(() => {
+              loader.style.display = 'none';
+            }, 500);
+          }
+        }, 1500);
+        
+        clearInterval(progressInterval);
+      }, 300);
     });
   </script>
 </head>
@@ -87,8 +244,9 @@
   <!-- Loading screen -->
   <div id="loading" class="loading">
     <h1>Stackr Finance</h1>
-    <p>GREEN Edition - 100% Firebase-free</p>
-    <div class="spinner"></div>
+    <p>GREEN Edition - Firebase-free</p>
+    <div class="loading-bar"></div>
+    <p style="font-size: 14px; opacity: 0.7; margin-top: -15px;">Loading your financial dashboard...</p>
   </div>
   
   <!-- App root -->
