@@ -4,13 +4,96 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Stackr Finance - GREEN (Firebase-free)</title>
-  <meta name="description" content="Stackr Finance - Completely Firebase-free version" />
+  <meta name="description" content="Stackr Finance - Smart income tracking with the 40/30/30 split method" />
+  <meta name="theme-color" content="#34A853">
+  <style>
+    /* Base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    body {
+      background-color: #f9f9f9;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    /* Loading state */
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #34A853;
+      color: white;
+      z-index: 1000;
+      transition: opacity 0.5s ease-out;
+    }
+    
+    .loading h1 {
+      margin-bottom: 20px;
+      font-size: 2.5rem;
+    }
+    
+    .loading p {
+      margin-bottom: 30px;
+      font-size: 1.2rem;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Hide loading screen once app is loaded */
+    .loaded {
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
   <script>
     console.log('Starting GREEN Firebase-free version of Stackr Finance');
+    // Hide loading screen after the app has loaded
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const loader = document.getElementById('loading');
+        if (loader) {
+          loader.classList.add('loaded');
+          setTimeout(() => {
+            loader.style.display = 'none';
+          }, 500);
+        }
+      }, 1000);
+    });
   </script>
 </head>
 <body>
+  <!-- Loading screen -->
+  <div id="loading" class="loading">
+    <h1>Stackr Finance</h1>
+    <p>GREEN Edition - 100% Firebase-free</p>
+    <div class="spinner"></div>
+  </div>
+  
+  <!-- App root -->
   <div id="root"></div>
+  
   <script type="module" src="/green/src/main.js"></script>
 </body>
 </html>
