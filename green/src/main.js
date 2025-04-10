@@ -95,13 +95,17 @@ const appState = {
   user: {
     id: 1, // Add a default user ID for API calls
     name: 'User',
+    email: '',
+    role: 'user',
+    subscriptionStatus: 'free',
     splitRatio: {
       needs: 40,
       investments: 30,
       savings: 30
     },
-    // This simulates authenticated user
-    isAuthenticated: false
+    // Authentication state
+    isAuthenticated: false,
+    token: null
   }
 };
 
