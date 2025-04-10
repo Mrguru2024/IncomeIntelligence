@@ -9,21 +9,19 @@
   <meta name="theme-color" content="#4F46E5" />
   
   <script>
-    console.log('[FRESH] Loading completely Firebase-free Stackr Finance');
+    console.log('[FRESH] Loading fresh Stackr Finance app without Firebase dependencies');
     
     // Add a debug logger for development
     window.debugLog = function(message, isError = false) {
       const method = isError ? 'error' : 'log';
       console[method](`[Stackr Finance] ${message}`);
     };
-    
-    window.debugLog('Firebase-free application initialization starting');
   </script>
 </head>
 <body>
   <div id="root"></div>
   
-  <!-- Load our completely Firebase-free application entry point -->
+  <!-- Load our fresh React application entry point -->
   <script type="module" src="/src/fresh-main.tsx"></script>
 
   <!-- Replit badge -->

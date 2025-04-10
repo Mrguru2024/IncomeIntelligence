@@ -1,51 +1,60 @@
-/**
- * Clean server implementation without Firebase dependencies
- * This server loads minimal.html instead of the standard index.html
- */
-
 import express from 'express';
-import path from 'path';
 import fs from 'fs';
-import { createServer } from 'http';
+import path from 'path';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { createServer } from 'http';
+import { createServer as createViteServer } from 'vite';
 
+// Get the current file's directory name
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'client/public')));
-app.use(express.static(path.join(__dirname, 'client')));
+async function startServer() {
+  // Create a Vite server in middleware mode
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: 'custom'
+  });
 
-// Middleware to modify HTML content
-app.use('/', (req, res, next) => {
-  if (req.path === '/' || req.path === '/index.html') {
-    // Read the minimal HTML file
-    fs.readFile(path.join(__dirname, 'client/minimal.html'), 'utf8', (err, data) => {
-      if (err) {
-        console.error('Error reading minimal.html:', err);
-        return next();
-      }
+  // Use vite's connect instance as middleware
+  app.use(vite.middlewares);
+
+  // API routes
+  app.get('/api/status', (req, res) => {
+    res.json({ status: 'ok', message: 'Clean Firebase-free server is running' });
+  });
+
+  // Serve the clean HTML for all routes to support client-side routing
+  app.use('*', async (req, res) => {
+    try {
+      const url = req.originalUrl;
       
-      res.setHeader('Content-Type', 'text/html');
-      res.send(data);
-    });
-  } else {
-    next();
-  }
-});
+      // Use the minimal HTML file
+      const template = fs.readFileSync(
+        path.resolve(__dirname, 'client/minimal.html'),
+        'utf-8'
+      );
+      
+      // Process the HTML with Vite
+      const transformedHtml = await vite.transformIndexHtml(url, template);
+      res.status(200).set({ 'Content-Type': 'text/html' }).end(transformedHtml);
+    } catch (e) {
+      vite.ssrFixStacktrace(e);
+      console.error(e);
+      res.status(500).end(e.stack);
+    }
+  });
 
-// Basic error handling
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  res.status(500).send('Internal Server Error');
-});
+  // Create and start the HTTP server
+  const httpServer = createServer(app);
+  httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log(`[CLEAN] Server is running on port ${PORT}`);
+  });
+}
 
-// Start the server
-const server = createServer(app);
-server.listen(port, '0.0.0.0', () => {
-  console.log(`Clean server running on port ${port}`);
+startServer().catch((e) => {
+  console.error('Error starting server:', e);
 });

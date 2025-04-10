@@ -1,36 +1,78 @@
 import express from 'express';
+import path from 'path';
+import fs from 'fs';
 import { createServer } from 'http';
 import { createServer as createViteServer } from 'vite';
-import path from 'path';
+import { config } from 'dotenv';
 import { fileURLToPath } from 'url';
 
-// ES modules fix for __dirname
+// Get __dirname equivalent in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Load environment variables
+config();
+
+// Initialize Express
+const app = express();
+const PORT = process.env.PORT || 5000;
+
 async function startServer() {
-  const app = express();
+  // Create Vite server in middleware mode
   const vite = await createViteServer({
     server: { middlewareMode: true },
-    configFile: path.resolve(__dirname, '../client/vite.minimal.config.ts'),
-    root: path.resolve(__dirname, '../client'),
+    appType: 'custom'
   });
 
-  // Use Vite as middleware
+  // Use vite's connect instance as middleware
   app.use(vite.middlewares);
 
-  // API routes can be added here if needed
-  app.get('/api/healthcheck', (req, res) => {
-    res.json({ status: 'ok', message: 'Minimal server is running' });
+  // Serve static files from the dist directory
+  app.use(express.static(path.resolve(__dirname, '../dist')));
+  
+  // Serve minimal.html for root requests
+  app.get('/', async (req, res) => {
+    try {
+      let template = fs.readFileSync(
+        path.resolve(__dirname, '../client/minimal.html'),
+        'utf-8'
+      );
+      
+      template = await vite.transformIndexHtml(req.url, template);
+      res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+    } catch (e) {
+      vite.ssrFixStacktrace(e as Error);
+      console.log(e);
+      res.status(500).end((e as Error).stack);
+    }
   });
 
+  // Catch-all route to serve the minimal app for client-side routing
+  app.use('*', async (req, res) => {
+    try {
+      let template = fs.readFileSync(
+        path.resolve(__dirname, '../client/minimal.html'),
+        'utf-8'
+      );
+      
+      template = await vite.transformIndexHtml(req.url, template);
+      res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+    } catch (e) {
+      vite.ssrFixStacktrace(e as Error);
+      console.log(e);
+      res.status(500).end((e as Error).stack);
+    }
+  });
+
+  // Create HTTP server
+  const httpServer = createServer(app);
+
   // Start the server
-  const port = process.env.PORT || 4000; // Use a different port to avoid conflicts
-  const server = createServer(app);
-  
-  server.listen(port, () => {
-    console.log(`[minimal] Server is running on port ${port}`);
+  httpServer.listen(PORT, () => {
+    console.log(`[MINIMAL] Server is running on port ${PORT}`);
   });
 }
 
-startServer().catch(console.error);
+startServer().catch((e) => {
+  console.error('Error starting server:', e);
+});
