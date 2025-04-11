@@ -1178,57 +1178,332 @@ function renderSplitRatioStep(container, appState) {
   description.style.marginBottom = '32px';
   container.appendChild(description);
   
-  // Current split ratio display
+  // Enhanced current split ratio display
   const currentRatio = appState.user.splitRatio || { needs: 40, investments: 30, savings: 30 };
   
+  // Container for the interactive split visualization
+  const splitVisualContainer = document.createElement('div');
+  splitVisualContainer.style.marginBottom = '40px';
+  splitVisualContainer.classList.add('animated-element');
+  splitVisualContainer.classList.add('delay-1');
+  
+  // Split ratio title
+  const splitTitle = document.createElement('h3');
+  splitTitle.textContent = 'Your Income Split';
+  splitTitle.style.fontSize = '20px';
+  splitTitle.style.fontWeight = '600';
+  splitTitle.style.marginBottom = '16px';
+  splitTitle.style.textAlign = 'center';
+  splitVisualContainer.appendChild(splitTitle);
+  
+  // Interactive split bar
   const splitVisual = document.createElement('div');
   splitVisual.style.display = 'flex';
   splitVisual.style.width = '100%';
-  splitVisual.style.height = '64px';
-  splitVisual.style.borderRadius = '8px';
+  splitVisual.style.height = '80px';
+  splitVisual.style.borderRadius = '12px';
   splitVisual.style.overflow = 'hidden';
-  splitVisual.style.marginBottom = '32px';
+  splitVisual.style.marginBottom = '24px';
+  splitVisual.style.position = 'relative';
+  splitVisual.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
+  splitVisual.style.cursor = 'pointer';
   
-  const needsSegment = document.createElement('div');
-  needsSegment.id = 'needs-segment';
-  needsSegment.style.backgroundColor = 'var(--color-needs)';
-  needsSegment.style.width = `${currentRatio.needs}%`;
-  needsSegment.style.display = 'flex';
-  needsSegment.style.alignItems = 'center';
-  needsSegment.style.justifyContent = 'center';
-  needsSegment.style.color = 'white';
-  needsSegment.style.fontWeight = 'bold';
-  needsSegment.style.transition = 'width 0.3s ease';
-  needsSegment.textContent = `${currentRatio.needs}% Needs`;
+  // Helper function to create segments with enhanced styling
+  const createSegment = (id, name, color, percentage, icon) => {
+    const segment = document.createElement('div');
+    segment.id = `${id}-segment`;
+    segment.style.backgroundColor = `var(--color-${color})`;
+    segment.style.width = `${percentage}%`;
+    segment.style.display = 'flex';
+    segment.style.alignItems = 'center';
+    segment.style.justifyContent = 'center';
+    segment.style.color = 'white';
+    segment.style.fontWeight = 'bold';
+    segment.style.fontSize = '16px';
+    segment.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    segment.style.position = 'relative';
+    segment.style.cursor = 'grab';
+    segment.dataset.type = id;
+    segment.dataset.value = percentage;
+    
+    // Create label with icon
+    const labelContainer = document.createElement('div');
+    labelContainer.style.display = 'flex';
+    labelContainer.style.alignItems = 'center';
+    labelContainer.style.gap = '8px';
+    labelContainer.style.zIndex = '2';
+    
+    labelContainer.innerHTML = `${icon} <span>${percentage}% ${name}</span>`;
+    
+    // Decorative background pattern
+    const pattern = document.createElement('div');
+    pattern.style.position = 'absolute';
+    pattern.style.top = '0';
+    pattern.style.left = '0';
+    pattern.style.right = '0';
+    pattern.style.bottom = '0';
+    pattern.style.backgroundImage = `radial-gradient(circle, rgba(255,255,255,0.15) 10%, transparent 10.5%)`;
+    pattern.style.backgroundSize = '15px 15px';
+    pattern.style.opacity = '0.5';
+    
+    // Resize handle for dragging
+    const handle = document.createElement('div');
+    handle.style.position = 'absolute';
+    handle.style.right = '0';
+    handle.style.top = '0';
+    handle.style.bottom = '0';
+    handle.style.width = '10px';
+    handle.style.cursor = 'col-resize';
+    handle.style.zIndex = '10';
+    
+    // Handle hover effects
+    handle.addEventListener('mouseover', () => {
+      handle.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+    });
+    
+    handle.addEventListener('mouseout', () => {
+      handle.style.backgroundColor = 'transparent';
+    });
+    
+    segment.appendChild(pattern);
+    segment.appendChild(labelContainer);
+    segment.appendChild(handle);
+    
+    return { segment, handle };
+  };
+  
+  // Create the three segments with icons
+  const needsIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>';
+  const investmentsIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>';
+  const savingsIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
+  
+  const { segment: needsSegment, handle: needsHandle } = createSegment('needs', 'Needs', 'needs', currentRatio.needs, needsIcon);
+  const { segment: investmentsSegment, handle: investmentsHandle } = createSegment('investments', 'Inv', 'investments', currentRatio.investments, investmentsIcon);
+  const { segment: savingsSegment, handle: savingsHandle } = createSegment('savings', 'Sav', 'savings', currentRatio.savings, savingsIcon);
+  
   splitVisual.appendChild(needsSegment);
-  
-  const investmentsSegment = document.createElement('div');
-  investmentsSegment.id = 'investments-segment';
-  investmentsSegment.style.backgroundColor = 'var(--color-investments)';
-  investmentsSegment.style.width = `${currentRatio.investments}%`;
-  investmentsSegment.style.display = 'flex';
-  investmentsSegment.style.alignItems = 'center';
-  investmentsSegment.style.justifyContent = 'center';
-  investmentsSegment.style.color = 'white';
-  investmentsSegment.style.fontWeight = 'bold';
-  investmentsSegment.style.transition = 'width 0.3s ease';
-  investmentsSegment.textContent = `${currentRatio.investments}% Inv`;
   splitVisual.appendChild(investmentsSegment);
-  
-  const savingsSegment = document.createElement('div');
-  savingsSegment.id = 'savings-segment';
-  savingsSegment.style.backgroundColor = 'var(--color-savings)';
-  savingsSegment.style.width = `${currentRatio.savings}%`;
-  savingsSegment.style.display = 'flex';
-  savingsSegment.style.alignItems = 'center';
-  savingsSegment.style.justifyContent = 'center';
-  savingsSegment.style.color = 'white';
-  savingsSegment.style.fontWeight = 'bold';
-  savingsSegment.style.transition = 'width 0.3s ease';
-  savingsSegment.textContent = `${currentRatio.savings}% Sav`;
   splitVisual.appendChild(savingsSegment);
   
-  container.appendChild(splitVisual);
+  // Add interactive dragging functionality
+  let isDragging = false;
+  let startX = 0;
+  let startWidth = 0;
+  let currentHandle = null;
+  let currentSegment = null;
+  let nextSegment = null;
+  
+  // Setup drag handlers for needs & investments handles (savings auto-adjusts)
+  [needsHandle, investmentsHandle].forEach((handle, index) => {
+    handle.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      isDragging = true;
+      startX = e.clientX;
+      currentHandle = handle;
+      currentSegment = index === 0 ? needsSegment : investmentsSegment;
+      nextSegment = index === 0 ? investmentsSegment : savingsSegment;
+      startWidth = parseFloat(currentSegment.style.width);
+      
+      document.body.style.cursor = 'col-resize';
+      
+      // Add temporary overlay to capture mouse events
+      const overlay = document.createElement('div');
+      overlay.id = 'drag-overlay';
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.right = '0';
+      overlay.style.bottom = '0';
+      overlay.style.zIndex = '1000';
+      overlay.style.cursor = 'col-resize';
+      document.body.appendChild(overlay);
+    });
+  });
+  
+  // Mouse move handler for dragging
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging || !currentHandle || !currentSegment || !nextSegment) return;
+    
+    const deltaX = e.clientX - startX;
+    const containerWidth = splitVisual.offsetWidth;
+    const deltaPercentage = (deltaX / containerWidth) * 100;
+    
+    // Calculate new widths ensuring minimum 10% for each segment
+    let newCurrentWidth = Math.max(10, Math.min(80, startWidth + deltaPercentage));
+    
+    // Update current segment width
+    currentSegment.style.width = `${newCurrentWidth}%`;
+    currentSegment.dataset.value = Math.round(newCurrentWidth);
+    
+    // Find the percentage in the label span and update it
+    const currentLabel = currentSegment.querySelector('span');
+    if (currentLabel) {
+      currentLabel.textContent = `${Math.round(newCurrentWidth)}% ${currentSegment.dataset.type === 'needs' ? 'Needs' : 'Inv'}`;
+    }
+    
+    // Adjust next segments to maintain total of 100%
+    if (currentSegment.id === 'needs-segment') {
+      // When adjusting needs, recalculate investments and savings
+      const remainingPercentage = 100 - newCurrentWidth;
+      const investmentsRatio = parseInt(investmentsSegment.dataset.value) / (parseInt(investmentsSegment.dataset.value) + parseInt(savingsSegment.dataset.value));
+      
+      let newInvestmentsWidth = Math.round(remainingPercentage * investmentsRatio);
+      let newSavingsWidth = 100 - newCurrentWidth - newInvestmentsWidth;
+      
+      // Ensure minimums
+      if (newInvestmentsWidth < 10) {
+        newInvestmentsWidth = 10;
+        newSavingsWidth = 100 - newCurrentWidth - newInvestmentsWidth;
+      }
+      
+      if (newSavingsWidth < 10) {
+        newSavingsWidth = 10;
+        newInvestmentsWidth = 100 - newCurrentWidth - newSavingsWidth;
+      }
+      
+      investmentsSegment.style.width = `${newInvestmentsWidth}%`;
+      investmentsSegment.dataset.value = newInvestmentsWidth;
+      savingsSegment.style.width = `${newSavingsWidth}%`;
+      savingsSegment.dataset.value = newSavingsWidth;
+      
+      // Update labels
+      const investmentsLabel = investmentsSegment.querySelector('span');
+      const savingsLabel = savingsSegment.querySelector('span');
+      
+      if (investmentsLabel) investmentsLabel.textContent = `${newInvestmentsWidth}% Inv`;
+      if (savingsLabel) savingsLabel.textContent = `${newSavingsWidth}% Sav`;
+      
+    } else if (currentSegment.id === 'investments-segment') {
+      // When adjusting investments, only recalculate savings
+      const needsWidth = parseInt(needsSegment.dataset.value);
+      const newSavingsWidth = 100 - needsWidth - newCurrentWidth;
+      
+      if (newSavingsWidth >= 10) {
+        savingsSegment.style.width = `${newSavingsWidth}%`;
+        savingsSegment.dataset.value = newSavingsWidth;
+        
+        // Update savings label
+        const savingsLabel = savingsSegment.querySelector('span');
+        if (savingsLabel) savingsLabel.textContent = `${newSavingsWidth}% Sav`;
+      }
+    }
+    
+    // Update form sliders
+    const needsSlider = document.getElementById('needs');
+    const investmentsSlider = document.getElementById('investments');
+    const savingsSlider = document.getElementById('savings');
+    
+    if (needsSlider && investmentsSlider && savingsSlider) {
+      needsSlider.value = needsSegment.dataset.value;
+      investmentsSlider.value = investmentsSegment.dataset.value;
+      savingsSlider.value = savingsSegment.dataset.value;
+      
+      // Trigger the update function
+      const event = new Event('input');
+      needsSlider.dispatchEvent(event);
+    }
+  });
+  
+  // Mouse up handler to end dragging
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      document.body.style.cursor = '';
+      currentHandle = null;
+      currentSegment = null;
+      nextSegment = null;
+      
+      // Remove temporary overlay
+      const overlay = document.getElementById('drag-overlay');
+      if (overlay) overlay.remove();
+    }
+  });
+  
+  splitVisualContainer.appendChild(splitVisual);
+  
+  // Legend with descriptions
+  const splitLegend = document.createElement('div');
+  splitLegend.style.display = 'flex';
+  splitLegend.style.flexDirection = 'column';
+  splitLegend.style.gap = '10px';
+  splitLegend.style.marginBottom = '24px';
+  
+  const legendItems = [
+    {
+      color: 'needs',
+      title: 'Needs',
+      description: 'Essential expenses like housing, food, utilities, and transportation.'
+    },
+    {
+      color: 'investments',
+      title: 'Investments',
+      description: 'Building your future through stocks, mutual funds, education, or your business.'
+    },
+    {
+      color: 'savings',
+      title: 'Savings',
+      description: 'Emergency funds, big purchases, and peace of mind.'
+    }
+  ];
+  
+  legendItems.forEach(item => {
+    const legendItem = document.createElement('div');
+    legendItem.style.display = 'flex';
+    legendItem.style.alignItems = 'flex-start';
+    legendItem.style.gap = '10px';
+    
+    const colorDot = document.createElement('div');
+    colorDot.style.width = '16px';
+    colorDot.style.height = '16px';
+    colorDot.style.borderRadius = '50%';
+    colorDot.style.backgroundColor = `var(--color-${item.color})`;
+    colorDot.style.marginTop = '4px';
+    
+    const legendContent = document.createElement('div');
+    
+    const legendTitle = document.createElement('div');
+    legendTitle.textContent = item.title;
+    legendTitle.style.fontWeight = '600';
+    legendTitle.style.marginBottom = '4px';
+    
+    const legendDescription = document.createElement('div');
+    legendDescription.textContent = item.description;
+    legendDescription.style.fontSize = '14px';
+    legendDescription.style.color = 'var(--color-text-secondary)';
+    
+    legendContent.appendChild(legendTitle);
+    legendContent.appendChild(legendDescription);
+    
+    legendItem.appendChild(colorDot);
+    legendItem.appendChild(legendContent);
+    
+    splitLegend.appendChild(legendItem);
+  });
+  
+  // Tip about dragging
+  const dragTip = document.createElement('div');
+  dragTip.style.backgroundColor = 'rgba(var(--color-primary-rgb), 0.1)';
+  dragTip.style.borderRadius = '8px';
+  dragTip.style.padding = '12px 16px';
+  dragTip.style.fontSize = '14px';
+  dragTip.style.display = 'flex';
+  dragTip.style.alignItems = 'center';
+  dragTip.style.gap = '12px';
+  dragTip.style.marginBottom = '24px';
+  
+  // Light bulb icon
+  dragTip.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="16" x2="12" y2="12"></line>
+      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    </svg>
+    <span><strong>Pro tip:</strong> Drag the dividers between segments to adjust your split ratio visually, or use the sliders below for precise control.</span>
+  `;
+  
+  splitVisualContainer.appendChild(splitLegend);
+  splitVisualContainer.appendChild(dragTip);
+  container.appendChild(splitVisualContainer);
   
   // Create form for split ratio adjustment
   const form = document.createElement('form');
