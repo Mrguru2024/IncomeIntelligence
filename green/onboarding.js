@@ -39,10 +39,63 @@ export function renderOnboardingPage(appState) {
   const currentStep = appState.user.onboardingStep || 'welcome';
   const currentStepIndex = ONBOARDING_STEPS.indexOf(currentStep);
   
-  // Header section with progress
+  // Header section with logo and progress
   const header = document.createElement('div');
   header.classList.add('onboarding-header');
   header.style.marginBottom = '40px';
+  
+  // Logo container
+  const logoContainer = document.createElement('div');
+  logoContainer.style.display = 'flex';
+  logoContainer.style.justifyContent = 'center';
+  logoContainer.style.alignItems = 'center';
+  logoContainer.style.marginBottom = '32px';
+  
+  // Create logo element
+  const logo = document.createElement('div');
+  logo.innerHTML = `
+    <svg width="180" height="48" viewBox="0 0 180 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20.5 8L36 16V32L20.5 40L5 32V16L20.5 8Z" fill="url(#paint0_linear)"/>
+      <path d="M20.5 16L28 20V28L20.5 32L13 28V20L20.5 16Z" fill="white"/>
+      <path d="M50 18.7272H54.8182C56.5455 18.7272 57.8939 19.197 58.8636 20.1366C59.8333 21.0761 60.3182 22.3333 60.3182 23.9091V23.9697C60.3182 25.5455 59.8333 26.8027 58.8636 27.7422C57.8939 28.6818 56.5455 29.1515 54.8182 29.1515H50V18.7272ZM54.8182 26.1818C55.53 26.1818 56.0952 25.9697 56.5136 25.5455C56.9318 25.1212 57.1409 24.5455 57.1409 23.8181V23.7575C57.1409 23.0302 56.9318 22.4545 56.5136 22.0303C56.0952 21.6061 55.53 21.3939 54.8182 21.3939H53.303V26.1818H54.8182Z" fill="#2B3139"/>
+      <path d="M62.7992 18.7272H72.223V21.3333H66.1023V22.8485H71.5719V25.2121H66.1023V26.5454H72.3144V29.1515H62.7992V18.7272Z" fill="#2B3139"/>
+      <path d="M77.5916 18.7272H82.4099C84.1372 18.7272 85.4856 19.197 86.4553 20.1366C87.425 21.0761 87.9099 22.3333 87.9099 23.9091V23.9697C87.9099 25.5455 87.425 26.8027 86.4553 27.7422C85.4856 28.6818 84.1372 29.1515 82.4099 29.1515H77.5916V18.7272ZM82.4099 26.1818C83.1217 26.1818 83.6869 25.9697 84.1053 25.5455C84.5235 25.1212 84.7326 24.5455 84.7326 23.8181V23.7575C84.7326 23.0302 84.5235 22.4545 84.1053 22.0303C83.6869 21.6061 83.1217 21.3939 82.4099 21.3939H80.8947V26.1818H82.4099Z" fill="#2B3139"/>
+      <path d="M90.3909 18.7272H93.6289V23.6363H97.0441V18.7272H100.282V29.1515H97.0441V26.3636H93.6289V29.1515H90.3909V18.7272Z" fill="#2B3139"/>
+      <path d="M107.184 29.3333C106.093 29.3333 105.123 29.0909 104.274 28.6061C103.426 28.1212 102.759 27.4545 102.274 26.6061C101.79 25.7576 101.547 24.803 101.547 23.7424V23.6818C101.547 22.6212 101.79 21.6667 102.274 20.8182C102.759 19.9697 103.426 19.303 104.274 18.8182C105.123 18.3333 106.093 18.0909 107.184 18.0909C108.275 18.0909 109.244 18.3333 110.093 18.8182C110.941 19.303 111.608 19.9697 112.093 20.8182C112.578 21.6667 112.82 22.6212 112.82 23.6818V23.7424C112.82 24.803 112.578 25.7576 112.093 26.6061C111.608 27.4545 110.941 28.1212 110.093 28.6061C109.244 29.0909 108.275 29.3333 107.184 29.3333ZM107.184 26.5454C107.805 26.5454 108.32 26.303 108.729 25.8182C109.138 25.3333 109.342 24.6515 109.342 23.7727V23.7121C109.342 22.8333 109.138 22.1516 108.729 21.6667C108.32 21.1818 107.805 20.9394 107.184 20.9394C106.563 20.9394 106.047 21.1818 105.638 21.6667C105.229 22.1516 105.026 22.8333 105.026 23.7121V23.7727C105.026 24.6515 105.229 25.3333 105.638 25.8182C106.047 26.303 106.563 26.5454 107.184 26.5454Z" fill="#2B3139"/>
+      <path d="M117.133 18.7272H120.371V26.5454H125.628V29.1515H117.133V18.7272Z" fill="#2B3139"/>
+      <path d="M130.548 18.7272H139.972V21.3333H133.851V22.8485H139.321V25.2121H133.851V26.5454H140.063V29.1515H130.548V18.7272Z" fill="#2B3139"/>
+      <path d="M145.34 18.7272H148.578V26.5454H153.836V29.1515H145.34V18.7272Z" fill="#2B3139"/>
+      <path d="M158.756 18.7272H173.968V21.3939H168.28V29.1515H165.042V21.3939H158.756V18.7272Z" fill="#2B3139"/>
+      <defs>
+        <linearGradient id="paint0_linear" x1="5" y1="8" x2="36" y2="40" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#3498DB"/>
+          <stop offset="1" stop-color="#8E44AD"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  `;
+  logo.style.filter = 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))';
+  logo.style.transition = 'transform 0.2s ease';
+  logo.style.cursor = 'pointer';
+  
+  // Add hover effect to logo
+  logo.addEventListener('mouseover', () => {
+    logo.style.transform = 'scale(1.05)';
+  });
+  
+  logo.addEventListener('mouseout', () => {
+    logo.style.transform = 'scale(1)';
+  });
+  
+  // Add click event to return to landing page (optional)
+  logo.addEventListener('click', () => {
+    if (confirm('Are you sure you want to exit the onboarding process?')) {
+      navigateTo('landing');
+    }
+  });
+  
+  logoContainer.appendChild(logo);
+  header.appendChild(logoContainer);
   header.style.textAlign = 'center';
   
   // Create a container for the title with animated gradient
