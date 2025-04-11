@@ -2260,18 +2260,41 @@ function renderApp() {
   
   // Add responsive viewport classes to the body
   const width = window.innerWidth;
-  document.body.classList.remove('viewport-mobile', 'viewport-tablet', 'viewport-desktop');
+  const height = window.innerHeight;
+  const aspectRatio = width / height;
+  document.body.classList.remove('viewport-mobile', 'viewport-tablet', 'viewport-desktop', 'viewport-fold-closed', 'viewport-fold-open');
   
-  // Standard breakpoints:
+  // Enhanced breakpoints to handle foldable devices like Samsung Z Fold 4:
+  // Small Mobile (Folded): < 500px width
   // Mobile: < 768px (changed from 640px to match sidebar breakpoint)
-  // Tablet: 768px - 1023px
+  // Tablet/Fold Open: 768px - 1023px
   // Desktop: >= 1024px
-  if (width < 768) {
+  
+  // Detect foldable states - Z Fold 4 has these approximate dimensions:
+  // - Folded: ~285-305px width
+  // - Unfolded: ~720-740px width
+  const isFoldableClosed = width < 500 && aspectRatio < 0.7; // Tall and narrow
+  const isFoldableOpen = width >= 500 && width < 840 && aspectRatio > 0.9; // More square-like when open
+  
+  if (width < 500) {
+    document.body.classList.add('viewport-mobile');
+    console.log('Viewport: small mobile');
+    // Add fold-specific class if detected
+    if (isFoldableClosed) {
+      document.body.classList.add('viewport-fold-closed');
+      console.log('Detected: Foldable device (closed)');
+    }
+  } else if (width < 768) {
     document.body.classList.add('viewport-mobile');
     console.log('Viewport: mobile');
   } else if (width < 1024) {
     document.body.classList.add('viewport-tablet');
     console.log('Viewport: tablet');
+    // Add fold-specific class if detected
+    if (isFoldableOpen) {
+      document.body.classList.add('viewport-fold-open');
+      console.log('Detected: Foldable device (open)');
+    }
   } else {
     document.body.classList.add('viewport-desktop');
     console.log('Viewport: desktop');
@@ -2280,22 +2303,41 @@ function renderApp() {
   // Add responsive styles to root document
   const htmlRoot = document.documentElement;
   
-  // Set responsive spacing variables
-  if (width < 768) {
-    // Mobile spacing adjustments
+  // Set responsive spacing variables with special handling for foldable devices
+  if (width < 500) {
+    // Small mobile / folded foldable spacing adjustments
+    htmlRoot.style.setProperty('--container-padding', 'var(--space-3)');
+    htmlRoot.style.setProperty('--card-gap', 'var(--space-3)');
+    htmlRoot.style.setProperty('--section-gap', 'var(--space-4)');
+    htmlRoot.style.setProperty('--font-size-base', '14px');
+    // Special handling for Samsung Z Fold 4 folded
+    if (isFoldableClosed) {
+      htmlRoot.style.setProperty('--container-padding', 'var(--space-2)');
+      htmlRoot.style.setProperty('--content-max-width', '280px');
+    }
+  } else if (width < 768) {
+    // Regular mobile spacing adjustments
     htmlRoot.style.setProperty('--container-padding', 'var(--space-4)');
     htmlRoot.style.setProperty('--card-gap', 'var(--space-4)');
     htmlRoot.style.setProperty('--section-gap', 'var(--space-6)');
+    htmlRoot.style.setProperty('--font-size-base', '15px');
   } else if (width < 1024) {
     // Tablet spacing adjustments
     htmlRoot.style.setProperty('--container-padding', 'var(--space-6)');
     htmlRoot.style.setProperty('--card-gap', 'var(--space-5)');
     htmlRoot.style.setProperty('--section-gap', 'var(--space-8)');
+    htmlRoot.style.setProperty('--font-size-base', '16px');
+    // Special handling for Samsung Z Fold 4 unfolded
+    if (isFoldableOpen) {
+      htmlRoot.style.setProperty('--container-padding', 'var(--space-5)');
+      htmlRoot.style.setProperty('--content-max-width', '720px');
+    }
   } else {
     // Desktop spacing adjustments
     htmlRoot.style.setProperty('--container-padding', 'var(--space-8)');
     htmlRoot.style.setProperty('--card-gap', 'var(--space-6)');
     htmlRoot.style.setProperty('--section-gap', 'var(--space-10)');
+    htmlRoot.style.setProperty('--font-size-base', '16px');
   }
   
   // Check authentication for protected routes
