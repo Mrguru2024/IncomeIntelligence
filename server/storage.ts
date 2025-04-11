@@ -317,6 +317,62 @@ export class MemStorage implements IStorage {
   }
 
   private setupInitialData() {
+    // Create sample user
+    const sampleUser: InsertUser = {
+      username: "demo",
+      password: "$2b$10$6UaVJ8utQu1k7pslBl9YzOOlpYS3gOjZolnYQmKzya/8AY2jdwvYu", // hashed password for "password123"
+      email: "demo@example.com",
+      firstName: "Demo",
+      lastName: "User",
+      phone: null,
+      role: "user",
+      verificationToken: null,
+      verified: true,
+      resetPasswordToken: null,
+      resetPasswordExpires: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastLoginAt: null,
+      profileImage: null,
+      subscriptionTier: "free",
+      subscriptionActive: false,
+      subscriptionStartDate: null,
+      subscriptionEndDate: null,
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      onboardingCompleted: false,
+      onboardingStep: "welcome"
+    };
+    
+    const adminUser: InsertUser = {
+      username: "admin",
+      password: "$2b$10$6UaVJ8utQu1k7pslBl9YzOOlpYS3gOjZolnYQmKzya/8AY2jdwvYu", // hashed password for "password123"
+      email: "admin@stackr.finance",
+      firstName: "Admin",
+      lastName: "User",
+      phone: null,
+      role: "admin",
+      verificationToken: null,
+      verified: true,
+      resetPasswordToken: null,
+      resetPasswordExpires: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastLoginAt: null,
+      profileImage: null,
+      subscriptionTier: "lifetime",
+      subscriptionActive: true,
+      subscriptionStartDate: new Date(),
+      subscriptionEndDate: null,
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      onboardingCompleted: false,
+      onboardingStep: "welcome"
+    };
+
+    this.createUser(sampleUser);
+    this.createUser(adminUser);
+    
     // Add sample affiliate programs
     const sampleAffiliatePrograms: InsertAffiliateProgram[] = [
       {

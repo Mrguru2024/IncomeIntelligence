@@ -26,6 +26,12 @@ export function ProtectedRoute({ path, component: Component }: ProtectedRoutePro
           return <Redirect to="/auth" />;
         }
 
+        // If user has not completed onboarding, redirect to onboarding page
+        // Only exception is if they're already on the onboarding page
+        if (!user.onboardingCompleted && path !== '/onboarding') {
+          return <Redirect to="/onboarding" />;
+        }
+
         return <Component />;
       }}
     </Route>
