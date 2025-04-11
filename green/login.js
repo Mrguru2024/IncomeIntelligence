@@ -675,6 +675,13 @@ export function renderAuthPage() {
   // Add responsive styling
   const styleEl = document.createElement('style');
   styleEl.textContent = `
+    /* Force all text to be dark by default */
+    body, div, span, p, h1, h2, h3, h4, h5, h6, label, input, 
+    button, a, textarea, select, option, form {
+      color: #333333 !important;
+    }
+
+    /* Form layout responsiveness */
     @media (max-width: 768px) {
       .auth-layout {
         flex-direction: column;
@@ -691,38 +698,53 @@ export function renderAuthPage() {
     }
     
     /* Form elements styling */
+    .auth-form-col, 
+    .auth-form-col div,
+    .login-form-container, 
+    .register-form-container,
+    .login-form, 
+    .register-form {
+      background-color: white !important;
+      color: #333333 !important;
+    }
+    
     .auth-form-col input[type="text"], 
     .auth-form-col input[type="password"], 
     .auth-form-col input[type="email"] {
-      color: #333333;
-      background-color: white;
+      color: #333333 !important;
+      background-color: white !important;
     }
     
     .auth-form-col input::placeholder {
-      color: #888888;
+      color: #888888 !important;
       opacity: 1;
     }
     
     .auth-form-col label {
-      color: #333333;
+      color: #333333 !important;
     }
     
-    .login-form, .register-form {
-      background-color: white;
-      color: #333333;
-    }
-    
+    /* Error styling */
     .login-error, .register-error {
-      color: #e53e3e;
-      background-color: #fed7d7;
+      color: #e53e3e !important;
+      background-color: #fed7d7 !important;
     }
     
-    .auth-form-col p {
-      color: #333333;
+    /* Text elements */
+    .auth-form-col p,
+    .auth-form-col span,
+    .auth-form-col h1,
+    .auth-form-col h2,
+    .auth-form-col h3,
+    .auth-form-col h4,
+    .auth-form-col h5,
+    .auth-form-col h6 {
+      color: #333333 !important;
     }
     
+    /* Links */
     .auth-form-col a {
-      color: var(--color-primary);
+      color: var(--color-primary) !important;
       text-decoration: none;
     }
     
@@ -730,6 +752,24 @@ export function renderAuthPage() {
       text-decoration: underline;
     }
     
+    /* Hero section text should remain white */
+    .auth-hero, 
+    .auth-hero div, 
+    .auth-hero p, 
+    .auth-hero h1, 
+    .auth-hero h2, 
+    .auth-hero h3, 
+    .auth-hero span, 
+    .auth-hero li {
+      color: white !important;
+    }
+    
+    /* Buttons text should be white */
+    .btn-primary {
+      color: white !important;
+    }
+    
+    /* Spinner */
     .spinner {
       width: 20px;
       height: 20px;
