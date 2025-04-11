@@ -27,7 +27,10 @@ async function handleGoogleLogin() {
       username: 'googleuser',
       email: 'user@gmail.com',
       role: 'user',
-      authProvider: 'google'
+      authProvider: 'google',
+      onboardingCompleted: true,
+      subscriptionTier: 'free',
+      subscriptionActive: false
     };
     
     // Store user data as if it came from a real authentication
@@ -36,15 +39,23 @@ async function handleGoogleLogin() {
       email: mockUser.email,
       username: mockUser.username,
       role: mockUser.role,
-      authProvider: 'google'
+      authProvider: 'google',
+      onboardingCompleted: mockUser.onboardingCompleted,
+      subscriptionTier: mockUser.subscriptionTier,
+      subscriptionActive: mockUser.subscriptionActive
     });
     
-    // Store token in localStorage (or sessionStorage based on remember me)
-    localStorage.setItem('user', userDataToStore);
-    localStorage.setItem('token', 'mock-google-token-' + Date.now());
+    // Store token in localStorage for consistent login experience
+    const mockToken = 'mock-google-token-' + Date.now();
+    localStorage.setItem('stackrUser', userDataToStore);
+    localStorage.setItem('stackrToken', mockToken);
     
-    // Redirect to dashboard
-    window.location.href = '/dashboard';
+    // Clear any old data format to prevent conflicts
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    
+    // Redirect to dashboard with hash navigation
+    window.location.href = '#dashboard';
     
   } catch (error) {
     console.error('Google login error:', error);
