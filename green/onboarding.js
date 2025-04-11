@@ -443,7 +443,7 @@ function renderWelcomeStep(container, appState) {
   
   // Add a subtitle that explains the concept
   const splitSubtitle = document.createElement('p');
-  splitSubtitle.textContent = 'A proven formula for financial success that balances today's necessities with tomorrow's opportunities.';
+  splitSubtitle.textContent = 'A proven formula for financial success that balances necessities with opportunities.';
   splitSubtitle.style.textAlign = 'center';
   splitSubtitle.style.marginBottom = '25px';
   splitSubtitle.style.fontSize = '16px';
