@@ -3,6 +3,68 @@
  * This file handles user authentication UI and logic
  */
 
+// Google OAuth function
+async function handleGoogleLogin() {
+  try {
+    // Show loading state
+    const googleButton = document.querySelector('.google-login-btn');
+    if (googleButton) {
+      googleButton.disabled = true;
+      googleButton.innerHTML = '<div class="spinner"></div> Signing in with Google...';
+    }
+    
+    // In a real implementation, this would redirect to Google OAuth flow
+    // For demo purposes, we're simulating a successful login
+    
+    console.log('Initiating Google OAuth login flow...');
+    
+    // Simulate OAuth flow with a delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Create mock user data for demonstration
+    const mockUser = {
+      id: 'google-' + Date.now(),
+      username: 'googleuser',
+      email: 'user@gmail.com',
+      role: 'user',
+      authProvider: 'google'
+    };
+    
+    // Store user data as if it came from a real authentication
+    const userDataToStore = JSON.stringify({
+      id: mockUser.id,
+      email: mockUser.email,
+      username: mockUser.username,
+      role: mockUser.role,
+      authProvider: 'google'
+    });
+    
+    // Store token in localStorage (or sessionStorage based on remember me)
+    localStorage.setItem('user', userDataToStore);
+    localStorage.setItem('token', 'mock-google-token-' + Date.now());
+    
+    // Redirect to dashboard
+    window.location.href = '/dashboard';
+    
+  } catch (error) {
+    console.error('Google login error:', error);
+    
+    // Reset button state
+    const googleButton = document.querySelector('.google-login-btn');
+    if (googleButton) {
+      googleButton.disabled = false;
+      googleButton.textContent = 'Sign in with Google';
+    }
+    
+    // Show error message
+    const errorEl = document.querySelector('.login-error');
+    if (errorEl) {
+      errorEl.textContent = 'Google login failed. Please try again.';
+      errorEl.style.display = 'block';
+    }
+  }
+}
+
 // Function to handle login form submission
 async function handleLogin(usernameOrEmail, password, rememberMe = false) {
   try {
@@ -199,20 +261,38 @@ function renderLoginForm() {
     e.preventDefault();
     e.stopPropagation(); // Stop propagation to prevent any parent handlers
     
-    // Get values before doing anything that might affect focus
+    // Get values immediately
     const usernameOrEmail = e.target.elements.email.value;
     const password = e.target.elements.password.value;
     const rememberMe = e.target.elements.rememberMe?.checked || false;
     
-    // Blur any focused element to ensure keyboard closes properly
-    if (document.activeElement) {
-      document.activeElement.blur();
-    }
-    
-    // Process login after a small timeout to let the blur take effect
-    setTimeout(() => {
+    // For mobile devices, use a different approach to keep keyboard open while processing
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      // Prevent multiple submissions
+      if (formEl.getAttribute('data-submitting') === 'true') {
+        return;
+      }
+      
+      // Mark form as currently submitting
+      formEl.setAttribute('data-submitting', 'true');
+      
+      // Process the login without blurring first
       handleLogin(usernameOrEmail, password, rememberMe);
-    }, 50);
+      
+      // Reset submission state after a delay
+      setTimeout(() => {
+        formEl.setAttribute('data-submitting', 'false');
+      }, 500);
+    } else {
+      // Desktop approach - blur first then process
+      if (document.activeElement) {
+        document.activeElement.blur();
+      }
+      
+      setTimeout(() => {
+        handleLogin(usernameOrEmail, password, rememberMe);
+      }, 50);
+    }
   };
   
   // Form title
@@ -483,20 +563,38 @@ function renderRegisterForm() {
     e.preventDefault();
     e.stopPropagation(); // Stop propagation to prevent any parent handlers
     
-    // Get values before doing anything that might affect focus
+    // Get values immediately
     const username = e.target.elements.username.value;
     const email = e.target.elements.email.value;
     const password = e.target.elements.password.value;
     
-    // Blur any focused element to ensure keyboard closes properly
-    if (document.activeElement) {
-      document.activeElement.blur();
-    }
-    
-    // Process registration after a small timeout to let the blur take effect
-    setTimeout(() => {
+    // For mobile devices, use a different approach to keep keyboard open while processing
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      // Prevent multiple submissions
+      if (formEl.getAttribute('data-submitting') === 'true') {
+        return;
+      }
+      
+      // Mark form as currently submitting
+      formEl.setAttribute('data-submitting', 'true');
+      
+      // Process the registration without blurring first
       handleRegister(username, email, password);
-    }, 50);
+      
+      // Reset submission state after a delay
+      setTimeout(() => {
+        formEl.setAttribute('data-submitting', 'false');
+      }, 500);
+    } else {
+      // Desktop approach - blur first then process
+      if (document.activeElement) {
+        document.activeElement.blur();
+      }
+      
+      setTimeout(() => {
+        handleRegister(username, email, password);
+      }, 50);
+    }
   };
   
   // Form title
