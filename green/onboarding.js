@@ -3,6 +3,42 @@
  * This file handles user onboarding experience
  */
 
+// Helper function to get viewport width - to avoid redeclaring variables
+function getViewportWidth() {
+  return window.innerWidth;
+}
+
+// Helper function to detect and get device type
+function getDeviceInfo() {
+  const width = getViewportWidth();
+  const height = window.innerHeight;
+  const aspectRatio = width / height;
+  
+  // Detect Samsung Z Fold 4 in folded state (approximately)
+  const isFoldableClosed = width < 400 && aspectRatio < 0.7; // Tall and narrow
+  
+  // Detect Samsung Z Fold 4 in unfolded state (approximately)
+  const isFoldableOpen = width >= 400 && width < 840 && aspectRatio > 0.9; // More square-like when open
+  
+  let deviceType = 'desktop';
+  if (width < 500) {
+    deviceType = 'small-mobile';
+  } else if (width < 768) {
+    deviceType = 'mobile'; 
+  } else if (width < 1024) {
+    deviceType = 'tablet';
+  }
+  
+  return {
+    width,
+    height,
+    aspectRatio,
+    deviceType,
+    isFoldableClosed,
+    isFoldableOpen
+  };
+}
+
 // Export navigateTo function so it can be used externally
 export function navigateTo(page) {
   // If window is available, this will be imported and used by the src/main.js
@@ -23,11 +59,32 @@ const ONBOARDING_STEPS = [
 
 // Function to render the onboarding page
 export function renderOnboardingPage(appState) {
+  // Get device information for responsive design
+  const deviceInfo = getDeviceInfo();
+  const { width, isFoldableClosed, isFoldableOpen } = deviceInfo;
+  
   const container = document.createElement('div');
   container.classList.add('onboarding-container');
-  container.style.maxWidth = '1100px';
+  
+  // Apply responsive max-width based on device
+  if (width < 500) {
+    container.style.maxWidth = '95%';
+  } else if (width < 768) {
+    container.style.maxWidth = '90%';
+  } else {
+    container.style.maxWidth = '1100px';
+  }
+  
+  // Apply responsive padding based on device
+  if (width < 350) {
+    container.style.padding = '20px 10px';
+  } else if (width < 500) {
+    container.style.padding = '30px 15px';
+  } else {
+    container.style.padding = '40px 20px';
+  }
+  
   container.style.margin = '0 auto';
-  container.style.padding = '40px 20px';
   container.style.minHeight = '90vh';
   container.style.display = 'flex';
   container.style.flexDirection = 'column';
@@ -190,7 +247,7 @@ export function renderOnboardingPage(appState) {
   subtitle.classList.add('animated-element');
   header.appendChild(subtitle);
   
-  // Progress bar - more futuristic design
+  // Progress bar - more futuristic design with responsive adjustments
   const progressContainer = document.createElement('div');
   progressContainer.style.display = 'flex';
   progressContainer.style.justifyContent = 'space-between';
@@ -200,6 +257,18 @@ export function renderOnboardingPage(appState) {
   progressContainer.style.padding = '10px 5px';
   progressContainer.classList.add('animated-element');
   progressContainer.classList.add('delay-1');
+  
+  // Responsive adjustments for mobile devices and foldable screens
+  // Using the existing width variable from parent scope
+  if (width < 400) {
+    // Extra small screens - likely folded foldable device 
+    progressContainer.style.transform = 'scale(0.8)';
+    progressContainer.style.transformOrigin = 'center top';
+  } else if (width < 640) {
+    // Mobile screens
+    progressContainer.style.transform = 'scale(0.9)';
+    progressContainer.style.transformOrigin = 'center top';
+  }
   
   // Progress line with special gradient
   const progressLine = document.createElement('div');
@@ -316,14 +385,33 @@ export function renderOnboardingPage(appState) {
       stepIndicator.style.opacity = '0.7';
     }
     
-    // Step title with enhanced styling
+    // Step title with enhanced styling and better mobile visibility
     const stepTitle = document.createElement('span');
     stepTitle.textContent = stepTitles[index];
-    stepTitle.style.fontSize = '13px';
-    stepTitle.style.fontWeight = index === currentStepIndex ? 'bold' : 'normal';
-    stepTitle.style.color = index <= currentStepIndex ? 'var(--color-text)' : 'var(--color-text-secondary)';
     stepTitle.style.textAlign = 'center';
     stepTitle.style.transition = 'all 0.3s ease';
+    
+    // Responsive font sizing based on device info from parent scope
+    if (width < 350) {
+      // Very small screens (Samsung Z Fold 4 folded)
+      stepTitle.style.fontSize = '10px';
+      stepTitle.style.marginTop = '4px';
+      // On extremely small screens, only show titles for current and completed steps
+      if (index > currentStepIndex) {
+        stepTitle.style.display = 'none';
+      }
+    } else if (width < 500) {
+      // Small mobile screens
+      stepTitle.style.fontSize = '11px';
+      stepTitle.style.marginTop = '6px';
+    } else {
+      // Larger screens
+      stepTitle.style.fontSize = '13px';
+      stepTitle.style.marginTop = '8px';
+    }
+    
+    stepTitle.style.fontWeight = index === currentStepIndex ? 'bold' : 'normal';
+    stepTitle.style.color = index <= currentStepIndex ? 'var(--color-text)' : 'var(--color-text-secondary)';
     
     // Animation for current step title
     if (index === currentStepIndex) {
@@ -343,13 +431,27 @@ export function renderOnboardingPage(appState) {
   content.classList.add('onboarding-content', 'animated-element', 'delay-2');
   content.style.backgroundColor = 'white';
   content.style.borderRadius = '16px';
-  content.style.padding = '40px 50px';
   content.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.08)';
   content.style.marginBottom = '32px';
   content.style.transition = 'all 0.3s ease';
   content.style.border = '1px solid rgba(235, 238, 241, 0.8)';
   content.style.position = 'relative';
   content.style.overflow = 'hidden';
+  
+  // Responsive padding based on device info from parent scope
+  if (width < 350) {
+    // Extra small screens (folded Z Fold 4)
+    content.style.padding = '20px';
+  } else if (width < 500) {
+    // Small mobile screens
+    content.style.padding = '30px';
+  } else if (width < 768) {
+    // Mobile screens
+    content.style.padding = '35px 40px';
+  } else {
+    // Tablets and larger
+    content.style.padding = '40px 50px';
+  }
   
   // Add subtle decorative elements
   const decorElement1 = document.createElement('div');
