@@ -51,12 +51,14 @@ export function renderOnboardingPage(appState) {
   logoContainer.style.alignItems = 'center';
   logoContainer.style.marginBottom = '32px';
   
-  // Create logo element - using image from public folder
-  const logo = document.createElement('img');
-  logo.src = '/green/public/stackr-logo.svg';
-  logo.alt = 'Stackr Logo';
-  logo.style.maxWidth = '180px';
-  logo.style.height = 'auto';
+  // Create logo element - using stylized text instead of an image
+  const logo = document.createElement('div');
+  logo.innerHTML = `
+    <div style="display: flex; align-items: center; justify-content: center;">
+      <span style="font-size: 42px; font-weight: 800; background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">STACKR</span>
+      <span style="font-size: 14px; font-weight: 600; background-color: #4CAF50; color: white; padding: 3px 6px; border-radius: 4px; margin-left: 8px; margin-top: 8px;">GREEN</span>
+    </div>
+  `;
   logo.style.filter = 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))';
   logo.style.transition = 'transform 0.2s ease';
   logo.style.cursor = 'pointer';
