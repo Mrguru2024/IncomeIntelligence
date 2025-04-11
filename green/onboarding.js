@@ -1047,14 +1047,36 @@ function renderProfileStep(container, appState) {
     
     // Save profile data and move to next step
     updateUserProfile(appState.user.id, formData)
-      .then(() => {
-        // Update app state
+      .then((response) => {
+        console.log('Profile update response:', response);
+        
+        // Update app state with the returned data or form data
         appState.user.firstName = formData.firstName;
         appState.user.lastName = formData.lastName;
         appState.user.occupation = formData.occupation;
         appState.user.about = formData.about;
         
-        // Move to next step
+        // Check if we're in offline mode
+        if (response && response.offlineMode) {
+          // Show a toast or notification that we're in offline mode
+          const offlineNotice = document.createElement('div');
+          offlineNotice.className = 'offline-notice';
+          offlineNotice.innerHTML = `
+            <div class="alert alert-warning" role="alert">
+              <i class="fas fa-wifi-slash"></i> 
+              You're currently in offline mode. Your changes will be saved locally until you reconnect.
+              <button class="close" data-dismiss="alert">&times;</button>
+            </div>
+          `;
+          document.body.appendChild(offlineNotice);
+          
+          // Remove the notice after 5 seconds
+          setTimeout(() => {
+            offlineNotice.remove();
+          }, 5000);
+        }
+        
+        // Move to next step regardless of online/offline status
         return updateOnboardingStep(appState.user.id, 'financial-goals');
       })
       .then(() => {
@@ -1065,7 +1087,51 @@ function renderProfileStep(container, appState) {
         console.error('Failed to update profile:', error);
         nextButton.disabled = false;
         nextButton.textContent = 'Next';
-        alert('There was an error saving your profile. Please try again.');
+        
+        // Create a more user-friendly error message element
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message alert alert-danger';
+        errorMessage.innerHTML = `
+          <i class="fas fa-exclamation-circle"></i>
+          We encountered an issue saving your profile. Your data will be saved locally, and you can continue.
+          <button class="btn btn-sm btn-primary ml-3" id="retry-profile-button">Retry</button>
+          <button class="btn btn-sm btn-secondary ml-2" id="continue-anyway-button">Continue Anyway</button>
+        `;
+        
+        // Insert the error message at the top of the form
+        const formElement = document.querySelector('form');
+        formElement.insertBefore(errorMessage, formElement.firstChild);
+        
+        // Add event listeners to the retry and continue buttons
+        document.getElementById('retry-profile-button').addEventListener('click', (e) => {
+          e.preventDefault();
+          errorMessage.remove();
+          nextButton.click();
+        });
+        
+        document.getElementById('continue-anyway-button').addEventListener('click', (e) => {
+          e.preventDefault();
+          errorMessage.remove();
+          
+          // Force update app state
+          appState.user.firstName = formData.firstName;
+          appState.user.lastName = formData.lastName;
+          appState.user.occupation = formData.occupation;
+          appState.user.about = formData.about;
+          
+          // Save to localStorage as backup
+          try {
+            const userData = JSON.parse(localStorage.getItem('stackrUser') || '{}');
+            const updatedUser = { ...userData, ...formData };
+            localStorage.setItem('stackrUser', JSON.stringify(updatedUser));
+          } catch (e) {
+            console.error('Error saving to localStorage:', e);
+          }
+          
+          // Move to next step anyway
+          appState.user.onboardingStep = 'financial-goals';
+          navigateTo('onboarding');
+        });
       });
   });
   
@@ -1229,11 +1295,33 @@ function renderGoalsStep(container, appState) {
     
     // Save goals and move to next step
     saveUserGoals(appState.user.id, goals)
-      .then(() => {
+      .then((response) => {
+        console.log('Goals update response:', response);
+        
         // Update app state
         appState.user.goals = goals;
         
-        // Move to next step
+        // Check if we're in offline mode
+        if (response && response.offlineMode) {
+          // Show a toast or notification that we're in offline mode
+          const offlineNotice = document.createElement('div');
+          offlineNotice.className = 'offline-notice';
+          offlineNotice.innerHTML = `
+            <div class="alert alert-warning" role="alert">
+              <i class="fas fa-wifi-slash"></i> 
+              You're currently in offline mode. Your goals will be saved locally until you reconnect.
+              <button class="close" data-dismiss="alert">&times;</button>
+            </div>
+          `;
+          document.body.appendChild(offlineNotice);
+          
+          // Remove the notice after 5 seconds
+          setTimeout(() => {
+            offlineNotice.remove();
+          }, 5000);
+        }
+        
+        // Move to next step regardless of online/offline status
         return updateOnboardingStep(appState.user.id, 'split-ratio');
       })
       .then(() => {
@@ -1244,7 +1332,46 @@ function renderGoalsStep(container, appState) {
         console.error('Failed to save goals:', error);
         nextButton.disabled = false;
         nextButton.textContent = 'Next';
-        alert('There was an error saving your goals. Please try again.');
+        
+        // Create a more user-friendly error message element
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message alert alert-danger';
+        errorMessage.innerHTML = `
+          <i class="fas fa-exclamation-circle"></i>
+          We encountered an issue saving your goals. Your data will be saved locally, and you can continue.
+          <button class="btn btn-sm btn-primary ml-3" id="retry-goals-button">Retry</button>
+          <button class="btn btn-sm btn-secondary ml-2" id="continue-anyway-button">Continue Anyway</button>
+        `;
+        
+        // Insert the error message at the top of the form
+        const formElement = document.querySelector('#goals-form');
+        formElement.insertBefore(errorMessage, formElement.firstChild);
+        
+        // Add event listeners to the retry and continue buttons
+        document.getElementById('retry-goals-button').addEventListener('click', (e) => {
+          e.preventDefault();
+          errorMessage.remove();
+          nextButton.click();
+        });
+        
+        document.getElementById('continue-anyway-button').addEventListener('click', (e) => {
+          e.preventDefault();
+          errorMessage.remove();
+          
+          // Force update app state
+          appState.user.goals = goals;
+          
+          // Save to localStorage as backup
+          try {
+            localStorage.setItem('stackrGoals', JSON.stringify(goals));
+          } catch (e) {
+            console.error('Error saving to localStorage:', e);
+          }
+          
+          // Move to next step anyway
+          appState.user.onboardingStep = 'split-ratio';
+          navigateTo('onboarding');
+        });
       });
   });
   
@@ -1906,11 +2033,33 @@ function renderSplitRatioStep(container, appState) {
     
     // Save split ratio and move to next step
     updateUserSplitRatio(appState.user.id, splitRatio)
-      .then(() => {
+      .then((response) => {
+        console.log('Split ratio update response:', response);
+        
         // Update app state
         appState.user.splitRatio = splitRatio;
         
-        // Move to next step
+        // Check if we're in offline mode
+        if (response && response.offlineMode) {
+          // Show a toast or notification that we're in offline mode
+          const offlineNotice = document.createElement('div');
+          offlineNotice.className = 'offline-notice';
+          offlineNotice.innerHTML = `
+            <div class="alert alert-warning" role="alert">
+              <i class="fas fa-wifi-slash"></i> 
+              You're currently in offline mode. Your split ratio will be saved locally until you reconnect.
+              <button class="close" data-dismiss="alert">&times;</button>
+            </div>
+          `;
+          document.body.appendChild(offlineNotice);
+          
+          // Remove the notice after 5 seconds
+          setTimeout(() => {
+            offlineNotice.remove();
+          }, 5000);
+        }
+        
+        // Move to next step regardless of online/offline status
         return updateOnboardingStep(appState.user.id, 'tutorial');
       })
       .then(() => {
@@ -1921,7 +2070,46 @@ function renderSplitRatioStep(container, appState) {
         console.error('Failed to save split ratio:', error);
         nextButton.disabled = false;
         nextButton.textContent = 'Next';
-        alert('There was an error saving your split ratio. Please try again.');
+        
+        // Create a more user-friendly error message element
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message alert alert-danger';
+        errorMessage.innerHTML = `
+          <i class="fas fa-exclamation-circle"></i>
+          We encountered an issue saving your split ratio. Your data will be saved locally, and you can continue.
+          <button class="btn btn-sm btn-primary ml-3" id="retry-split-button">Retry</button>
+          <button class="btn btn-sm btn-secondary ml-2" id="continue-anyway-button">Continue Anyway</button>
+        `;
+        
+        // Insert the error message at the top of the form
+        const formElement = document.querySelector('#split-ratio-form');
+        formElement.insertBefore(errorMessage, formElement.firstChild);
+        
+        // Add event listeners to the retry and continue buttons
+        document.getElementById('retry-split-button').addEventListener('click', (e) => {
+          e.preventDefault();
+          errorMessage.remove();
+          nextButton.click();
+        });
+        
+        document.getElementById('continue-anyway-button').addEventListener('click', (e) => {
+          e.preventDefault();
+          errorMessage.remove();
+          
+          // Force update app state
+          appState.user.splitRatio = splitRatio;
+          
+          // Save to localStorage as backup
+          try {
+            localStorage.setItem('stackrSplitRatio', JSON.stringify(splitRatio));
+          } catch (e) {
+            console.error('Error saving to localStorage:', e);
+          }
+          
+          // Move to next step anyway
+          appState.user.onboardingStep = 'tutorial';
+          navigateTo('onboarding');
+        });
       });
   });
   
