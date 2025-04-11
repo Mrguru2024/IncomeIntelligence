@@ -869,9 +869,9 @@ function createIncomeSplitSection() {
     
     visualization.appendChild(segmentEl);
     
-    // Create labels that point to each segment
+    // Create labels inside each segment instead of external labels
     const labelAngle = (startAngle + endAngle) / 2; // Middle of the segment
-    const labelDistance = 130; // Distance from center as percentage
+    const labelDistance = 30; // Distance from center as percentage (closer to center)
     
     const labelX = 50 + labelDistance * Math.cos(labelAngle * Math.PI / 180);
     const labelY = 50 + labelDistance * Math.sin(labelAngle * Math.PI / 180);
@@ -881,15 +881,16 @@ function createIncomeSplitSection() {
     label.style.left = `${labelX}%`;
     label.style.top = `${labelY}%`;
     label.style.transform = 'translate(-50%, -50%)';
-    label.style.backgroundColor = 'white';
+    label.style.backgroundColor = 'rgba(255, 255, 255, 0.85)';
     label.style.color = segment.color;
-    label.style.padding = '0.5rem 1rem';
-    label.style.borderRadius = '30px';
+    label.style.padding = '0.4rem 0.8rem';
+    label.style.borderRadius = '20px';
     label.style.fontWeight = 'bold';
-    label.style.fontSize = '0.9rem';
-    label.style.boxShadow = '0 3px 10px rgba(0, 0, 0, 0.1)';
-    label.style.border = `2px solid ${segment.color}`;
-    label.textContent = `${segment.percent}% ${segment.label}`;
+    label.style.fontSize = '0.85rem';
+    label.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.15)';
+    label.style.border = `1px solid ${segment.color}`;
+    label.style.zIndex = '3'; // Ensure labels are on top
+    label.textContent = `${segment.percent}%`;  // Shorter label
     
     // Only show labels on larger screens
     if (window.innerWidth > 500) {
