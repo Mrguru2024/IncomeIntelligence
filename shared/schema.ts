@@ -997,19 +997,20 @@ export const insertBankTransactionSchema = baseInsertBankTransactionSchema.exten
 export type InsertBankTransaction = z.infer<typeof insertBankTransactionSchema>;
 export type BankTransaction = typeof bankTransactions.$inferSelect;
 
-// Define expense categories
+// Define expense categories with 40/30/30 allocation tags 
+// (needs:40%, investments:30%, savings:30%)
 export const expenseCategories = [
-  { id: "housing", name: "Housing", icon: "home", color: "slate" },
-  { id: "food", name: "Food & Groceries", icon: "utensils", color: "red" },
-  { id: "transportation", name: "Transportation", icon: "car", color: "blue" },
-  { id: "utilities", name: "Utilities", icon: "plug", color: "amber" },
-  { id: "healthcare", name: "Healthcare", icon: "stethoscope", color: "emerald" },
-  { id: "personal", name: "Personal", icon: "user", color: "purple" },
-  { id: "entertainment", name: "Entertainment", icon: "film", color: "pink" },
-  { id: "education", name: "Education", icon: "graduationCap", color: "indigo" },
-  { id: "debt", name: "Debt", icon: "creditCard", color: "rose" },
-  { id: "savings", name: "Savings", icon: "piggyBank", color: "green" },
-  { id: "other", name: "Other", icon: "moreHorizontal", color: "gray" }
+  { id: "housing", name: "Housing", icon: "home", color: "slate", priority: "needs" },
+  { id: "food", name: "Food & Groceries", icon: "utensils", color: "red", priority: "needs" },
+  { id: "transportation", name: "Transportation", icon: "car", color: "blue", priority: "needs" },
+  { id: "utilities", name: "Utilities", icon: "plug", color: "amber", priority: "needs" },
+  { id: "healthcare", name: "Healthcare", icon: "stethoscope", color: "emerald", priority: "needs" },
+  { id: "personal", name: "Personal", icon: "user", color: "purple", priority: "other" },
+  { id: "entertainment", name: "Entertainment", icon: "film", color: "pink", priority: "other" },
+  { id: "education", name: "Education", icon: "graduationCap", color: "indigo", priority: "investments" },
+  { id: "debt", name: "Debt", icon: "creditCard", color: "rose", priority: "needs" },
+  { id: "savings", name: "Savings", icon: "piggyBank", color: "green", priority: "savings" },
+  { id: "other", name: "Other", icon: "moreHorizontal", color: "gray", priority: "other" }
 ];
 
 // Expenses schema
