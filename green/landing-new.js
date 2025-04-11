@@ -266,7 +266,7 @@ function createHeroSection() {
   heroSection.style.flexDirection = window.innerWidth <= 960 ? 'column' : 'row';
   heroSection.style.justifyContent = 'space-between';
   heroSection.style.alignItems = 'center';
-  heroSection.style.padding = '4rem 5%';
+  heroSection.style.padding = window.innerWidth <= 480 ? '3rem 5%' : '4rem 5%';
   heroSection.style.backgroundColor = '#f9f9f9';
   heroSection.style.backgroundImage = 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(240,249,240,0.8) 100%)';
   heroSection.style.position = 'relative';
@@ -392,6 +392,7 @@ function createHeroSection() {
   tagsContainer.style.flexWrap = 'wrap';
   tagsContainer.style.gap = '0.75rem';
   tagsContainer.style.marginTop = '2rem';
+  tagsContainer.style.marginBottom = '2rem';
   tagsContainer.style.justifyContent = window.innerWidth <= 960 ? 'center' : 'flex-start';
   
   const tags = [
@@ -555,7 +556,7 @@ function createHeroSection() {
   const notification1 = document.createElement('div');
   notification1.style.position = 'absolute';
   notification1.style.top = '20%';
-  notification1.style.left = '-10%';
+  notification1.style.left = '-5%';
   notification1.style.backgroundColor = 'white';
   notification1.style.borderRadius = '6px';
   notification1.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
@@ -583,7 +584,7 @@ function createHeroSection() {
     const notification2 = document.createElement('div');
     notification2.style.position = 'absolute';
     notification2.style.bottom = '15%';
-    notification2.style.right = '-5%';
+    notification2.style.right = '0%';
     notification2.style.backgroundColor = 'white';
     notification2.style.borderRadius = '6px';
     notification2.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
