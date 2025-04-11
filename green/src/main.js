@@ -2553,5 +2553,77 @@ document.addEventListener('DOMContentLoaded', () => {
   // Render the initial state
   renderApp();
   
+  // Initialize the financial mascot after app is rendered
+  // But only for authenticated users viewing protected pages
+  if (appState.user.isAuthenticated && appState.currentPage !== 'landing' && 
+      appState.currentPage !== 'login' && appState.currentPage !== 'register') {
+    initFinancialMascot();
+  }
+  
   console.log('GREEN Firebase-free version loaded successfully!');
 });
+
+// Initialize the financial education mascot
+function initFinancialMascot() {
+  // Import and initialize the mascot
+  import('../financial-mascot.js').then(module => {
+    // Initialize the mascot when user is on a protected page
+    const mascot = module.initMascot();
+    
+    // Store the mascot instance in the appState for future access
+    appState.financialMascot = mascot;
+    
+    // Add mascot settings link to the settings page
+    if (appState.currentPage === 'settings') {
+      const settingsPage = document.querySelector('.settings-container');
+      if (settingsPage) {
+        // Create the mascot settings section
+        const settingsContainer = module.createMascotSettings(mascot);
+        
+        // Add a header for the section
+        const sectionHeader = document.createElement('h2');
+        sectionHeader.textContent = 'Financial Education Mascot';
+        sectionHeader.style.fontSize = '1.5rem';
+        sectionHeader.style.fontWeight = 'bold';
+        sectionHeader.style.marginTop = '2rem';
+        sectionHeader.style.marginBottom = '1rem';
+        
+        // Find a good place to add the mascot settings
+        const lastSection = settingsPage.querySelector('.settings-container > div:last-child');
+        if (lastSection) {
+          lastSection.parentNode.insertBefore(sectionHeader, lastSection.nextSibling);
+          lastSection.parentNode.insertBefore(settingsContainer, sectionHeader.nextSibling);
+        } else {
+          settingsPage.appendChild(sectionHeader);
+          settingsPage.appendChild(settingsContainer);
+        }
+      }
+    }
+    
+    // Based on current page, show relevant category tips
+    const pageToCategory = {
+      'dashboard': 'budgeting',
+      'income': 'income',
+      'expenses': 'budgeting',
+      'savings': 'saving',
+      'investments': 'investing',
+      'moneymentor': 'psychology',
+      'subscriptionsniper': 'budgeting',
+      'savingschallenges': 'saving',
+      'wellnessscorecard': 'psychology',
+      'debt': 'debt'
+    };
+    
+    // Show a relevant tip for the current page after a delay
+    if (pageToCategory[appState.currentPage]) {
+      setTimeout(() => {
+        // Set category based on current page
+        mascot.currentTipCategory = pageToCategory[appState.currentPage];
+        // Show a tip
+        mascot.showNextTip();
+      }, 3000); // Show tip after 3 seconds
+    }
+  }).catch(error => {
+    console.error('Error initializing financial mascot:', error);
+  });
+}
