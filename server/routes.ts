@@ -2983,6 +2983,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
     
+    // Create checkout session for subscriptions (used by GREEN version)
+    app.post('/api/create-checkout-session', requireAuth, async (req, res) => {
+      try {
+        const userId = req.user?.id;
+        if (!userId) {
+          return res.status(401).json({ message: 'Unauthorized' });
+        }
+        
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const { tier } = req.body;
+        if (!tier || !['pro', 'lifetime'].includes(tier)) {
+          return res.status(400).json({ message: 'Invalid subscription tier' });
+        }
+        
+        // Define the subscription data based on the tier
+        let subscriptionData;
+        if (tier === 'pro') {
+          subscriptionData = {
+            name: 'Stackr Pro',
+            description: 'Monthly subscription to Stackr Pro',
+            price: 999, // $9.99 in cents
+            recurring: true
+          };
+        } else if (tier === 'lifetime') {
+          subscriptionData = {
+            name: 'Stackr Lifetime',
+            description: 'One-time payment for lifetime access to Stackr Pro',
+            price: 9999, // $99.99 in cents
+            recurring: false
+          };
+        }
+        
+        // Create a Stripe checkout session
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [
+            {
+              price_data: {
+                currency: 'usd',
+                product_data: {
+                  name: subscriptionData.name,
+                  description: subscriptionData.description
+                },
+                unit_amount: subscriptionData.price,
+                recurring: subscriptionData.recurring ? {
+                  interval: 'month'
+                } : undefined
+              },
+              quantity: 1,
+            },
+          ],
+          mode: subscriptionData.recurring ? 'subscription' : 'payment',
+          success_url: `${req.protocol}://${req.get('host')}/subscription-success?tier=${tier}&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${req.protocol}://${req.get('host')}/subscriptions`,
+          client_reference_id: userId.toString(),
+          metadata: {
+            userId: userId.toString(),
+            tier: tier
+          }
+        });
+        
+        return res.json({ url: session.url });
+      } catch (error) {
+        console.error('Error creating checkout session:', error);
+        return res.status(500).json({ message: 'Failed to create checkout session' });
+      }
+    });
+    
     // Upgrade to Pro
     app.post('/api/upgrade', requireAuth, async (req, res) => {
       try {
@@ -3279,6 +3351,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
     
     app.post('/api/create-payment-intent', requireAuth, (req, res) => {
+      res.status(503).json(stripeDisabledMessage);
+    });
+    
+    app.post('/api/create-checkout-session', requireAuth, (req, res) => {
       res.status(503).json(stripeDisabledMessage);
     });
     
