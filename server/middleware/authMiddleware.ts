@@ -3,17 +3,20 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyToken, JwtPayload } from '../utils/security';
 import { storage } from '../storage';
 
+// Define User type to match the User type in Express.Request
+type User = {
+  id: number;
+  username: string;
+  email: string;
+  role: string;
+  [key: string]: any;
+};
+
 // Extend Express Request interface to include user property
 declare global {
   namespace Express {
     interface Request {
-      user?: {
-        id: number;
-        username: string;
-        email: string;
-        role: string;
-        [key: string]: any;
-      };
+      user?: User;
     }
   }
 }
@@ -49,31 +52,52 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 };
 
 /**
- * Middleware to require authentication
- * Must be used after authenticateToken middleware
+ * Middleware to require authentication using either session or token
+ * Combines session-based and token-based authentication
  */
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.user) {
-    return res.status(401).json({ message: 'Authentication required' });
+  // Check if already authenticated via session
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    return next();
   }
-
-  next();
+  
+  // Check if authentication via token
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN format
+  
+  if (token) {
+    // Verify token
+    const payload = verifyToken(token);
+    if (payload) {
+      // Set user data in request
+      req.user = {
+        id: payload.id,
+        username: payload.username,
+        email: payload.email,
+        role: payload.role || 'user'
+      };
+      return next();
+    }
+  }
+  
+  // No valid authentication found
+  return res.status(401).json({ message: 'Authentication required' });
 };
 
 /**
  * Middleware to require admin role
- * Must be used after authenticateToken middleware
+ * Authenticates the user and then checks admin role
  */
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.user) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-
-  if (req.user.role !== 'admin') {
+  // Use requireAuth middleware first to authenticate
+  requireAuth(req, res, () => {
+    // After authentication, check admin role
+    if (req.user && req.user.role === 'admin') {
+      return next();
+    }
+    
     return res.status(403).json({ message: 'Admin access required' });
-  }
-
-  next();
+  });
 };
 
 /**
