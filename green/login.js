@@ -162,14 +162,31 @@ async function handleRegister(username, email, password) {
 
 // Function to render the login form
 function renderLoginForm() {
+  // Get viewport width for responsive design
+  const width = window.innerWidth;
+  const isMobile = width < 768;
+  const isSmallMobile = width < 500;
+  const isExtraSmallMobile = width < 350;
+  
   const formContainer = document.createElement('div');
   formContainer.classList.add('login-form-container');
   
   const formEl = document.createElement('form');
   formEl.classList.add('login-form');
   formEl.style.backgroundColor = 'white';
-  formEl.style.padding = '32px';
-  formEl.style.borderRadius = '12px';
+  
+  // Responsive padding for different devices
+  if (isExtraSmallMobile) {
+    formEl.style.padding = '16px'; // Extra small screens (folded)
+  } else if (isSmallMobile) {
+    formEl.style.padding = '20px'; // Small mobile
+  } else if (isMobile) {
+    formEl.style.padding = '24px'; // Regular mobile
+  } else {
+    formEl.style.padding = '32px'; // Larger screens
+  }
+  
+  formEl.style.borderRadius = isSmallMobile ? '8px' : '12px';
   formEl.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.08)';
   
   formEl.onsubmit = (e) => {
@@ -220,8 +237,19 @@ function renderLoginForm() {
   emailInput.placeholder = 'Enter your username or email';
   emailInput.required = true;
   emailInput.style.width = '100%';
-  emailInput.style.padding = '10px 14px';
-  emailInput.style.borderRadius = 'var(--radius-md)';
+  
+  // Responsive input padding based on screen size
+  if (isExtraSmallMobile) {
+    emailInput.style.padding = '8px 10px'; // Extra small screens (folded)
+    emailInput.style.fontSize = '14px';
+  } else if (isSmallMobile) {
+    emailInput.style.padding = '9px 12px'; // Small mobile
+    emailInput.style.fontSize = '15px';
+  } else {
+    emailInput.style.padding = '10px 14px'; // Larger screens
+  }
+  
+  emailInput.style.borderRadius = isExtraSmallMobile ? '6px' : 'var(--radius-md)';
   emailInput.style.border = '1px solid var(--color-border)';
   
   emailGroup.appendChild(emailLabel);
@@ -248,8 +276,19 @@ function renderLoginForm() {
   passwordInput.placeholder = 'Enter your password';
   passwordInput.required = true;
   passwordInput.style.width = '100%';
-  passwordInput.style.padding = '10px 14px';
-  passwordInput.style.borderRadius = 'var(--radius-md)';
+  
+  // Responsive input padding based on screen size
+  if (isExtraSmallMobile) {
+    passwordInput.style.padding = '8px 10px'; // Extra small screens (folded)
+    passwordInput.style.fontSize = '14px';
+  } else if (isSmallMobile) {
+    passwordInput.style.padding = '9px 12px'; // Small mobile
+    passwordInput.style.fontSize = '15px';
+  } else {
+    passwordInput.style.padding = '10px 14px'; // Larger screens
+  }
+  
+  passwordInput.style.borderRadius = isExtraSmallMobile ? '6px' : 'var(--radius-md)';
   passwordInput.style.border = '1px solid var(--color-border)';
   
   passwordGroup.appendChild(passwordLabel);
@@ -286,10 +325,25 @@ function renderLoginForm() {
   submitButton.textContent = 'Log In';
   submitButton.classList.add('btn', 'btn-primary');
   submitButton.style.width = '100%';
-  submitButton.style.padding = '12px';
-  submitButton.style.marginBottom = '16px';
-  submitButton.style.borderRadius = '8px';
-  submitButton.style.fontSize = '16px';
+  
+  // Responsive button styling
+  if (isExtraSmallMobile) {
+    submitButton.style.padding = '10px';
+    submitButton.style.marginBottom = '12px';
+    submitButton.style.borderRadius = '6px';
+    submitButton.style.fontSize = '15px';
+  } else if (isSmallMobile) {
+    submitButton.style.padding = '10px';
+    submitButton.style.marginBottom = '14px';
+    submitButton.style.borderRadius = '7px';
+    submitButton.style.fontSize = '15px';
+  } else {
+    submitButton.style.padding = '12px';
+    submitButton.style.marginBottom = '16px';
+    submitButton.style.borderRadius = '8px';
+    submitButton.style.fontSize = '16px';
+  }
+  
   submitButton.style.fontWeight = '600';
   submitButton.style.color = 'white';
   submitButton.style.background = 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)';
@@ -340,14 +394,31 @@ function renderLoginForm() {
 
 // Function to render the registration form
 function renderRegisterForm() {
+  // Get viewport width for responsive design
+  const width = window.innerWidth;
+  const isMobile = width < 768;
+  const isSmallMobile = width < 500;
+  const isExtraSmallMobile = width < 350;
+  
   const formContainer = document.createElement('div');
   formContainer.classList.add('register-form-container');
   
   const formEl = document.createElement('form');
   formEl.classList.add('register-form');
   formEl.style.backgroundColor = 'white';
-  formEl.style.padding = '32px';
-  formEl.style.borderRadius = '12px';
+  
+  // Responsive padding for different devices
+  if (isExtraSmallMobile) {
+    formEl.style.padding = '16px'; // Extra small screens (folded)
+  } else if (isSmallMobile) {
+    formEl.style.padding = '20px'; // Small mobile
+  } else if (isMobile) {
+    formEl.style.padding = '24px'; // Regular mobile
+  } else {
+    formEl.style.padding = '32px'; // Larger screens
+  }
+  
+  formEl.style.borderRadius = isSmallMobile ? '8px' : '12px';
   formEl.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.08)';
   
   formEl.onsubmit = (e) => {
@@ -398,8 +469,19 @@ function renderRegisterForm() {
   usernameInput.placeholder = 'Choose a username';
   usernameInput.required = true;
   usernameInput.style.width = '100%';
-  usernameInput.style.padding = '10px 14px';
-  usernameInput.style.borderRadius = 'var(--radius-md)';
+  
+  // Responsive input padding based on screen size
+  if (isExtraSmallMobile) {
+    usernameInput.style.padding = '8px 10px'; // Extra small screens (folded)
+    usernameInput.style.fontSize = '14px';
+  } else if (isSmallMobile) {
+    usernameInput.style.padding = '9px 12px'; // Small mobile
+    usernameInput.style.fontSize = '15px';
+  } else {
+    usernameInput.style.padding = '10px 14px'; // Larger screens
+  }
+  
+  usernameInput.style.borderRadius = isExtraSmallMobile ? '6px' : 'var(--radius-md)';
   usernameInput.style.border = '1px solid var(--color-border)';
   
   usernameGroup.appendChild(usernameLabel);
@@ -426,8 +508,19 @@ function renderRegisterForm() {
   emailInput.placeholder = 'Enter your email';
   emailInput.required = true;
   emailInput.style.width = '100%';
-  emailInput.style.padding = '10px 14px';
-  emailInput.style.borderRadius = 'var(--radius-md)';
+  
+  // Responsive input padding based on screen size
+  if (isExtraSmallMobile) {
+    emailInput.style.padding = '8px 10px'; // Extra small screens (folded)
+    emailInput.style.fontSize = '14px';
+  } else if (isSmallMobile) {
+    emailInput.style.padding = '9px 12px'; // Small mobile
+    emailInput.style.fontSize = '15px';
+  } else {
+    emailInput.style.padding = '10px 14px'; // Larger screens
+  }
+  
+  emailInput.style.borderRadius = isExtraSmallMobile ? '6px' : 'var(--radius-md)';
   emailInput.style.border = '1px solid var(--color-border)';
   
   emailGroup.appendChild(emailLabel);
@@ -454,8 +547,19 @@ function renderRegisterForm() {
   passwordInput.placeholder = 'Choose a password';
   passwordInput.required = true;
   passwordInput.style.width = '100%';
-  passwordInput.style.padding = '10px 14px';
-  passwordInput.style.borderRadius = 'var(--radius-md)';
+  
+  // Responsive input padding based on screen size
+  if (isExtraSmallMobile) {
+    passwordInput.style.padding = '8px 10px'; // Extra small screens (folded)
+    passwordInput.style.fontSize = '14px';
+  } else if (isSmallMobile) {
+    passwordInput.style.padding = '9px 12px'; // Small mobile
+    passwordInput.style.fontSize = '15px';
+  } else {
+    passwordInput.style.padding = '10px 14px'; // Larger screens
+  }
+  
+  passwordInput.style.borderRadius = isExtraSmallMobile ? '6px' : 'var(--radius-md)';
   passwordInput.style.border = '1px solid var(--color-border)';
   
   passwordGroup.appendChild(passwordLabel);
@@ -495,10 +599,25 @@ function renderRegisterForm() {
   submitButton.textContent = 'Create Account';
   submitButton.classList.add('btn', 'btn-primary');
   submitButton.style.width = '100%';
-  submitButton.style.padding = '12px';
-  submitButton.style.marginBottom = '16px';
-  submitButton.style.borderRadius = '8px';
-  submitButton.style.fontSize = '16px';
+  
+  // Responsive button styling
+  if (isExtraSmallMobile) {
+    submitButton.style.padding = '10px';
+    submitButton.style.marginBottom = '12px';
+    submitButton.style.borderRadius = '6px';
+    submitButton.style.fontSize = '15px';
+  } else if (isSmallMobile) {
+    submitButton.style.padding = '10px';
+    submitButton.style.marginBottom = '14px';
+    submitButton.style.borderRadius = '7px';
+    submitButton.style.fontSize = '15px';
+  } else {
+    submitButton.style.padding = '12px';
+    submitButton.style.marginBottom = '16px';
+    submitButton.style.borderRadius = '8px';
+    submitButton.style.fontSize = '16px';
+  }
+  
   submitButton.style.fontWeight = '600';
   submitButton.style.color = 'white';
   submitButton.style.background = 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)';
@@ -549,6 +668,17 @@ function renderRegisterForm() {
 
 // Function to render the authentication page
 export function renderAuthPage() {
+  // Get viewport width and detect foldable device state
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const isFoldable = /(?:Samsung.+SM-F|Fold)/i.test(navigator.userAgent);
+  const isFoldableClosed = width < 400 && (height / width) > 1.8;
+  
+  console.log("Viewport: " + (width < 350 ? "extra small mobile" : width < 500 ? "small mobile" : width < 768 ? "mobile" : width < 1024 ? "tablet" : "desktop"));
+  if (isFoldable) {
+    console.log("Detected: Foldable device " + (isFoldableClosed ? "(closed)" : "(open)"));
+  }
+  
   // Create page container
   const container = document.createElement('div');
   container.classList.add('auth-page');
@@ -556,13 +686,31 @@ export function renderAuthPage() {
   container.style.display = 'flex';
   container.style.alignItems = 'center';
   container.style.justifyContent = 'center';
-  container.style.padding = '20px';
+  
+  // Responsive padding
+  if (width < 350) {
+    container.style.padding = '10px'; // Extra small screens
+  } else if (width < 500) {
+    container.style.padding = '15px'; // Small mobile
+  } else {
+    container.style.padding = '20px'; // Larger screens
+  }
+  
   container.style.background = 'var(--color-background)';
   
-  // Create a two-column layout
+  // Create a layout that adapts between one and two columns based on screen size
   const layoutContainer = document.createElement('div');
   layoutContainer.classList.add('auth-layout');
-  layoutContainer.style.display = 'flex';
+  
+  // Change from flex row to flex column on small screens
+  if (width < 768) {
+    layoutContainer.style.display = 'flex';
+    layoutContainer.style.flexDirection = 'column';
+  } else {
+    layoutContainer.style.display = 'flex';
+    layoutContainer.style.flexDirection = 'row';
+  }
+  
   layoutContainer.style.borderRadius = 'var(--radius-lg)';
   layoutContainer.style.overflow = 'hidden';
   layoutContainer.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.1)';
@@ -577,31 +725,85 @@ export function renderAuthPage() {
   heroCol.style.flexDirection = 'column';
   heroCol.style.justifyContent = 'center';
   heroCol.style.alignItems = 'flex-start';
-  heroCol.style.padding = '40px';
-  heroCol.style.width = '50%';
+  
+  // Responsive padding for hero column
+  if (width < 350) {
+    heroCol.style.padding = '20px'; // Extra small screens
+  } else if (width < 768) {
+    heroCol.style.padding = '30px'; // Mobile screens
+  } else {
+    heroCol.style.padding = '40px'; // Larger screens
+  }
+  
+  // Adjust width based on screen size
+  if (width < 768) {
+    heroCol.style.width = '100%'; // Full width on mobile
+  } else {
+    heroCol.style.width = '50%'; // Half width on larger screens
+  }
+  
   heroCol.style.background = 'white';
   heroCol.style.color = '#333333';
   
   // Add branding and hero content
   const logo = document.createElement('div');
   logo.classList.add('auth-logo');
-  logo.style.fontSize = '24px';
+  
+  // Responsive logo size
+  if (width < 350) {
+    logo.style.fontSize = '20px'; // Extra small screens
+    logo.style.marginBottom = '20px';
+  } else if (width < 768) {
+    logo.style.fontSize = '22px'; // Mobile screens
+    logo.style.marginBottom = '30px';
+  } else {
+    logo.style.fontSize = '24px'; // Larger screens
+    logo.style.marginBottom = '40px';
+  }
+  
   logo.style.fontWeight = 'bold';
-  logo.style.marginBottom = '40px';
   logo.textContent = 'Stackr Finance';
   
   const heroTitle = document.createElement('h1');
-  heroTitle.style.fontSize = '32px';
+  
+  // Responsive title size
+  if (width < 350) {
+    heroTitle.style.fontSize = '24px'; // Extra small screens
+    heroTitle.style.marginBottom = '12px';
+  } else if (width < 768) {
+    heroTitle.style.fontSize = '28px'; // Mobile screens
+    heroTitle.style.marginBottom = '14px';
+  } else {
+    heroTitle.style.fontSize = '32px'; // Larger screens
+    heroTitle.style.marginBottom = '16px';
+  }
+  
   heroTitle.style.fontWeight = 'bold';
-  heroTitle.style.marginBottom = '16px';
   heroTitle.style.lineHeight = '1.2';
   heroTitle.textContent = 'Take control of your financial future';
   
   const heroDescription = document.createElement('p');
-  heroDescription.style.fontSize = '16px';
-  heroDescription.style.marginBottom = '24px';
+  
+  // Responsive description 
+  if (width < 350) {
+    heroDescription.style.fontSize = '14px'; // Extra small screens
+    heroDescription.style.marginBottom = '18px';
+  } else if (width < 768) {
+    heroDescription.style.fontSize = '15px'; // Mobile screens
+    heroDescription.style.marginBottom = '20px';
+  } else {
+    heroDescription.style.fontSize = '16px'; // Larger screens
+    heroDescription.style.marginBottom = '24px';
+  }
+  
   heroDescription.style.lineHeight = '1.6';
-  heroDescription.textContent = 'Track your income, plan your expenses, and achieve your financial goals with Stackr Finance - the ultimate tool for service providers.';
+  
+  // Shorter description on very small screens
+  if (width < 350) {
+    heroDescription.textContent = 'Track your income, plan your expenses, and achieve your financial goals with Stackr Finance.';
+  } else {
+    heroDescription.textContent = 'Track your income, plan your expenses, and achieve your financial goals with Stackr Finance - the ultimate tool for service providers.';
+  }
   
   const featuresList = document.createElement('ul');
   featuresList.style.listStyle = 'none';
@@ -616,15 +818,39 @@ export function renderAuthPage() {
     'Expense categorization and budget planning'
   ];
   
-  features.forEach(feature => {
+  // Simplify feature list for very small screens
+  const simplifiedFeatures = width < 350 ? [
+    'Custom 40/30/30 income split',
+    'Bank integration with Plaid',
+    'Goal tracking visualization',
+    'AI financial advice'
+  ] : features;
+  
+  simplifiedFeatures.forEach(feature => {
     const featureItem = document.createElement('li');
-    featureItem.style.marginBottom = '12px';
+    
+    // Adjust bottom margin based on screen size
+    if (width < 350) {
+      featureItem.style.marginBottom = '8px'; // Extra small screens need tighter spacing
+      featureItem.style.fontSize = '13px';
+    } else if (width < 768) {
+      featureItem.style.marginBottom = '10px'; // Mobile screens
+      featureItem.style.fontSize = '14px';
+    } else {
+      featureItem.style.marginBottom = '12px'; // Larger screens
+    }
+    
     featureItem.style.display = 'flex';
     featureItem.style.alignItems = 'center';
     
     const checkIcon = document.createElement('span');
-    checkIcon.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-    checkIcon.style.marginRight = '12px';
+    
+    // Smaller icon for smaller screens
+    const iconSize = width < 350 ? "16" : "20";
+    checkIcon.innerHTML = `<svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+    
+    // Adjust icon spacing
+    checkIcon.style.marginRight = width < 350 ? '8px' : '12px';
     checkIcon.style.display = 'flex';
     checkIcon.style.alignItems = 'center';
     checkIcon.style.justifyContent = 'center';
@@ -642,8 +868,22 @@ export function renderAuthPage() {
   // Create form column
   const formCol = document.createElement('div');
   formCol.classList.add('auth-form-col');
-  formCol.style.width = '50%';
-  formCol.style.padding = '40px';
+  
+  // Make form column responsive
+  if (width < 768) {
+    formCol.style.width = '100%'; // Full width on mobile
+    
+    // Adjust padding based on screen size
+    if (width < 350) {
+      formCol.style.padding = '20px'; // Extra small screens
+    } else {
+      formCol.style.padding = '25px'; // Small/medium screens
+    }
+  } else {
+    formCol.style.width = '50%'; // Half width on larger screens
+    formCol.style.padding = '40px'; // More padding on larger screens
+  }
+  
   formCol.style.display = 'flex';
   formCol.style.flexDirection = 'column';
   formCol.style.justifyContent = 'center';
@@ -681,7 +921,7 @@ export function renderAuthPage() {
       color: #333333 !important;
     }
 
-    /* Form layout responsiveness */
+    /* Form layout responsiveness for tablets and mid-sized screens */
     @media (max-width: 768px) {
       .auth-layout {
         flex-direction: column;
@@ -694,6 +934,85 @@ export function renderAuthPage() {
       
       .auth-hero {
         padding: 30px;
+      }
+      
+      .auth-hero h1 {
+        font-size: 28px;
+      }
+      
+      .auth-hero p {
+        font-size: 15px;
+      }
+    }
+    
+    /* Additional adjustments for small mobile screens */
+    @media (max-width: 500px) {
+      .auth-layout {
+        border-radius: 10px;
+      }
+      
+      .auth-hero, .auth-form-col {
+        padding: 25px 20px;
+      }
+      
+      .auth-hero h1 {
+        font-size: 26px;
+      }
+      
+      .login-form, .register-form {
+        padding: 20px;
+      }
+      
+      .login-form h2, .register-form h2 {
+        font-size: 22px;
+      }
+    }
+    
+    /* Special handling for Samsung Z Fold closed and extra small screens */
+    @media (max-width: 350px) {
+      .auth-layout {
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+      
+      .auth-page {
+        padding: 10px;
+      }
+      
+      .auth-hero, .auth-form-col {
+        padding: 20px 16px;
+      }
+      
+      .auth-hero h1 {
+        font-size: 24px;
+        margin-bottom: 12px;
+      }
+      
+      .auth-hero p {
+        font-size: 14px;
+        margin-bottom: 18px;
+      }
+      
+      .auth-hero li {
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+      
+      .login-form, .register-form {
+        padding: 16px;
+      }
+      
+      .login-form h2, .register-form h2 {
+        font-size: 20px;
+        margin-bottom: 16px;
+      }
+      
+      input, button, label {
+        font-size: 14px !important;
+      }
+      
+      .form-group {
+        margin-bottom: 12px !important;
       }
     }
     
