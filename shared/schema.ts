@@ -183,6 +183,14 @@ export const userProfiles = pgTable("user_profiles", {
   hasEmergencyFund: boolean("has_emergency_fund"),
   emergencyFundAmount: numeric("emergency_fund_amount"),
   preferredContactMethod: text("preferred_contact_method"), // email, phone, app
+  spendingPersonalityType: text("spending_personality_type"),
+  
+  // Income Split Preferences
+  incomeSplitProfile: text("income_split_profile").default("balanced"), // Default to the classic 40/30/30 split
+  customIncomeSplitNeeds: integer("custom_income_split_needs").default(40),
+  customIncomeSplitInvestments: integer("custom_income_split_investments").default(30),
+  customIncomeSplitSavings: integer("custom_income_split_savings").default(30),
+  
   widgetEnabled: boolean("widget_enabled").notNull().default(false),
   remindersEnabled: boolean("reminders_enabled").notNull().default(true),
   notificationsEmail: boolean("notifications_email").notNull().default(true),
@@ -205,6 +213,11 @@ export const insertUserProfileSchema = createInsertSchema(userProfiles).pick({
   hasEmergencyFund: true,
   emergencyFundAmount: true,
   preferredContactMethod: true,
+  spendingPersonalityType: true,
+  incomeSplitProfile: true,
+  customIncomeSplitNeeds: true,
+  customIncomeSplitInvestments: true,
+  customIncomeSplitSavings: true,
   widgetEnabled: true,
   remindersEnabled: true,
   notificationsEmail: true,
@@ -1064,6 +1077,98 @@ export const spendingPersonalityTypes = [
   { id: "security_seeker", name: "The Security Seeker", description: "Plans extensively to protect against financial risks", traits: ["cautious", "protective", "detail-oriented", "conservative"] },
   { id: "status_focused", name: "The Status Focused", description: "Uses money to signal achievement and social position", traits: ["image-conscious", "ambitious", "competitive", "quality-focused"] },
   { id: "minimalist", name: "The Minimalist", description: "Values simplicity and reduced consumption", traits: ["intentional", "quality-focused", "frugal", "values-driven"] },
+];
+
+// Recommended Income Split Profiles
+export const incomeSplitProfiles = [
+  { 
+    id: "wealth_builder", 
+    name: "Wealth Builder", 
+    needs: 30, 
+    investments: 50, 
+    savings: 20, 
+    description: "Aggressive growth focus with higher emphasis on investments",
+    recommendedFor: ["investor", "minimalist"],
+    incomeRange: { min: 5000, max: null },
+    financialHealth: ["stable", "growing", "established"]
+  },
+  { 
+    id: "balanced", 
+    name: "Balanced Growth", 
+    needs: 40, 
+    investments: 30, 
+    savings: 30, 
+    description: "The classic 40/30/30 balanced approach",
+    recommendedFor: ["saver", "investor", "security_seeker"],
+    incomeRange: { min: 3000, max: null },
+    financialHealth: ["building", "stable", "growing", "established"]
+  },
+  { 
+    id: "stability_first", 
+    name: "Stability First", 
+    needs: 50, 
+    investments: 20, 
+    savings: 30, 
+    description: "Focus on covering needs and building security",
+    recommendedFor: ["saver", "security_seeker", "avoider"],
+    incomeRange: { min: 2000, max: 5000 },
+    financialHealth: ["building", "stable"]
+  },
+  { 
+    id: "debt_reducer", 
+    name: "Debt Reducer", 
+    needs: 60, 
+    investments: 10, 
+    savings: 30, 
+    description: "Higher allocation for needs to tackle existing debt",
+    recommendedFor: ["debtor", "avoider"],
+    incomeRange: { min: 0, max: 4000 },
+    financialHealth: ["building"]
+  },
+  { 
+    id: "lifestyle_plus", 
+    name: "Lifestyle Plus", 
+    needs: 50, 
+    investments: 30, 
+    savings: 20, 
+    description: "Balance lifestyle needs with future planning",
+    recommendedFor: ["spender", "status_focused"],
+    incomeRange: { min: 4000, max: null },
+    financialHealth: ["stable", "growing", "established"]
+  },
+  { 
+    id: "freedom_seeker", 
+    name: "Freedom Seeker", 
+    needs: 30, 
+    investments: 40, 
+    savings: 30, 
+    description: "Focus on investments for financial independence",
+    recommendedFor: ["investor", "minimalist"],
+    incomeRange: { min: 3500, max: null },
+    financialHealth: ["stable", "growing", "established"]
+  },
+  { 
+    id: "high_earner", 
+    name: "High Earner", 
+    needs: 25, 
+    investments: 50, 
+    savings: 25, 
+    description: "Optimized for high income with aggressive investment strategy",
+    recommendedFor: ["investor", "status_focused"],
+    incomeRange: { min: 7500, max: null },
+    financialHealth: ["growing", "established"]
+  },
+  { 
+    id: "new_starter", 
+    name: "New Starter", 
+    needs: 55, 
+    investments: 15, 
+    savings: 30, 
+    description: "For those just starting their financial journey",
+    recommendedFor: ["saver", "avoider", "debtor"],
+    incomeRange: { min: 0, max: 3000 },
+    financialHealth: ["building"]
+  }
 ];
 
 // Balance tracking schema
