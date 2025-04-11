@@ -2144,6 +2144,234 @@ function renderSettingsPage() {
   dataCard.appendChild(dataControls);
   container.appendChild(dataCard);
   
+  // Financial Mascot Settings Card
+  const mascotCard = document.createElement('div');
+  mascotCard.style.backgroundColor = '#f5f5f5';
+  mascotCard.style.borderRadius = '8px';
+  mascotCard.style.padding = '20px';
+  mascotCard.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+  mascotCard.style.marginBottom = '30px';
+  
+  const mascotHeading = document.createElement('h3');
+  mascotHeading.textContent = 'Financial Mascot Settings';
+  mascotHeading.style.marginTop = '0';
+  mascotCard.appendChild(mascotHeading);
+  
+  // Mascot description
+  const mascotDesc = document.createElement('p');
+  mascotDesc.textContent = 'Customize your financial education mascot that provides tips and guidance throughout the app.';
+  mascotDesc.style.marginBottom = '15px';
+  mascotCard.appendChild(mascotDesc);
+  
+  // Mascot toggle section
+  const toggleSection = document.createElement('div');
+  toggleSection.style.display = 'flex';
+  toggleSection.style.alignItems = 'center';
+  toggleSection.style.marginBottom = '15px';
+  
+  const toggleLabel = document.createElement('label');
+  toggleLabel.textContent = 'Show Financial Mascot';
+  toggleLabel.style.marginRight = '10px';
+  toggleLabel.htmlFor = 'mascot-toggle';
+  toggleSection.appendChild(toggleLabel);
+  
+  // Get current visibility setting from localStorage
+  let isMascotVisible = true;
+  const savedPreferences = localStorage.getItem('mascotPreferences');
+  if (savedPreferences) {
+    const preferences = JSON.parse(savedPreferences);
+    isMascotVisible = preferences.visible !== undefined ? preferences.visible : true;
+  }
+  
+  // Create toggle switch
+  const toggleSwitch = document.createElement('div');
+  toggleSwitch.className = 'toggle-switch';
+  toggleSwitch.style.position = 'relative';
+  toggleSwitch.style.display = 'inline-block';
+  toggleSwitch.style.width = '46px';
+  toggleSwitch.style.height = '24px';
+  
+  const toggleInput = document.createElement('input');
+  toggleInput.type = 'checkbox';
+  toggleInput.id = 'mascot-toggle';
+  toggleInput.checked = isMascotVisible;
+  toggleInput.style.opacity = '0';
+  toggleInput.style.width = '0';
+  toggleInput.style.height = '0';
+  
+  const toggleSlider = document.createElement('span');
+  toggleSlider.style.position = 'absolute';
+  toggleSlider.style.cursor = 'pointer';
+  toggleSlider.style.top = '0';
+  toggleSlider.style.left = '0';
+  toggleSlider.style.right = '0';
+  toggleSlider.style.bottom = '0';
+  toggleSlider.style.backgroundColor = isMascotVisible ? '#3cb371' : '#ccc';
+  toggleSlider.style.borderRadius = '24px';
+  toggleSlider.style.transition = '.4s';
+  
+  const toggleKnob = document.createElement('span');
+  toggleKnob.style.position = 'absolute';
+  toggleKnob.style.content = '""';
+  toggleKnob.style.height = '18px';
+  toggleKnob.style.width = '18px';
+  toggleKnob.style.left = isMascotVisible ? '24px' : '4px';
+  toggleKnob.style.bottom = '3px';
+  toggleKnob.style.backgroundColor = 'white';
+  toggleKnob.style.borderRadius = '50%';
+  toggleKnob.style.transition = '.4s';
+  
+  // Add event listener to toggle switch
+  toggleInput.addEventListener('change', function() {
+    const isChecked = this.checked;
+    toggleSlider.style.backgroundColor = isChecked ? '#3cb371' : '#ccc';
+    toggleKnob.style.left = isChecked ? '24px' : '4px';
+    
+    // Save preferences to localStorage
+    let preferences = {};
+    const savedPrefs = localStorage.getItem('mascotPreferences');
+    if (savedPrefs) {
+      preferences = JSON.parse(savedPrefs);
+    }
+    
+    preferences.visible = isChecked;
+    localStorage.setItem('mascotPreferences', JSON.stringify(preferences));
+    
+    // Update mascot visibility if it exists
+    if (appState.financialMascot) {
+      if (isChecked) {
+        appState.financialMascot.show();
+      } else {
+        appState.financialMascot.hide();
+      }
+    }
+  });
+  
+  toggleSlider.appendChild(toggleKnob);
+  toggleSwitch.appendChild(toggleInput);
+  toggleSwitch.appendChild(toggleSlider);
+  toggleSection.appendChild(toggleSwitch);
+  mascotCard.appendChild(toggleSection);
+  
+  // Personality selection section
+  const personalitySection = document.createElement('div');
+  personalitySection.style.marginBottom = '15px';
+  
+  const personalityLabel = document.createElement('label');
+  personalityLabel.textContent = 'Mascot Personality';
+  personalityLabel.style.display = 'block';
+  personalityLabel.style.marginBottom = '8px';
+  personalitySection.appendChild(personalityLabel);
+  
+  // Create a select drop-down for mascot personalities
+  const personalitySelect = document.createElement('select');
+  personalitySelect.id = 'mascot-personality';
+  personalitySelect.style.width = '100%';
+  personalitySelect.style.padding = '8px';
+  personalitySelect.style.borderRadius = '4px';
+  personalitySelect.style.border = '1px solid #ddd';
+  
+  // Get current personality from localStorage
+  let currentPersonality = 'friend';
+  if (savedPreferences) {
+    const preferences = JSON.parse(savedPreferences);
+    currentPersonality = preferences.personality || 'friend';
+  }
+  
+  // Add personality options - must match the personalities in financial-mascot.js
+  const personalities = {
+    sage: "Professor Penny (Wise & Thoughtful)",
+    cheerleader: "Cash Carter (Enthusiastic & Positive)",
+    coach: "Buck Bailey (Straightforward & Motivating)",
+    friend: "Sunny Savings (Supportive & Empathetic)",
+    jester: "Cash Quips (Humorous & Lighthearted)"
+  };
+  
+  for (const [value, text] of Object.entries(personalities)) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = text;
+    option.selected = value === currentPersonality;
+    personalitySelect.appendChild(option);
+  }
+  
+  // Add change event listener to save personality preference
+  personalitySelect.addEventListener('change', function() {
+    const selectedPersonality = this.value;
+    
+    // Save preference to localStorage
+    let preferences = {};
+    const savedPrefs = localStorage.getItem('mascotPreferences');
+    if (savedPrefs) {
+      preferences = JSON.parse(savedPrefs);
+    }
+    
+    preferences.personality = selectedPersonality;
+    localStorage.setItem('mascotPreferences', JSON.stringify(preferences));
+    
+    // Show update message
+    const feedbackMsg = document.createElement('div');
+    feedbackMsg.textContent = 'Settings saved! Refresh the page to see changes.';
+    feedbackMsg.style.backgroundColor = '#d4edda';
+    feedbackMsg.style.color = '#155724';
+    feedbackMsg.style.padding = '10px';
+    feedbackMsg.style.borderRadius = '4px';
+    feedbackMsg.style.marginTop = '10px';
+    
+    // Remove feedback message after 5 seconds
+    mascotCard.appendChild(feedbackMsg);
+    setTimeout(() => {
+      if (feedbackMsg.parentNode === mascotCard) {
+        mascotCard.removeChild(feedbackMsg);
+      }
+    }, 5000);
+  });
+  
+  personalitySection.appendChild(personalitySelect);
+  mascotCard.appendChild(personalitySection);
+  
+  // Add "Apply Changes" button
+  const applyBtn = document.createElement('button');
+  applyBtn.textContent = 'Apply Changes';
+  applyBtn.style.padding = '8px 16px';
+  applyBtn.style.backgroundColor = 'var(--color-primary, #3cb371)';
+  applyBtn.style.color = 'white';
+  applyBtn.style.border = 'none';
+  applyBtn.style.borderRadius = '4px';
+  applyBtn.style.cursor = 'pointer';
+  
+  applyBtn.addEventListener('click', function() {
+    // Show message about refreshing
+    const refreshMsg = document.createElement('div');
+    refreshMsg.textContent = 'Settings saved! Refresh the page to apply all changes.';
+    refreshMsg.style.backgroundColor = '#d4edda';
+    refreshMsg.style.color = '#155724';
+    refreshMsg.style.padding = '10px';
+    refreshMsg.style.borderRadius = '4px';
+    refreshMsg.style.marginTop = '10px';
+    
+    // Optionally, offer auto-refresh
+    const refreshBtn = document.createElement('button');
+    refreshBtn.textContent = 'Refresh Now';
+    refreshBtn.style.marginLeft = '10px';
+    refreshBtn.style.padding = '4px 8px';
+    refreshBtn.style.backgroundColor = '#155724';
+    refreshBtn.style.color = 'white';
+    refreshBtn.style.border = 'none';
+    refreshBtn.style.borderRadius = '4px';
+    refreshBtn.style.cursor = 'pointer';
+    
+    refreshBtn.addEventListener('click', function() {
+      window.location.reload();
+    });
+    
+    refreshMsg.appendChild(refreshBtn);
+    mascotCard.appendChild(refreshMsg);
+  });
+  
+  mascotCard.appendChild(applyBtn);
+  container.appendChild(mascotCard);
+  
   return container;
 }
 
