@@ -175,15 +175,42 @@ export const userProfiles = pgTable("user_profiles", {
   businessName: text("business_name"),
   yearsInBusiness: integer("years_in_business"),
   averageMonthlyIncome: numeric("average_monthly_income"),
+  
+  // Goals and Aspirations
   financialGoals: json("financial_goals"), // Array of goal objects
   lifeGoals: json("life_goals"), // Array of goal objects
+  shortTermGoals: json("short_term_goals"), // 0-2 years
+  mediumTermGoals: json("medium_term_goals"), // 2-5 years
+  longTermGoals: json("long_term_goals"), // 5+ years
+  
+  // Financial Status
   financialHealthStatus: text("financial_health_status"),
   riskTolerance: text("risk_tolerance"), // low, medium, high
   isSoleProvider: boolean("is_sole_provider"),
   hasEmergencyFund: boolean("has_emergency_fund"),
   emergencyFundAmount: numeric("emergency_fund_amount"),
+  
+  // Contact and Preferences
   preferredContactMethod: text("preferred_contact_method"), // email, phone, app
   spendingPersonalityType: text("spending_personality_type"),
+  
+  // Lifestyle Data
+  lifestyleType: text("lifestyle_type"), // urban, suburban, rural, nomadic, etc.
+  livingArrangement: text("living_arrangement"), // rent, own, shared, etc.
+  transportationMethod: text("transportation_method"), // car, public transit, bike, walk, etc.
+  familySize: integer("family_size"),
+  hasChildren: boolean("has_children"),
+  numberOfChildren: integer("number_of_children"),
+  
+  // Strengths and Limitations
+  financialStrengths: json("financial_strengths"), // Array of strengths
+  financialWeaknesses: json("financial_weaknesses"), // Areas for improvement
+  skillsAndExpertise: json("skills_and_expertise"), // Professional/personal skills for potential income
+  
+  // Pain Points and Challenges
+  financialPainPoints: json("financial_pain_points"), // Key challenges the user faces
+  stressFactors: json("stress_factors"), // What causes financial stress
+  improvementAreas: json("improvement_areas"), // Areas the user wants to improve
   
   // Income Split Preferences
   incomeSplitProfile: text("income_split_profile").default("balanced"), // Default to the classic 40/30/30 split
@@ -191,6 +218,7 @@ export const userProfiles = pgTable("user_profiles", {
   customIncomeSplitInvestments: integer("custom_income_split_investments").default(30),
   customIncomeSplitSavings: integer("custom_income_split_savings").default(30),
   
+  // App Preferences
   widgetEnabled: boolean("widget_enabled").notNull().default(false),
   remindersEnabled: boolean("reminders_enabled").notNull().default(true),
   notificationsEmail: boolean("notifications_email").notNull().default(true),
@@ -205,19 +233,50 @@ export const insertUserProfileSchema = createInsertSchema(userProfiles).pick({
   businessName: true,
   yearsInBusiness: true,
   averageMonthlyIncome: true,
+  
+  // Goals
   financialGoals: true,
   lifeGoals: true,
+  shortTermGoals: true,
+  mediumTermGoals: true,
+  longTermGoals: true,
+  
+  // Financial Status
   financialHealthStatus: true,
   riskTolerance: true,
   isSoleProvider: true,
   hasEmergencyFund: true,
   emergencyFundAmount: true,
+  
+  // Contact and Preferences
   preferredContactMethod: true,
   spendingPersonalityType: true,
+  
+  // Lifestyle Data
+  lifestyleType: true, 
+  livingArrangement: true,
+  transportationMethod: true,
+  familySize: true,
+  hasChildren: true,
+  numberOfChildren: true,
+  
+  // Strengths and Weaknesses
+  financialStrengths: true,
+  financialWeaknesses: true,
+  skillsAndExpertise: true,
+  
+  // Pain Points
+  financialPainPoints: true,
+  stressFactors: true,
+  improvementAreas: true,
+  
+  // Income Split
   incomeSplitProfile: true,
   customIncomeSplitNeeds: true,
   customIncomeSplitInvestments: true,
   customIncomeSplitSavings: true,
+  
+  // App Settings
   widgetEnabled: true,
   remindersEnabled: true,
   notificationsEmail: true,

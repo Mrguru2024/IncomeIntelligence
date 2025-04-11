@@ -36,13 +36,18 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { occupationTypes, financialHealthStatuses } from "@shared/schema";
 import SmartRulesEngine from "@/components/SmartRulesEngine"; //Import added here
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 
 // Form validation schema
 const profileFormSchema = z.object({
+  // Personal Info
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   email: z.string().email("Please enter a valid email").optional(),
   phone: z.string().optional(),
+  
+  // Business/Occupation
   occupation: z.string().optional(),
   occupationDetails: z.string().optional(),
   businessName: z.string().optional(),
@@ -58,6 +63,8 @@ const profileFormSchema = z.object({
       message: "Must be a number",
     })
     .optional(),
+    
+  // Financial Status
   financialHealthStatus: z.string().optional(),
   riskTolerance: z.string().optional(),
   isSoleProvider: z.boolean().optional(),
@@ -68,9 +75,46 @@ const profileFormSchema = z.object({
       message: "Must be a number",
     })
     .optional(),
+    
+  // Contact Preferences
   preferredContactMethod: z.string().optional(),
+  
+  // App Preferences
   widgetEnabled: z.boolean().optional(),
   remindersEnabled: z.boolean().optional(),
+  
+  // Lifestyle
+  lifestyleType: z.string().optional(),
+  livingArrangement: z.string().optional(),
+  transportationMethod: z.string().optional(),
+  familySize: z
+    .string()
+    .refine((val) => !val || !isNaN(Number(val)), {
+      message: "Must be a number",
+    })
+    .optional(),
+  hasChildren: z.boolean().optional(),
+  numberOfChildren: z
+    .string()
+    .refine((val) => !val || !isNaN(Number(val)), {
+      message: "Must be a number",
+    })
+    .optional(),
+  
+  // Goals and Aspirations
+  shortTermGoals: z.string().optional(),
+  mediumTermGoals: z.string().optional(),
+  longTermGoals: z.string().optional(),
+  
+  // Strengths and Weaknesses
+  financialStrengths: z.string().optional(),
+  financialWeaknesses: z.string().optional(),
+  skillsAndExpertise: z.string().optional(),
+  
+  // Pain Points and Challenges
+  financialPainPoints: z.string().optional(),
+  stressFactors: z.string().optional(),
+  improvementAreas: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
