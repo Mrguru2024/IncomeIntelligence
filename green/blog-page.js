@@ -13,9 +13,10 @@ import {
 
 /**
  * Render blog page component
+ * @param {boolean} isAuthenticated - Whether the user is authenticated
  * @returns {HTMLElement} Blog page element
  */
-export function renderBlogPage() {
+export function renderBlogPage(isAuthenticated = false) {
   // State management for the page
   let currentCategory = 'all';
   let searchQuery = '';
@@ -27,6 +28,75 @@ export function renderBlogPage() {
   container.style.maxWidth = '1200px';
   container.style.margin = '0 auto';
   container.style.padding = '24px';
+  
+  // Add a simple header for non-authenticated users
+  if (!isAuthenticated) {
+    const header = document.createElement('header');
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.style.padding = '16px 0';
+    header.style.marginBottom = '24px';
+    header.style.borderBottom = '1px solid var(--color-border, #E5E7EB)';
+    
+    // Logo
+    const logo = document.createElement('div');
+    logo.style.fontWeight = 'bold';
+    logo.style.fontSize = '24px';
+    logo.style.background = 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent, #5D5FEF) 100%)';
+    logo.style.webkitBackgroundClip = 'text';
+    logo.style.webkitTextFillColor = 'transparent';
+    logo.style.backgroundClip = 'text';
+    logo.style.cursor = 'pointer';
+    logo.textContent = 'Stackr';
+    logo.addEventListener('click', () => {
+      window.location.hash = 'landing';
+    });
+    
+    // Nav links
+    const navLinks = document.createElement('div');
+    navLinks.style.display = 'flex';
+    navLinks.style.gap = '24px';
+    
+    const loginLink = document.createElement('a');
+    loginLink.href = '#login';
+    loginLink.textContent = 'Log In';
+    loginLink.style.fontWeight = '500';
+    loginLink.style.textDecoration = 'none';
+    loginLink.style.color = 'var(--color-text, #1F2937)';
+    loginLink.style.transition = 'color 0.2s ease';
+    loginLink.addEventListener('mouseenter', () => {
+      loginLink.style.color = 'var(--color-primary)';
+    });
+    loginLink.addEventListener('mouseleave', () => {
+      loginLink.style.color = 'var(--color-text, #1F2937)';
+    });
+    
+    const registerButton = document.createElement('a');
+    registerButton.href = '#register';
+    registerButton.textContent = 'Sign Up';
+    registerButton.style.fontWeight = '500';
+    registerButton.style.textDecoration = 'none';
+    registerButton.style.backgroundColor = 'var(--color-primary)';
+    registerButton.style.color = 'white';
+    registerButton.style.padding = '8px 16px';
+    registerButton.style.borderRadius = '4px';
+    registerButton.style.transition = 'background-color 0.2s ease';
+    registerButton.addEventListener('mouseenter', () => {
+      registerButton.style.backgroundColor = 'var(--color-primary-dark, #3182CE)';
+    });
+    registerButton.addEventListener('mouseleave', () => {
+      registerButton.style.backgroundColor = 'var(--color-primary)';
+    });
+    
+    navLinks.appendChild(loginLink);
+    navLinks.appendChild(registerButton);
+    
+    header.appendChild(logo);
+    header.appendChild(navLinks);
+    
+    container.appendChild(header);
+  }
   
   // Page title section with search
   const titleSection = createTitleSection();
@@ -940,7 +1010,7 @@ export function renderBlogPage() {
  * @param {string} slug - Article slug
  * @returns {HTMLElement} Article page element
  */
-export function renderArticlePage(slug) {
+export function renderArticlePage(slug, isAuthenticated = false) {
   // Import blog data functions
   const { getPostBySlug, getRelatedPosts, blogCategories } = window.blogData;
   
@@ -998,6 +1068,75 @@ export function renderArticlePage(slug) {
   container.style.maxWidth = '1200px';
   container.style.margin = '0 auto';
   container.style.padding = '24px';
+  
+  // Add a simple header for non-authenticated users
+  if (!isAuthenticated) {
+    const header = document.createElement('header');
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.style.padding = '16px 0';
+    header.style.marginBottom = '24px';
+    header.style.borderBottom = '1px solid var(--color-border, #E5E7EB)';
+    
+    // Logo
+    const logo = document.createElement('div');
+    logo.style.fontWeight = 'bold';
+    logo.style.fontSize = '24px';
+    logo.style.background = 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent, #5D5FEF) 100%)';
+    logo.style.webkitBackgroundClip = 'text';
+    logo.style.webkitTextFillColor = 'transparent';
+    logo.style.backgroundClip = 'text';
+    logo.style.cursor = 'pointer';
+    logo.textContent = 'Stackr';
+    logo.addEventListener('click', () => {
+      window.location.hash = 'landing';
+    });
+    
+    // Nav links
+    const navLinks = document.createElement('div');
+    navLinks.style.display = 'flex';
+    navLinks.style.gap = '24px';
+    
+    const loginLink = document.createElement('a');
+    loginLink.href = '#login';
+    loginLink.textContent = 'Log In';
+    loginLink.style.fontWeight = '500';
+    loginLink.style.textDecoration = 'none';
+    loginLink.style.color = 'var(--color-text, #1F2937)';
+    loginLink.style.transition = 'color 0.2s ease';
+    loginLink.addEventListener('mouseenter', () => {
+      loginLink.style.color = 'var(--color-primary)';
+    });
+    loginLink.addEventListener('mouseleave', () => {
+      loginLink.style.color = 'var(--color-text, #1F2937)';
+    });
+    
+    const registerButton = document.createElement('a');
+    registerButton.href = '#register';
+    registerButton.textContent = 'Sign Up';
+    registerButton.style.fontWeight = '500';
+    registerButton.style.textDecoration = 'none';
+    registerButton.style.backgroundColor = 'var(--color-primary)';
+    registerButton.style.color = 'white';
+    registerButton.style.padding = '8px 16px';
+    registerButton.style.borderRadius = '4px';
+    registerButton.style.transition = 'background-color 0.2s ease';
+    registerButton.addEventListener('mouseenter', () => {
+      registerButton.style.backgroundColor = 'var(--color-primary-dark, #3182CE)';
+    });
+    registerButton.addEventListener('mouseleave', () => {
+      registerButton.style.backgroundColor = 'var(--color-primary)';
+    });
+    
+    navLinks.appendChild(loginLink);
+    navLinks.appendChild(registerButton);
+    
+    header.appendChild(logo);
+    header.appendChild(navLinks);
+    
+    container.appendChild(header);
+  }
   
   // Back button
   const backLink = document.createElement('a');
