@@ -2192,6 +2192,12 @@ function renderPageContent(container) {
     container.style.padding = '0';
     container.style.maxWidth = 'none';
   } else if (appState.currentPage === 'onboarding') {
+    // Hide the main header for the onboarding page as it has its own header with logo
+    const appHeader = document.querySelector('.app-header');
+    if (appHeader) {
+      appHeader.style.display = 'none';
+    }
+    
     // Import and render the onboarding page
     import('../onboarding.js').then(module => {
       container.appendChild(module.renderOnboardingPage(appState));
@@ -2340,6 +2346,12 @@ function renderApp() {
     const app = document.createElement('div');
     app.id = 'app';
     rootElement.appendChild(app);
+    
+    // Show app header if it was hidden before (when coming from onboarding)
+    const appHeader = document.querySelector('.app-header');
+    if (appHeader) {
+      appHeader.style.display = 'flex';
+    }
     
     // Create the layout with sidebar
     createLayout();
