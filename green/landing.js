@@ -57,11 +57,24 @@ export function renderLandingPage() {
  * @returns {HTMLElement} The navbar element
  */
 function createNavbar() {
+  // Get device information for responsive design
+  const width = window.innerWidth;
+  const isFoldableClosed = width < 400 && (window.innerHeight / width) > 1.8;
+  
   const navbar = document.createElement('nav');
   navbar.style.display = 'flex';
   navbar.style.justifyContent = 'space-between';
   navbar.style.alignItems = 'center';
-  navbar.style.padding = '20px 40px';
+  
+  // Responsive padding based on device width
+  if (width < 350) {
+    navbar.style.padding = '15px 10px'; // Extra small screens (folded)
+  } else if (width < 500) {
+    navbar.style.padding = '15px 20px'; // Small mobile
+  } else {
+    navbar.style.padding = '20px 40px'; // Larger screens
+  }
+  
   navbar.style.position = 'sticky';
   navbar.style.top = '0';
   navbar.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
@@ -129,7 +142,15 @@ function createNavbar() {
   // Action buttons
   const actionButtons = document.createElement('div');
   actionButtons.style.display = 'flex';
-  actionButtons.style.gap = '15px';
+  
+  // Adjust spacing based on screen size
+  if (width < 350) {
+    actionButtons.style.gap = '8px'; // Minimal gap for folded devices
+  } else if (width < 500) {
+    actionButtons.style.gap = '10px'; // Small gap for mobile
+  } else {
+    actionButtons.style.gap = '15px'; // Normal gap for larger screens
+  }
   
   // Check if user is authenticated
   if (isAuthenticated()) {
@@ -160,14 +181,25 @@ function createNavbar() {
     const loginButton = document.createElement('a');
     loginButton.textContent = 'Log In';
     loginButton.href = '#login';
-    loginButton.style.padding = '10px 20px';
+    
+    // Responsive button padding based on screen size
+    if (width < 350) {
+      loginButton.style.padding = '8px 12px';
+      loginButton.style.fontSize = '14px';
+    } else if (width < 500) {
+      loginButton.style.padding = '8px 16px';
+      loginButton.style.fontSize = '15px';
+    } else {
+      loginButton.style.padding = '10px 20px';
+      loginButton.style.fontSize = '16px';
+    }
+    
     loginButton.style.backgroundColor = 'transparent';
     loginButton.style.color = 'var(--color-primary)';
     loginButton.style.border = '2px solid var(--color-primary)';
     loginButton.style.textDecoration = 'none';
     loginButton.style.borderRadius = '8px';
     loginButton.style.fontWeight = '600';
-    loginButton.style.fontSize = '16px';
     loginButton.style.transition = 'all 0.2s ease';
     
     loginButton.onmouseenter = () => {
@@ -181,13 +213,24 @@ function createNavbar() {
     const signupButton = document.createElement('a');
     signupButton.textContent = 'Sign Up Free';
     signupButton.href = '#register';
-    signupButton.style.padding = '10px 20px';
+    
+    // Responsive button padding based on screen size
+    if (width < 350) {
+      signupButton.style.padding = '8px 12px';
+      signupButton.style.fontSize = '14px';
+    } else if (width < 500) {
+      signupButton.style.padding = '8px 16px';
+      signupButton.style.fontSize = '15px';
+    } else {
+      signupButton.style.padding = '10px 20px';
+      signupButton.style.fontSize = '16px';
+    }
+    
     signupButton.style.backgroundColor = 'var(--color-primary)';
     signupButton.style.color = 'white';
     signupButton.style.textDecoration = 'none';
     signupButton.style.borderRadius = '8px';
     signupButton.style.fontWeight = '600';
-    signupButton.style.fontSize = '16px';
     signupButton.style.transition = 'all 0.2s ease';
     
     signupButton.onmouseenter = () => {
