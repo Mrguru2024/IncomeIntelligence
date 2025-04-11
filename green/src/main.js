@@ -2010,8 +2010,8 @@ function renderApp() {
     // Don't show the header for landing page
     appContainer.removeChild(header);
     
-    // Import and render the landing page
-    import('../landing.js').then(module => {
+    // Import and render the new landing page
+    import('../landing-new.js').then(module => {
       main.appendChild(module.renderLandingPage());
     }).catch(error => {
       console.error('Error loading landing page module:', error);
