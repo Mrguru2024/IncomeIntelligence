@@ -25,9 +25,16 @@ const ONBOARDING_STEPS = [
 export function renderOnboardingPage(appState) {
   const container = document.createElement('div');
   container.classList.add('onboarding-container');
-  container.style.maxWidth = '960px';
+  container.style.maxWidth = '1100px';
   container.style.margin = '0 auto';
   container.style.padding = '40px 20px';
+  container.style.minHeight = '90vh';
+  container.style.display = 'flex';
+  container.style.flexDirection = 'column';
+  container.style.justifyContent = 'center';
+  
+  // Apply a subtle background gradient for the entire onboarding experience
+  document.body.style.background = 'linear-gradient(120deg, rgba(240,245,255,1) 0%, rgba(235,240,255,1) 100%)';
   
   const currentStep = appState.user.onboardingStep || 'welcome';
   const currentStepIndex = ONBOARDING_STEPS.indexOf(currentStep);
@@ -38,57 +45,163 @@ export function renderOnboardingPage(appState) {
   header.style.marginBottom = '40px';
   header.style.textAlign = 'center';
   
+  // Create a container for the title with animated gradient
+  const titleContainer = document.createElement('div');
+  titleContainer.style.position = 'relative';
+  titleContainer.style.marginBottom = '16px';
+  titleContainer.style.padding = '0 10px';
+  
   const title = document.createElement('h1');
   title.textContent = 'Welcome to Stackr Finance';
-  title.style.fontSize = '32px';
-  title.style.fontWeight = 'bold';
-  title.style.marginBottom = '16px';
-  title.style.background = 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)';
+  title.style.fontSize = '42px';
+  title.style.fontWeight = '800';
+  title.style.marginBottom = '0';
+  title.style.background = 'linear-gradient(120deg, var(--color-primary) 10%, var(--color-primary-dark) 50%, var(--color-primary) 90%)';
+  title.style.backgroundSize = '200% 200%';
   title.style.WebkitBackgroundClip = 'text';
   title.style.WebkitTextFillColor = 'transparent';
   title.style.backgroundClip = 'text';
-  header.appendChild(title);
+  title.style.animation = 'gradientAnimation 8s ease infinite';
+  
+  // Add a subtle animation to the title
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .animated-element {
+      animation: fadeIn 0.6s ease-out forwards;
+      opacity: 0;
+    }
+    
+    .animated-element.delay-1 {
+      animation-delay: 0.2s;
+    }
+    
+    .animated-element.delay-2 {
+      animation-delay: 0.4s;
+    }
+    
+    .animated-element.delay-3 {
+      animation-delay: 0.6s;
+    }
+    
+    .animated-element.delay-4 {
+      animation-delay: 0.8s;
+    }
+    
+    .animated-form-group {
+      transition: all 0.3s ease;
+    }
+    
+    .animated-form-group:focus-within {
+      transform: translateY(-5px);
+    }
+    
+    .interactive-split {
+      transition: all 0.4s ease;
+    }
+    
+    .interactive-split:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+  `;
+  document.head.appendChild(style);
+  
+  titleContainer.appendChild(title);
+  header.appendChild(titleContainer);
   
   const subtitle = document.createElement('p');
   subtitle.textContent = 'Let\'s set up your account to make the most of your financial journey.';
-  subtitle.style.fontSize = '16px';
+  subtitle.style.fontSize = '18px';
   subtitle.style.color = 'var(--color-text-secondary)';
   subtitle.style.marginBottom = '32px';
+  subtitle.style.fontWeight = '400';
+  subtitle.style.maxWidth = '700px';
+  subtitle.style.margin = '0 auto 32px';
+  subtitle.classList.add('animated-element');
   header.appendChild(subtitle);
   
-  // Progress bar
+  // Progress bar - more futuristic design
   const progressContainer = document.createElement('div');
   progressContainer.style.display = 'flex';
   progressContainer.style.justifyContent = 'space-between';
   progressContainer.style.position = 'relative';
-  progressContainer.style.maxWidth = '700px';
+  progressContainer.style.maxWidth = '800px';
   progressContainer.style.margin = '0 auto';
+  progressContainer.style.padding = '10px 5px';
+  progressContainer.classList.add('animated-element');
+  progressContainer.classList.add('delay-1');
   
-  // Progress line
+  // Progress line with special gradient
   const progressLine = document.createElement('div');
   progressLine.style.position = 'absolute';
-  progressLine.style.top = '14px';
+  progressLine.style.top = '24px';
   progressLine.style.left = '0';
   progressLine.style.right = '0';
-  progressLine.style.height = '2px';
-  progressLine.style.backgroundColor = 'var(--color-border)';
+  progressLine.style.height = '4px';
+  progressLine.style.background = 'linear-gradient(90deg, rgba(233,236,239,1) 0%, rgba(222,226,230,1) 100%)';
+  progressLine.style.borderRadius = '2px';
   progressLine.style.zIndex = '1';
+  progressLine.style.opacity = '0.8';
   progressContainer.appendChild(progressLine);
   
-  // Progress line fill
+  // Progress line fill with animated gradient
   const progressFill = document.createElement('div');
   progressFill.style.position = 'absolute';
-  progressFill.style.top = '14px';
+  progressFill.style.top = '24px';
   progressFill.style.left = '0';
-  progressFill.style.height = '2px';
-  progressFill.style.backgroundColor = 'var(--color-primary)';
+  progressFill.style.height = '4px';
+  progressFill.style.background = 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 50%, var(--color-primary) 100%)';
+  progressFill.style.backgroundSize = '200% 100%';
+  progressFill.style.borderRadius = '2px';
   progressFill.style.zIndex = '2';
   progressFill.style.width = `${(currentStepIndex / (ONBOARDING_STEPS.length - 1)) * 100}%`;
-  progressFill.style.transition = 'width 0.3s ease';
+  progressFill.style.transition = 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+  progressFill.style.animation = 'gradientAnimation 3s ease infinite';
+  progressFill.style.boxShadow = '0 0 10px rgba(var(--color-primary-rgb), 0.5)';
   progressContainer.appendChild(progressFill);
   
-  // Step indicators
+  // Step indicators with enhanced styling
   const stepTitles = ['Welcome', 'Profile', 'Goals', 'Split Ratio', 'Tutorial', 'Complete'];
+  const stepIcons = [
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.95V3.05"></path><path d="M20.95 12H3.05"></path><path d="M3.05 3.05h16.9v16.9H3.05z"></path></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
+  ];
   
   ONBOARDING_STEPS.forEach((step, index) => {
     const stepContainer = document.createElement('div');
@@ -97,40 +210,87 @@ export function renderOnboardingPage(appState) {
     stepContainer.style.alignItems = 'center';
     stepContainer.style.position = 'relative';
     stepContainer.style.zIndex = '3';
+    stepContainer.style.flex = '1';
+    stepContainer.style.maxWidth = '100px';
+    stepContainer.classList.add('animated-element');
+    stepContainer.classList.add(`delay-${index + 1}`);
     
+    // Create a clickable step indicator
     const stepIndicator = document.createElement('div');
-    stepIndicator.style.width = '30px';
-    stepIndicator.style.height = '30px';
+    stepIndicator.style.width = '50px';
+    stepIndicator.style.height = '50px';
     stepIndicator.style.borderRadius = '50%';
     stepIndicator.style.display = 'flex';
     stepIndicator.style.alignItems = 'center';
     stepIndicator.style.justifyContent = 'center';
-    stepIndicator.style.marginBottom = '8px';
-    stepIndicator.style.transition = 'all 0.3s ease';
+    stepIndicator.style.marginBottom = '10px';
+    stepIndicator.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    stepIndicator.style.cursor = index <= currentStepIndex ? 'pointer' : 'default';
+    stepIndicator.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
     
     if (index < currentStepIndex) {
-      // Completed step
+      // Completed step with checkmark and glow effect
       stepIndicator.style.backgroundColor = 'var(--color-primary)';
-      stepIndicator.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      stepIndicator.style.boxShadow = '0 0 15px rgba(var(--color-primary-rgb), 0.4)';
+      stepIndicator.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      
+      // Allow clicking on previous steps to go back
+      stepIndicator.addEventListener('click', () => {
+        updateOnboardingStep(appState.user.id, step)
+          .then(() => {
+            appState.user.onboardingStep = step;
+            navigateTo('onboarding');
+          })
+          .catch(error => {
+            console.error('Failed to update onboarding step:', error);
+          });
+      });
+      
+      // Add tooltip for revisiting completed steps
+      stepIndicator.title = `Return to ${stepTitles[index]}`;
+      
+      // Add hover effect
+      stepIndicator.addEventListener('mouseover', () => {
+        stepIndicator.style.transform = 'scale(1.1)';
+      });
+      
+      stepIndicator.addEventListener('mouseout', () => {
+        stepIndicator.style.transform = 'scale(1)';
+      });
+      
     } else if (index === currentStepIndex) {
-      // Current step
+      // Current step with pulsing animation
       stepIndicator.style.backgroundColor = 'var(--color-primary)';
       stepIndicator.style.color = 'white';
-      stepIndicator.textContent = (index + 1).toString();
       stepIndicator.style.fontWeight = 'bold';
+      stepIndicator.style.fontSize = '18px';
+      stepIndicator.style.animation = 'pulse 2s infinite';
+      stepIndicator.style.boxShadow = '0 0 20px rgba(var(--color-primary-rgb), 0.5)';
+      stepIndicator.innerHTML = stepIcons[index];
+      
     } else {
-      // Future step
-      stepIndicator.style.backgroundColor = 'white';
+      // Future step with glass-like effect
+      stepIndicator.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+      stepIndicator.style.backdropFilter = 'blur(4px)';
       stepIndicator.style.border = '2px solid var(--color-border)';
       stepIndicator.style.color = 'var(--color-text-secondary)';
-      stepIndicator.textContent = (index + 1).toString();
+      stepIndicator.innerHTML = stepIcons[index];
+      stepIndicator.style.opacity = '0.7';
     }
     
+    // Step title with enhanced styling
     const stepTitle = document.createElement('span');
     stepTitle.textContent = stepTitles[index];
-    stepTitle.style.fontSize = '12px';
-    stepTitle.style.color = index <= currentStepIndex ? 'var(--color-text)' : 'var(--color-text-secondary)';
+    stepTitle.style.fontSize = '13px';
     stepTitle.style.fontWeight = index === currentStepIndex ? 'bold' : 'normal';
+    stepTitle.style.color = index <= currentStepIndex ? 'var(--color-text)' : 'var(--color-text-secondary)';
+    stepTitle.style.textAlign = 'center';
+    stepTitle.style.transition = 'all 0.3s ease';
+    
+    // Animation for current step title
+    if (index === currentStepIndex) {
+      stepTitle.style.transform = 'scale(1.05)';
+    }
     
     stepContainer.appendChild(stepIndicator);
     stepContainer.appendChild(stepTitle);
@@ -140,37 +300,70 @@ export function renderOnboardingPage(appState) {
   header.appendChild(progressContainer);
   container.appendChild(header);
   
-  // Content container
+  // Content container with enhanced styling
   const content = document.createElement('div');
-  content.classList.add('onboarding-content');
+  content.classList.add('onboarding-content', 'animated-element', 'delay-2');
   content.style.backgroundColor = 'white';
-  content.style.borderRadius = '12px';
-  content.style.padding = '40px';
-  content.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.05)';
-  content.style.marginBottom = '24px';
+  content.style.borderRadius = '16px';
+  content.style.padding = '40px 50px';
+  content.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.08)';
+  content.style.marginBottom = '32px';
+  content.style.transition = 'all 0.3s ease';
+  content.style.border = '1px solid rgba(235, 238, 241, 0.8)';
+  content.style.position = 'relative';
+  content.style.overflow = 'hidden';
+  
+  // Add subtle decorative elements
+  const decorElement1 = document.createElement('div');
+  decorElement1.style.position = 'absolute';
+  decorElement1.style.width = '300px';
+  decorElement1.style.height = '300px';
+  decorElement1.style.borderRadius = '50%';
+  decorElement1.style.background = 'radial-gradient(circle, rgba(var(--color-primary-rgb), 0.03) 0%, rgba(var(--color-primary-rgb), 0) 70%)';
+  decorElement1.style.top = '-150px';
+  decorElement1.style.right = '-150px';
+  decorElement1.style.zIndex = '0';
+  content.appendChild(decorElement1);
+  
+  const decorElement2 = document.createElement('div');
+  decorElement2.style.position = 'absolute';
+  decorElement2.style.width = '200px';
+  decorElement2.style.height = '200px';
+  decorElement2.style.borderRadius = '50%';
+  decorElement2.style.background = 'radial-gradient(circle, rgba(var(--color-primary-rgb), 0.03) 0%, rgba(var(--color-primary-rgb), 0) 70%)';
+  decorElement2.style.bottom = '-100px';
+  decorElement2.style.left = '-100px';
+  decorElement2.style.zIndex = '0';
+  content.appendChild(decorElement2);
+  
+  // Create an inner content container to properly layer content above decorative elements
+  const contentInner = document.createElement('div');
+  contentInner.style.position = 'relative';
+  contentInner.style.zIndex = '1';
+  content.appendChild(contentInner);
   
   // Render different content based on current step
   switch (currentStep) {
     case 'welcome':
-      renderWelcomeStep(content, appState);
+      renderWelcomeStep(contentInner, appState);
       break;
     case 'profile':
-      renderProfileStep(content, appState);
+      renderProfileStep(contentInner, appState);
       break;
     case 'financial-goals':
-      renderGoalsStep(content, appState);
+      renderGoalsStep(contentInner, appState);
       break;
     case 'split-ratio':
-      renderSplitRatioStep(content, appState);
+      renderSplitRatioStep(contentInner, appState);
       break;
     case 'tutorial':
-      renderTutorialStep(content, appState);
+      renderTutorialStep(contentInner, appState);
       break;
     case 'complete':
-      renderCompleteStep(content, appState);
+      renderCompleteStep(contentInner, appState);
       break;
     default:
-      renderWelcomeStep(content, appState);
+      renderWelcomeStep(contentInner, appState);
   }
   
   container.appendChild(content);
@@ -178,75 +371,203 @@ export function renderOnboardingPage(appState) {
   return container;
 }
 
-// Welcome step
+// Welcome step with enhanced futuristic styling and animations
 function renderWelcomeStep(container, appState) {
+  // Create a more engaging title with animation
+  const titleWrapper = document.createElement('div');
+  titleWrapper.style.position = 'relative';
+  titleWrapper.style.marginBottom = '24px';
+  titleWrapper.classList.add('animated-element');
+  
   const title = document.createElement('h2');
   title.textContent = 'Welcome to Stackr Finance!';
-  title.style.fontSize = '24px';
-  title.style.fontWeight = 'bold';
+  title.style.fontSize = '32px';
+  title.style.fontWeight = '800';
   title.style.marginBottom = '16px';
-  container.appendChild(title);
+  title.style.background = 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 70%, var(--color-primary) 100%)';
+  title.style.backgroundSize = '200% auto';
+  title.style.WebkitBackgroundClip = 'text';
+  title.style.WebkitTextFillColor = 'transparent';
+  title.style.backgroundClip = 'text';
+  title.style.animation = 'gradientAnimation 6s ease infinite';
+  title.style.textAlign = 'center';
+  title.style.letterSpacing = '-0.5px';
   
+  // Add a decorative line under the title
+  const decorLine = document.createElement('div');
+  decorLine.style.height = '4px';
+  decorLine.style.width = '80px';
+  decorLine.style.background = 'linear-gradient(90deg, var(--color-primary), var(--color-primary-dark))';
+  decorLine.style.borderRadius = '2px';
+  decorLine.style.margin = '0 auto 24px';
+  
+  titleWrapper.appendChild(title);
+  titleWrapper.appendChild(decorLine);
+  container.appendChild(titleWrapper);
+  
+  // Attractive welcome message with better typography
   const description = document.createElement('p');
   description.innerHTML = `We're thrilled to have you join us on your financial journey. Stackr Finance is designed to help service providers and freelancers like you manage your income and build wealth through our unique <strong>40/30/30 Split System</strong>.`;
-  description.style.marginBottom = '24px';
-  description.style.lineHeight = '1.6';
+  description.style.fontSize = '18px';
+  description.style.lineHeight = '1.7';
+  description.style.textAlign = 'center';
+  description.style.maxWidth = '800px';
+  description.style.margin = '0 auto 32px';
+  description.style.color = 'var(--color-text)';
+  description.style.fontWeight = '400';
+  description.classList.add('animated-element');
+  description.classList.add('delay-1');
   container.appendChild(description);
   
-  // Add explanation of the 40/30/30 split
+  // Add enhanced, interactive explanation of the 40/30/30 split
   const splitExplanation = document.createElement('div');
-  splitExplanation.style.backgroundColor = 'var(--color-background-secondary)';
-  splitExplanation.style.padding = '24px';
-  splitExplanation.style.borderRadius = '8px';
-  splitExplanation.style.marginBottom = '32px';
+  splitExplanation.style.backgroundColor = 'rgba(var(--color-background-secondary-rgb), 0.5)';
+  splitExplanation.style.padding = '30px';
+  splitExplanation.style.borderRadius = '16px';
+  splitExplanation.style.marginBottom = '40px';
+  splitExplanation.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.03)';
+  splitExplanation.style.border = '1px solid rgba(235, 238, 241, 0.8)';
+  splitExplanation.style.transition = 'all 0.3s ease';
+  splitExplanation.classList.add('animated-element');
+  splitExplanation.classList.add('delay-2');
+  splitExplanation.classList.add('interactive-split');
   
+  // Add title with a modern look
   const splitTitle = document.createElement('h3');
-  splitTitle.textContent = 'The 40/30/30 Split System';
-  splitTitle.style.fontSize = '18px';
-  splitTitle.style.fontWeight = 'bold';
-  splitTitle.style.marginBottom = '16px';
+  splitTitle.innerHTML = 'The <span style="background: linear-gradient(90deg, var(--color-primary), var(--color-primary-dark)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">40/30/30</span> Split System';
+  splitTitle.style.fontSize = '22px';
+  splitTitle.style.fontWeight = '700';
+  splitTitle.style.marginBottom = '20px';
+  splitTitle.style.textAlign = 'center';
   splitExplanation.appendChild(splitTitle);
   
-  // Split visualization
+  // Add a subtitle that explains the concept
+  const splitSubtitle = document.createElement('p');
+  splitSubtitle.textContent = 'A proven formula for financial success that balances today's necessities with tomorrow's opportunities.';
+  splitSubtitle.style.textAlign = 'center';
+  splitSubtitle.style.marginBottom = '25px';
+  splitSubtitle.style.fontSize = '16px';
+  splitSubtitle.style.color = 'var(--color-text-secondary)';
+  splitExplanation.appendChild(splitSubtitle);
+  
+  // Enhanced split visualization with interactive hover effects
   const splitVisual = document.createElement('div');
   splitVisual.style.display = 'flex';
   splitVisual.style.width = '100%';
-  splitVisual.style.height = '64px';
-  splitVisual.style.borderRadius = '8px';
+  splitVisual.style.height = '80px';
+  splitVisual.style.borderRadius = '12px';
   splitVisual.style.overflow = 'hidden';
-  splitVisual.style.marginBottom = '16px';
+  splitVisual.style.marginBottom = '24px';
+  splitVisual.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
+  splitVisual.style.position = 'relative';
   
-  const needsSegment = document.createElement('div');
-  needsSegment.style.backgroundColor = 'var(--color-needs)';
-  needsSegment.style.width = '40%';
-  needsSegment.style.display = 'flex';
-  needsSegment.style.alignItems = 'center';
-  needsSegment.style.justifyContent = 'center';
-  needsSegment.style.color = 'white';
-  needsSegment.style.fontWeight = 'bold';
-  needsSegment.textContent = '40% Needs';
+  // Create segments with enhanced styling and interactive effects
+  const createSegment = (percentage, label, color, icon, description) => {
+    const segment = document.createElement('div');
+    segment.style.backgroundColor = `var(--color-${color})`;
+    segment.style.width = `${percentage}%`;
+    segment.style.display = 'flex';
+    segment.style.alignItems = 'center';
+    segment.style.justifyContent = 'center';
+    segment.style.color = 'white';
+    segment.style.fontWeight = 'bold';
+    segment.style.fontSize = '16px';
+    segment.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    segment.style.position = 'relative';
+    segment.style.overflow = 'hidden';
+    segment.style.cursor = 'pointer';
+    
+    // Create label with icon
+    const labelContainer = document.createElement('div');
+    labelContainer.style.display = 'flex';
+    labelContainer.style.alignItems = 'center';
+    labelContainer.style.gap = '8px';
+    labelContainer.style.zIndex = '2';
+    
+    labelContainer.innerHTML = `${icon} <span>${percentage}% ${label}</span>`;
+    segment.appendChild(labelContainer);
+    
+    // Add hover effect
+    segment.addEventListener('mouseover', () => {
+      segment.style.transform = 'scale(1.03)';
+      segment.style.boxShadow = '0 0 20px rgba(var(--color-primary-rgb), 0.3)';
+      segment.style.zIndex = '10';
+      
+      // Show tooltip on hover
+      const tooltip = document.createElement('div');
+      tooltip.classList.add('segment-tooltip');
+      tooltip.textContent = description;
+      tooltip.style.position = 'absolute';
+      tooltip.style.bottom = '-60px';
+      tooltip.style.left = '50%';
+      tooltip.style.transform = 'translateX(-50%)';
+      tooltip.style.backgroundColor = 'rgba(40, 44, 52, 0.95)';
+      tooltip.style.color = 'white';
+      tooltip.style.padding = '8px 12px';
+      tooltip.style.borderRadius = '6px';
+      tooltip.style.fontSize = '14px';
+      tooltip.style.zIndex = '100';
+      tooltip.style.whiteSpace = 'nowrap';
+      tooltip.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+      tooltip.style.animation = 'fadeIn 0.2s ease-out forwards';
+      
+      segment.appendChild(tooltip);
+    });
+    
+    segment.addEventListener('mouseout', () => {
+      segment.style.transform = 'scale(1)';
+      segment.style.boxShadow = 'none';
+      segment.style.zIndex = '1';
+      
+      // Remove tooltip
+      const tooltip = segment.querySelector('.segment-tooltip');
+      if (tooltip) {
+        segment.removeChild(tooltip);
+      }
+    });
+    
+    // Decorative background pattern
+    const pattern = document.createElement('div');
+    pattern.style.position = 'absolute';
+    pattern.style.top = '0';
+    pattern.style.left = '0';
+    pattern.style.right = '0';
+    pattern.style.bottom = '0';
+    pattern.style.backgroundImage = `radial-gradient(circle, rgba(255,255,255,0.1) 10%, transparent 10.5%)`;
+    pattern.style.backgroundSize = '20px 20px';
+    pattern.style.opacity = '0.3';
+    segment.appendChild(pattern);
+    
+    return segment;
+  };
+  
+  // Create the three segments with icons and descriptions
+  const needsSegment = createSegment(
+    40, 
+    'Needs', 
+    'needs', 
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
+    'Essential expenses like housing, food, utilities, and transportation'
+  );
+  
+  const investmentsSegment = createSegment(
+    30, 
+    'Investments', 
+    'investments', 
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>',
+    'Building your future through stocks, mutual funds, education, or your business'
+  );
+  
+  const savingsSegment = createSegment(
+    30, 
+    'Savings', 
+    'savings', 
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
+    'Emergency funds, big purchases, and peace of mind'
+  );
+  
   splitVisual.appendChild(needsSegment);
-  
-  const investmentsSegment = document.createElement('div');
-  investmentsSegment.style.backgroundColor = 'var(--color-investments)';
-  investmentsSegment.style.width = '30%';
-  investmentsSegment.style.display = 'flex';
-  investmentsSegment.style.alignItems = 'center';
-  investmentsSegment.style.justifyContent = 'center';
-  investmentsSegment.style.color = 'white';
-  investmentsSegment.style.fontWeight = 'bold';
-  investmentsSegment.textContent = '30% Investments';
   splitVisual.appendChild(investmentsSegment);
-  
-  const savingsSegment = document.createElement('div');
-  savingsSegment.style.backgroundColor = 'var(--color-savings)';
-  savingsSegment.style.width = '30%';
-  savingsSegment.style.display = 'flex';
-  savingsSegment.style.alignItems = 'center';
-  savingsSegment.style.justifyContent = 'center';
-  savingsSegment.style.color = 'white';
-  savingsSegment.style.fontWeight = 'bold';
-  savingsSegment.textContent = '30% Savings';
   splitVisual.appendChild(savingsSegment);
   
   splitExplanation.appendChild(splitVisual);
@@ -285,35 +606,133 @@ function renderWelcomeStep(container, appState) {
   splitExplanation.appendChild(splitDetails);
   container.appendChild(splitExplanation);
   
+  // Enhanced features section with modern card-based layout
+  const featuresSection = document.createElement('div');
+  featuresSection.style.marginBottom = '40px';
+  featuresSection.classList.add('animated-element');
+  featuresSection.classList.add('delay-3');
+  
   const featuresTitle = document.createElement('h3');
-  featuresTitle.textContent = 'What You\'ll Be Able To Do:';
-  featuresTitle.style.fontSize = '18px';
-  featuresTitle.style.fontWeight = 'bold';
-  featuresTitle.style.marginBottom = '16px';
-  container.appendChild(featuresTitle);
+  featuresTitle.innerHTML = 'What You\'ll <span style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Be Able To Do</span>';
+  featuresTitle.style.fontSize = '24px';
+  featuresTitle.style.fontWeight = '700';
+  featuresTitle.style.marginBottom = '24px';
+  featuresTitle.style.textAlign = 'center';
+  featuresSection.appendChild(featuresTitle);
   
-  const featuresList = document.createElement('ul');
-  featuresList.style.paddingLeft = '20px';
-  featuresList.style.marginBottom = '32px';
+  // Create grid layout for features cards
+  const featuresGrid = document.createElement('div');
+  featuresGrid.style.display = 'grid';
+  featuresGrid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(280px, 1fr))';
+  featuresGrid.style.gap = '20px';
+  featuresGrid.style.marginBottom = '20px';
   
+  // Define features with icons and descriptions
   const features = [
-    'Track income and visualize your 40/30/30 split',
-    'Connect your bank accounts for automatic updates',
-    'Set and track financial goals',
-    'Discover new income opportunities through Stackr Gigs',
-    'Get personalized financial advice',
-    'Join money challenges to boost your savings'
+    {
+      title: 'Track Your Income Split',
+      description: 'Visualize your 40/30/30 split and see where your money is going in real-time.',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>'
+    },
+    {
+      title: 'Connect Bank Accounts',
+      description: 'Securely connect your accounts for automatic updates to your financial dashboard.',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line></svg>'
+    },
+    {
+      title: 'Set Financial Goals',
+      description: 'Create and track your short, medium, and long-term financial goals with ease.',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l2 2"></path></svg>'
+    },
+    {
+      title: 'Discover Income Opportunities',
+      description: 'Find new ways to earn through Stackr Gigs, tailored for service providers like you.',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>'
+    },
+    {
+      title: 'Get Financial Advice',
+      description: 'Receive personalized financial insights and recommendations based on your goals.',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+    },
+    {
+      title: 'Join Money Challenges',
+      description: 'Participate in fun, motivating challenges designed to help you save more.',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>'
+    }
   ];
   
-  features.forEach(feature => {
-    const featureItem = document.createElement('li');
-    featureItem.textContent = feature;
-    featureItem.style.marginBottom = '8px';
-    featureItem.style.lineHeight = '1.5';
-    featuresList.appendChild(featureItem);
+  // Create feature cards with hover effects
+  features.forEach((feature, index) => {
+    const featureCard = document.createElement('div');
+    featureCard.style.backgroundColor = 'white';
+    featureCard.style.borderRadius = '12px';
+    featureCard.style.padding = '24px';
+    featureCard.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.05)';
+    featureCard.style.transition = 'all 0.3s ease';
+    featureCard.style.cursor = 'pointer';
+    featureCard.style.border = '1px solid rgba(235, 238, 241, 0.8)';
+    featureCard.style.height = '100%';
+    featureCard.style.display = 'flex';
+    featureCard.style.flexDirection = 'column';
+    featureCard.classList.add('animated-element');
+    featureCard.classList.add(`delay-${index % 3 + 1}`);
+    
+    // Icon container with colored background
+    const iconContainer = document.createElement('div');
+    iconContainer.style.width = '48px';
+    iconContainer.style.height = '48px';
+    iconContainer.style.borderRadius = '50%';
+    iconContainer.style.backgroundColor = 'rgba(var(--color-primary-rgb), 0.1)';
+    iconContainer.style.display = 'flex';
+    iconContainer.style.alignItems = 'center';
+    iconContainer.style.justifyContent = 'center';
+    iconContainer.style.marginBottom = '16px';
+    iconContainer.style.color = 'var(--color-primary)';
+    iconContainer.style.transition = 'all 0.3s ease';
+    iconContainer.innerHTML = feature.icon;
+    
+    // Feature title
+    const featureTitle = document.createElement('h4');
+    featureTitle.textContent = feature.title;
+    featureTitle.style.fontSize = '18px';
+    featureTitle.style.fontWeight = '600';
+    featureTitle.style.marginBottom = '8px';
+    featureTitle.style.color = 'var(--color-text)';
+    
+    // Feature description
+    const featureDescription = document.createElement('p');
+    featureDescription.textContent = feature.description;
+    featureDescription.style.fontSize = '14px';
+    featureDescription.style.color = 'var(--color-text-secondary)';
+    featureDescription.style.lineHeight = '1.5';
+    featureDescription.style.marginBottom = '0';
+    featureDescription.style.flex = '1';
+    
+    // Append elements to card
+    featureCard.appendChild(iconContainer);
+    featureCard.appendChild(featureTitle);
+    featureCard.appendChild(featureDescription);
+    
+    // Add hover effect
+    featureCard.addEventListener('mouseover', () => {
+      featureCard.style.transform = 'translateY(-5px)';
+      featureCard.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.1)';
+      iconContainer.style.backgroundColor = 'var(--color-primary)';
+      iconContainer.style.color = 'white';
+    });
+    
+    featureCard.addEventListener('mouseout', () => {
+      featureCard.style.transform = 'translateY(0)';
+      featureCard.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.05)';
+      iconContainer.style.backgroundColor = 'rgba(var(--color-primary-rgb), 0.1)';
+      iconContainer.style.color = 'var(--color-primary)';
+    });
+    
+    featuresGrid.appendChild(featureCard);
   });
   
-  container.appendChild(featuresList);
+  featuresSection.appendChild(featuresGrid);
+  container.appendChild(featuresSection);
   
   // Button container
   const buttonContainer = document.createElement('div');
