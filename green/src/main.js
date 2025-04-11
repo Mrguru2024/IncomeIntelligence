@@ -2244,6 +2244,17 @@ function renderPageContent(container) {
           container.appendChild(createErrorMessage('Failed to load financial wellness module'));
         });
         break;
+        
+      case 'moneymentor':
+        // Import the Money Mentor page module
+        import('../money-mentor.js').then(module => {
+          const mentorPage = module.renderMoneyMentorPage(appState.user.id);
+          container.appendChild(mentorPage);
+        }).catch(error => {
+          console.error('Error loading money mentor module:', error);
+          container.appendChild(createErrorMessage('Failed to load Money Mentor. Please check your API keys and try again.'));
+        });
+        break;
       case 'challenges':
         // Import the Savings Challenges page module
         import('../challenges-page.js').then(module => {
