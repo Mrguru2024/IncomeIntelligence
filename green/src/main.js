@@ -184,7 +184,8 @@ function saveStateToStorage() {
 }
 
 // Router function
-function navigateTo(page) {
+// Make navigateTo function accessible globally
+window.navigateTo = function(page) {
   appState.currentPage = page;
   renderApp();
   // Update URL without page reload
@@ -2299,12 +2300,24 @@ function renderApp() {
       navigateTo('login');
       return; // Stop rendering protected page
     }
+  } else {
+    // If authenticated but onboarding not completed, redirect to onboarding
+    // Exception: user is already on the onboarding page
+    if (appState.currentPage !== 'onboarding' && 
+        (!appState.user.onboardingCompleted && 
+         (!appState.user.onboardingStep || 
+          appState.user.onboardingStep !== 'complete'))) {
+      console.log('Onboarding not completed, redirecting to onboarding page');
+      navigateTo('onboarding');
+      return; // Stop rendering protected page
+    }
   }
   
-  // For auth and landing pages, use simple layout without sidebar
+  // For auth, landing, and onboarding pages, use simple layout without sidebar
   if (appState.currentPage === 'login' || 
       appState.currentPage === 'register' || 
-      appState.currentPage === 'landing') {
+      appState.currentPage === 'landing' ||
+      appState.currentPage === 'onboarding') {
       
     // Create simple app container
     const simpleContainer = document.createElement('div');

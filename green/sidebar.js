@@ -3,7 +3,13 @@
  * This file handles the sidebar navigation UI and functionality
  */
 
-import { navigateTo } from './src/main.js';
+// Export navigateTo function so it can be used externally
+export function navigateTo(page) {
+  // If window is available, this will be imported and used by the src/main.js
+  if (typeof window !== 'undefined' && window.navigateTo) {
+    window.navigateTo(page);
+  }
+}
 
 // Create sidebar navigation element
 export function createSidebar(appState) {
