@@ -17,6 +17,7 @@ import { MoreVertical, Edit2, Trash2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import ExpensePriorityTags from "./ExpensePriorityTags";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,9 +41,7 @@ export default function ExpensesList({ expenses }: ExpensesListProps) {
   // Delete expense mutation
   const { mutate: deleteExpense } = useMutation({
     mutationFn: (id: number) =>
-      apiRequest(`/api/expenses/${id}`, {
-        method: "DELETE",
-      }),
+      apiRequest("DELETE", `/api/expenses/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       toast({
@@ -161,11 +160,14 @@ export default function ExpensesList({ expenses }: ExpensesListProps) {
                           {expense.paymentMethod}
                           {expense.location && ` · ${expense.location}`}
                         </div>
-                        {expense.isRecurring && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 mt-1">
-                            Recurring {expense.recurringPeriod}
-                          </span>
-                        )}
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {expense.isRecurring && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                              Recurring {expense.recurringPeriod}
+                            </span>
+                          )}
+                          <ExpensePriorityTags categoryId={expense.category} />
+                        </div>
                       </div>
                       <div className="flex items-start">
                         <span className="font-semibold text-lg text-gray-900">
