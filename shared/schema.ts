@@ -399,6 +399,69 @@ export const userAffiliates = pgTable("user_affiliates", {
   notes: text("notes"),
 });
 
+// Discount Codes Schema
+export const discountCodes = pgTable("discount_codes", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  type: text("type").notNull(), // 'percentage', 'fixed', 'free_months'
+  value: numeric("value").notNull(), // Percentage or fixed amount
+  maxUses: integer("max_uses"), // Maximum number of times this code can be used
+  currentUses: integer("current_uses").default(0),
+  validFrom: timestamp("valid_from").notNull().defaultNow(),
+  validUntil: timestamp("valid_until"),
+  isActive: boolean("is_active").notNull().default(true),
+  description: text("description"),
+  createdBy: integer("created_by"), // Admin or user who created the code
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  applicablePlans: json("applicable_plans"), // Array of plan IDs this code can be applied to
+  referralBased: boolean("referral_based").default(false), // Is this a referral-generated code?
+  referrerId: integer("referrer_id"), // User who referred and gets credit
+  minimumSubscriptionMonths: integer("minimum_subscription_months").default(1),
+});
+
+export const insertDiscountCodeSchema = createInsertSchema(discountCodes).pick({
+  code: true,
+  type: true,
+  value: true,
+  maxUses: true,
+  validFrom: true,
+  validUntil: true,
+  isActive: true,
+  description: true,
+  createdBy: true,
+  applicablePlans: true,
+  referralBased: true,
+  referrerId: true,
+  minimumSubscriptionMonths: true,
+});
+
+export type InsertDiscountCode = z.infer<typeof insertDiscountCodeSchema>;
+export type DiscountCode = typeof discountCodes.$inferSelect;
+
+// Discount Code Usage Schema (tracks which users have used which codes)
+export const discountCodeUsage = pgTable("discount_code_usage", {
+  id: serial("id").primaryKey(),
+  codeId: integer("code_id").notNull(),
+  userId: integer("user_id").notNull(),
+  appliedToOrder: text("applied_to_order"),
+  usedAt: timestamp("used_at").notNull().defaultNow(),
+  discountAmount: numeric("discount_amount").notNull(), // The actual discount amount applied
+  planId: text("plan_id").notNull(), // Which plan this was applied to
+  referrerId: integer("referrer_id"), // If referral-based, the user who gets credit
+});
+
+export const insertDiscountCodeUsageSchema = createInsertSchema(discountCodeUsage).pick({
+  codeId: true,
+  userId: true,
+  appliedToOrder: true,
+  discountAmount: true,
+  planId: true,
+  referrerId: true,
+});
+
+export type InsertDiscountCodeUsage = z.infer<typeof insertDiscountCodeUsageSchema>;
+export type DiscountCodeUsage = typeof discountCodeUsage.$inferSelect;
+
 export const insertUserAffiliateSchema = createInsertSchema(userAffiliates).pick({
   userId: true,
   programId: true,
