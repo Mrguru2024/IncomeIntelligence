@@ -152,6 +152,18 @@ function createNavbar() {
       a.style.color = '#333';
     });
     
+    // Add click event for smooth scrolling
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetId = link.href.split('#')[1];
+      const targetElement = document.getElementById(targetId);
+      
+      if (targetElement) {
+        // Smooth scroll to target section
+        targetElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+    
     navLinks.appendChild(a);
   });
   
