@@ -2262,6 +2262,15 @@ function renderPageContent(container) {
           container.appendChild(createErrorMessage('Failed to load savings challenges module'));
         });
         break;
+      case 'subscriptionsniper':
+        // Import the subscription sniper page module
+        import('../subscription-sniper.js').then(module => {
+          container.appendChild(module.renderSubscriptionSniperPage(appState.user.id));
+        }).catch(error => {
+          console.error('Error loading subscription sniper module:', error);
+          container.appendChild(createErrorMessage('Failed to load subscription sniper module'));
+        });
+        break;
       case 'bankconnections':
         // Import the bank connections page module if needed
         import('../bank-connections.js').then(module => {
