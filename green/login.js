@@ -256,6 +256,21 @@ function renderLoginForm() {
   emailInput.required = true;
   emailInput.style.width = '100%';
   
+  // Prevent automatic keyboard closing on mobile
+  emailInput.addEventListener('focus', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  
+  emailInput.addEventListener('blur', (e) => {
+    if (e.relatedTarget && 
+        (e.relatedTarget.tagName === 'BUTTON' || 
+         e.relatedTarget.tagName === 'INPUT')) {
+      // Don't blur if user is moving to another form element
+      return;
+    }
+  });
+  
   // Responsive input padding based on screen size
   if (isExtraSmallMobile) {
     emailInput.style.padding = '8px 10px'; // Extra small screens (folded)
@@ -294,6 +309,21 @@ function renderLoginForm() {
   passwordInput.placeholder = 'Enter your password';
   passwordInput.required = true;
   passwordInput.style.width = '100%';
+  
+  // Prevent automatic keyboard closing on mobile
+  passwordInput.addEventListener('focus', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  
+  passwordInput.addEventListener('blur', (e) => {
+    if (e.relatedTarget && 
+        (e.relatedTarget.tagName === 'BUTTON' || 
+         e.relatedTarget.tagName === 'INPUT')) {
+      // Don't blur if user is moving to another form element
+      return;
+    }
+  });
   
   // Responsive input padding based on screen size
   if (isExtraSmallMobile) {
@@ -394,12 +424,22 @@ function renderLoginForm() {
   switchLink.style.color = 'var(--color-primary)';
   switchLink.onclick = (e) => {
     e.preventDefault();
-    const authContainer = document.querySelector('.auth-container');
-    if (authContainer) {
-      const registerForm = renderRegisterForm();
-      authContainer.innerHTML = '';
-      authContainer.appendChild(registerForm);
+    e.stopPropagation();
+    
+    // Blur any focused element to ensure keyboard closes properly
+    if (document.activeElement) {
+      document.activeElement.blur();
     }
+    
+    // Switch forms after a small delay to prevent keyboard issues
+    setTimeout(() => {
+      const authContainer = document.querySelector('.auth-container');
+      if (authContainer) {
+        const registerForm = renderRegisterForm();
+        authContainer.innerHTML = '';
+        authContainer.appendChild(registerForm);
+      }
+    }, 50);
   };
   
   switchText.appendChild(document.createTextNode("Don't have an account? "));
@@ -500,6 +540,21 @@ function renderRegisterForm() {
   usernameInput.required = true;
   usernameInput.style.width = '100%';
   
+  // Prevent automatic keyboard closing on mobile
+  usernameInput.addEventListener('focus', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  
+  usernameInput.addEventListener('blur', (e) => {
+    if (e.relatedTarget && 
+        (e.relatedTarget.tagName === 'BUTTON' || 
+         e.relatedTarget.tagName === 'INPUT')) {
+      // Don't blur if user is moving to another form element
+      return;
+    }
+  });
+  
   // Responsive input padding based on screen size
   if (isExtraSmallMobile) {
     usernameInput.style.padding = '8px 10px'; // Extra small screens (folded)
@@ -539,6 +594,21 @@ function renderRegisterForm() {
   emailInput.required = true;
   emailInput.style.width = '100%';
   
+  // Prevent automatic keyboard closing on mobile
+  emailInput.addEventListener('focus', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  
+  emailInput.addEventListener('blur', (e) => {
+    if (e.relatedTarget && 
+        (e.relatedTarget.tagName === 'BUTTON' || 
+         e.relatedTarget.tagName === 'INPUT')) {
+      // Don't blur if user is moving to another form element
+      return;
+    }
+  });
+  
   // Responsive input padding based on screen size
   if (isExtraSmallMobile) {
     emailInput.style.padding = '8px 10px'; // Extra small screens (folded)
@@ -577,6 +647,21 @@ function renderRegisterForm() {
   passwordInput.placeholder = 'Choose a password';
   passwordInput.required = true;
   passwordInput.style.width = '100%';
+  
+  // Prevent automatic keyboard closing on mobile
+  passwordInput.addEventListener('focus', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  
+  passwordInput.addEventListener('blur', (e) => {
+    if (e.relatedTarget && 
+        (e.relatedTarget.tagName === 'BUTTON' || 
+         e.relatedTarget.tagName === 'INPUT')) {
+      // Don't blur if user is moving to another form element
+      return;
+    }
+  });
   
   // Responsive input padding based on screen size
   if (isExtraSmallMobile) {
@@ -680,12 +765,22 @@ function renderRegisterForm() {
   switchLink.style.color = 'var(--color-primary)';
   switchLink.onclick = (e) => {
     e.preventDefault();
-    const authContainer = document.querySelector('.auth-container');
-    if (authContainer) {
-      const loginForm = renderLoginForm();
-      authContainer.innerHTML = '';
-      authContainer.appendChild(loginForm);
+    e.stopPropagation();
+    
+    // Blur any focused element to ensure keyboard closes properly
+    if (document.activeElement) {
+      document.activeElement.blur();
     }
+    
+    // Switch forms after a small delay to prevent keyboard issues
+    setTimeout(() => {
+      const authContainer = document.querySelector('.auth-container');
+      if (authContainer) {
+        const loginForm = renderLoginForm();
+        authContainer.innerHTML = '';
+        authContainer.appendChild(loginForm);
+      }
+    }, 50);
   };
   
   switchText.appendChild(document.createTextNode("Already have an account? "));
