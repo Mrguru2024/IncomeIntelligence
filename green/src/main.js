@@ -134,7 +134,7 @@ function checkAuthentication() {
       }
     } else {
       // If the user is trying to access a protected route, redirect to login
-      const nonAuthRoutes = ['login', 'register', 'about', 'pricing'];
+      const nonAuthRoutes = ['login', 'register', 'about', 'pricing', 'landing'];
       if (!nonAuthRoutes.includes(appState.currentPage)) {
         console.log('User not authenticated, redirecting to login page');
         navigateTo('login');
