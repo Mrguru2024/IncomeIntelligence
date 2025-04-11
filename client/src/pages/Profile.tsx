@@ -36,8 +36,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { occupationTypes, financialHealthStatuses } from "@shared/schema";
 import SmartRulesEngine from "@/components/SmartRulesEngine"; //Import added here
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 
 // Form validation schema
 const profileFormSchema = z.object({
@@ -394,29 +394,41 @@ export default function Profile() {
         className="space-y-6"
       >
         <div className="overflow-x-auto horizontal-scroll w-full px-2 xxs:px-3 pb-1 xxs:pb-2">
-          <TabsList className="horizontal-scroll scrollbar-none flex pb-1 gap-2 p-1 mb-2 sm:mb-6 bg-card/50 rounded-lg min-w-[300px] xxs:min-w-[380px] sm:min-w-0 w-full">
-            <TabsTrigger value="personal" className="flex-shrink-0 px-3 py-1.5">
-              <i className="fas fa-user mr-2 hidden sm:inline-block" />
-              <span className="whitespace-nowrap">Personal Info</span>
+          <TabsList className="horizontal-scroll scrollbar-none flex pb-1 gap-2 p-1 mb-2 sm:mb-6 bg-card/50 rounded-lg min-w-[300px] xxs:min-w-[480px] sm:min-w-0 w-full">
+            <TabsTrigger value="personal" className="flex-shrink-0 px-2 py-1.5">
+              <svg className="w-4 h-4 mr-1.5 hidden sm:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <span className="whitespace-nowrap">Personal</span>
             </TabsTrigger>
-            <TabsTrigger value="business" className="flex-shrink-0 px-3 py-1.5">
-              <i className="fas fa-briefcase mr-2 hidden sm:inline-block" />
-              <span className="whitespace-nowrap">Business Details</span>
+            <TabsTrigger value="business" className="flex-shrink-0 px-2 py-1.5">
+              <svg className="w-4 h-4 mr-1.5 hidden sm:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+              <span className="whitespace-nowrap">Business</span>
             </TabsTrigger>
             <TabsTrigger
               value="financial"
-              className="flex-shrink-0 px-3 py-1.5"
+              className="flex-shrink-0 px-2 py-1.5"
             >
-              <i className="fas fa-chart-line mr-2 hidden sm:inline-block" />
+              <svg className="w-4 h-4 mr-1.5 hidden sm:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
               <span className="whitespace-nowrap">Financial</span>
             </TabsTrigger>
-            <TabsTrigger value="widget" className="flex-shrink-0 px-3 py-1.5">
-              <i className="fas fa-window-maximize mr-2 hidden sm:inline-block" />
-              <span className="whitespace-nowrap">Widget</span>
+            <TabsTrigger value="lifestyle" className="flex-shrink-0 px-2 py-1.5">
+              <svg className="w-4 h-4 mr-1.5 hidden sm:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 22v-5l5-5 5 5-5 5z"></path><path d="M9.5 14.5 16 8"></path><path d="M17 2v5l-5 5-5-5 5-5z"></path></svg>
+              <span className="whitespace-nowrap">Lifestyle</span>
             </TabsTrigger>
-            <TabsTrigger value="account" className="flex-shrink-0 px-3 py-1.5">
-              <i className="fas fa-cog mr-2 hidden sm:inline-block" />
-              <span className="whitespace-nowrap">Account</span>
+            <TabsTrigger value="goals" className="flex-shrink-0 px-2 py-1.5">
+              <svg className="w-4 h-4 mr-1.5 hidden sm:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+              <span className="whitespace-nowrap">Goals</span>
+            </TabsTrigger>
+            <TabsTrigger value="strengths" className="flex-shrink-0 px-2 py-1.5">
+              <svg className="w-4 h-4 mr-1.5 hidden sm:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+              <span className="whitespace-nowrap">Strengths</span>
+            </TabsTrigger>
+            <TabsTrigger value="painpoints" className="flex-shrink-0 px-2 py-1.5">
+              <svg className="w-4 h-4 mr-1.5 hidden sm:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.6 2a13.93 13.93 0 0 0-2.5.63A13.95 13.95 0 0 1 12 22.5a13.95 13.95 0 0 1 5.9-19.87A13.93 13.93 0 0 0 15.4 2c-1.2-.08-2.2-.13-3.4-.13-1.2 0-2.2.05-3.4.13Z"></path><path d="M6.3 4.3a9.6 9.6 0 0 0-2 1.5 10 10 0 0 0 5.24 17.53 10 10 0 0 0 8.9-5.33"></path></svg>
+              <span className="whitespace-nowrap">Pain Points</span>
+            </TabsTrigger>
+            <TabsTrigger value="widget" className="flex-shrink-0 px-2 py-1.5">
+              <svg className="w-4 h-4 mr-1.5 hidden sm:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" x2="16" y1="21" y2="21"></line><line x1="12" x2="12" y1="17" y2="21"></line></svg>
+              <span className="whitespace-nowrap">Widget</span>
             </TabsTrigger>
           </TabsList>
         </div>
@@ -1098,6 +1110,475 @@ export default function Profile() {
                   <Button variant="destructive">Delete Account</Button>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Lifestyle Tab */}
+        <TabsContent value="lifestyle">
+          <Card>
+            <CardHeader>
+              <CardTitle>Lifestyle Information</CardTitle>
+              <CardDescription>
+                Tell us about your lifestyle to get better personalized advice
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <Form {...profileForm}>
+                <form
+                  onSubmit={profileForm.handleSubmit(onProfileSubmit)}
+                  className="space-y-6"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={profileForm.control}
+                      name="lifestyleType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Lifestyle Type</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value || undefined}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select your lifestyle" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="urban">Urban</SelectItem>
+                              <SelectItem value="suburban">Suburban</SelectItem>
+                              <SelectItem value="rural">Rural</SelectItem>
+                              <SelectItem value="nomadic">Nomadic/Travel Frequently</SelectItem>
+                              <SelectItem value="minimalist">Minimalist</SelectItem>
+                              <SelectItem value="luxury">Luxury</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={profileForm.control}
+                      name="livingArrangement"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Living Arrangement</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value || undefined}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select your living arrangement" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="rent">Renting</SelectItem>
+                              <SelectItem value="own">Homeowner</SelectItem>
+                              <SelectItem value="mortgage">Mortgage</SelectItem>
+                              <SelectItem value="shared">Shared Housing</SelectItem>
+                              <SelectItem value="family">Living with Family</SelectItem>
+                              <SelectItem value="van">Van/RV Life</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={profileForm.control}
+                      name="transportationMethod"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Primary Transportation</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value || undefined}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="How do you typically get around?" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="car">Personal Car</SelectItem>
+                              <SelectItem value="public">Public Transportation</SelectItem>
+                              <SelectItem value="rideshare">Rideshare Services</SelectItem>
+                              <SelectItem value="bike">Bicycle</SelectItem>
+                              <SelectItem value="walk">Walking</SelectItem>
+                              <SelectItem value="workVehicle">Work Vehicle</SelectItem>
+                              <SelectItem value="mix">Mixed Methods</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={profileForm.control}
+                      name="familySize"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Household Size</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              min="1" 
+                              placeholder="Number of people in household" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={profileForm.control}
+                      name="hasChildren"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel>Do you have children?</FormLabel>
+                            <FormDescription>
+                              This helps us tailor financial advice to your family situation
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    {profileForm.watch("hasChildren") && (
+                      <FormField
+                        control={profileForm.control}
+                        name="numberOfChildren"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Number of Children</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                min="0" 
+                                placeholder="How many children do you have?" 
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex gap-4 justify-end">
+                    <Button
+                      type="submit"
+                      disabled={updateProfileMutation.isPending}
+                    >
+                      {updateProfileMutation.isPending
+                        ? "Saving..."
+                        : "Save Changes"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Goals Tab */}
+        <TabsContent value="goals">
+          <Card>
+            <CardHeader>
+              <CardTitle>Goals & Aspirations</CardTitle>
+              <CardDescription>
+                Define your short, medium, and long-term goals
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <Form {...profileForm}>
+                <form
+                  onSubmit={profileForm.handleSubmit(onProfileSubmit)}
+                  className="space-y-6"
+                >
+                  <FormField
+                    control={profileForm.control}
+                    name="shortTermGoals"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Short-Term Goals (0-2 years)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="What do you want to accomplish in the next two years?"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Examples: Building emergency fund, paying off credit card, upgrading equipment
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={profileForm.control}
+                    name="mediumTermGoals"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Medium-Term Goals (2-5 years)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="What are your goals for the next 2-5 years?"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Examples: Growing business, buying property, education funding
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={profileForm.control}
+                    name="longTermGoals"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Long-Term Goals (5+ years)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="What are your long-term aspirations?"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Examples: Retirement planning, business succession, legacy goals
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex gap-4 justify-end">
+                    <Button
+                      type="submit"
+                      disabled={updateProfileMutation.isPending}
+                    >
+                      {updateProfileMutation.isPending
+                        ? "Saving..."
+                        : "Save Changes"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Strengths Tab */}
+        <TabsContent value="strengths">
+          <Card>
+            <CardHeader>
+              <CardTitle>Strengths & Skills</CardTitle>
+              <CardDescription>
+                Identify your financial strengths and valuable skills
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <Form {...profileForm}>
+                <form
+                  onSubmit={profileForm.handleSubmit(onProfileSubmit)}
+                  className="space-y-6"
+                >
+                  <FormField
+                    control={profileForm.control}
+                    name="financialStrengths"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Financial Strengths</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="What are your financial strong points?"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Examples: Good at saving, debt management, finding deals, steady income
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={profileForm.control}
+                    name="skillsAndExpertise"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Skills & Expertise</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="What skills do you have that could generate income?"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          List skills that could be monetized or help you save money
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={profileForm.control}
+                    name="financialWeaknesses"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Areas for Improvement</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="What financial areas would you like to improve?"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Examples: Budgeting discipline, investing knowledge, pricing services
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex gap-4 justify-end">
+                    <Button
+                      type="submit"
+                      disabled={updateProfileMutation.isPending}
+                    >
+                      {updateProfileMutation.isPending
+                        ? "Saving..."
+                        : "Save Changes"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Pain Points Tab */}
+        <TabsContent value="painpoints">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pain Points & Challenges</CardTitle>
+              <CardDescription>
+                Share your financial challenges so we can help address them
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <Form {...profileForm}>
+                <form
+                  onSubmit={profileForm.handleSubmit(onProfileSubmit)}
+                  className="space-y-6"
+                >
+                  <FormField
+                    control={profileForm.control}
+                    name="financialPainPoints"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Financial Pain Points</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="What are your biggest financial challenges?"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Examples: Inconsistent income, debt burden, high expenses
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={profileForm.control}
+                    name="stressFactors"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Financial Stress Factors</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="What causes you the most financial stress?"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          What aspects of your finances keep you up at night?
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={profileForm.control}
+                    name="improvementAreas"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Priority Improvement Areas</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Which financial areas would you most like help with?"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          What areas would make the biggest positive impact if improved?
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex gap-4 justify-end">
+                    <Button
+                      type="submit"
+                      disabled={updateProfileMutation.isPending}
+                    >
+                      {updateProfileMutation.isPending
+                        ? "Saving..."
+                        : "Save Changes"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </TabsContent>
