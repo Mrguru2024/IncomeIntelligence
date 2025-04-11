@@ -239,24 +239,28 @@ function renderLoginForm() {
   const formContainer = document.createElement('div');
   formContainer.classList.add('login-form-container');
   
-  // Add Google OAuth button directly to the container (outside the form)
-  const googleLoginButton = document.createElement('button');
-  googleLoginButton.type = 'button';
-  googleLoginButton.className = 'google-login-btn';
-  googleLoginButton.style.display = 'flex';
-  googleLoginButton.style.alignItems = 'center';
-  googleLoginButton.style.justifyContent = 'center';
-  googleLoginButton.style.width = '100%';
-  googleLoginButton.style.padding = '12px';
-  googleLoginButton.style.margin = '0 0 16px 0';
-  googleLoginButton.style.backgroundColor = 'white';
-  googleLoginButton.style.border = '1px solid #dadce0';
-  googleLoginButton.style.borderRadius = '8px';
-  googleLoginButton.style.cursor = 'pointer';
-  googleLoginButton.style.fontWeight = '500';
-  googleLoginButton.style.color = '#333333';
-  googleLoginButton.style.fontSize = '16px';
-  googleLoginButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+  // Create outer container to hold both Google button and form
+  const outerContainer = document.createElement('div');
+  outerContainer.style.width = '100%';
+  
+  // Add Google OAuth button
+  const googleButton = document.createElement('button');
+  googleButton.type = 'button';
+  googleButton.className = 'google-login-btn';
+  googleButton.style.display = 'flex';
+  googleButton.style.alignItems = 'center';
+  googleButton.style.justifyContent = 'center';
+  googleButton.style.width = '100%';
+  googleButton.style.padding = '12px';
+  googleButton.style.margin = '0 0 16px 0';
+  googleButton.style.backgroundColor = 'white';
+  googleButton.style.border = '1px solid #dadce0';
+  googleButton.style.borderRadius = '8px';
+  googleButton.style.cursor = 'pointer';
+  googleButton.style.fontWeight = '500';
+  googleButton.style.color = '#333333';
+  googleButton.style.fontSize = '16px';
+  googleButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
   
   // Google icon
   const googleIcon = document.createElement('span');
@@ -268,54 +272,54 @@ function renderLoginForm() {
   </svg>`;
   googleIcon.style.marginRight = '10px';
   
-  googleLoginButton.appendChild(googleIcon);
-  googleLoginButton.appendChild(document.createTextNode('Sign in with Google'));
+  googleButton.appendChild(googleIcon);
+  googleButton.appendChild(document.createTextNode('Sign in with Google'));
   
-  googleLoginButton.onclick = (e) => {
+  googleButton.onclick = (e) => {
     e.preventDefault();
     handleGoogleLogin();
   };
   
   // Add hover effect
-  googleLoginButton.onmouseover = () => {
-    googleLoginButton.style.backgroundColor = '#f5f5f5';
-    googleLoginButton.style.boxShadow = '0 1px 5px rgba(0,0,0,0.15)';
+  googleButton.onmouseover = () => {
+    googleButton.style.backgroundColor = '#f5f5f5';
+    googleButton.style.boxShadow = '0 1px 5px rgba(0,0,0,0.15)';
   };
-  googleLoginButton.onmouseout = () => {
-    googleLoginButton.style.backgroundColor = 'white';
-    googleLoginButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+  googleButton.onmouseout = () => {
+    googleButton.style.backgroundColor = 'white';
+    googleButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
   };
   
   // Add or text divider
-  const dividerContainer = document.createElement('div');
-  dividerContainer.style.display = 'flex';
-  dividerContainer.style.alignItems = 'center';
-  dividerContainer.style.margin = '0 0 16px 0';
+  const divider = document.createElement('div');
+  divider.style.display = 'flex';
+  divider.style.alignItems = 'center';
+  divider.style.margin = '0 0 16px 0';
   
-  const leftLine = document.createElement('div');
-  leftLine.style.flex = '1';
-  leftLine.style.height = '1px';
-  leftLine.style.backgroundColor = '#dadce0';
+  const leftDiv = document.createElement('div');
+  leftDiv.style.flex = '1';
+  leftDiv.style.height = '1px';
+  leftDiv.style.backgroundColor = '#dadce0';
   
-  const orText = document.createElement('span');
-  orText.textContent = 'OR';
-  orText.style.margin = '0 10px';
-  orText.style.color = '#666';
-  orText.style.fontSize = '14px';
+  const orSpan = document.createElement('span');
+  orSpan.textContent = 'OR';
+  orSpan.style.margin = '0 10px';
+  orSpan.style.color = '#666';
+  orSpan.style.fontSize = '14px';
   
-  const rightLine = document.createElement('div');
-  rightLine.style.flex = '1';
-  rightLine.style.height = '1px';
-  rightLine.style.backgroundColor = '#dadce0';
+  const rightDiv = document.createElement('div');
+  rightDiv.style.flex = '1';
+  rightDiv.style.height = '1px';
+  rightDiv.style.backgroundColor = '#dadce0';
   
-  dividerContainer.appendChild(leftLine);
-  dividerContainer.appendChild(orText);
-  dividerContainer.appendChild(rightLine);
+  divider.appendChild(leftDiv);
+  divider.appendChild(orSpan);
+  divider.appendChild(rightDiv);
   
-  // Add them to container
-  formContainer.appendChild(googleLoginButton);
-  formContainer.appendChild(dividerContainer);
+  outerContainer.appendChild(googleButton);
+  outerContainer.appendChild(divider);
   
+  // Create login form
   const formEl = document.createElement('form');
   formEl.classList.add('login-form');
   formEl.style.backgroundColor = 'white';
@@ -569,88 +573,6 @@ function renderLoginForm() {
   
   formEl.appendChild(submitButton);
   
-  // Add separator with "or"
-  const separatorContainer = document.createElement('div');
-  separatorContainer.style.display = 'flex';
-  separatorContainer.style.alignItems = 'center';
-  separatorContainer.style.margin = '20px 0';
-  
-  const leftLine = document.createElement('div');
-  leftLine.style.flex = '1';
-  leftLine.style.height = '1px';
-  leftLine.style.backgroundColor = 'var(--color-border)';
-  
-  const orText = document.createElement('span');
-  orText.textContent = 'OR';
-  orText.style.margin = '0 10px';
-  orText.style.color = '#666';
-  orText.style.fontSize = '14px';
-  
-  const rightLine = document.createElement('div');
-  rightLine.style.flex = '1';
-  rightLine.style.height = '1px';
-  rightLine.style.backgroundColor = 'var(--color-border)';
-  
-  separatorContainer.appendChild(leftLine);
-  separatorContainer.appendChild(orText);
-  separatorContainer.appendChild(rightLine);
-  formEl.appendChild(separatorContainer);
-  
-  // Google login button
-  const googleButton = document.createElement('button');
-  googleButton.type = 'button'; // Not submit
-  googleButton.className = 'google-login-btn';
-  googleButton.style.width = '100%';
-  googleButton.style.display = 'flex';
-  googleButton.style.alignItems = 'center';
-  googleButton.style.justifyContent = 'center';
-  googleButton.style.backgroundColor = 'white';
-  googleButton.style.border = '1px solid var(--color-border)';
-  googleButton.style.borderRadius = isSmallMobile ? '6px' : '8px';
-  googleButton.style.padding = isExtraSmallMobile ? '8px' : '10px';
-  googleButton.style.marginBottom = '20px';
-  googleButton.style.cursor = 'pointer';
-  googleButton.style.transition = 'all 0.2s ease';
-  
-  // Google icon
-  const googleIcon = document.createElement('span');
-  googleIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-  </svg>`;
-  googleIcon.style.marginRight = '10px';
-  
-  const googleText = document.createElement('span');
-  googleText.textContent = 'Sign in with Google';
-  googleText.style.fontWeight = '500';
-  googleText.style.color = '#333333';
-  
-  googleButton.appendChild(googleIcon);
-  googleButton.appendChild(googleText);
-  
-  // Add hover effect
-  googleButton.onmouseover = () => {
-    googleButton.style.backgroundColor = '#f5f5f5';
-    googleButton.style.transform = 'translateY(-1px)';
-    googleButton.style.boxShadow = '0 1px 5px rgba(0, 0, 0, 0.05)';
-  };
-  googleButton.onmouseout = () => {
-    googleButton.style.backgroundColor = 'white';
-    googleButton.style.transform = 'translateY(0)';
-    googleButton.style.boxShadow = 'none';
-  };
-  
-  // Handle Google sign in click
-  googleButton.onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleGoogleLogin();
-  };
-  
-  formEl.appendChild(googleButton);
-  
   // Switch to register link
   const switchText = document.createElement('p');
   switchText.style.textAlign = 'center';
@@ -696,7 +618,10 @@ function renderLoginForm() {
   switchText.appendChild(switchLink);
   formEl.appendChild(switchText);
   
-  formContainer.appendChild(formEl);
+  // Append form to the container
+  outerContainer.appendChild(formEl);
+  formContainer.appendChild(outerContainer);
+  
   return formContainer;
 }
 
@@ -711,83 +636,87 @@ function renderRegisterForm() {
   const formContainer = document.createElement('div');
   formContainer.classList.add('register-form-container');
   
-  // Add Google OAuth button directly to the container (outside the form)
-  const googleLoginButton = document.createElement('button');
-  googleLoginButton.type = 'button';
-  googleLoginButton.className = 'google-login-btn';
-  googleLoginButton.style.display = 'flex';
-  googleLoginButton.style.alignItems = 'center';
-  googleLoginButton.style.justifyContent = 'center';
-  googleLoginButton.style.width = '100%';
-  googleLoginButton.style.padding = '12px';
-  googleLoginButton.style.margin = '0 0 16px 0';
-  googleLoginButton.style.backgroundColor = 'white';
-  googleLoginButton.style.border = '1px solid #dadce0';
-  googleLoginButton.style.borderRadius = '8px';
-  googleLoginButton.style.cursor = 'pointer';
-  googleLoginButton.style.fontWeight = '500';
-  googleLoginButton.style.color = '#333333';
-  googleLoginButton.style.fontSize = '16px';
-  googleLoginButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+  // Create outer container to hold both Google button and form
+  const outerContainer = document.createElement('div');
+  outerContainer.style.width = '100%';
+  
+  // Add Google OAuth button
+  const googleButton = document.createElement('button');
+  googleButton.type = 'button';
+  googleButton.className = 'google-register-btn';
+  googleButton.style.display = 'flex';
+  googleButton.style.alignItems = 'center';
+  googleButton.style.justifyContent = 'center';
+  googleButton.style.width = '100%';
+  googleButton.style.padding = '12px';
+  googleButton.style.margin = '0 0 16px 0';
+  googleButton.style.backgroundColor = 'white';
+  googleButton.style.border = '1px solid #dadce0';
+  googleButton.style.borderRadius = '8px';
+  googleButton.style.cursor = 'pointer';
+  googleButton.style.fontWeight = '500';
+  googleButton.style.color = '#333333';
+  googleButton.style.fontSize = '16px';
+  googleButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
   
   // Google icon
-  const googleIcon = document.createElement('span');
-  googleIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+  const googleIconRegister = document.createElement('span');
+  googleIconRegister.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
     <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
     <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
     <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
     <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
   </svg>`;
-  googleIcon.style.marginRight = '10px';
+  googleIconRegister.style.marginRight = '10px';
   
-  googleLoginButton.appendChild(googleIcon);
-  googleLoginButton.appendChild(document.createTextNode('Sign up with Google'));
+  googleButton.appendChild(googleIconRegister);
+  googleButton.appendChild(document.createTextNode('Sign up with Google'));
   
-  googleLoginButton.onclick = (e) => {
+  googleButton.onclick = (e) => {
     e.preventDefault();
     handleGoogleLogin();
   };
   
   // Add hover effect
-  googleLoginButton.onmouseover = () => {
-    googleLoginButton.style.backgroundColor = '#f5f5f5';
-    googleLoginButton.style.boxShadow = '0 1px 5px rgba(0,0,0,0.15)';
+  googleButton.onmouseover = () => {
+    googleButton.style.backgroundColor = '#f5f5f5';
+    googleButton.style.boxShadow = '0 1px 5px rgba(0,0,0,0.15)';
   };
-  googleLoginButton.onmouseout = () => {
-    googleLoginButton.style.backgroundColor = 'white';
-    googleLoginButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+  googleButton.onmouseout = () => {
+    googleButton.style.backgroundColor = 'white';
+    googleButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
   };
   
   // Add or text divider
-  const dividerContainer = document.createElement('div');
-  dividerContainer.style.display = 'flex';
-  dividerContainer.style.alignItems = 'center';
-  dividerContainer.style.margin = '0 0 16px 0';
+  const dividerRegister = document.createElement('div');
+  dividerRegister.style.display = 'flex';
+  dividerRegister.style.alignItems = 'center';
+  dividerRegister.style.margin = '0 0 16px 0';
   
-  const leftLine = document.createElement('div');
-  leftLine.style.flex = '1';
-  leftLine.style.height = '1px';
-  leftLine.style.backgroundColor = '#dadce0';
+  const leftDivRegister = document.createElement('div');
+  leftDivRegister.style.flex = '1';
+  leftDivRegister.style.height = '1px';
+  leftDivRegister.style.backgroundColor = '#dadce0';
   
-  const orText = document.createElement('span');
-  orText.textContent = 'OR';
-  orText.style.margin = '0 10px';
-  orText.style.color = '#666';
-  orText.style.fontSize = '14px';
+  const orSpanRegister = document.createElement('span');
+  orSpanRegister.textContent = 'OR';
+  orSpanRegister.style.margin = '0 10px';
+  orSpanRegister.style.color = '#666';
+  orSpanRegister.style.fontSize = '14px';
   
-  const rightLine = document.createElement('div');
-  rightLine.style.flex = '1';
-  rightLine.style.height = '1px';
-  rightLine.style.backgroundColor = '#dadce0';
+  const rightDivRegister = document.createElement('div');
+  rightDivRegister.style.flex = '1';
+  rightDivRegister.style.height = '1px';
+  rightDivRegister.style.backgroundColor = '#dadce0';
   
-  dividerContainer.appendChild(leftLine);
-  dividerContainer.appendChild(orText);
-  dividerContainer.appendChild(rightLine);
+  dividerRegister.appendChild(leftDivRegister);
+  dividerRegister.appendChild(orSpanRegister);
+  dividerRegister.appendChild(rightDivRegister);
   
-  // Add them to container
-  formContainer.appendChild(googleLoginButton);
-  formContainer.appendChild(dividerContainer);
+  outerContainer.appendChild(googleButton);
+  outerContainer.appendChild(dividerRegister);
   
+  // Create registration form
   const formEl = document.createElement('form');
   formEl.classList.add('register-form');
   formEl.style.backgroundColor = 'white';
@@ -1098,88 +1027,6 @@ function renderRegisterForm() {
   
   formEl.appendChild(submitButton);
   
-  // Add separator with "or"
-  const separatorContainer = document.createElement('div');
-  separatorContainer.style.display = 'flex';
-  separatorContainer.style.alignItems = 'center';
-  separatorContainer.style.margin = '20px 0';
-  
-  const leftLine = document.createElement('div');
-  leftLine.style.flex = '1';
-  leftLine.style.height = '1px';
-  leftLine.style.backgroundColor = 'var(--color-border)';
-  
-  const orText = document.createElement('span');
-  orText.textContent = 'OR';
-  orText.style.margin = '0 10px';
-  orText.style.color = '#666';
-  orText.style.fontSize = '14px';
-  
-  const rightLine = document.createElement('div');
-  rightLine.style.flex = '1';
-  rightLine.style.height = '1px';
-  rightLine.style.backgroundColor = 'var(--color-border)';
-  
-  separatorContainer.appendChild(leftLine);
-  separatorContainer.appendChild(orText);
-  separatorContainer.appendChild(rightLine);
-  formEl.appendChild(separatorContainer);
-  
-  // Google signup button
-  const googleButton = document.createElement('button');
-  googleButton.type = 'button'; // Not submit
-  googleButton.className = 'google-login-btn';
-  googleButton.style.width = '100%';
-  googleButton.style.display = 'flex';
-  googleButton.style.alignItems = 'center';
-  googleButton.style.justifyContent = 'center';
-  googleButton.style.backgroundColor = 'white';
-  googleButton.style.border = '1px solid var(--color-border)';
-  googleButton.style.borderRadius = isSmallMobile ? '6px' : '8px';
-  googleButton.style.padding = isExtraSmallMobile ? '8px' : '10px';
-  googleButton.style.marginBottom = '20px';
-  googleButton.style.cursor = 'pointer';
-  googleButton.style.transition = 'all 0.2s ease';
-  
-  // Google icon
-  const googleIcon = document.createElement('span');
-  googleIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-  </svg>`;
-  googleIcon.style.marginRight = '10px';
-  
-  const googleText = document.createElement('span');
-  googleText.textContent = 'Sign up with Google';
-  googleText.style.fontWeight = '500';
-  googleText.style.color = '#333333';
-  
-  googleButton.appendChild(googleIcon);
-  googleButton.appendChild(googleText);
-  
-  // Add hover effect
-  googleButton.onmouseover = () => {
-    googleButton.style.backgroundColor = '#f5f5f5';
-    googleButton.style.transform = 'translateY(-1px)';
-    googleButton.style.boxShadow = '0 1px 5px rgba(0, 0, 0, 0.05)';
-  };
-  googleButton.onmouseout = () => {
-    googleButton.style.backgroundColor = 'white';
-    googleButton.style.transform = 'translateY(0)';
-    googleButton.style.boxShadow = 'none';
-  };
-  
-  // Handle Google sign in click
-  googleButton.onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleGoogleLogin(); // Reuse the same function as login
-  };
-  
-  formEl.appendChild(googleButton);
-  
   // Switch to login link
   const switchText = document.createElement('p');
   switchText.style.textAlign = 'center';
@@ -1225,7 +1072,10 @@ function renderRegisterForm() {
   switchText.appendChild(switchLink);
   formEl.appendChild(switchText);
   
-  formContainer.appendChild(formEl);
+  // Append form to the container
+  outerContainer.appendChild(formEl);
+  formContainer.appendChild(outerContainer);
+  
   return formContainer;
 }
 
@@ -1580,171 +1430,76 @@ export function renderAuthPage() {
     }
     
     /* Form elements styling */
-    .auth-form-col, 
-    .auth-form-col div,
-    .login-form-container, 
-    .register-form-container,
-    .login-form, 
-    .register-form {
-      background-color: white !important;
-      color: #333333 !important;
+    .auth-form-col button {
+      cursor: pointer;
     }
     
-    .auth-form-col input[type="text"], 
-    .auth-form-col input[type="password"], 
-    .auth-form-col input[type="email"] {
-      color: #333333 !important;
-      background-color: white !important;
+    .login-form, .register-form {
+      width: 100%;
     }
     
-    .auth-form-col input::placeholder {
-      color: #888888 !important;
-      opacity: 1;
+    .form-group label {
+      user-select: none;
     }
     
-    .auth-form-col label {
-      color: #333333 !important;
-    }
-    
-    /* Error styling */
-    .login-error, .register-error {
-      color: #e53e3e !important;
-      background-color: #fed7d7 !important;
-    }
-    
-    /* Text elements */
-    .auth-form-col p,
-    .auth-form-col span,
-    .auth-form-col h1,
-    .auth-form-col h2,
-    .auth-form-col h3,
-    .auth-form-col h4,
-    .auth-form-col h5,
-    .auth-form-col h6 {
-      color: #333333 !important;
-    }
-    
-    /* Links */
-    .auth-form-col a {
-      color: var(--color-primary) !important;
-      text-decoration: none;
-    }
-    
-    .auth-form-col a:hover {
-      text-decoration: underline;
-    }
-    
-    /* Hero section text should be dark too */
-    .auth-hero, 
-    .auth-hero div, 
-    .auth-hero p, 
-    .auth-hero h1, 
-    .auth-hero h2, 
-    .auth-hero h3, 
-    .auth-hero span, 
-    .auth-hero li {
-      color: #333333 !important;
-    }
-    
-    /* Buttons text should be white */
-    .btn-primary {
-      color: white !important;
-    }
-    
-    /* Spinner */
+    /* Add styling for the spinner animation */
     .spinner {
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,0.3);
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      border: 2px solid rgba(255, 255, 255, 0.3);
       border-radius: 50%;
-      border-top-color: white;
+      border-top-color: #fff;
       animation: spin 1s ease-in-out infinite;
       margin-right: 8px;
-      display: inline-block;
     }
     
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    
+    /* Improve focus styles for accessibility */
+    input:focus, button:focus {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+    
+    /* Google button styles */
+    .google-login-btn, .google-register-btn {
+      color: #333333 !important;
+    }
   `;
-  document.head.appendChild(styleEl);
+  
+  container.appendChild(styleEl);
   
   return container;
 }
 
-// Function to log out the user
-export function logout() {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Call the logout API
-      // Get token from either localStorage or sessionStorage
-      const token = localStorage.getItem('stackrToken') || sessionStorage.getItem('stackrToken');
-      
-      const response = await fetch('/api/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      // Clear both localStorage and sessionStorage regardless of API response
-      localStorage.removeItem('stackrToken');
-      localStorage.removeItem('stackrUser');
-      sessionStorage.removeItem('stackrToken');
-      sessionStorage.removeItem('stackrUser');
-      
-      // Redirect to login page
-      window.location.href = '#login';
-      
-      // If the page doesn't reload automatically (e.g., in a SPA), 
-      // we trigger a reload to ensure all app state is cleared
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
-      
-      resolve();
-    } catch (error) {
-      console.error('Logout error:', error);
-      
-      // Even if there's an error, still clear the storage
-      localStorage.removeItem('stackrToken');
-      localStorage.removeItem('stackrUser');
-      sessionStorage.removeItem('stackrToken');
-      sessionStorage.removeItem('stackrUser');
-      
-      reject(error);
-    }
-  });
-}
-
-// Function to check if user is authenticated
-export function isAuthenticated() {
-  // Check both localStorage and sessionStorage
-  const localToken = localStorage.getItem('stackrToken');
-  const sessionToken = sessionStorage.getItem('stackrToken');
+// Function to log a user out
+export async function logout() {
+  // Clear auth data from all storage locations
+  localStorage.removeItem('stackrToken');
+  localStorage.removeItem('stackrUser');
+  sessionStorage.removeItem('stackrToken');
+  sessionStorage.removeItem('stackrUser');
   
-  return !!localToken || !!sessionToken;
+  // Also remove legacy auth data if it exists
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+  sessionStorage.removeItem('user');
+  sessionStorage.removeItem('token');
+  
+  console.log('User logged out successfully');
+  
+  // Redirect to home/landing page
+  window.location.href = '#login';
 }
 
-// Function to get current user data
-export function getCurrentUser() {
-  try {
-    // Try localStorage first
-    const localUserData = localStorage.getItem('stackrUser');
-    if (localUserData) {
-      return JSON.parse(localUserData);
-    }
-    
-    // Then try sessionStorage
-    const sessionUserData = sessionStorage.getItem('stackrUser');
-    if (sessionUserData) {
-      return JSON.parse(sessionUserData);
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
-  }
-}
+// Export functions for use in other modules
+export {
+  handleGoogleLogin,
+  handleLogin,
+  handleRegister,
+  renderLoginForm,
+  renderRegisterForm
+};
