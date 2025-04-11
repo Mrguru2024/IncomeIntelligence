@@ -2328,6 +2328,42 @@ function renderPageContent(container) {
         container.appendChild(renderDashboardPage());
     }
   }
+  
+  // Initialize financial mascot for authenticated users on relevant pages
+  if (appState.user.isAuthenticated && 
+      !['login', 'register', 'landing'].includes(appState.currentPage)) {
+    
+    // Add a delayed initialization of the mascot
+    setTimeout(() => {
+      // Only add if not already initialized
+      if (!appState.financialMascot) {
+        initFinancialMascot();
+      } else {
+        // Update mascot category based on current page
+        const pageToCategory = {
+          'dashboard': 'budgeting',
+          'income': 'income', 
+          'expenses': 'budgeting',
+          'savings': 'saving',
+          'investments': 'investing',
+          'moneymentor': 'psychology',
+          'subscriptionsniper': 'budgeting',
+          'savingschallenges': 'saving',
+          'wellnessscorecard': 'psychology',
+          'debt': 'debt'
+        };
+        
+        if (pageToCategory[appState.currentPage]) {
+          appState.financialMascot.currentTipCategory = pageToCategory[appState.currentPage];
+          
+          // Show a tip after page loads
+          setTimeout(() => {
+            appState.financialMascot.showNextTip();
+          }, 1000);
+        }
+      }
+    }, 1500); // Delay to allow page content to load first
+  }
 }
 
 // Main render function with the new sidebar layout
