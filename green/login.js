@@ -1507,6 +1507,42 @@ export async function logout() {
 }
 
 // Export functions for use in other modules
+/**
+ * Check if the user is authenticated
+ * @returns {boolean} Whether the user is authenticated
+ */
+export function isAuthenticated() {
+  // Check for auth token in localStorage or sessionStorage
+  const hasLocalToken = localStorage.getItem('stackrToken') !== null;
+  const hasSessionToken = sessionStorage.getItem('stackrToken') !== null;
+  
+  return hasLocalToken || hasSessionToken;
+}
+
+/**
+ * Get the current user data
+ * @returns {object|null} The current user data or null if not logged in
+ */
+export function getCurrentUser() {
+  // Check localStorage first, then sessionStorage
+  let userData = localStorage.getItem('stackrUser');
+  
+  if (!userData) {
+    userData = sessionStorage.getItem('stackrUser');
+  }
+  
+  if (userData) {
+    try {
+      return JSON.parse(userData);
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      return null;
+    }
+  }
+  
+  return null;
+}
+
 export {
   handleGoogleLogin,
   handleLogin,
