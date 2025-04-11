@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/use-auth";
+import StackrLogo from "@/components/StackrLogo";
 
 interface SidebarProps {
   mobileMenuOpen: boolean;
@@ -326,10 +327,7 @@ export default function Sidebar({
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-opacity-100 bg-[var(--card-background)] border-r border-border min-h-screen">
         <div className="p-6 border-b border-border">
-          <h1 className="text-2xl font-semibold text-foreground">Stackr</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            40/30/30 Income Manager
-          </p>
+          <StackrLogo />
         </div>
         <nav className="flex-1 p-4">
           <ul className="space-y-1">
@@ -407,14 +405,7 @@ export default function Sidebar({
         aria-label="Mobile navigation"
       >
         <div className="p-3 xxs:p-4 xs:p-6 border-b border-border flex justify-between items-center">
-          <div>
-            <h1 className="text-xl xxs:text-2xl font-semibold text-foreground">
-              Stackr
-            </h1>
-            <p className="text-xs xxs:text-sm text-muted-foreground mt-1">
-              40/30/30 Income Manager
-            </p>
-          </div>
+          <StackrLogo className="scale-90" />
           <button
             onClick={closeMobileMenu}
             className="text-foreground p-1.5 xxs:p-2 rounded-full hover:bg-muted-background flex items-center justify-center cursor-pointer touch-manipulation"
