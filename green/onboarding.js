@@ -2336,7 +2336,7 @@ function renderCompleteStep(container, appState) {
 
 // Helper functions
 
-// Create a form group
+// Create a form group with appropriate autocomplete attributes
 function createFormGroup(id, label, type, value, placeholder = '') {
   const group = document.createElement('div');
   group.classList.add('form-group');
@@ -2360,6 +2360,80 @@ function createFormGroup(id, label, type, value, placeholder = '') {
   input.style.borderRadius = '8px';
   input.style.border = '1px solid var(--color-border)';
   input.style.fontSize = '16px';
+  
+  // Add autocomplete attributes based on input ID and type
+  switch(id) {
+    case 'firstName':
+      input.autocomplete = 'given-name';
+      break;
+    case 'lastName':
+      input.autocomplete = 'family-name';
+      break;
+    case 'email':
+      input.autocomplete = 'email';
+      break;
+    case 'username':
+      input.autocomplete = 'username';
+      break;
+    case 'password':
+      input.autocomplete = 'current-password';
+      break;
+    case 'occupation':
+      input.autocomplete = 'organization-title';
+      break;
+    case 'about':
+      input.autocomplete = 'off'; // Biographical info doesn't need autocomplete
+      break;
+    case 'shortTermGoal':
+    case 'midTermGoal':
+    case 'longTermGoal':
+      input.autocomplete = 'off'; // Goals are custom inputs
+      break;
+    case 'shortTermAmount':
+    case 'midTermAmount':
+    case 'longTermAmount':
+      input.autocomplete = 'off'; // Amounts are custom inputs
+      input.inputMode = 'decimal'; // Help mobile users with numeric input
+      if (type === 'number') {
+        input.step = '0.01'; // Allow decimal amounts for currency
+      }
+      break;
+    default:
+      // For other numeric fields, add numeric input attributes
+      if (type === 'number') {
+        input.inputMode = 'decimal';
+        input.step = '0.01';
+        input.autocomplete = 'off';
+      } else if (type === 'tel') {
+        input.autocomplete = 'tel';
+        input.inputMode = 'tel';
+      } else if (type === 'date') {
+        input.autocomplete = 'off';
+      } else {
+        input.autocomplete = 'on'; // Default to on for other fields
+      }
+  }
+  
+  // Add data list for occupation if applicable
+  if (id === 'occupation') {
+    const dataList = document.createElement('datalist');
+    dataList.id = `${id}-options`;
+    
+    const commonOccupations = [
+      'Software Developer', 'Designer', 'Marketer', 'Freelancer', 
+      'Teacher', 'Student', 'Business Owner', 'Consultant',
+      'Writer', 'Artist', 'Engineer', 'Financial Advisor'
+    ];
+    
+    commonOccupations.forEach(occupation => {
+      const option = document.createElement('option');
+      option.value = occupation;
+      dataList.appendChild(option);
+    });
+    
+    input.setAttribute('list', dataList.id);
+    group.appendChild(dataList);
+  }
   
   group.appendChild(labelEl);
   group.appendChild(input);
