@@ -579,8 +579,8 @@ export function renderAuthPage() {
   heroCol.style.alignItems = 'flex-start';
   heroCol.style.padding = '40px';
   heroCol.style.width = '50%';
-  heroCol.style.background = 'var(--color-primary-gradient)';
-  heroCol.style.color = 'white';
+  heroCol.style.background = 'white';
+  heroCol.style.color = '#333333';
   
   // Add branding and hero content
   const logo = document.createElement('div');
@@ -752,7 +752,7 @@ export function renderAuthPage() {
       text-decoration: underline;
     }
     
-    /* Hero section text should remain white */
+    /* Hero section text should be dark too */
     .auth-hero, 
     .auth-hero div, 
     .auth-hero p, 
@@ -761,7 +761,7 @@ export function renderAuthPage() {
     .auth-hero h3, 
     .auth-hero span, 
     .auth-hero li {
-      color: white !important;
+      color: #333333 !important;
     }
     
     /* Buttons text should be white */
