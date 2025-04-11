@@ -25,7 +25,9 @@ import StackrGigs from "@/pages/income/StackrGigs";
 import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import AppTutorial from "@/components/AppTutorial";
+import AdminTutorial from "@/components/AdminTutorial";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect } from "react";
 import { ProtectedRoute } from "./lib/protected-route";
 import { Icons } from "@/components/ui/icons";
@@ -157,6 +159,7 @@ function App() {
           </div>
           <VoiceCommandWidget />
           <AppTutorial />
+          <AdminTutorial />
         </div>
       )}
     </>
