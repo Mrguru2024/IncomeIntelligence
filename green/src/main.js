@@ -126,8 +126,17 @@ function checkAuthentication() {
         appState.user.email = userData.email || '';
         appState.user.role = userData.role || 'user';
         appState.user.subscriptionStatus = userData.subscriptionStatus || 'free';
+        appState.user.onboardingCompleted = userData.onboardingCompleted || false;
+        appState.user.onboardingStep = userData.onboardingStep || 'welcome';
         
         console.log('User authenticated:', userData.username);
+        
+        // Check if onboarding is completed
+        if (!userData.onboardingCompleted && appState.currentPage !== 'onboarding') {
+          console.log('Onboarding not completed, redirecting to onboarding page');
+          navigateTo('onboarding');
+          return;
+        }
         
         // Re-render the app with authenticated user data
         renderApp();
