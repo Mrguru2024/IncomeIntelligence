@@ -31,7 +31,10 @@ import {
   insertReferralSchema,
   insertProfessionalServiceSchema,
   InsertUserAffiliate,
-  insertAffiliateProgramSchema
+  insertAffiliateProgramSchema,
+  insertDiscountCodeSchema,
+  insertDiscountCodeUsageSchema,
+  subscriptionPlans
 } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -3828,6 +3831,147 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DISCOUNT CODE SYSTEM
+  
+  // Get all valid discount codes (admin only)
+  app.get("/api/discount-codes", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      // Placeholder - would need to implement storage method
+      res.json([]);
+    } catch (error) {
+      console.error('Error getting discount codes:', error);
+      res.status(500).json({ message: 'Failed to get discount codes' });
+    }
+  });
+  
+  // Create new discount code (admin only)
+  app.post("/api/discount-codes", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertDiscountCodeSchema.parse(req.body);
+      
+      // Placeholder - would need to implement storage method
+      res.status(201).json({ id: 1, ...validatedData });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error creating discount code:', error);
+      res.status(500).json({ message: 'Failed to create discount code' });
+    }
+  });
+  
+  // Update discount code (admin only)
+  app.patch("/api/discount-codes/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid discount code ID' });
+      }
+      
+      const validatedData = insertDiscountCodeSchema.partial().parse(req.body);
+      
+      // Placeholder - would need to implement storage method
+      res.status(404).json({ message: 'Discount code not found' });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error('Error updating discount code:', error);
+      res.status(500).json({ message: 'Failed to update discount code' });
+    }
+  });
+  
+  // Validate discount code
+  app.get("/api/validate-discount/:code", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { code } = req.params;
+      const { planId } = req.query;
+      
+      if (!code) {
+        return res.status(400).json({ message: 'Discount code is required' });
+      }
+      
+      if (!planId) {
+        return res.status(400).json({ message: 'Plan ID is required' });
+      }
+      
+      // Placeholder - would need to implement storage method
+      const plan = subscriptionPlans.find(p => p.id === planId);
+      if (!plan) {
+        return res.status(400).json({ message: 'Invalid plan ID' });
+      }
+      
+      // Mock successful validation
+      res.json({
+        valid: true,
+        code: {
+          id: 1,
+          code: code,
+          type: 'percentage',
+          value: 20,
+          description: 'Test discount code',
+          maxUses: 100,
+          currentUses: 5
+        },
+        message: 'Valid discount code'
+      });
+    } catch (error) {
+      console.error('Error validating discount code:', error);
+      res.status(500).json({ message: 'Failed to validate discount code' });
+    }
+  });
+  
+  // Apply discount code to purchase
+  app.post("/api/apply-discount", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { code, planId, orderId } = req.body;
+      
+      if (!code || !planId) {
+        return res.status(400).json({ message: 'Discount code and plan ID are required' });
+      }
+      
+      // Placeholder - would need to implement storage method
+      const plan = subscriptionPlans.find(p => p.id === planId);
+      if (!plan) {
+        return res.status(400).json({ message: 'Invalid plan ID' });
+      }
+      
+      // Mock successful discount application
+      const discountCode = {
+        id: 1,
+        code: code,
+        type: 'percentage',
+        value: 20,
+        description: 'Test discount code'
+      };
+      
+      // Calculate discount amount (20% off)
+      const discountAmount = (Number(plan.price) * 20) / 100;
+      
+      res.json({
+        success: true,
+        discountCode,
+        discountAmount,
+        finalPrice: Math.max(0, Number(plan.price) - discountAmount)
+      });
+    } catch (error) {
+      console.error('Error applying discount code:', error);
+      res.status(500).json({ message: 'Failed to apply discount code' });
+    }
+  });
+  
   // REFERRAL SYSTEM
   
   // Get user's referrals

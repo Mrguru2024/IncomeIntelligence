@@ -269,35 +269,45 @@ const SubscriptionPage = () => {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:space-y-0">
-          {subscription?.tier === "free" ? (
+          <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2 w-full">
             <Button
-              variant="default"
-              onClick={() => navigate("/subscribe")}
-              className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white"
+              variant="outline"
+              onClick={() => navigate("/subscription-benefits")}
+              className="w-full sm:w-auto"
             >
-              Upgrade to Pro
+              View Subscription Benefits
             </Button>
-          ) : (
-            <>
-              {subscription?.active ? (
-                <Button
-                  variant="outline"
-                  onClick={() => setCancelDialogOpen(true)}
-                  className="w-full sm:w-auto"
-                >
-                  Cancel Subscription
-                </Button>
-              ) : (
-                <Button
-                  variant="default"
-                  onClick={() => navigate("/subscribe")}
-                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white"
-                >
-                  Renew Subscription
-                </Button>
-              )}
-            </>
-          )}
+            
+            {subscription?.tier === "free" ? (
+              <Button
+                variant="default"
+                onClick={() => navigate("/subscribe")}
+                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white"
+              >
+                Upgrade to Pro
+              </Button>
+            ) : (
+              <>
+                {subscription?.active ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => setCancelDialogOpen(true)}
+                    className="w-full sm:w-auto"
+                  >
+                    Cancel Subscription
+                  </Button>
+                ) : (
+                  <Button
+                    variant="default"
+                    onClick={() => navigate("/subscribe")}
+                    className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white"
+                  >
+                    Renew Subscription
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
         </CardFooter>
       </Card>
 

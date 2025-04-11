@@ -16,6 +16,7 @@ import OnboardingPage from "@/pages/onboarding-page";
 import TwoFactorAuthPage from "@/pages/TwoFactorAuthPage";
 import SubscribePage from "@/pages/subscribe-page";
 import SubscriptionPage from "@/pages/subscription-page";
+import SubscriptionBenefits from "@/pages/SubscriptionBenefits";
 import CheckoutPage from "@/pages/checkout-page";
 import CheckoutSuccessPage from "@/pages/checkout-success";
 import IncomeHub from "@/pages/IncomeHub";
@@ -48,6 +49,7 @@ function Router() {
       <ProtectedRoute path="/onboarding" component={OnboardingPage} />
       <ProtectedRoute path="/subscribe-page" component={SubscribePage} />
       <ProtectedRoute path="/subscription" component={SubscriptionPage} />
+      <ProtectedRoute path="/subscription-benefits" component={SubscriptionBenefits} />
       <ProtectedRoute path="/checkout-page" component={CheckoutPage} />
       <ProtectedRoute path="/checkout-success" component={CheckoutSuccessPage} />
       <ProtectedRoute path="/income-hub" component={IncomeHub} />
