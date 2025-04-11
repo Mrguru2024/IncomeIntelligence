@@ -492,6 +492,88 @@ function renderLoginForm() {
   
   formEl.appendChild(submitButton);
   
+  // Add separator with "or"
+  const separatorContainer = document.createElement('div');
+  separatorContainer.style.display = 'flex';
+  separatorContainer.style.alignItems = 'center';
+  separatorContainer.style.margin = '20px 0';
+  
+  const leftLine = document.createElement('div');
+  leftLine.style.flex = '1';
+  leftLine.style.height = '1px';
+  leftLine.style.backgroundColor = 'var(--color-border)';
+  
+  const orText = document.createElement('span');
+  orText.textContent = 'OR';
+  orText.style.margin = '0 10px';
+  orText.style.color = '#666';
+  orText.style.fontSize = '14px';
+  
+  const rightLine = document.createElement('div');
+  rightLine.style.flex = '1';
+  rightLine.style.height = '1px';
+  rightLine.style.backgroundColor = 'var(--color-border)';
+  
+  separatorContainer.appendChild(leftLine);
+  separatorContainer.appendChild(orText);
+  separatorContainer.appendChild(rightLine);
+  formEl.appendChild(separatorContainer);
+  
+  // Google login button
+  const googleButton = document.createElement('button');
+  googleButton.type = 'button'; // Not submit
+  googleButton.className = 'google-login-btn';
+  googleButton.style.width = '100%';
+  googleButton.style.display = 'flex';
+  googleButton.style.alignItems = 'center';
+  googleButton.style.justifyContent = 'center';
+  googleButton.style.backgroundColor = 'white';
+  googleButton.style.border = '1px solid var(--color-border)';
+  googleButton.style.borderRadius = isSmallMobile ? '6px' : '8px';
+  googleButton.style.padding = isExtraSmallMobile ? '8px' : '10px';
+  googleButton.style.marginBottom = '20px';
+  googleButton.style.cursor = 'pointer';
+  googleButton.style.transition = 'all 0.2s ease';
+  
+  // Google icon
+  const googleIcon = document.createElement('span');
+  googleIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+  </svg>`;
+  googleIcon.style.marginRight = '10px';
+  
+  const googleText = document.createElement('span');
+  googleText.textContent = 'Sign in with Google';
+  googleText.style.fontWeight = '500';
+  googleText.style.color = '#333333';
+  
+  googleButton.appendChild(googleIcon);
+  googleButton.appendChild(googleText);
+  
+  // Add hover effect
+  googleButton.onmouseover = () => {
+    googleButton.style.backgroundColor = '#f5f5f5';
+    googleButton.style.transform = 'translateY(-1px)';
+    googleButton.style.boxShadow = '0 1px 5px rgba(0, 0, 0, 0.05)';
+  };
+  googleButton.onmouseout = () => {
+    googleButton.style.backgroundColor = 'white';
+    googleButton.style.transform = 'translateY(0)';
+    googleButton.style.boxShadow = 'none';
+  };
+  
+  // Handle Google sign in click
+  googleButton.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleGoogleLogin();
+  };
+  
+  formEl.appendChild(googleButton);
+  
   // Switch to register link
   const switchText = document.createElement('p');
   switchText.style.textAlign = 'center';
@@ -506,20 +588,31 @@ function renderLoginForm() {
     e.preventDefault();
     e.stopPropagation();
     
-    // Blur any focused element to ensure keyboard closes properly
-    if (document.activeElement) {
-      document.activeElement.blur();
-    }
-    
-    // Switch forms after a small delay to prevent keyboard issues
-    setTimeout(() => {
-      const authContainer = document.querySelector('.auth-container');
-      if (authContainer) {
-        const registerForm = renderRegisterForm();
-        authContainer.innerHTML = '';
-        authContainer.appendChild(registerForm);
+    // For mobile: don't blur immediately to prevent keyboard issues
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      setTimeout(() => {
+        const authContainer = document.querySelector('.auth-container');
+        if (authContainer) {
+          const registerForm = renderRegisterForm();
+          authContainer.innerHTML = '';
+          authContainer.appendChild(registerForm);
+        }
+      }, 10);
+    } else {
+      // Desktop approach
+      if (document.activeElement) {
+        document.activeElement.blur();
       }
-    }, 50);
+      
+      setTimeout(() => {
+        const authContainer = document.querySelector('.auth-container');
+        if (authContainer) {
+          const registerForm = renderRegisterForm();
+          authContainer.innerHTML = '';
+          authContainer.appendChild(registerForm);
+        }
+      }, 50);
+    }
   };
   
   switchText.appendChild(document.createTextNode("Don't have an account? "));
@@ -851,6 +944,88 @@ function renderRegisterForm() {
   
   formEl.appendChild(submitButton);
   
+  // Add separator with "or"
+  const separatorContainer = document.createElement('div');
+  separatorContainer.style.display = 'flex';
+  separatorContainer.style.alignItems = 'center';
+  separatorContainer.style.margin = '20px 0';
+  
+  const leftLine = document.createElement('div');
+  leftLine.style.flex = '1';
+  leftLine.style.height = '1px';
+  leftLine.style.backgroundColor = 'var(--color-border)';
+  
+  const orText = document.createElement('span');
+  orText.textContent = 'OR';
+  orText.style.margin = '0 10px';
+  orText.style.color = '#666';
+  orText.style.fontSize = '14px';
+  
+  const rightLine = document.createElement('div');
+  rightLine.style.flex = '1';
+  rightLine.style.height = '1px';
+  rightLine.style.backgroundColor = 'var(--color-border)';
+  
+  separatorContainer.appendChild(leftLine);
+  separatorContainer.appendChild(orText);
+  separatorContainer.appendChild(rightLine);
+  formEl.appendChild(separatorContainer);
+  
+  // Google signup button
+  const googleButton = document.createElement('button');
+  googleButton.type = 'button'; // Not submit
+  googleButton.className = 'google-login-btn';
+  googleButton.style.width = '100%';
+  googleButton.style.display = 'flex';
+  googleButton.style.alignItems = 'center';
+  googleButton.style.justifyContent = 'center';
+  googleButton.style.backgroundColor = 'white';
+  googleButton.style.border = '1px solid var(--color-border)';
+  googleButton.style.borderRadius = isSmallMobile ? '6px' : '8px';
+  googleButton.style.padding = isExtraSmallMobile ? '8px' : '10px';
+  googleButton.style.marginBottom = '20px';
+  googleButton.style.cursor = 'pointer';
+  googleButton.style.transition = 'all 0.2s ease';
+  
+  // Google icon
+  const googleIcon = document.createElement('span');
+  googleIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+  </svg>`;
+  googleIcon.style.marginRight = '10px';
+  
+  const googleText = document.createElement('span');
+  googleText.textContent = 'Sign up with Google';
+  googleText.style.fontWeight = '500';
+  googleText.style.color = '#333333';
+  
+  googleButton.appendChild(googleIcon);
+  googleButton.appendChild(googleText);
+  
+  // Add hover effect
+  googleButton.onmouseover = () => {
+    googleButton.style.backgroundColor = '#f5f5f5';
+    googleButton.style.transform = 'translateY(-1px)';
+    googleButton.style.boxShadow = '0 1px 5px rgba(0, 0, 0, 0.05)';
+  };
+  googleButton.onmouseout = () => {
+    googleButton.style.backgroundColor = 'white';
+    googleButton.style.transform = 'translateY(0)';
+    googleButton.style.boxShadow = 'none';
+  };
+  
+  // Handle Google sign in click
+  googleButton.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleGoogleLogin(); // Reuse the same function as login
+  };
+  
+  formEl.appendChild(googleButton);
+  
   // Switch to login link
   const switchText = document.createElement('p');
   switchText.style.textAlign = 'center';
@@ -865,20 +1040,31 @@ function renderRegisterForm() {
     e.preventDefault();
     e.stopPropagation();
     
-    // Blur any focused element to ensure keyboard closes properly
-    if (document.activeElement) {
-      document.activeElement.blur();
-    }
-    
-    // Switch forms after a small delay to prevent keyboard issues
-    setTimeout(() => {
-      const authContainer = document.querySelector('.auth-container');
-      if (authContainer) {
-        const loginForm = renderLoginForm();
-        authContainer.innerHTML = '';
-        authContainer.appendChild(loginForm);
+    // For mobile: don't blur immediately to prevent keyboard issues
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      setTimeout(() => {
+        const authContainer = document.querySelector('.auth-container');
+        if (authContainer) {
+          const loginForm = renderLoginForm();
+          authContainer.innerHTML = '';
+          authContainer.appendChild(loginForm);
+        }
+      }, 10);
+    } else {
+      // Desktop approach
+      if (document.activeElement) {
+        document.activeElement.blur();
       }
-    }, 50);
+      
+      setTimeout(() => {
+        const authContainer = document.querySelector('.auth-container');
+        if (authContainer) {
+          const loginForm = renderLoginForm();
+          authContainer.innerHTML = '';
+          authContainer.appendChild(loginForm);
+        }
+      }, 50);
+    }
   };
   
   switchText.appendChild(document.createTextNode("Already have an account? "));
