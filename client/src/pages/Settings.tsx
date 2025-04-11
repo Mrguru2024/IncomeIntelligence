@@ -22,6 +22,110 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, CheckCircle } from "lucide-react";
 
+// Income Split Profiles data from the schema (simplified for client-side use)
+type IncomeSplitProfile = {
+  id: string;
+  name: string;
+  needs: number;
+  investments: number;
+  savings: number;
+  description: string;
+  recommendedFor: string[];
+  incomeRange: { min: number; max: number | null };
+  financialHealth: string[];
+};
+
+const incomeSplitProfiles: IncomeSplitProfile[] = [
+  { 
+    id: "wealth_builder", 
+    name: "Wealth Builder", 
+    needs: 30, 
+    investments: 50, 
+    savings: 20, 
+    description: "Aggressive growth focus with higher emphasis on investments",
+    recommendedFor: ["investor", "minimalist"],
+    incomeRange: { min: 5000, max: null },
+    financialHealth: ["stable", "growing", "established"]
+  },
+  { 
+    id: "balanced", 
+    name: "Balanced Growth", 
+    needs: 40, 
+    investments: 30, 
+    savings: 30, 
+    description: "The classic 40/30/30 balanced approach",
+    recommendedFor: ["saver", "investor", "security_seeker"],
+    incomeRange: { min: 3000, max: null },
+    financialHealth: ["building", "stable", "growing", "established"]
+  },
+  { 
+    id: "stability_first", 
+    name: "Stability First", 
+    needs: 50, 
+    investments: 20, 
+    savings: 30, 
+    description: "Focus on covering needs and building security",
+    recommendedFor: ["saver", "security_seeker", "avoider"],
+    incomeRange: { min: 2000, max: 5000 },
+    financialHealth: ["building", "stable"]
+  },
+  { 
+    id: "debt_reducer", 
+    name: "Debt Reducer", 
+    needs: 60, 
+    investments: 10, 
+    savings: 30, 
+    description: "Higher allocation for needs to tackle existing debt",
+    recommendedFor: ["debtor", "avoider"],
+    incomeRange: { min: 0, max: 4000 },
+    financialHealth: ["building"]
+  },
+  { 
+    id: "lifestyle_plus", 
+    name: "Lifestyle Plus", 
+    needs: 50, 
+    investments: 30, 
+    savings: 20, 
+    description: "Balance lifestyle needs with future planning",
+    recommendedFor: ["spender", "status_focused"],
+    incomeRange: { min: 4000, max: null },
+    financialHealth: ["stable", "growing", "established"]
+  },
+  { 
+    id: "freedom_seeker", 
+    name: "Freedom Seeker", 
+    needs: 30, 
+    investments: 40, 
+    savings: 30, 
+    description: "Focus on investments for financial independence",
+    recommendedFor: ["investor", "minimalist"],
+    incomeRange: { min: 3500, max: null },
+    financialHealth: ["stable", "growing", "established"]
+  },
+  { 
+    id: "high_earner", 
+    name: "High Earner", 
+    needs: 25, 
+    investments: 50, 
+    savings: 25, 
+    description: "Optimized for high income with aggressive investment strategy",
+    recommendedFor: ["investor", "status_focused"],
+    incomeRange: { min: 7500, max: null },
+    financialHealth: ["growing", "established"]
+  },
+  { 
+    id: "new_starter", 
+    name: "New Starter", 
+    needs: 55, 
+    investments: 15, 
+    savings: 30, 
+    description: "For those just starting their financial journey",
+    recommendedFor: ["saver", "avoider", "debtor"],
+    incomeRange: { min: 0, max: 3000 },
+    financialHealth: ["building"]
+  }
+];
+
 type AISettings = {
   CACHE_ENABLED: boolean;
   CACHE_EXPIRY: number;
@@ -77,14 +181,9 @@ export default function Settings() {
     Error,
     Partial<AISettings>
   >({
-    mutationFn: (newSettings: Partial<AISettings>) =>
-      apiRequest("/api/ai/settings", {
-        method: "PATCH",
-        body: JSON.stringify(newSettings),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }),
+    mutationFn: async (newSettings: Partial<AISettings>) => {
+      await apiRequest("POST", "/api/ai/settings", newSettings);
+    },
     onSuccess: () => {
       toast({
         title: "AI Settings Updated",
@@ -495,9 +594,49 @@ export default function Settings() {
                 </Button>
               </div>
 
-              {/* Preset templates */}
+              {/* Income Split Profiles */}
               <div className="mt-4">
-                <h3 className="text-sm font-medium mb-2">Presets</h3>
+                <h3 className="text-sm font-medium mb-2">Income Split Profiles</h3>
+                <div className="mb-4">
+                  <select 
+                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                    onChange={(e) => {
+                      // Find the selected profile
+                      const profileId = e.target.value;
+                      if (profileId === 'custom') return;
+                      
+                      const selectedProfile = incomeSplitProfiles.find((profile) => profile.id === profileId);
+                      if (selectedProfile) {
+                        setSplitRatios({
+                          needs: selectedProfile.needs,
+                          investments: selectedProfile.investments,
+                          savings: selectedProfile.savings,
+                        });
+                        setIsDirty(true);
+                      }
+                    }}
+                  >
+                    <option value="custom">Custom Split</option>
+                    {incomeSplitProfiles.map((profile) => (
+                      <option key={profile.id} value={profile.id}>
+                        {profile.name} ({profile.needs}/{profile.investments}/{profile.savings})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="text-sm text-gray-600 mb-4 bg-muted p-4 rounded-lg">
+                  <h4 className="font-medium mb-1">Income Split Recommendations</h4>
+                  <p className="mb-2">Based on your profile and spending patterns, we recommend these allocations:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>If your income is less than $3,000/month: <span className="font-medium">New Starter (55/15/30)</span></li>
+                    <li>If you have debt to pay off: <span className="font-medium">Debt Reducer (60/10/30)</span></li>
+                    <li>If you're saving for retirement: <span className="font-medium">Freedom Seeker (30/40/30)</span></li>
+                    <li>If you have high income: <span className="font-medium">Wealth Builder (30/50/20)</span></li>
+                  </ul>
+                </div>
+
+                <h3 className="text-sm font-medium mb-2">Quick Presets</h3>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
