@@ -2255,6 +2255,27 @@ function renderPageContent(container) {
           container.appendChild(createErrorMessage('Failed to load Money Mentor. Please check your API keys and try again.'));
         });
         break;
+        
+      case 'blog':
+        // Import the Blog page module
+        import('../blog-page.js').then(module => {
+          // Check if specific article is requested
+          const urlParts = window.location.hash.split('/');
+          if (urlParts.length > 1 && urlParts[0] === '#blog') {
+            // Article view - urlParts[1] contains the slug
+            const articleSlug = urlParts[1];
+            const articlePage = module.renderArticlePage(articleSlug, appState.user.isAuthenticated);
+            container.appendChild(articlePage);
+          } else {
+            // Blog listing view - pass authentication status
+            const blogPage = module.renderBlogPage(appState.user.isAuthenticated);
+            container.appendChild(blogPage);
+          }
+        }).catch(error => {
+          console.error('Error loading blog module:', error);
+          container.appendChild(createErrorMessage('Failed to load blog content.'));
+        });
+        break;
       case 'challenges':
         // Import the Savings Challenges page module
         import('../challenges-page.js').then(module => {
@@ -2398,7 +2419,7 @@ function renderApp() {
   
   // Check authentication for protected routes
   if (!appState.user.isAuthenticated) {
-    const nonAuthRoutes = ['login', 'register', 'about', 'pricing', 'landing'];
+    const nonAuthRoutes = ['login', 'register', 'about', 'pricing', 'landing', 'blog'];
     if (!nonAuthRoutes.includes(appState.currentPage)) {
       console.log('User not authenticated, redirecting to login page');
       navigateTo('login');
@@ -2417,11 +2438,12 @@ function renderApp() {
     }
   }
   
-  // For auth, landing, and onboarding pages, use simple layout without sidebar
+  // For auth, landing, onboarding, and blog pages, use simple layout without sidebar when not authenticated
   if (appState.currentPage === 'login' || 
       appState.currentPage === 'register' || 
       appState.currentPage === 'landing' ||
-      appState.currentPage === 'onboarding') {
+      appState.currentPage === 'onboarding' ||
+      (appState.currentPage === 'blog' && !appState.user.isAuthenticated)) {
       
     // Create simple app container
     const simpleContainer = document.createElement('div');
