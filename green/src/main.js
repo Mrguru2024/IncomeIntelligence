@@ -198,7 +198,235 @@ window.addEventListener('popstate', () => {
   renderApp();
 });
 
-// Create common layout elements
+// Create responsive layout elements using the sidebar
+function createLayout() {
+  const width = window.innerWidth;
+  const isMobile = width < 768;
+  
+  // Create layout container with sidebar and main content
+  const layoutContainer = document.createElement('div');
+  layoutContainer.classList.add('layout-container');
+  layoutContainer.style.display = 'flex';
+  layoutContainer.style.width = '100%';
+  layoutContainer.style.minHeight = '100vh';
+  
+  // Import and use the sidebar component
+  import('../sidebar.js').then(sidebarModule => {
+    // Add sidebar
+    const sidebar = sidebarModule.createSidebar(appState);
+    layoutContainer.appendChild(sidebar);
+    
+    // Create main content wrapper
+    const mainContent = document.createElement('div');
+    mainContent.classList.add('main-content');
+    mainContent.style.flexGrow = '1';
+    mainContent.style.marginLeft = isMobile ? '0' : '280px';
+    mainContent.style.transition = 'margin-left 0.3s ease';
+    mainContent.style.width = '100%';
+    
+    // Create header for mobile view (contains only the toggle button)
+    if (isMobile) {
+      const mobileHeader = document.createElement('header');
+      mobileHeader.style.background = 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)';
+      mobileHeader.style.color = 'white';
+      mobileHeader.style.padding = '12px 16px';
+      mobileHeader.style.boxShadow = 'var(--shadow-md)';
+      mobileHeader.style.display = 'flex';
+      mobileHeader.style.alignItems = 'center';
+      mobileHeader.style.justifyContent = 'space-between';
+      
+      // Logo
+      const logoContainer = document.createElement('div');
+      logoContainer.style.display = 'flex';
+      logoContainer.style.alignItems = 'center';
+      
+      const logo = document.createElement('h1');
+      logo.textContent = 'Stackr';
+      logo.style.margin = '0';
+      logo.style.fontSize = '22px';
+      logo.style.fontWeight = 'bold';
+      logoContainer.appendChild(logo);
+      
+      const badge = document.createElement('span');
+      badge.textContent = 'GREEN';
+      badge.style.fontSize = '10px';
+      badge.style.fontWeight = 'bold';
+      badge.style.padding = '3px 6px';
+      badge.style.marginLeft = '8px';
+      badge.style.background = 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)';
+      badge.style.borderRadius = '4px';
+      badge.style.color = 'white';
+      logoContainer.appendChild(badge);
+      
+      mobileHeader.appendChild(logoContainer);
+      
+      // Menu toggle button
+      const menuButton = document.createElement('button');
+      menuButton.id = 'mobile-menu-toggle';
+      menuButton.style.background = 'rgba(255, 255, 255, 0.2)';
+      menuButton.style.border = 'none';
+      menuButton.style.color = 'white';
+      menuButton.style.padding = '8px 10px';
+      menuButton.style.borderRadius = '4px';
+      menuButton.style.cursor = 'pointer';
+      menuButton.style.display = 'flex';
+      menuButton.style.alignItems = 'center';
+      menuButton.style.justifyContent = 'center';
+      menuButton.style.transition = 'all 0.2s ease';
+      
+      // Menu icon (hamburger)
+      menuButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      `;
+      
+      menuButton.addEventListener('click', () => {
+        sidebarModule.toggleSidebar();
+      });
+      
+      mobileHeader.appendChild(menuButton);
+      mainContent.appendChild(mobileHeader);
+    }
+    
+    // Content container
+    const contentContainer = document.createElement('div');
+    contentContainer.id = 'content-container';
+    contentContainer.style.padding = '24px';
+    contentContainer.style.maxWidth = '1200px';
+    contentContainer.style.margin = '0 auto';
+    mainContent.appendChild(contentContainer);
+    
+    layoutContainer.appendChild(mainContent);
+    
+    // Append layout to root element
+    const root = document.getElementById('app');
+    root.innerHTML = '';
+    root.appendChild(layoutContainer);
+    
+    // Render page content in the content container
+    renderPageContent(contentContainer);
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      const newWidth = window.innerWidth;
+      const newIsMobile = newWidth < 768;
+      
+      // Update sidebar and main content based on screen size
+      if (newIsMobile) {
+        sidebar.style.transform = 'translateX(-100%)';
+        mainContent.style.marginLeft = '0';
+      } else {
+        sidebar.style.transform = 'translateX(0)';
+        mainContent.style.marginLeft = '280px';
+        // Remove overlay if it exists
+        document.getElementById('sidebar-overlay')?.remove();
+      }
+    });
+  }).catch(error => {
+    console.error('Failed to load sidebar:', error);
+    
+    // Fallback header if sidebar fails to load
+    const fallbackHeader = createFallbackHeader();
+    
+    // Create main content wrapper
+    const mainContent = document.createElement('div');
+    mainContent.classList.add('main-content');
+    mainContent.style.flexGrow = '1';
+    mainContent.style.width = '100%';
+    
+    // Add fallback header to main content
+    mainContent.appendChild(fallbackHeader);
+    
+    // Content container
+    const contentContainer = document.createElement('div');
+    contentContainer.id = 'content-container';
+    contentContainer.style.padding = '24px';
+    contentContainer.style.maxWidth = '1200px';
+    contentContainer.style.margin = '0 auto';
+    mainContent.appendChild(contentContainer);
+    
+    layoutContainer.appendChild(mainContent);
+    
+    // Append layout to root element
+    const root = document.getElementById('app');
+    root.innerHTML = '';
+    root.appendChild(layoutContainer);
+    
+    // Render page content in the content container
+    renderPageContent(contentContainer);
+  });
+  
+  return layoutContainer;
+}
+
+// Fallback header in case the sidebar fails to load
+function createFallbackHeader() {
+  const width = window.innerWidth;
+  const isMobile = width < 768;
+  
+  const header = document.createElement('header');
+  header.style.background = 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)';
+  header.style.color = 'white';
+  header.style.padding = isMobile ? '12px 16px' : '16px 24px';
+  header.style.boxShadow = 'var(--shadow-md)';
+  
+  // Create top section with logo and user info
+  const topSection = document.createElement('div');
+  topSection.style.display = 'flex';
+  topSection.style.justifyContent = 'space-between';
+  topSection.style.alignItems = 'center';
+  
+  // Logo container
+  const logoContainer = document.createElement('div');
+  logoContainer.style.cursor = 'pointer';
+  logoContainer.addEventListener('click', () => navigateTo('dashboard'));
+  
+  const logo = document.createElement('h1');
+  logo.textContent = isMobile ? 'Stackr' : 'Stackr Finance';
+  logo.style.margin = '0';
+  logo.style.fontSize = isMobile ? '22px' : '24px';
+  logo.style.fontWeight = 'bold';
+  logoContainer.appendChild(logo);
+  
+  const subtitle = document.createElement('p');
+  subtitle.textContent = 'GREEN Edition';
+  subtitle.style.margin = '4px 0 0 0';
+  subtitle.style.fontSize = '12px';
+  subtitle.style.opacity = '0.9';
+  logoContainer.appendChild(subtitle);
+  
+  topSection.appendChild(logoContainer);
+  
+  // User profile button
+  const userButton = document.createElement('button');
+  userButton.style.background = 'rgba(255, 255, 255, 0.2)';
+  userButton.style.border = 'none';
+  userButton.style.color = 'white';
+  userButton.style.padding = isMobile ? '6px 10px' : '8px 16px';
+  userButton.style.borderRadius = '20px';
+  userButton.style.cursor = 'pointer';
+  userButton.style.display = 'flex';
+  userButton.style.alignItems = 'center';
+  userButton.style.gap = '8px';
+  userButton.style.fontSize = '14px';
+  
+  userButton.innerHTML = isMobile 
+    ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"></path></svg>` 
+    : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"></path></svg>
+      <span>${appState.user.name}</span>`;
+  
+  userButton.addEventListener('click', () => navigateTo('settings'));
+  
+  topSection.appendChild(userButton);
+  header.appendChild(topSection);
+  
+  return header;
+}
+
+// Original header function (kept for reference)
 function createHeader() {
   const width = window.innerWidth;
   const isMobile = width < 640;
@@ -1919,6 +2147,106 @@ function renderSettingsPage() {
 }
 
 // Main render function
+// Function to render specific page content into a container
+function renderPageContent(container) {
+  // Add page transition effects
+  container.style.animation = 'fadeIn 0.3s ease-in-out';
+  
+  // Create and append a keyframe animation if not exists
+  if (!document.querySelector('#fadeInAnimation')) {
+    const style = document.createElement('style');
+    style.id = 'fadeInAnimation';
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // Special cases for pages that don't need the standard app layout
+  if (appState.currentPage === 'login' || appState.currentPage === 'register') {
+    // Import and render the auth page
+    import('../login.js').then(module => {
+      container.appendChild(module.renderAuthPage());
+    }).catch(error => {
+      console.error('Error loading auth module:', error);
+      container.appendChild(createErrorMessage('Failed to load authentication module'));
+    });
+    
+    // Add special full-height styling for auth page
+    container.style.padding = '0';
+    container.style.maxWidth = 'none';
+  } else if (appState.currentPage === 'landing') {
+    // Import and render the landing page
+    import('../landing-new.js').then(module => {
+      container.appendChild(module.renderLandingPage());
+    }).catch(error => {
+      console.error('Error loading landing page module:', error);
+      container.appendChild(createErrorMessage('Failed to load landing page module'));
+    });
+    
+    // Add special full-width styling for landing page
+    container.style.padding = '0';
+    container.style.maxWidth = 'none';
+  } else if (appState.currentPage === 'onboarding') {
+    // Import and render the onboarding page
+    import('../onboarding.js').then(module => {
+      container.appendChild(module.renderOnboardingPage(appState));
+    }).catch(error => {
+      console.error('Error loading onboarding module:', error);
+      container.appendChild(createErrorMessage('Failed to load onboarding module'));
+    });
+  } else {
+    // Render different pages based on the current page state
+    switch(appState.currentPage) {
+      case 'dashboard':
+        container.appendChild(renderDashboardPage());
+        break;
+      case 'income':
+        container.appendChild(renderIncomePage());
+        break;
+      case 'gigs':
+        container.appendChild(renderGigsPage());
+        break;
+      case 'affiliates':
+        // Import the affiliates hub page module
+        import('../affiliates-hub.js').then(module => {
+          container.appendChild(module.renderAffiliateHub(appState.user.id));
+        }).catch(error => {
+          console.error('Error loading affiliates hub module:', error);
+          container.appendChild(createErrorMessage('Failed to load affiliates hub module'));
+        });
+        break;
+      case 'bankconnections':
+        // Import the bank connections page module if needed
+        import('../bank-connections.js').then(module => {
+          container.appendChild(module.renderBankConnectionsPage(appState.user.id));
+        }).catch(error => {
+          console.error('Error loading bank connections module:', error);
+          container.appendChild(createErrorMessage('Failed to load bank connections module'));
+        });
+        break;
+      case 'subscriptions':
+        // Import the subscriptions page module
+        import('../subscriptions.js').then(module => {
+          container.appendChild(module.renderSubscriptionsPage());
+        }).catch(error => {
+          console.error('Error loading subscriptions module:', error);
+          container.appendChild(createErrorMessage('Failed to load subscriptions module'));
+        });
+        break;
+      case 'settings':
+        container.appendChild(renderSettingsPage());
+        break;
+      default:
+        container.appendChild(renderDashboardPage());
+    }
+  }
+}
+
+// Main render function with the new sidebar layout
 function renderApp() {
   const rootElement = document.getElementById('root');
   rootElement.innerHTML = ''; // Clear previous content
@@ -1928,10 +2256,10 @@ function renderApp() {
   document.body.classList.remove('viewport-mobile', 'viewport-tablet', 'viewport-desktop');
   
   // Standard breakpoints:
-  // Mobile: < 640px
-  // Tablet: 640px - 1023px
+  // Mobile: < 768px (changed from 640px to match sidebar breakpoint)
+  // Tablet: 768px - 1023px
   // Desktop: >= 1024px
-  if (width < 640) {
+  if (width < 768) {
     document.body.classList.add('viewport-mobile');
     console.log('Viewport: mobile');
   } else if (width < 1024) {
@@ -1946,7 +2274,7 @@ function renderApp() {
   const htmlRoot = document.documentElement;
   
   // Set responsive spacing variables
-  if (width < 640) {
+  if (width < 768) {
     // Mobile spacing adjustments
     htmlRoot.style.setProperty('--container-padding', 'var(--space-4)');
     htmlRoot.style.setProperty('--card-gap', 'var(--space-4)');
@@ -1963,138 +2291,46 @@ function renderApp() {
     htmlRoot.style.setProperty('--section-gap', 'var(--space-10)');
   }
   
-  // Create application structure with responsive container
-  const appContainer = document.createElement('div');
-  appContainer.className = 'app-container';
-  appContainer.style.display = 'flex';
-  appContainer.style.flexDirection = 'column';
-  appContainer.style.minHeight = '100vh'; // Full height
-  
-  // Build page structure
-  const header = createHeader();
-  appContainer.appendChild(header);
-  
-  // Create main content container with responsive padding
-  const main = document.createElement('main');
-  main.style.padding = width < 640 ? 'var(--space-4)' : 'var(--space-8) var(--space-6)';
-  main.style.maxWidth = '1200px';
-  main.style.width = '100%';
-  main.style.margin = '0 auto';
-  main.style.flex = '1'; // Takes up available space
-  main.style.boxSizing = 'border-box';
-  
-  // Add page transition effects
-  main.style.animation = 'fadeIn 0.3s ease-in-out';
-  
-  // Create and append a keyframe animation
-  if (!document.querySelector('#fadeInAnimation')) {
-    const style = document.createElement('style');
-    style.id = 'fadeInAnimation';
-    style.textContent = `
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-    `;
-    document.head.appendChild(style);
+  // Check authentication for protected routes
+  if (!appState.user.isAuthenticated) {
+    const nonAuthRoutes = ['login', 'register', 'about', 'pricing', 'landing'];
+    if (!nonAuthRoutes.includes(appState.currentPage)) {
+      console.log('User not authenticated, redirecting to login page');
+      navigateTo('login');
+      return; // Stop rendering protected page
+    }
   }
   
-  // Special cases for pages that don't need the full app layout
-  if (appState.currentPage === 'login' || appState.currentPage === 'register') {
-    // Don't show the header for authentication pages
-    appContainer.removeChild(header);
+  // For auth and landing pages, use simple layout without sidebar
+  if (appState.currentPage === 'login' || 
+      appState.currentPage === 'register' || 
+      appState.currentPage === 'landing') {
+      
+    // Create simple app container
+    const simpleContainer = document.createElement('div');
+    simpleContainer.className = 'app-container';
+    simpleContainer.style.display = 'flex';
+    simpleContainer.style.flexDirection = 'column';
+    simpleContainer.style.minHeight = '100vh';
     
-    // Import and render the auth page
-    import('../login.js').then(module => {
-      main.appendChild(module.renderAuthPage());
-    }).catch(error => {
-      console.error('Error loading auth module:', error);
-      main.appendChild(createErrorMessage('Failed to load authentication module'));
-    });
+    // Create main content area
+    const main = document.createElement('main');
+    main.style.flex = '1';
     
-    // Add special full-height styling for auth page
-    main.style.padding = '0';
-    main.style.maxWidth = 'none';
-  } else if (appState.currentPage === 'landing') {
-    // Don't show the header for landing page
-    appContainer.removeChild(header);
+    // Render the page content
+    renderPageContent(main);
     
-    // Import and render the new landing page
-    import('../landing-new.js').then(module => {
-      main.appendChild(module.renderLandingPage());
-    }).catch(error => {
-      console.error('Error loading landing page module:', error);
-      main.appendChild(createErrorMessage('Failed to load landing page module'));
-    });
-    
-    // Add special full-width styling for landing page
-    main.style.padding = '0';
-    main.style.maxWidth = 'none';
+    simpleContainer.appendChild(main);
+    rootElement.appendChild(simpleContainer);
   } else {
-    // Only check for auth on protected pages
-    if (!appState.user.isAuthenticated) {
-      const nonAuthRoutes = ['login', 'register', 'about', 'pricing', 'landing'];
-      if (!nonAuthRoutes.includes(appState.currentPage)) {
-        console.log('User not authenticated, redirecting to login page');
-        navigateTo('login');
-        return; // Stop rendering protected page
-      }
-    }
+    // For authenticated pages, use the sidebar layout
+    const app = document.createElement('div');
+    app.id = 'app';
+    rootElement.appendChild(app);
     
-    // Render different pages based on the current page state
-    switch(appState.currentPage) {
-      case 'dashboard':
-        main.appendChild(renderDashboardPage());
-        break;
-      case 'income':
-        main.appendChild(renderIncomePage());
-        break;
-      case 'gigs':
-        main.appendChild(renderGigsPage());
-        break;
-      case 'affiliates':
-        // Import the affiliates hub page module
-        import('../affiliates-hub.js').then(module => {
-          main.appendChild(module.renderAffiliateHub(appState.user.id));
-        }).catch(error => {
-          console.error('Error loading affiliates hub module:', error);
-          main.appendChild(createErrorMessage('Failed to load affiliates hub module'));
-        });
-        break;
-      case 'bankconnections':
-        // Import the bank connections page module if needed
-        import('../bank-connections.js').then(module => {
-          main.appendChild(module.renderBankConnectionsPage(appState.user.id));
-        }).catch(error => {
-          console.error('Error loading bank connections module:', error);
-          main.appendChild(createErrorMessage('Failed to load bank connections module'));
-        });
-        break;
-      case 'subscriptions':
-        // Import the subscriptions page module
-        import('../subscriptions.js').then(module => {
-          main.appendChild(module.renderSubscriptionsPage());
-        }).catch(error => {
-          console.error('Error loading subscriptions module:', error);
-          main.appendChild(createErrorMessage('Failed to load subscriptions module'));
-        });
-        break;
-      case 'settings':
-        main.appendChild(renderSettingsPage());
-        break;
-      default:
-        main.appendChild(renderDashboardPage());
-    }
+    // Create the layout with sidebar
+    createLayout();
   }
-  
-  appContainer.appendChild(main);
-  
-  // Add footer
-  const footer = createFooter();
-  appContainer.appendChild(footer);
-  
-  // Append the entire container to the root
-  rootElement.appendChild(appContainer);
   
   // Debug info
   console.log(`Page rendered: ${appState.currentPage}`);
