@@ -13,6 +13,9 @@ async function handleLogin(usernameOrEmail, password, rememberMe = false) {
       submitButton.innerHTML = '<div class="spinner"></div> Logging in...';
     }
     
+    // Ensure any active input is blurred to prevent keyboard issues
+    document.activeElement.blur();
+    
     const response = await fetch('/api/login', {
       method: 'POST',
       headers: {
@@ -100,6 +103,9 @@ async function handleRegister(username, email, password) {
       submitButton.disabled = true;
       submitButton.innerHTML = '<div class="spinner"></div> Creating account...';
     }
+    
+    // Ensure any active input is blurred to prevent keyboard issues
+    document.activeElement.blur();
     
     const response = await fetch('/api/register', {
       method: 'POST',
@@ -191,10 +197,22 @@ function renderLoginForm() {
   
   formEl.onsubmit = (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Stop propagation to prevent any parent handlers
+    
+    // Get values before doing anything that might affect focus
     const usernameOrEmail = e.target.elements.email.value;
     const password = e.target.elements.password.value;
     const rememberMe = e.target.elements.rememberMe?.checked || false;
-    handleLogin(usernameOrEmail, password, rememberMe);
+    
+    // Blur any focused element to ensure keyboard closes properly
+    if (document.activeElement) {
+      document.activeElement.blur();
+    }
+    
+    // Process login after a small timeout to let the blur take effect
+    setTimeout(() => {
+      handleLogin(usernameOrEmail, password, rememberMe);
+    }, 50);
   };
   
   // Form title
@@ -423,10 +441,22 @@ function renderRegisterForm() {
   
   formEl.onsubmit = (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Stop propagation to prevent any parent handlers
+    
+    // Get values before doing anything that might affect focus
     const username = e.target.elements.username.value;
     const email = e.target.elements.email.value;
     const password = e.target.elements.password.value;
-    handleRegister(username, email, password);
+    
+    // Blur any focused element to ensure keyboard closes properly
+    if (document.activeElement) {
+      document.activeElement.blur();
+    }
+    
+    // Process registration after a small timeout to let the blur take effect
+    setTimeout(() => {
+      handleRegister(username, email, password);
+    }, 50);
   };
   
   // Form title
