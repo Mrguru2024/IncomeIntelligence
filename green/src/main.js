@@ -2226,6 +2226,42 @@ function renderPageContent(container) {
           container.appendChild(createErrorMessage('Failed to load affiliates hub module'));
         });
         break;
+      case 'wellness':
+        // Import the Financial Wellness page module
+        import('../wellness-page.js').then(module => {
+          // Using async function as renderWellnessPage returns a Promise
+          (async () => {
+            try {
+              const wellnessPage = await module.renderWellnessPage(appState.user.id);
+              container.appendChild(wellnessPage);
+            } catch (error) {
+              console.error('Error rendering wellness page:', error);
+              container.appendChild(createErrorMessage('Failed to load financial wellness data'));
+            }
+          })();
+        }).catch(error => {
+          console.error('Error loading wellness page module:', error);
+          container.appendChild(createErrorMessage('Failed to load financial wellness module'));
+        });
+        break;
+      case 'challenges':
+        // Import the Savings Challenges page module
+        import('../challenges-page.js').then(module => {
+          // Using async function as renderChallengesPage returns a Promise
+          (async () => {
+            try {
+              const challengesPage = await module.renderChallengesPage(appState.user.id);
+              container.appendChild(challengesPage);
+            } catch (error) {
+              console.error('Error rendering challenges page:', error);
+              container.appendChild(createErrorMessage('Failed to load savings challenges data'));
+            }
+          })();
+        }).catch(error => {
+          console.error('Error loading challenges page module:', error);
+          container.appendChild(createErrorMessage('Failed to load savings challenges module'));
+        });
+        break;
       case 'bankconnections':
         // Import the bank connections page module if needed
         import('../bank-connections.js').then(module => {
