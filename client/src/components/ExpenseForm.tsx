@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
+import ExpensePriorityTags from "./ExpensePriorityTags";
 
 interface ExpenseFormProps {
   onSuccess?: () => void;
@@ -65,6 +67,8 @@ export default function ExpenseForm({
   const queryClient = useQueryClient();
   const today = new Date();
 
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialData?.category || "other");
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
@@ -83,10 +87,7 @@ export default function ExpenseForm({
 
   const { mutate, isPending } = useMutation({
     mutationFn: (data: z.infer<typeof formSchema>) =>
-      apiRequest("/api/expenses", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+      apiRequest("POST", "/api/expenses", data),
     onSuccess: () => {
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
@@ -104,6 +105,17 @@ export default function ExpenseForm({
   function onSubmit(values: z.infer<typeof formSchema>) {
     mutate(values);
   }
+
+  // Update selectedCategory when form field changes
+  React.useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'category') {
+        setSelectedCategory(value.category as string);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
 
   return (
     <Form {...form}>
@@ -273,6 +285,11 @@ export default function ExpenseForm({
                   </SelectContent>
                 </Select>
                 <FormMessage />
+                {selectedCategory && (
+                  <FormDescription className="mt-2">
+                    <ExpensePriorityTags categoryId={selectedCategory} />
+                  </FormDescription>
+                )}
               </FormItem>
             )}
           />
