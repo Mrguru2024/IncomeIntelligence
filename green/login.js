@@ -121,8 +121,12 @@ async function handleLogin(usernameOrEmail, password, rememberMe = false) {
       onboardingStep: userData.onboardingStep || 'welcome'
     });
     
+    // Use the rememberMe value from the server response if available
+    // This ensures consistency between client and server preferences
+    const serverRememberMe = userData.rememberMe !== undefined ? userData.rememberMe : rememberMe;
+    
     // Store auth data based on "Remember Me" selection
-    if (rememberMe) {
+    if (serverRememberMe) {
       // Use localStorage for persistent login (stays after browser is closed)
       localStorage.setItem('stackrToken', userData.token);
       localStorage.setItem('stackrUser', userDataToStore);
@@ -212,14 +216,32 @@ async function handleRegister(username, email, password) {
       onboardingStep: userData.onboardingStep || 'welcome'
     });
     
-    // For registration, we default to storing in localStorage for convenience
-    // Clear sessionStorage to avoid conflicts
-    sessionStorage.removeItem('stackrToken');
-    sessionStorage.removeItem('stackrUser');
+    // For new registrations, we use the server response rememberMe value
+    // which defaults to true for better UX (set in server/auth.ts)
+    const serverRememberMe = userData.rememberMe !== undefined ? userData.rememberMe : true;
     
-    // Store auth data in localStorage
-    localStorage.setItem('stackrToken', userData.token);
-    localStorage.setItem('stackrUser', userDataToStore);
+    // Store auth data based on the server rememberMe value
+    if (serverRememberMe) {
+      // Use localStorage for persistent login (stays after browser is closed)
+      localStorage.setItem('stackrToken', userData.token);
+      localStorage.setItem('stackrUser', userDataToStore);
+      
+      // Clear sessionStorage to avoid conflicts
+      sessionStorage.removeItem('stackrToken');
+      sessionStorage.removeItem('stackrUser');
+      
+      console.log('New user credentials saved to localStorage (persistent)');
+    } else {
+      // Use sessionStorage for temporary login (cleared when browser is closed)
+      sessionStorage.setItem('stackrToken', userData.token);
+      sessionStorage.setItem('stackrUser', userDataToStore);
+      
+      // Clear localStorage to avoid conflicts
+      localStorage.removeItem('stackrToken');
+      localStorage.removeItem('stackrUser');
+      
+      console.log('New user credentials saved to sessionStorage (session only)');
+    }
     
     // Redirect to onboarding
     window.location.href = '#onboarding';

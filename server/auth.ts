@@ -193,12 +193,22 @@ export function setupAuth(app: Express) {
           return res.status(500).json({ message: 'Login error after registration' });
         }
         
-        // Generate JWT token for API access
-        const token = createToken(userWithoutPassword);
+        // For registration, assume "Remember Me" is true for better UX
+        const rememberMe = true;
+        
+        // Set session cookie expiration for new users (30 days)
+        if (req.session) {
+          req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+          console.log('Setting new user session with extended expiration (30 days)');
+        }
+        
+        // Generate JWT token for API access with extended expiration
+        const token = createToken(userWithoutPassword, rememberMe);
         
         res.status(201).json({
           ...userWithoutPassword,
           token,
+          rememberMe,
         });
       });
     } catch (err) {
@@ -239,20 +249,8 @@ export function setupAuth(app: Express) {
           return next(err);
         }
         
-        // Generate JWT token for API access
-        // Also adjust token expiration based on rememberMe
-        const token = jwt.sign({
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          subscriptionTier: user.subscriptionTier,
-          subscriptionActive: user.subscriptionActive,
-          onboardingCompleted: user.onboardingCompleted,
-          onboardingStep: user.onboardingStep
-        }, process.env.JWT_SECRET || 'stackr-jwt-secret', {
-          expiresIn: rememberMe ? '30d' : '24h', // 30 days vs 24 hours
-        });
+        // Generate JWT token for API access with expiration based on rememberMe
+        const token = createToken(user, rememberMe);
         
         res.json({
           ...user,
