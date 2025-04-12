@@ -2676,6 +2676,22 @@ function renderPageContent(container) {
     // Add special full-height styling for auth page
     container.style.padding = '0';
     container.style.maxWidth = 'none';
+  } else if (appState.currentPage === 'forgot-password') {
+    // Extract token from URL if present (e.g., #forgot-password/TOKEN)
+    const urlParts = window.location.hash.split('/');
+    const token = urlParts.length > 1 ? urlParts[1] : null;
+    
+    // Import and render the forgot password page
+    import('../forgot-password.js').then(module => {
+      container.appendChild(module.renderForgotPasswordPage(token));
+    }).catch(error => {
+      console.error('Error loading forgot password module:', error);
+      container.appendChild(createErrorMessage('Failed to load password reset module'));
+    });
+    
+    // Add special full-height styling for forgot password page
+    container.style.padding = '0';
+    container.style.maxWidth = 'none';
   } else if (appState.currentPage === 'landing') {
     // Import and render the landing page
     import('../landing-new.js').then(module => {
