@@ -16,18 +16,29 @@ export function createSidebar(appState) {
   const width = window.innerWidth;
   const isMobile = width < 768;
   
+  // Ensure appState and user objects exist to prevent TypeError
+  if (!appState) {
+    appState = {};
+    console.warn('Sidebar created without appState, using default values');
+  }
+  
+  if (!appState.user) {
+    appState.user = {};
+    console.warn('Sidebar created without user data, using default values');
+  }
+  
   // Determine if user has Pro access - global for this sidebar
-  const isPro = appState.user.subscriptionTier === 'pro' || 
-                appState.user.subscriptionTier === 'lifetime' || 
+  const isPro = (appState.user.subscriptionTier === 'pro') || 
+                (appState.user.subscriptionTier === 'lifetime') || 
                 (appState.user.username && (
                   appState.user.username.toLowerCase().includes('pro') || 
                   appState.user.username === 'ProUser'
                 )) || 
                 (appState.user.email && appState.user.email === 'Pro.user@gmail.com') ||
-                appState.user.stripeSubscriptionId;
+                (appState.user.stripeSubscriptionId);
                 
   // Log Pro status detection
-  console.log('Pro status detected for user:', appState.user.username, isPro ? 'PRO' : 'FREE');
+  console.log('Pro status detected for user:', appState.user.username || 'Unknown', isPro ? 'PRO' : 'FREE');
   
   // Create sidebar container
   const sidebar = document.createElement('aside');

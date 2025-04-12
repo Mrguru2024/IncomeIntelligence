@@ -162,9 +162,12 @@ async function getFinancialAdvice(query, category) {
 
 /**
  * Render Money Mentor page
+ * @param {string|number} [userId] - Optional user ID parameter from main.js
  * @returns {HTMLElement} - Page container
  */
-export async function renderMoneyMentorPage() {
+export async function renderMoneyMentorPage(userId) {
+  // Log the userId parameter to help with debugging
+  console.log('Money Mentor received userId parameter:', userId);
   if (!isAuthenticated()) {
     window.location.href = '/auth.html';
     return document.createElement('div');
