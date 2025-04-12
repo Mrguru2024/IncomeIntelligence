@@ -288,7 +288,8 @@ export function createSidebar(appState) {
         {
           id: 'moneymentor',
           label: 'Money Mentor',
-          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>'
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path><path d="M17 21.32a10 10 0 0 0 5 -5.32"></path><path d="M9 15a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path><path d="M12 13v2"></path></svg>',
+          badge: 'Pro'
         }
       ]
     },
@@ -401,6 +402,35 @@ export function createSidebar(appState) {
       const label = document.createElement('span');
       label.textContent = item.label;
       link.appendChild(label);
+
+      // Badge (if present)
+      if (item.badge) {
+        const badge = document.createElement('span');
+        badge.textContent = item.badge;
+        badge.style.fontSize = '9px';
+        badge.style.padding = '2px 6px';
+        badge.style.borderRadius = '10px';
+        badge.style.marginLeft = '8px';
+        badge.style.fontWeight = 'bold';
+        
+        // Pro badge styling
+        if (item.badge === 'Pro') {
+          badge.style.background = 'linear-gradient(135deg, #9C27B0 0%, #673AB7 100%)';
+          badge.style.color = 'white';
+        } 
+        // New badge styling
+        else if (item.badge === 'New') {
+          badge.style.backgroundColor = '#4CAF50';
+          badge.style.color = 'white';
+        }
+        // Default badge styling
+        else {
+          badge.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+          badge.style.color = 'white';
+        }
+        
+        link.appendChild(badge);
+      }
       
       // Handle navigation or logout
       link.addEventListener('click', (e) => {
