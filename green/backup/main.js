@@ -4564,7 +4564,7 @@ function renderPageContent(container) {
               // Mark as failed in session storage to avoid future attempts
               sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
               container.appendChild(renderFallbackSubscriptionSniper());
-            });
+          });
         } catch (outerError) {
           console.error('Critical error initializing Subscription Sniper module:', outerError);
           container.appendChild(createErrorMessage('Critical error loading Subscription Sniper. Please reload the application.'));
