@@ -6,10 +6,26 @@
  * This is a premium feature available to Pro subscribers only
  */
 
+// Use local imports for required modules
 import { isAuthenticated, getCurrentUser } from './auth.js';
 import { createToast } from './components/toast.js';
-import { renderSidebar } from './sidebar.js';
 import { hasProAccess, createUpgradePrompt } from './utils/subscription-utils.js';
+
+// Import appState properly or use window.appState as fallback
+let appState;
+try {
+  // Try importing directly from the main module
+  import('./src/main.js').then(module => {
+    appState = module.appState;
+  }).catch(error => {
+    // Fallback to window.appState if import fails
+    console.log('Using global appState as fallback');
+    appState = window.appState;
+  });
+} catch (error) {
+  console.log('Using window.appState as direct import failed');
+  appState = window.appState;
+}
 
 /**
  * Enum for financial topic categories
@@ -174,7 +190,9 @@ export async function renderMoneyMentorPage(userId) {
   }
   
   const user = getCurrentUser();
-  renderSidebar('moneymentor');
+  
+  // Don't call renderSidebar as it's handled by the main app
+  // This prevents errors when the sidebar module is not available
   
   // Check if user has Pro subscription
   const hasPro = hasProAccess(user);

@@ -9,6 +9,22 @@ import { formatCurrency, formatDate } from './bank-connections.js';
 import { hasProAccess, createUpgradePrompt } from './utils/subscription-utils.js';
 import { isAuthenticated, getCurrentUser } from './auth.js';
 
+// Import appState properly or use window.appState as fallback
+let appState;
+try {
+  // Try importing directly from the main module
+  import('./src/main.js').then(module => {
+    appState = module.appState;
+  }).catch(error => {
+    // Fallback to window.appState if import fails
+    console.log('Using global appState as fallback');
+    appState = window.appState;
+  });
+} catch (error) {
+  console.log('Using window.appState as direct import failed');
+  appState = window.appState;
+}
+
 /**
  * Fetch transactions for a specific user
  * @param {number} userId - User ID
