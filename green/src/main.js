@@ -3490,9 +3490,9 @@ function renderPageContent(container) {
           try {
             // Try to import the module first
             import('../money-mentor.js').then(module => {
-            // Use async IIFE since renderMoneyMentorPage is async
-            (async () => {
-              try {
+              // Use async IIFE since renderMoneyMentorPage is async
+              (async () => {
+                try {
                 if (!appState || !appState.user) {
                   throw new Error('User data not available');
                 }
@@ -3643,6 +3643,12 @@ function renderPageContent(container) {
             
             // Create main container
             const fallbackContainer = document.createElement('div');
+          } catch (error) {
+            console.error('Failed to load Subscription Sniper module:', error);
+            container.appendChild(renderFallbackSubscriptionSniper());
+            // Mark as failed in session storage to avoid future attempts
+            sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
+            return; // Return early
             fallbackContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
             
             // Create animated header with gradient background
