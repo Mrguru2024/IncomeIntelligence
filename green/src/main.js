@@ -3638,6 +3638,9 @@ function renderPageContent(container) {
           try {
             console.log('Attempting to import Subscription Sniper module');
             
+            // Import attempt would go here in the full implementation
+            // import('../subscription-sniper-advanced.js').then(...)
+            
             // Create main container
             const fallbackContainer = document.createElement('div');
             fallbackContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
