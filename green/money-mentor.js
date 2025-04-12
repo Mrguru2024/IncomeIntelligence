@@ -2,11 +2,14 @@
  * Money Mentor Module for Stackr Finance GREEN Edition
  * This module provides an AI-powered financial advice chatbot interface
  * Powered by Perplexity API for intelligent responses
+ * 
+ * This is a premium feature available to Pro subscribers only
  */
 
-import { isAuthenticated, getCurrentUser, getUserSubscription } from './auth.js';
+import { isAuthenticated, getCurrentUser } from './auth.js';
 import { createToast } from './components/toast.js';
 import { renderSidebar } from './sidebar.js';
+import { hasProAccess, createUpgradePrompt } from './utils/subscription-utils.js';
 
 /**
  * Enum for financial topic categories
@@ -171,8 +174,34 @@ export async function renderMoneyMentorPage() {
   renderSidebar('moneymentor');
   
   // Check if user has Pro subscription
-  const subscription = await getUserSubscription(user.id);
-  const hasPro = subscription && (subscription.plan === 'pro' || subscription.plan === 'lifetime');
+  const hasPro = hasProAccess(user);
+  
+  // If user doesn't have Pro access, show upgrade prompt instead
+  if (!hasPro) {
+    const container = document.createElement('div');
+    container.className = 'container py-8';
+    
+    // Create header
+    const header = document.createElement('div');
+    header.className = 'text-center max-w-2xl mx-auto mb-8';
+    
+    const title = document.createElement('h1');
+    title.className = 'text-4xl font-extrabold tracking-tight';
+    title.textContent = 'Money Mentor';
+    
+    const subtitle = document.createElement('p');
+    subtitle.className = 'text-xl text-muted-foreground mt-2';
+    subtitle.textContent = 'Get personalized financial advice powered by Perplexity AI';
+    
+    header.appendChild(title);
+    header.appendChild(subtitle);
+    container.appendChild(header);
+    
+    // Add upgrade prompt
+    container.appendChild(createUpgradePrompt('Money Mentor AI'));
+    
+    return container;
+  }
   
   // Create main container
   const container = document.createElement('div');
