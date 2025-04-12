@@ -2814,7 +2814,9 @@ function renderPageContent(container) {
         // Use the UI directly
         container.appendChild(moneyMentorContainer);
         break;
-          const renderFallbackMoneyMentor = () => {
+      case 'moneymentor-advanced':
+        // Define the fallback renderer function 
+        const renderFallbackMoneyMentor = () => {
             console.log('Using fallback Money Mentor interface');
             
             // Create main container
@@ -2843,9 +2845,12 @@ function renderPageContent(container) {
             console.log('Skipping Money Mentor import due to previous failure');
             // Use fallback directly
             container.appendChild(renderFallbackMoneyMentor());
-            break;
+            return; // Use return instead of break since we're not in a loop or switch
           }
-            console.log('Using fallback Money Mentor interface');
+          
+          // Try importing the module
+          try {
+            console.log('Attempting to import Money Mentor module');
             
             // Create main container
             const fallbackContainer = document.createElement('div');
@@ -3482,30 +3487,31 @@ function renderPageContent(container) {
             return fallbackContainer;
           };
           
-          // Try to import the module first
-          import('../money-mentor.js').then(module => {
-            // Use async IIFE since renderMoneyMentorPage is async
-            (async () => {
-              try {
-                if (!appState || !appState.user) {
-                  throw new Error('User data not available');
-                }
+          try {
+            // Try to import the module first
+            import('../money-mentor.js').then(module => {
+              // Use async IIFE since renderMoneyMentorPage is async
+              (async () => {
+                try {
+                  if (!appState || !appState.user) {
+                    throw new Error('User data not available');
+                  }
                 
-                // Verify the module has the required function
-                if (typeof module.renderMoneyMentorPage !== 'function') {
-                  throw new Error('renderMoneyMentorPage function not found in module');
-                }
+                  // Verify the module has the required function
+                  if (typeof module.renderMoneyMentorPage !== 'function') {
+                    throw new Error('renderMoneyMentorPage function not found in module');
+                  }
+                  
+                  const mentorPage = await module.renderMoneyMentorPage(appState.user.id);
+                  
+                  // Verify we got a valid DOM element
+                  if (!(mentorPage instanceof HTMLElement)) {
+                    throw new Error('Invalid return from renderMoneyMentorPage');
+                  }
                 
-                const mentorPage = await module.renderMoneyMentorPage(appState.user.id);
-                
-                // Verify we got a valid DOM element
-                if (!(mentorPage instanceof HTMLElement)) {
-                  throw new Error('Invalid return from renderMoneyMentorPage');
-                }
-                
-                // Successfully loaded the module, clear any previous error flag
-                sessionStorage.removeItem('moneyMentorImportFailed');
-                container.appendChild(mentorPage);
+                  // Successfully loaded the module, clear any previous error flag
+                  sessionStorage.removeItem('moneyMentorImportFailed');
+                  container.appendChild(mentorPage);
               } catch (error) {
                 console.error('Error rendering money mentor page:', error);
                 console.log('Falling back to simplified Money Mentor interface');
@@ -3596,90 +3602,43 @@ function renderPageContent(container) {
         // Use the UI directly
         container.appendChild(subscriptionSniperContainer);
         break;
-          const renderFallbackSubscriptionSniper = () => {
-            console.log('Using fallback Subscription Sniper interface');
-            
-            // Create main container
-            const fallbackContainer = document.createElement('div');
-            fallbackContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
-            
-            // Add fallback content here...
-            fallbackContainer.innerHTML = `
-              <div class="text-center p-8 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <h2 class="text-2xl font-bold mb-4">Subscription Sniper</h2>
-                <p class="mb-4">Track and manage your recurring subscriptions to save money.</p>
-                <div class="animate-pulse inline-block p-4 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                  Loading module...
-                </div>
+      case 'subscriptionsniper-advanced':
+        // Use a simplified version to fix syntax errors
+        try {
+          console.log('Loading Subscription Sniper advanced...');
+          // Simple fallback implementation
+          const fallbackContainer = document.createElement('div');
+          fallbackContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
+          
+          fallbackContainer.innerHTML = `
+            <div class="text-center p-8 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <h2 class="text-2xl font-bold mb-4">Subscription Sniper</h2>
+              <p class="mb-4">Track and manage your recurring subscriptions to save money.</p>
+              <div class="animate-pulse inline-block p-4 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                Ready to optimize your subscriptions!
               </div>
-            `;
-            
-            return fallbackContainer;
-          };
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                <h3 class="text-xl font-bold mb-4">Your Subscriptions</h3>
+                <p class="text-gray-500">Connect your accounts to track subscriptions automatically.</p>
+              </div>
+              <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                <h3 class="text-xl font-bold mb-4">Recommendations</h3>
+                <p class="text-gray-500">Get personalized suggestions to optimize your spending.</p>
+              </div>
+            </div>
+          `;
           
-          const subscriptionSniperImportFailed = sessionStorage.getItem('subscriptionSniperImportFailed') === 'true';
-          
-          // If previously failed, don't attempt import again to avoid unnecessary console errors
-          if (subscriptionSniperImportFailed) {
-            console.log('Skipping Subscription Sniper import due to previous failure');
-            // Use fallback directly
-            container.appendChild(renderFallbackSubscriptionSniper());
-            break;
-          }
-            
-            // Create main container
-            const fallbackContainer = document.createElement('div');
-            fallbackContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
-            
-            // Create animated header with gradient background
-            const header = document.createElement('div');
-            header.className = 'mb-8 text-center relative overflow-hidden rounded-xl p-6';
-            header.style.background = 'linear-gradient(135deg, #ef4444, #f97316, #f59e0b)';
-            header.style.backgroundSize = '300% 300%';
-            header.style.animation = 'gradient-animation 8s ease infinite';
-            
-            // Add keyframes for gradient animation
-            const style = document.createElement('style');
-            style.textContent = `
-              @keyframes gradient-animation {
-                0% { background-position: 0% 50% }
-                50% { background-position: 100% 50% }
-                100% { background-position: 0% 50% }
-              }
-              @keyframes float-animation {
-                0% { transform: translateY(0px); }
-                50% { transform: translateY(-10px); }
-                100% { transform: translateY(0px); }
-              }
-              @keyframes pulse-animation {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.05); }
-                100% { transform: scale(1); }
-              }
-              @keyframes slide-in {
-                0% { transform: translateX(-50px); opacity: 0; }
-                100% { transform: translateX(0); opacity: 1; }
-              }
-              @keyframes fade-in {
-                0% { opacity: 0; }
-                100% { opacity: 1; }
-              }
-              .subscription-item {
-                animation: fade-in 0.4s ease-out forwards;
-                opacity: 0;
-              }
-              .subscription-item:nth-child(1) { animation-delay: 0.1s; }
-              .subscription-item:nth-child(2) { animation-delay: 0.2s; }
-              .subscription-item:nth-child(3) { animation-delay: 0.3s; }
-              .subscription-item:nth-child(4) { animation-delay: 0.4s; }
-              .subscription-item:nth-child(5) { animation-delay: 0.5s; }
-              .grow-on-hover {
-                transition: all 0.2s ease;
-              }
-              .grow-on-hover:hover {
-                transform: scale(1.02);
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-              }
+          container.appendChild(fallbackContainer);
+        } catch (error) {
+          console.error('Error in Subscription Sniper module:', error);
+          const errorMessage = document.createElement('div');
+          errorMessage.className = 'error-message p-4 bg-red-100 text-red-600 rounded-lg';
+          errorMessage.textContent = 'An error occurred while loading the Subscription Sniper module.';
+          container.appendChild(errorMessage);
+        }
+        break;
             `;
             document.head.appendChild(style);
             
@@ -4565,46 +4524,47 @@ function renderPageContent(container) {
             return fallbackContainer;
           };
           
-          // Try to import the module first
-          import('../subscription-sniper.js').then(module => {
-            // Use async IIFE since renderSubscriptionSniperPage is async
-            (async () => {
-              try {
-                if (!appState || !appState.user) {
-                  throw new Error('User data not available');
+          try {
+            // Try to import the module first
+            import('../subscription-sniper.js').then(module => {
+              // Use async IIFE since renderSubscriptionSniperPage is async
+              (async () => {
+                try {
+                  if (!appState || !appState.user) {
+                    throw new Error('User data not available');
+                  }
+                  
+                  // Verify the module has the required function
+                  if (typeof module.renderSubscriptionSniperPage !== 'function') {
+                    throw new Error('renderSubscriptionSniperPage function not found in module');
+                  }
+                  
+                  const sniperPage = await module.renderSubscriptionSniperPage(appState.user.id);
+                  
+                  // Verify we got a valid DOM element
+                  if (!(sniperPage instanceof HTMLElement)) {
+                    throw new Error('Invalid return from renderSubscriptionSniperPage');
+                  }
+                  
+                  // Successfully loaded the module, clear any previous error flag
+                  sessionStorage.removeItem('subscriptionSniperImportFailed');
+                  container.appendChild(sniperPage);
+                } catch (error) {
+                  console.error('Error rendering subscription sniper page:', error);
+                  console.log('Falling back to simplified Subscription Sniper interface');
+                  // Mark as failed in session storage to avoid future attempts
+                  sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
+                  container.appendChild(renderFallbackSubscriptionSniper());
                 }
-                
-                // Verify the module has the required function
-                if (typeof module.renderSubscriptionSniperPage !== 'function') {
-                  throw new Error('renderSubscriptionSniperPage function not found in module');
-                }
-                
-                const sniperPage = await module.renderSubscriptionSniperPage(appState.user.id);
-                
-                // Verify we got a valid DOM element
-                if (!(sniperPage instanceof HTMLElement)) {
-                  throw new Error('Invalid return from renderSubscriptionSniperPage');
-                }
-                
-                // Successfully loaded the module, clear any previous error flag
-                sessionStorage.removeItem('subscriptionSniperImportFailed');
-                container.appendChild(sniperPage);
-              } catch (error) {
-                console.error('Error rendering subscription sniper page:', error);
-                console.log('Falling back to simplified Subscription Sniper interface');
-                // Mark as failed in session storage to avoid future attempts
-                sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
-                container.appendChild(renderFallbackSubscriptionSniper());
-              }
-            })();
-          }).catch(error => {
-            // Instead of logging the error which may be empty, just log a message
-            console.log('Unable to load Subscription Sniper module - using fallback interface');
-            
-            // Mark as failed in session storage to avoid future attempts
-            sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
-            container.appendChild(renderFallbackSubscriptionSniper());
-          });
+              })();
+            }).catch(error => {
+              // Instead of logging the error which may be empty, just log a message
+              console.log('Unable to load Subscription Sniper module - using fallback interface');
+              
+              // Mark as failed in session storage to avoid future attempts
+              sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
+              container.appendChild(renderFallbackSubscriptionSniper());
+            });
         } catch (outerError) {
           console.error('Critical error initializing Subscription Sniper module:', outerError);
           container.appendChild(createErrorMessage('Critical error loading Subscription Sniper. Please reload the application.'));

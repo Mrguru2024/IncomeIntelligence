@@ -3639,7 +3639,6 @@ function renderPageContent(container) {
           container.appendChild(errorMessage);
         }
         break;
-            `;
             document.head.appendChild(style);
             
             // Add decorative elements
