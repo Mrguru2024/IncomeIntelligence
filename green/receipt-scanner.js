@@ -101,7 +101,7 @@ export function createReceiptScanner(appState) {
 
   // Description
   const description = document.createElement('p');
-  description.textContent = 'Take a photo or upload an image of your receipt. We'll extract the details automatically.';
+  description.textContent = 'Take a photo or upload an image of your receipt. We will extract the details automatically.';
   description.style.marginBottom = '20px';
   container.appendChild(description);
 
@@ -610,41 +610,28 @@ export function renderExpensesPageWithScanner() {
   receiptScanner.classList.add('receipt-scanner-section');
   container.appendChild(receiptScanner);
   
-  // Wait for the existing renderExpensesPage function to be imported
-  // and then call it to render the main expense tracker
-  import('./src/main.js').then(module => {
-    // If the module has a renderExpensesPage function, use it
-    if (typeof window.renderExpensesPage === 'function') {
-      const expensesPage = window.renderExpensesPage();
-      
-      // Add a class to the expense form for targeting
-      const formCard = expensesPage.querySelector('div:nth-child(2)');
-      if (formCard) {
-        formCard.classList.add('expense-form-card');
-      }
-      
-      container.appendChild(expensesPage);
-    } else {
-      // Fallback - just show a notice
-      const notice = document.createElement('div');
-      notice.textContent = 'Expense tracker is loading...';
-      notice.style.padding = '20px';
-      notice.style.backgroundColor = '#f5f5f5';
-      notice.style.borderRadius = '8px';
-      container.appendChild(notice);
-    }
-  }).catch(error => {
-    console.error('Failed to load expense tracker module:', error);
+  // Use the global renderExpensesPage function directly
+  if (typeof window.renderExpensesPage === 'function') {
+    const expensesPage = window.renderExpensesPage();
     
-    // Show error message
-    const errorMessage = document.createElement('div');
-    errorMessage.textContent = 'Failed to load expense tracker. Please refresh the page.';
-    errorMessage.style.padding = '20px';
-    errorMessage.style.backgroundColor = '#FFF5F5';
-    errorMessage.style.color = '#E53E3E';
-    errorMessage.style.borderRadius = '8px';
-    container.appendChild(errorMessage);
-  });
+    // Add a class to the expense form for targeting
+    const formCard = expensesPage.querySelector('div:nth-child(2)');
+    if (formCard) {
+      formCard.classList.add('expense-form-card');
+    }
+    
+    container.appendChild(expensesPage);
+  } else {
+    // Fallback - just show a notice
+    const notice = document.createElement('div');
+    notice.textContent = 'Expense tracker is loading...';
+    notice.style.padding = '20px';
+    notice.style.backgroundColor = '#f5f5f5';
+    notice.style.borderRadius = '8px';
+    container.appendChild(notice);
+    
+    console.error('renderExpensesPage function not found.');
+  }
   
   return container;
 }

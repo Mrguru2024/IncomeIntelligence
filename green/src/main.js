@@ -2669,7 +2669,17 @@ function renderPageContent(container) {
         container.appendChild(renderIncomePage());
         break;
       case 'expenses':
-        container.appendChild(renderExpensesPage());
+        // Check if receipt scanner is available, otherwise use standard expenses page
+        import('../receipt-scanner.js').then(module => {
+          if (module && module.renderExpensesPageWithScanner) {
+            container.appendChild(module.renderExpensesPageWithScanner());
+          } else {
+            container.appendChild(renderExpensesPage());
+          }
+        }).catch(error => {
+          console.error('Error loading receipt scanner module:', error);
+          container.appendChild(renderExpensesPage());
+        });
         break;
       case 'gigs':
         container.appendChild(renderGigsPage());
@@ -3030,6 +3040,15 @@ function createErrorMessage(message) {
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   console.log('GREEN Firebase-free version initializing...');
+  
+  // Initialize security measures
+  import('../utils/security-utils.js').then(module => {
+    if (module && module.initializeSecurityMeasures) {
+      module.initializeSecurityMeasures();
+    }
+  }).catch(error => {
+    console.error('Error initializing security measures:', error);
+  });
   
   // Load saved data
   loadStateFromStorage();
