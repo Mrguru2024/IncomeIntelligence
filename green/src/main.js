@@ -2845,7 +2845,7 @@ function renderPageContent(container) {
             console.log('Skipping Money Mentor import due to previous failure');
             // Use fallback directly
             container.appendChild(renderFallbackMoneyMentor());
-            break;
+            return; // Use return instead of break since we're not in a loop or switch
           }
             console.log('Using fallback Money Mentor interface');
             
@@ -3628,7 +3628,7 @@ function renderPageContent(container) {
             console.log('Skipping Subscription Sniper import due to previous failure');
             // Use fallback directly
             container.appendChild(renderFallbackSubscriptionSniper());
-            break;
+            return; // Use return instead of break since we're not in a loop or switch
           }
             
             // Create main container
