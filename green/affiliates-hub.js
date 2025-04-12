@@ -3,28 +3,8 @@
  * This component renders a dashboard for managing affiliate programs
  */
 
-import { 
-  affiliatePrograms, 
-  affiliateResources, 
-  getProgramsByCategory, 
-  getBeginnerFriendlyPrograms,
-  searchPrograms
-} from './affiliates.js';
-
-// Affiliate program categories
-const categories = [
-  { id: 'all', name: 'All Programs' },
-  { id: 'e-commerce', name: 'E-Commerce' },
-  { id: 'tech', name: 'Technology' },
-  { id: 'finance', name: 'Finance' },
-  { id: 'creator economy', name: 'Creator Economy' },
-  { id: 'education', name: 'Education' }
-];
-
-// Store user's affiliate data
-let userAffiliates = [];
-let activeCategory = 'all';
-let searchQuery = '';
+import { hasProAccess, createUpgradePrompt } from './utils/subscription-utils.js';
+import { affiliatePrograms, affiliateResources, getProgramsByCategory, getBeginnerFriendlyPrograms, searchPrograms } from './affiliates.js';
 
 /**
  * Fetch user's affiliate program data
@@ -33,14 +13,16 @@ let searchQuery = '';
  */
 async function fetchUserAffiliateData(userId) {
   try {
-    const response = await fetch(`/api/user/${userId}/affiliates`);
-    if (!response.ok) {
-      return []; // Return empty array on error
+    // In a real application, this would fetch data from an API
+    // For the GREEN version, we're using localStorage
+    const storedData = localStorage.getItem(`user_${userId}_affiliates`);
+    
+    if (storedData) {
+      return JSON.parse(storedData);
     }
     
-    const data = await response.json();
-    userAffiliates = data;
-    return data;
+    // If no data exists, return empty array
+    return [];
   } catch (error) {
     console.error('Error fetching affiliate data:', error);
     return [];
@@ -55,26 +37,42 @@ async function fetchUserAffiliateData(userId) {
  */
 async function joinAffiliateProgram(userId, programId) {
   try {
-    const response = await fetch('/api/user/join-affiliate-program', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        programId
-      }),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to join program');
+    // Get the program details
+    const program = affiliatePrograms.find(p => p.id === programId);
+    if (!program) {
+      throw new Error('Program not found');
     }
     
-    return await response.json();
+    // Get existing user affiliates
+    const userAffiliates = await fetchUserAffiliateData(userId);
+    
+    // Check if already joined
+    if (userAffiliates.some(a => a.programId === programId)) {
+      return { success: false, message: 'Already joined this program' };
+    }
+    
+    // Create new affiliate entry
+    const newAffiliate = {
+      programId,
+      programName: program.name,
+      joinedDate: new Date().toISOString(),
+      referrals: 0,
+      earnings: 0,
+      status: 'active',
+      notes: '',
+      category: program.category
+    };
+    
+    // Add to user's affiliates
+    userAffiliates.push(newAffiliate);
+    
+    // Save updated data
+    localStorage.setItem(`user_${userId}_affiliates`, JSON.stringify(userAffiliates));
+    
+    return { success: true, affiliate: newAffiliate };
   } catch (error) {
     console.error('Error joining affiliate program:', error);
-    throw error;
+    return { success: false, message: error.message };
   }
 }
 
@@ -88,209 +86,486 @@ async function joinAffiliateProgram(userId, programId) {
 function createProgramCard(program, isJoined, userId) {
   const card = document.createElement('div');
   card.className = 'affiliate-program-card';
-  card.style.border = '1px solid var(--color-border)';
-  card.style.borderRadius = 'var(--radius-lg)';
+  card.style.backgroundColor = 'white';
+  card.style.borderRadius = '10px';
+  card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
   card.style.overflow = 'hidden';
-  card.style.backgroundColor = 'var(--color-card)';
-  card.style.marginBottom = '16px';
-  card.style.transition = 'all 0.2s ease';
-  card.style.boxShadow = 'var(--shadow-sm)';
+  card.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+  card.style.cursor = 'pointer';
   
-  // Card header
-  const header = document.createElement('div');
-  header.style.padding = '16px';
-  header.style.borderBottom = '1px solid var(--color-border)';
-  header.style.display = 'flex';
-  header.style.alignItems = 'center';
-  header.style.justifyContent = 'space-between';
-  
-  const titleContainer = document.createElement('div');
-  
-  const title = document.createElement('h3');
-  title.textContent = program.name;
-  title.style.margin = '0';
-  title.style.fontSize = '18px';
-  title.style.fontWeight = 'bold';
-  titleContainer.appendChild(title);
-  
-  // Categories badges
-  const categoriesContainer = document.createElement('div');
-  categoriesContainer.style.display = 'flex';
-  categoriesContainer.style.flexWrap = 'wrap';
-  categoriesContainer.style.gap = '4px';
-  categoriesContainer.style.marginTop = '6px';
-  
-  program.categories.forEach(category => {
-    const badge = document.createElement('span');
-    badge.textContent = category;
-    badge.style.fontSize = '12px';
-    badge.style.padding = '2px 6px';
-    badge.style.borderRadius = '4px';
-    badge.style.backgroundColor = 'var(--color-primary-light)';
-    badge.style.color = 'var(--color-primary-dark)';
-    categoriesContainer.appendChild(badge);
-  });
-  
-  titleContainer.appendChild(categoriesContainer);
-  header.appendChild(titleContainer);
-  
-  // Beginner friendly badge if applicable
-  if (program.beginner_friendly) {
-    const beginnerBadge = document.createElement('span');
-    beginnerBadge.textContent = 'Beginner Friendly';
-    beginnerBadge.style.fontSize = '12px';
-    beginnerBadge.style.padding = '4px 8px';
-    beginnerBadge.style.borderRadius = '4px';
-    beginnerBadge.style.backgroundColor = '#4caf50';
-    beginnerBadge.style.color = 'white';
-    header.appendChild(beginnerBadge);
-  }
-  
-  card.appendChild(header);
-  
-  // Card content
-  const content = document.createElement('div');
-  content.style.padding = '16px';
-  
-  const description = document.createElement('p');
-  description.textContent = program.description;
-  description.style.marginTop = '0';
-  description.style.color = 'var(--color-text-secondary)';
-  content.appendChild(description);
-  
-  // Details list
-  const detailsList = document.createElement('ul');
-  detailsList.style.listStyle = 'none';
-  detailsList.style.padding = '0';
-  detailsList.style.margin = '16px 0';
-  
-  const commissionItem = document.createElement('li');
-  commissionItem.style.display = 'flex';
-  commissionItem.style.marginBottom = '8px';
-  
-  const commissionLabel = document.createElement('strong');
-  commissionLabel.textContent = 'Commission: ';
-  commissionLabel.style.marginRight = '8px';
-  commissionLabel.style.minWidth = '100px';
-  
-  const commissionValue = document.createElement('span');
-  commissionValue.textContent = program.commission;
-  
-  commissionItem.appendChild(commissionLabel);
-  commissionItem.appendChild(commissionValue);
-  detailsList.appendChild(commissionItem);
-  
-  const requirementsItem = document.createElement('li');
-  requirementsItem.style.display = 'flex';
-  requirementsItem.style.marginBottom = '8px';
-  
-  const requirementsLabel = document.createElement('strong');
-  requirementsLabel.textContent = 'Requirements: ';
-  requirementsLabel.style.marginRight = '8px';
-  requirementsLabel.style.minWidth = '100px';
-  
-  const requirementsValue = document.createElement('span');
-  requirementsValue.textContent = program.requirements;
-  
-  requirementsItem.appendChild(requirementsLabel);
-  requirementsItem.appendChild(requirementsValue);
-  detailsList.appendChild(requirementsItem);
-  
-  content.appendChild(detailsList);
-  
-  // Card actions
-  const actions = document.createElement('div');
-  actions.style.display = 'flex';
-  actions.style.gap = '8px';
-  actions.style.marginTop = '16px';
-  
-  const websiteButton = document.createElement('a');
-  websiteButton.href = program.link;
-  websiteButton.target = '_blank';
-  websiteButton.textContent = 'Official Website';
-  websiteButton.style.padding = '8px 16px';
-  websiteButton.style.backgroundColor = 'transparent';
-  websiteButton.style.border = '1px solid var(--color-primary)';
-  websiteButton.style.borderRadius = 'var(--radius-md)';
-  websiteButton.style.color = 'var(--color-primary)';
-  websiteButton.style.textDecoration = 'none';
-  websiteButton.style.fontSize = '14px';
-  websiteButton.style.cursor = 'pointer';
-  websiteButton.style.transition = 'all 0.2s ease';
-  
-  websiteButton.addEventListener('mouseenter', () => {
-    websiteButton.style.backgroundColor = 'var(--color-primary-light)';
-    websiteButton.style.color = 'var(--color-primary-dark)';
-  });
-  
-  websiteButton.addEventListener('mouseleave', () => {
-    websiteButton.style.backgroundColor = 'transparent';
-    websiteButton.style.color = 'var(--color-primary)';
-  });
-  
-  const joinButton = document.createElement('button');
-  joinButton.textContent = isJoined ? 'Joined ✓' : 'Join Program';
-  joinButton.style.padding = '8px 16px';
-  joinButton.style.backgroundColor = isJoined ? '#e6f7e6' : 'var(--color-primary)';
-  joinButton.style.border = 'none';
-  joinButton.style.borderRadius = 'var(--radius-md)';
-  joinButton.style.color = isJoined ? '#2e7d32' : 'white';
-  joinButton.style.fontSize = '14px';
-  joinButton.style.cursor = isJoined ? 'default' : 'pointer';
-  joinButton.style.transition = 'all 0.2s ease';
-  joinButton.disabled = isJoined;
-  
-  if (!isJoined) {
-    joinButton.addEventListener('mouseenter', () => {
-      joinButton.style.backgroundColor = 'var(--color-primary-dark)';
-    });
-    
-    joinButton.addEventListener('mouseleave', () => {
-      joinButton.style.backgroundColor = 'var(--color-primary)';
-    });
-    
-    joinButton.addEventListener('click', async () => {
-      try {
-        joinButton.textContent = 'Joining...';
-        joinButton.disabled = true;
-        
-        await joinAffiliateProgram(userId, program.id);
-        
-        joinButton.textContent = 'Joined ✓';
-        joinButton.style.backgroundColor = '#e6f7e6';
-        joinButton.style.color = '#2e7d32';
-        
-        // Add to user's affiliates
-        userAffiliates.push({
-          programId: program.id,
-          joinedAt: new Date().toISOString(),
-          status: 'active'
-        });
-      } catch (error) {
-        joinButton.textContent = 'Failed to Join';
-        joinButton.disabled = false;
-        setTimeout(() => {
-          joinButton.textContent = 'Join Program';
-        }, 2000);
-      }
-    });
-  }
-  
-  actions.appendChild(websiteButton);
-  actions.appendChild(joinButton);
-  content.appendChild(actions);
-  
-  card.appendChild(content);
-  
-  // Add hover effect
+  // Hover effects
   card.addEventListener('mouseenter', () => {
     card.style.transform = 'translateY(-4px)';
-    card.style.boxShadow = 'var(--shadow-md)';
+    card.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
   });
   
   card.addEventListener('mouseleave', () => {
     card.style.transform = 'translateY(0)';
-    card.style.boxShadow = 'var(--shadow-sm)';
+    card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+  });
+  
+  // Badge for beginner-friendly programs
+  if (program.beginnerFriendly) {
+    const badge = document.createElement('div');
+    badge.className = 'beginner-badge';
+    badge.textContent = 'Beginner Friendly';
+    badge.style.position = 'absolute';
+    badge.style.top = '12px';
+    badge.style.right = '12px';
+    badge.style.backgroundColor = '#34A853';
+    badge.style.color = 'white';
+    badge.style.fontSize = '12px';
+    badge.style.padding = '4px 8px';
+    badge.style.borderRadius = '4px';
+    badge.style.fontWeight = '500';
+    card.appendChild(badge);
+  }
+  
+  // Card content
+  const content = document.createElement('div');
+  content.style.padding = '20px';
+  content.style.position = 'relative';
+  
+  // Program name
+  const name = document.createElement('h3');
+  name.textContent = program.name;
+  name.style.fontSize = '18px';
+  name.style.fontWeight = '600';
+  name.style.marginBottom = '8px';
+  name.style.color = '#333';
+  content.appendChild(name);
+  
+  // Category tag
+  const categoryTag = document.createElement('span');
+  categoryTag.textContent = program.category.charAt(0).toUpperCase() + program.category.slice(1);
+  categoryTag.style.fontSize = '12px';
+  categoryTag.style.backgroundColor = '#F0F4F8';
+  categoryTag.style.color = '#4A5568';
+  categoryTag.style.padding = '3px 8px';
+  categoryTag.style.borderRadius = '4px';
+  categoryTag.style.marginBottom = '10px';
+  categoryTag.style.display = 'inline-block';
+  content.appendChild(categoryTag);
+  
+  // Description
+  const description = document.createElement('p');
+  description.textContent = program.description;
+  description.style.fontSize = '14px';
+  description.style.color = '#4A5568';
+  description.style.marginTop = '12px';
+  description.style.marginBottom = '15px';
+  description.style.lineHeight = '1.5';
+  content.appendChild(description);
+  
+  // Commission info
+  const commissionContainer = document.createElement('div');
+  commissionContainer.style.display = 'flex';
+  commissionContainer.style.alignItems = 'center';
+  commissionContainer.style.marginBottom = '8px';
+  
+  const commissionLabel = document.createElement('span');
+  commissionLabel.textContent = 'Commission:';
+  commissionLabel.style.fontSize = '13px';
+  commissionLabel.style.fontWeight = '500';
+  commissionLabel.style.color = '#4A5568';
+  commissionLabel.style.marginRight = '8px';
+  commissionContainer.appendChild(commissionLabel);
+  
+  const commissionValue = document.createElement('span');
+  commissionValue.textContent = program.commission;
+  commissionValue.style.fontSize = '14px';
+  commissionValue.style.fontWeight = '600';
+  commissionValue.style.color = '#2C5282';
+  commissionContainer.appendChild(commissionValue);
+  
+  content.appendChild(commissionContainer);
+  
+  // Cookie duration
+  const cookieContainer = document.createElement('div');
+  cookieContainer.style.display = 'flex';
+  cookieContainer.style.alignItems = 'center';
+  cookieContainer.style.marginBottom = '15px';
+  
+  const cookieLabel = document.createElement('span');
+  cookieLabel.textContent = 'Cookie Duration:';
+  cookieLabel.style.fontSize = '13px';
+  cookieLabel.style.fontWeight = '500';
+  cookieLabel.style.color = '#4A5568';
+  cookieLabel.style.marginRight = '8px';
+  cookieContainer.appendChild(cookieLabel);
+  
+  const cookieValue = document.createElement('span');
+  cookieValue.textContent = program.cookieDuration;
+  cookieValue.style.fontSize = '14px';
+  cookieValue.style.color = '#4A5568';
+  cookieContainer.appendChild(cookieValue);
+  
+  content.appendChild(cookieContainer);
+  
+  // Action button (Join or View)
+  const actionBtn = document.createElement('button');
+  
+  if (isJoined) {
+    actionBtn.textContent = 'View Details';
+    actionBtn.style.backgroundColor = '#F0F4F8';
+    actionBtn.style.color = '#2C5282';
+  } else {
+    actionBtn.textContent = 'Join Program';
+    actionBtn.style.backgroundColor = '#4299E1';
+    actionBtn.style.color = 'white';
+  }
+  
+  actionBtn.style.width = '100%';
+  actionBtn.style.padding = '10px';
+  actionBtn.style.borderRadius = '6px';
+  actionBtn.style.border = 'none';
+  actionBtn.style.fontWeight = '500';
+  actionBtn.style.cursor = 'pointer';
+  actionBtn.style.transition = 'background-color 0.2s ease';
+  
+  actionBtn.addEventListener('mouseenter', () => {
+    if (isJoined) {
+      actionBtn.style.backgroundColor = '#E2E8F0';
+    } else {
+      actionBtn.style.backgroundColor = '#3182CE';
+    }
+  });
+  
+  actionBtn.addEventListener('mouseleave', () => {
+    if (isJoined) {
+      actionBtn.style.backgroundColor = '#F0F4F8';
+    } else {
+      actionBtn.style.backgroundColor = '#4299E1';
+    }
+  });
+  
+  actionBtn.addEventListener('click', async (e) => {
+    e.stopPropagation(); // Prevent card click
+    
+    if (isJoined) {
+      // Open program details or dashboard
+      alert(`View your ${program.name} affiliate dashboard`);
+    } else {
+      // Join the program
+      actionBtn.textContent = 'Joining...';
+      actionBtn.disabled = true;
+      
+      const result = await joinAffiliateProgram(userId, program.id);
+      
+      if (result.success) {
+        actionBtn.textContent = 'Joined!';
+        actionBtn.style.backgroundColor = '#48BB78';
+        
+        // Update UI after joining
+        setTimeout(() => {
+          actionBtn.textContent = 'View Details';
+          actionBtn.style.backgroundColor = '#F0F4F8';
+          actionBtn.style.color = '#2C5282';
+          isJoined = true;
+          
+          // Refresh the programs list
+          updateProgramsList(userId);
+        }, 1500);
+      } else {
+        actionBtn.textContent = 'Error';
+        actionBtn.style.backgroundColor = '#F56565';
+        
+        setTimeout(() => {
+          actionBtn.textContent = 'Join Program';
+          actionBtn.style.backgroundColor = '#4299E1';
+          actionBtn.disabled = false;
+        }, 2000);
+      }
+    }
+  });
+  
+  content.appendChild(actionBtn);
+  
+  // Visit website link
+  const visitLink = document.createElement('a');
+  visitLink.textContent = 'Visit Website';
+  visitLink.href = program.link;
+  visitLink.target = '_blank';
+  visitLink.rel = 'noopener noreferrer';
+  visitLink.style.fontSize = '14px';
+  visitLink.style.color = '#4299E1';
+  visitLink.style.textAlign = 'center';
+  visitLink.style.display = 'block';
+  visitLink.style.marginTop = '10px';
+  visitLink.style.textDecoration = 'none';
+  
+  visitLink.addEventListener('mouseenter', () => {
+    visitLink.style.textDecoration = 'underline';
+  });
+  
+  visitLink.addEventListener('mouseleave', () => {
+    visitLink.style.textDecoration = 'none';
+  });
+  
+  // Prevent card click when clicking the link
+  visitLink.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+  
+  content.appendChild(visitLink);
+  card.appendChild(content);
+  
+  // Make entire card clickable to open detailed view
+  card.addEventListener('click', () => {
+    // Show detailed modal with program info
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '1000';
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.backgroundColor = 'white';
+    modalContent.style.borderRadius = '10px';
+    modalContent.style.width = '90%';
+    modalContent.style.maxWidth = '700px';
+    modalContent.style.maxHeight = '90vh';
+    modalContent.style.overflow = 'auto';
+    modalContent.style.position = 'relative';
+    modalContent.style.padding = '30px';
+    
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = '15px';
+    closeBtn.style.right = '20px';
+    closeBtn.style.fontSize = '24px';
+    closeBtn.style.background = 'none';
+    closeBtn.style.border = 'none';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.style.color = '#4A5568';
+    
+    closeBtn.addEventListener('click', () => {
+      document.body.removeChild(modal);
+    });
+    
+    modalContent.appendChild(closeBtn);
+    
+    // Program name
+    const modalTitle = document.createElement('h2');
+    modalTitle.textContent = program.name;
+    modalTitle.style.fontSize = '24px';
+    modalTitle.style.fontWeight = '700';
+    modalTitle.style.marginBottom = '5px';
+    modalContent.appendChild(modalTitle);
+    
+    // Category
+    const modalCategory = document.createElement('div');
+    modalCategory.textContent = program.category.charAt(0).toUpperCase() + program.category.slice(1);
+    modalCategory.style.fontSize = '14px';
+    modalCategory.style.display = 'inline-block';
+    modalCategory.style.backgroundColor = '#F0F4F8';
+    modalCategory.style.color = '#4A5568';
+    modalCategory.style.padding = '3px 10px';
+    modalCategory.style.borderRadius = '4px';
+    modalCategory.style.marginBottom = '20px';
+    modalContent.appendChild(modalCategory);
+    
+    // Description
+    const modalDesc = document.createElement('p');
+    modalDesc.textContent = program.description;
+    modalDesc.style.fontSize = '16px';
+    modalDesc.style.lineHeight = '1.6';
+    modalDesc.style.marginBottom = '25px';
+    modalContent.appendChild(modalDesc);
+    
+    // Details section
+    const detailsSection = document.createElement('div');
+    detailsSection.style.backgroundColor = '#F8FAFC';
+    detailsSection.style.borderRadius = '8px';
+    detailsSection.style.padding = '20px';
+    detailsSection.style.marginBottom = '25px';
+    
+    const detailsTitle = document.createElement('h3');
+    detailsTitle.textContent = 'Program Details';
+    detailsTitle.style.fontSize = '18px';
+    detailsTitle.style.fontWeight = '600';
+    detailsTitle.style.marginBottom = '15px';
+    detailsSection.appendChild(detailsTitle);
+    
+    // Create detail rows
+    const details = [
+      { label: 'Commission', value: program.commission },
+      { label: 'Cookie Duration', value: program.cookieDuration },
+      { label: 'Payment Threshold', value: program.paymentThreshold },
+      { label: 'Payment Methods', value: program.paymentMethods.join(', ') },
+      { label: 'Application Process', value: program.applicationProcess },
+      { label: 'Beginner Friendly', value: program.beginnerFriendly ? 'Yes' : 'No' }
+    ];
+    
+    details.forEach(detail => {
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.marginBottom = '10px';
+      
+      const label = document.createElement('div');
+      label.textContent = detail.label + ':';
+      label.style.width = '40%';
+      label.style.fontWeight = '500';
+      label.style.color = '#4A5568';
+      row.appendChild(label);
+      
+      const value = document.createElement('div');
+      value.textContent = detail.value;
+      value.style.width = '60%';
+      row.appendChild(value);
+      
+      detailsSection.appendChild(row);
+    });
+    
+    modalContent.appendChild(detailsSection);
+    
+    // Requirements section
+    if (program.requirements && program.requirements.length) {
+      const reqSection = document.createElement('div');
+      reqSection.style.marginBottom = '25px';
+      
+      const reqTitle = document.createElement('h3');
+      reqTitle.textContent = 'Requirements';
+      reqTitle.style.fontSize = '18px';
+      reqTitle.style.fontWeight = '600';
+      reqTitle.style.marginBottom = '10px';
+      reqSection.appendChild(reqTitle);
+      
+      const reqList = document.createElement('ul');
+      reqList.style.paddingLeft = '20px';
+      
+      program.requirements.forEach(req => {
+        const item = document.createElement('li');
+        item.textContent = req;
+        item.style.marginBottom = '8px';
+        item.style.fontSize = '15px';
+        reqList.appendChild(item);
+      });
+      
+      reqSection.appendChild(reqList);
+      modalContent.appendChild(reqSection);
+    }
+    
+    // Tips section
+    if (program.tips && program.tips.length) {
+      const tipsSection = document.createElement('div');
+      tipsSection.style.marginBottom = '25px';
+      
+      const tipsTitle = document.createElement('h3');
+      tipsTitle.textContent = 'Tips for Success';
+      tipsTitle.style.fontSize = '18px';
+      tipsTitle.style.fontWeight = '600';
+      tipsTitle.style.marginBottom = '10px';
+      tipsSection.appendChild(tipsTitle);
+      
+      const tipsList = document.createElement('ul');
+      tipsList.style.paddingLeft = '20px';
+      
+      program.tips.forEach(tip => {
+        const item = document.createElement('li');
+        item.textContent = tip;
+        item.style.marginBottom = '8px';
+        item.style.fontSize = '15px';
+        tipsList.appendChild(item);
+      });
+      
+      tipsSection.appendChild(tipsList);
+      modalContent.appendChild(tipsSection);
+    }
+    
+    // Action buttons
+    const actionButtons = document.createElement('div');
+    actionButtons.style.display = 'flex';
+    actionButtons.style.gap = '15px';
+    actionButtons.style.marginTop = '20px';
+    
+    const primaryBtn = document.createElement('button');
+    if (isJoined) {
+      primaryBtn.textContent = 'Go to Dashboard';
+    } else {
+      primaryBtn.textContent = 'Join Program';
+    }
+    primaryBtn.style.flex = '1';
+    primaryBtn.style.padding = '12px';
+    primaryBtn.style.backgroundColor = isJoined ? '#48BB78' : '#4299E1';
+    primaryBtn.style.color = 'white';
+    primaryBtn.style.border = 'none';
+    primaryBtn.style.borderRadius = '6px';
+    primaryBtn.style.fontWeight = '500';
+    primaryBtn.style.cursor = 'pointer';
+    
+    primaryBtn.addEventListener('click', async () => {
+      if (isJoined) {
+        alert(`View your ${program.name} affiliate dashboard`);
+      } else {
+        primaryBtn.textContent = 'Joining...';
+        primaryBtn.disabled = true;
+        
+        const result = await joinAffiliateProgram(userId, program.id);
+        
+        if (result.success) {
+          primaryBtn.textContent = 'Joined!';
+          primaryBtn.style.backgroundColor = '#48BB78';
+          
+          // Update UI after joining
+          setTimeout(() => {
+            primaryBtn.textContent = 'Go to Dashboard';
+            isJoined = true;
+            
+            // Refresh the programs list
+            updateProgramsList(userId);
+          }, 1500);
+        } else {
+          primaryBtn.textContent = 'Error';
+          primaryBtn.style.backgroundColor = '#F56565';
+          
+          setTimeout(() => {
+            primaryBtn.textContent = 'Join Program';
+            primaryBtn.style.backgroundColor = '#4299E1';
+            primaryBtn.disabled = false;
+          }, 2000);
+        }
+      }
+    });
+    
+    actionButtons.appendChild(primaryBtn);
+    
+    const websiteBtn = document.createElement('a');
+    websiteBtn.textContent = 'Visit Website';
+    websiteBtn.href = program.link;
+    websiteBtn.target = '_blank';
+    websiteBtn.rel = 'noopener noreferrer';
+    websiteBtn.style.flex = '1';
+    websiteBtn.style.padding = '12px';
+    websiteBtn.style.backgroundColor = 'white';
+    websiteBtn.style.color = '#4299E1';
+    websiteBtn.style.border = '1px solid #4299E1';
+    websiteBtn.style.borderRadius = '6px';
+    websiteBtn.style.textAlign = 'center';
+    websiteBtn.style.fontWeight = '500';
+    websiteBtn.style.textDecoration = 'none';
+    websiteBtn.style.display = 'inline-block';
+    
+    actionButtons.appendChild(websiteBtn);
+    modalContent.appendChild(actionButtons);
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+      }
+    });
   });
   
   return card;
@@ -303,61 +578,114 @@ function createProgramCard(program, isJoined, userId) {
  */
 function createResourceCard(resource) {
   const card = document.createElement('div');
-  card.className = 'resource-card';
-  card.style.padding = '16px';
-  card.style.border = '1px solid var(--color-border)';
-  card.style.borderRadius = 'var(--radius-md)';
-  card.style.backgroundColor = 'var(--color-card)';
-  card.style.marginBottom = '12px';
+  card.className = 'affiliate-resource-card';
+  card.style.backgroundColor = 'white';
+  card.style.borderRadius = '8px';
+  card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+  card.style.overflow = 'hidden';
+  card.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+  card.style.cursor = 'pointer';
+  card.style.display = 'flex';
+  card.style.flexDirection = 'column';
+  card.style.height = '100%';
   
-  const header = document.createElement('div');
-  header.style.display = 'flex';
-  header.style.justifyContent = 'space-between';
-  header.style.alignItems = 'center';
-  header.style.marginBottom = '8px';
+  // Hover effects
+  card.addEventListener('mouseenter', () => {
+    card.style.transform = 'translateY(-3px)';
+    card.style.boxShadow = '0 6px 16px rgba(0,0,0,0.1)';
+  });
   
-  const title = document.createElement('h4');
-  title.textContent = resource.title;
-  title.style.margin = '0';
-  title.style.fontSize = '16px';
-  title.style.fontWeight = 'bold';
-  header.appendChild(title);
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'translateY(0)';
+    card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+  });
   
-  // Difficulty badge
-  const difficultyBadge = document.createElement('span');
-  difficultyBadge.textContent = resource.difficulty;
-  difficultyBadge.style.fontSize = '12px';
-  difficultyBadge.style.padding = '2px 8px';
-  difficultyBadge.style.borderRadius = '4px';
+  // Card content
+  const content = document.createElement('div');
+  content.style.padding = '20px';
+  content.style.flex = '1';
+  content.style.display = 'flex';
+  content.style.flexDirection = 'column';
   
-  // Style based on difficulty
-  switch (resource.difficulty) {
-    case 'beginner':
-      difficultyBadge.style.backgroundColor = '#e6f7e6';
-      difficultyBadge.style.color = '#2e7d32';
-      break;
-    case 'intermediate':
-      difficultyBadge.style.backgroundColor = '#fff8e1';
-      difficultyBadge.style.color = '#f57c00';
-      break;
-    case 'advanced':
-      difficultyBadge.style.backgroundColor = '#ffebee';
-      difficultyBadge.style.color = '#c62828';
-      break;
-    default:
-      difficultyBadge.style.backgroundColor = '#e0e0e0';
-      difficultyBadge.style.color = '#616161';
+  // Featured badge
+  if (resource.featured) {
+    const featuredBadge = document.createElement('div');
+    featuredBadge.textContent = 'Featured';
+    featuredBadge.style.position = 'absolute';
+    featuredBadge.style.top = '10px';
+    featuredBadge.style.right = '10px';
+    featuredBadge.style.backgroundColor = '#F6AD55';
+    featuredBadge.style.color = 'white';
+    featuredBadge.style.fontSize = '12px';
+    featuredBadge.style.padding = '3px 8px';
+    featuredBadge.style.borderRadius = '4px';
+    featuredBadge.style.fontWeight = '500';
+    card.appendChild(featuredBadge);
   }
   
-  header.appendChild(difficultyBadge);
-  card.appendChild(header);
+  // Resource type tag
+  const typeTag = document.createElement('span');
+  typeTag.textContent = resource.type.charAt(0).toUpperCase() + resource.type.slice(1);
+  typeTag.style.fontSize = '12px';
+  typeTag.style.backgroundColor = '#F0F4F8';
+  typeTag.style.color = '#4A5568';
+  typeTag.style.padding = '3px 8px';
+  typeTag.style.borderRadius = '4px';
+  typeTag.style.display = 'inline-block';
+  typeTag.style.marginBottom = '10px';
+  content.appendChild(typeTag);
   
+  // Resource title
+  const title = document.createElement('h3');
+  title.textContent = resource.title;
+  title.style.fontSize = '16px';
+  title.style.fontWeight = '600';
+  title.style.marginBottom = '10px';
+  title.style.color = '#333';
+  content.appendChild(title);
+  
+  // Resource description
   const description = document.createElement('p');
   description.textContent = resource.description;
-  description.style.margin = '0';
   description.style.fontSize = '14px';
-  description.style.color = 'var(--color-text-secondary)';
-  card.appendChild(description);
+  description.style.color = '#4A5568';
+  description.style.marginBottom = 'auto';
+  description.style.flex = '1';
+  description.style.lineHeight = '1.5';
+  content.appendChild(description);
+  
+  // View resource link
+  const viewLink = document.createElement('a');
+  viewLink.textContent = 'View Resource';
+  viewLink.href = resource.link;
+  viewLink.target = '_blank';
+  viewLink.rel = 'noopener noreferrer';
+  viewLink.style.display = 'inline-block';
+  viewLink.style.marginTop = '15px';
+  viewLink.style.color = '#4299E1';
+  viewLink.style.fontWeight = '500';
+  viewLink.style.textDecoration = 'none';
+  
+  viewLink.addEventListener('mouseenter', () => {
+    viewLink.style.textDecoration = 'underline';
+  });
+  
+  viewLink.addEventListener('mouseleave', () => {
+    viewLink.style.textDecoration = 'none';
+  });
+  
+  // Prevent card click when clicking the link
+  viewLink.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+  
+  content.appendChild(viewLink);
+  card.appendChild(content);
+  
+  // Make card clickable
+  card.addEventListener('click', () => {
+    window.open(resource.link, '_blank', 'noopener,noreferrer');
+  });
   
   return card;
 }
@@ -370,40 +698,56 @@ function createResourceCard(resource) {
  * @returns {HTMLElement} - Tabs container
  */
 function createCategoryTabs(categories, activeCategory, onSelect) {
-  const tabsContainer = document.createElement('div');
-  tabsContainer.style.display = 'flex';
-  tabsContainer.style.overflowX = 'auto';
-  tabsContainer.style.gap = '8px';
-  tabsContainer.style.padding = '4px 0';
-  tabsContainer.style.marginBottom = '24px';
+  const container = document.createElement('div');
+  container.className = 'category-tabs';
+  container.style.display = 'flex';
+  container.style.overflowX = 'auto';
+  container.style.gap = '10px';
+  container.style.padding = '4px';
+  container.style.marginBottom = '25px';
   
   categories.forEach(category => {
     const tab = document.createElement('button');
-    tab.textContent = category.name;
+    tab.textContent = category.label;
     tab.style.padding = '8px 16px';
-    tab.style.borderRadius = 'var(--radius-md)';
+    tab.style.borderRadius = '6px';
     tab.style.border = 'none';
-    tab.style.fontSize = '14px';
     tab.style.cursor = 'pointer';
     tab.style.whiteSpace = 'nowrap';
+    tab.style.transition = 'all 0.2s ease';
     
-    // Style active/inactive state
-    if (category.id === activeCategory) {
-      tab.style.backgroundColor = 'var(--color-primary)';
+    // Set active state
+    if (category.value === activeCategory) {
+      tab.style.backgroundColor = '#4299E1';
       tab.style.color = 'white';
+      tab.style.fontWeight = '500';
     } else {
-      tab.style.backgroundColor = 'var(--color-background-alt, #f5f5f5)';
-      tab.style.color = 'var(--color-text)';
+      tab.style.backgroundColor = '#EDF2F7';
+      tab.style.color = '#4A5568';
     }
     
-    tab.addEventListener('click', () => {
-      onSelect(category.id);
+    // Hover effects
+    tab.addEventListener('mouseenter', () => {
+      if (category.value !== activeCategory) {
+        tab.style.backgroundColor = '#E2E8F0';
+      }
     });
     
-    tabsContainer.appendChild(tab);
+    tab.addEventListener('mouseleave', () => {
+      if (category.value !== activeCategory) {
+        tab.style.backgroundColor = '#EDF2F7';
+      }
+    });
+    
+    // Click handler
+    tab.addEventListener('click', () => {
+      onSelect(category.value);
+    });
+    
+    container.appendChild(tab);
   });
   
-  return tabsContainer;
+  return container;
 }
 
 /**
@@ -412,46 +756,63 @@ function createCategoryTabs(categories, activeCategory, onSelect) {
  * @returns {HTMLElement} - Search form
  */
 function createSearchBar(onSearch) {
-  const searchContainer = document.createElement('div');
-  searchContainer.style.marginBottom = '24px';
+  const container = document.createElement('div');
+  container.className = 'search-container';
+  container.style.marginBottom = '25px';
   
-  const searchForm = document.createElement('form');
-  searchForm.style.display = 'flex';
-  searchForm.style.gap = '8px';
+  const form = document.createElement('form');
+  form.style.display = 'flex';
+  form.style.gap = '10px';
   
-  searchForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const query = searchInput.value.trim();
-    onSearch(query);
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'Search affiliate programs...';
+  input.style.flex = '1';
+  input.style.padding = '10px 16px';
+  input.style.borderRadius = '6px';
+  input.style.border = '1px solid #CBD5E0';
+  input.style.fontSize = '14px';
+  input.style.outline = 'none';
+  
+  input.addEventListener('focus', () => {
+    input.style.borderColor = '#4299E1';
+    input.style.boxShadow = '0 0 0 3px rgba(66, 153, 225, 0.2)';
   });
   
-  const searchInput = document.createElement('input');
-  searchInput.type = 'text';
-  searchInput.placeholder = 'Search programs...';
-  searchInput.style.flex = '1';
-  searchInput.style.padding = '10px 12px';
-  searchInput.style.border = '1px solid var(--color-border)';
-  searchInput.style.borderRadius = 'var(--radius-md)';
-  searchInput.style.fontSize = '14px';
+  input.addEventListener('blur', () => {
+    input.style.borderColor = '#CBD5E0';
+    input.style.boxShadow = 'none';
+  });
   
-  const searchButton = document.createElement('button');
-  searchButton.type = 'submit';
-  searchButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
-  searchButton.style.padding = '8px 16px';
-  searchButton.style.backgroundColor = 'var(--color-primary)';
-  searchButton.style.color = 'white';
-  searchButton.style.border = 'none';
-  searchButton.style.borderRadius = 'var(--radius-md)';
-  searchButton.style.cursor = 'pointer';
-  searchButton.style.display = 'flex';
-  searchButton.style.alignItems = 'center';
-  searchButton.style.justifyContent = 'center';
+  const button = document.createElement('button');
+  button.type = 'submit';
+  button.textContent = 'Search';
+  button.style.padding = '10px 16px';
+  button.style.backgroundColor = '#4299E1';
+  button.style.color = 'white';
+  button.style.borderRadius = '6px';
+  button.style.border = 'none';
+  button.style.fontWeight = '500';
+  button.style.cursor = 'pointer';
   
-  searchForm.appendChild(searchInput);
-  searchForm.appendChild(searchButton);
+  button.addEventListener('mouseenter', () => {
+    button.style.backgroundColor = '#3182CE';
+  });
   
-  searchContainer.appendChild(searchForm);
-  return searchContainer;
+  button.addEventListener('mouseleave', () => {
+    button.style.backgroundColor = '#4299E1';
+  });
+  
+  form.appendChild(input);
+  form.appendChild(button);
+  
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    onSearch(input.value);
+  });
+  
+  container.appendChild(form);
+  return container;
 }
 
 /**
@@ -463,46 +824,55 @@ function createSearchBar(onSearch) {
  */
 function renderProgramsList(programs, userAffiliates, userId) {
   const container = document.createElement('div');
-  container.className = 'programs-list';
+  container.className = 'programs-container';
   
+  // No results state
   if (programs.length === 0) {
-    const emptyState = document.createElement('div');
-    emptyState.style.textAlign = 'center';
-    emptyState.style.padding = '32px';
-    emptyState.style.backgroundColor = 'var(--color-background-alt, #f5f5f5)';
-    emptyState.style.borderRadius = 'var(--radius-lg)';
+    const noResults = document.createElement('div');
+    noResults.style.textAlign = 'center';
+    noResults.style.padding = '50px 0';
     
-    const emptyIcon = document.createElement('div');
-    emptyIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 15h8"></path><path d="M9 9h.01"></path><path d="M15 9h.01"></path></svg>';
-    emptyIcon.style.marginBottom = '16px';
-    emptyIcon.style.color = 'var(--color-text-secondary)';
+    const icon = document.createElement('div');
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>`;
+    icon.style.color = '#A0AEC0';
+    icon.style.marginBottom = '16px';
+    noResults.appendChild(icon);
     
-    const emptyTitle = document.createElement('h3');
-    emptyTitle.textContent = 'No programs found';
-    emptyTitle.style.marginBottom = '8px';
+    const message = document.createElement('h3');
+    message.textContent = 'No programs found';
+    message.style.fontSize = '18px';
+    message.style.fontWeight = '600';
+    message.style.marginBottom = '8px';
+    message.style.color = '#4A5568';
+    noResults.appendChild(message);
     
-    const emptyText = document.createElement('p');
-    emptyText.textContent = 'Try a different category or search term';
-    emptyText.style.color = 'var(--color-text-secondary)';
+    const subMessage = document.createElement('p');
+    subMessage.textContent = 'Try adjusting your search or filter criteria';
+    subMessage.style.fontSize = '16px';
+    subMessage.style.color = '#718096';
+    noResults.appendChild(subMessage);
     
-    emptyState.appendChild(emptyIcon);
-    emptyState.appendChild(emptyTitle);
-    emptyState.appendChild(emptyText);
-    
-    container.appendChild(emptyState);
+    container.appendChild(noResults);
     return container;
   }
   
+  // Program grid
+  const grid = document.createElement('div');
+  grid.style.display = 'grid';
+  grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+  grid.style.gap = '20px';
+  
+  // Create a card for each program
   programs.forEach(program => {
     // Check if user has joined this program
-    const isJoined = userAffiliates.some(
-      affiliate => affiliate.programId === program.id && affiliate.status === 'active'
-    );
+    const isJoined = userAffiliates.some(a => a.programId === program.id);
     
+    // Create program card
     const card = createProgramCard(program, isJoined, userId);
-    container.appendChild(card);
+    grid.appendChild(card);
   });
   
+  container.appendChild(grid);
   return container;
 }
 
@@ -513,18 +883,29 @@ function renderProgramsList(programs, userAffiliates, userId) {
  */
 function renderResourcesList(resources) {
   const container = document.createElement('div');
-  container.className = 'resources-list';
+  container.className = 'resources-container';
   
-  const header = document.createElement('h3');
-  header.textContent = 'Affiliate Marketing Resources';
-  header.style.marginBottom = '16px';
-  container.appendChild(header);
+  const heading = document.createElement('h2');
+  heading.textContent = 'Affiliate Marketing Resources';
+  heading.style.fontSize = '22px';
+  heading.style.fontWeight = '600';
+  heading.style.marginBottom = '20px';
+  heading.style.marginTop = '40px';
+  container.appendChild(heading);
   
+  // Resources grid
+  const grid = document.createElement('div');
+  grid.style.display = 'grid';
+  grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
+  grid.style.gap = '20px';
+  
+  // Create a card for each resource
   resources.forEach(resource => {
     const card = createResourceCard(resource);
-    container.appendChild(card);
+    grid.appendChild(card);
   });
   
+  container.appendChild(grid);
   return container;
 }
 
@@ -534,59 +915,127 @@ function renderResourcesList(resources) {
  * @returns {HTMLElement} - Metrics card
  */
 function renderMetricsCard(userAffiliates) {
-  const card = document.createElement('div');
-  card.className = 'metrics-card';
-  card.style.backgroundColor = 'var(--color-card)';
-  card.style.borderRadius = 'var(--radius-lg)';
-  card.style.padding = '24px';
-  card.style.marginBottom = '24px';
-  card.style.boxShadow = 'var(--shadow-md)';
+  const container = document.createElement('div');
+  container.className = 'metrics-card';
+  container.style.backgroundColor = 'white';
+  container.style.borderRadius = '10px';
+  container.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+  container.style.padding = '24px';
+  container.style.marginBottom = '30px';
   
-  const header = document.createElement('h3');
-  header.textContent = 'Your Affiliate Performance';
-  header.style.marginTop = '0';
-  header.style.marginBottom = '16px';
-  card.appendChild(header);
+  // Metrics header
+  const header = document.createElement('div');
+  header.style.display = 'flex';
+  header.style.alignItems = 'center';
+  header.style.justifyContent = 'space-between';
+  header.style.marginBottom = '20px';
   
-  // Active programs count 
-  const activeCount = userAffiliates.filter(
-    affiliate => affiliate.status === 'active'
-  ).length;
+  const title = document.createElement('h3');
+  title.textContent = 'Your Affiliate Performance';
+  title.style.fontSize = '18px';
+  title.style.fontWeight = '600';
+  title.style.margin = '0';
+  header.appendChild(title);
   
-  // Create metrics grid
+  const periodSelector = document.createElement('select');
+  periodSelector.style.padding = '6px 10px';
+  periodSelector.style.borderRadius = '4px';
+  periodSelector.style.border = '1px solid #CBD5E0';
+  periodSelector.style.fontSize = '14px';
+  
+  const periods = ['This Month', 'Last Month', 'Last 3 Months', 'This Year', 'All Time'];
+  periods.forEach(period => {
+    const option = document.createElement('option');
+    option.value = period.toLowerCase().replace(/\s/g, '_');
+    option.textContent = period;
+    periodSelector.appendChild(option);
+  });
+  
+  header.appendChild(periodSelector);
+  container.appendChild(header);
+  
+  // Metrics grid
   const metricsGrid = document.createElement('div');
   metricsGrid.style.display = 'grid';
-  metricsGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(160px, 1fr))';
-  metricsGrid.style.gap = '16px';
+  metricsGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+  metricsGrid.style.gap = '20px';
   
-  const createMetricItem = (label, value, suffix = '') => {
-    const item = document.createElement('div');
-    item.style.textAlign = 'center';
-    
-    const valueEl = document.createElement('div');
-    valueEl.style.fontSize = '32px';
-    valueEl.style.fontWeight = 'bold';
-    valueEl.style.color = 'var(--color-primary)';
-    valueEl.textContent = value + suffix;
-    
-    const labelEl = document.createElement('div');
-    labelEl.style.fontSize = '14px';
-    labelEl.style.color = 'var(--color-text-secondary)';
-    labelEl.textContent = label;
-    
-    item.appendChild(valueEl);
-    item.appendChild(labelEl);
-    
-    return item;
-  };
+  // Calculate metrics
+  const totalPrograms = userAffiliates.length;
+  const totalReferrals = userAffiliates.reduce((sum, affiliate) => sum + affiliate.referrals, 0);
+  const totalEarnings = userAffiliates.reduce((sum, affiliate) => sum + affiliate.earnings, 0);
   
-  metricsGrid.appendChild(createMetricItem('Active Programs', activeCount));
-  metricsGrid.appendChild(createMetricItem('Total Earnings', '$0.00'));
-  metricsGrid.appendChild(createMetricItem('Click Conversions', '0%'));
+  // Create metric items
+  const metrics = [
+    {
+      label: 'Programs Joined',
+      value: totalPrograms,
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
+      color: '#4299E1'
+    },
+    {
+      label: 'Total Referrals',
+      value: totalReferrals,
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>',
+      color: '#48BB78'
+    },
+    {
+      label: 'Total Earnings',
+      value: `$${totalEarnings.toFixed(2)}`,
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
+      color: '#F6AD55'
+    }
+  ];
   
-  card.appendChild(metricsGrid);
+  metrics.forEach(metric => {
+    const metricItem = document.createElement('div');
+    metricItem.style.backgroundColor = '#F7FAFC';
+    metricItem.style.borderRadius = '8px';
+    metricItem.style.padding = '16px';
+    
+    const metricIcon = document.createElement('div');
+    metricIcon.innerHTML = metric.icon;
+    metricIcon.style.color = metric.color;
+    metricIcon.style.marginBottom = '10px';
+    metricItem.appendChild(metricIcon);
+    
+    const metricValue = document.createElement('div');
+    metricValue.textContent = metric.value;
+    metricValue.style.fontSize = '24px';
+    metricValue.style.fontWeight = '700';
+    metricValue.style.marginBottom = '8px';
+    metricItem.appendChild(metricValue);
+    
+    const metricLabel = document.createElement('div');
+    metricLabel.textContent = metric.label;
+    metricLabel.style.fontSize = '14px';
+    metricLabel.style.color = '#718096';
+    metricItem.appendChild(metricLabel);
+    
+    metricsGrid.appendChild(metricItem);
+  });
   
-  return card;
+  container.appendChild(metricsGrid);
+  
+  // Join your first program message (if no programs joined)
+  if (totalPrograms === 0) {
+    const emptyState = document.createElement('div');
+    emptyState.style.textAlign = 'center';
+    emptyState.style.padding = '20px';
+    emptyState.style.marginTop = '20px';
+    emptyState.style.backgroundColor = '#F7FAFC';
+    emptyState.style.borderRadius = '8px';
+    
+    const emptyMessage = document.createElement('p');
+    emptyMessage.textContent = 'Join your first affiliate program to start tracking your performance.';
+    emptyMessage.style.color = '#718096';
+    emptyMessage.style.margin = '0';
+    
+    emptyState.appendChild(emptyMessage);
+    container.appendChild(emptyState);
+  }
+  
+  return container;
 }
 
 /**
@@ -596,93 +1045,82 @@ function renderMetricsCard(userAffiliates) {
  */
 export function renderAffiliateHub(userId) {
   const container = document.createElement('div');
-  container.className = 'affiliate-hub-page';
+  container.className = 'affiliate-hub-container';
+  container.style.maxWidth = '1280px';
+  container.style.margin = '0 auto';
+  container.style.padding = '20px';
+  
+  // Check if user has Pro access for this feature
+  const appState = window.appState || { user: {} };
+  if (!hasProAccess(appState.user)) {
+    return createUpgradePrompt('Affiliate Program Hub');
+  }
   
   // Page header
   const header = document.createElement('div');
-  header.style.marginBottom = '32px';
+  header.style.marginBottom = '30px';
   
   const pageTitle = document.createElement('h1');
   pageTitle.textContent = 'Affiliate Program Hub';
-  pageTitle.style.marginBottom = '8px';
+  pageTitle.style.fontSize = '28px';
+  pageTitle.style.fontWeight = '700';
+  pageTitle.style.marginBottom = '10px';
   header.appendChild(pageTitle);
   
   const pageDescription = document.createElement('p');
-  pageDescription.textContent = 'Join affiliate programs to earn additional income by promoting products and services.';
-  pageDescription.style.color = 'var(--color-text-secondary)';
+  pageDescription.textContent = 'Find and join affiliate programs to generate additional income streams.';
   pageDescription.style.fontSize = '16px';
-  pageDescription.style.maxWidth = '800px';
+  pageDescription.style.color = '#4A5568';
+  pageDescription.style.maxWidth = '750px';
   header.appendChild(pageDescription);
   
   container.appendChild(header);
   
-  // Placeholder for metrics card
-  const metricsContainer = document.createElement('div');
-  container.appendChild(metricsContainer);
+  // State variables
+  let activeCategory = 'all';
+  let userAffiliates = [];
+  let filteredPrograms = affiliatePrograms;
+  let searchQuery = '';
   
-  // Main content sections - two columns on desktop
-  const contentSection = document.createElement('div');
-  contentSection.style.display = 'flex';
-  contentSection.style.flexDirection = 'column';
-  contentSection.style.gap = '32px';
-  
-  // On desktop, use two columns
-  const mediaQuery = window.matchMedia('(min-width: 1024px)');
-  if (mediaQuery.matches) {
-    contentSection.style.flexDirection = 'row';
-  }
-  
-  // Programs column - takes 2/3 of space on desktop
-  const programsColumn = document.createElement('div');
-  programsColumn.style.flex = mediaQuery.matches ? '2' : '1';
-  
-  // Programs section title
-  const programsTitle = document.createElement('h2');
-  programsTitle.textContent = 'Available Programs';
-  programsTitle.style.marginBottom = '16px';
-  programsColumn.appendChild(programsTitle);
-  
-  // Search bar
-  const searchBar = createSearchBar((query) => {
-    searchQuery = query;
+  // Fetch user's affiliate data
+  fetchUserAffiliateData(userId).then(data => {
+    userAffiliates = data;
+    
+    // Render performance metrics
+    const metricsCard = renderMetricsCard(userAffiliates);
+    container.appendChild(metricsCard);
+    
+    // Render the program list
     updateProgramsList(userId);
   });
-  programsColumn.appendChild(searchBar);
+  
+  // Programs section
+  const programsSection = document.createElement('div');
+  programsSection.style.marginBottom = '40px';
   
   // Category tabs
-  const categoryTabs = createCategoryTabs(categories, activeCategory, (category) => {
+  const categories = [
+    { label: 'All Programs', value: 'all' },
+    { label: 'E-commerce', value: 'ecommerce' },
+    { label: 'Finance', value: 'finance' },
+    { label: 'Hosting', value: 'hosting' },
+    { label: 'Freelance', value: 'freelance' },
+    { label: 'Education', value: 'education' },
+    { label: 'Productivity', value: 'productivity' },
+    { label: 'Beginner Friendly', value: 'beginner' }
+  ];
+  
+  const onCategorySelect = (category) => {
     activeCategory = category;
-    updateProgramsList(userId);
-  });
-  programsColumn.appendChild(categoryTabs);
-  
-  // Programs list container
-  const programsListContainer = document.createElement('div');
-  programsListContainer.className = 'programs-list-container';
-  programsColumn.appendChild(programsListContainer);
-  
-  // Resources column - takes 1/3 of space on desktop
-  const resourcesColumn = document.createElement('div');
-  resourcesColumn.style.flex = mediaQuery.matches ? '1' : '1';
-  
-  // Resources are added separately to avoid layout shifts
-  resourcesColumn.appendChild(renderResourcesList(affiliateResources));
-  
-  contentSection.appendChild(programsColumn);
-  contentSection.appendChild(resourcesColumn);
-  container.appendChild(contentSection);
-  
-  // Function to update programs list based on category and search
-  function updateProgramsList(userId) {
-    // Filter programs based on active category and search query
-    let filteredPrograms = [];
     
-    if (activeCategory === 'all') {
-      filteredPrograms = affiliatePrograms;
+    // Update filtered programs
+    if (category === 'beginner') {
+      filteredPrograms = getBeginnerFriendlyPrograms();
     } else {
-      filteredPrograms = getProgramsByCategory(activeCategory);
+      filteredPrograms = getProgramsByCategory(category);
     }
     
+    // If there's a search query, apply it
     if (searchQuery) {
       filteredPrograms = filteredPrograms.filter(program => 
         program.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -690,21 +1128,69 @@ export function renderAffiliateHub(userId) {
       );
     }
     
-    // Clear and repopulate programs list
-    programsListContainer.innerHTML = '';
-    programsListContainer.appendChild(renderProgramsList(filteredPrograms, userAffiliates, userId));
-  }
-  
-  // Load data and render
-  fetchUserAffiliateData(userId).then(data => {
-    userAffiliates = data;
-    
-    // Render metrics
-    metricsContainer.appendChild(renderMetricsCard(userAffiliates));
-    
-    // Initial programs list render
+    // Update the UI
     updateProgramsList(userId);
-  });
+  };
+  
+  const categoryTabs = createCategoryTabs(categories, activeCategory, onCategorySelect);
+  programsSection.appendChild(categoryTabs);
+  
+  // Search bar
+  const onSearch = (query) => {
+    searchQuery = query;
+    
+    // Apply category filter first
+    if (activeCategory === 'beginner') {
+      filteredPrograms = getBeginnerFriendlyPrograms();
+    } else {
+      filteredPrograms = getProgramsByCategory(activeCategory);
+    }
+    
+    // Then apply search filter if there's a query
+    if (query) {
+      filteredPrograms = searchPrograms(query).filter(program => {
+        // Apply category filter if not on 'all'
+        return (activeCategory === 'all' || 
+                (activeCategory === 'beginner' && program.beginnerFriendly) || 
+                program.category === activeCategory);
+      });
+    }
+    
+    // Update the UI
+    updateProgramsList(userId);
+  };
+  
+  const searchBar = createSearchBar(onSearch);
+  programsSection.appendChild(searchBar);
+  
+  // Programs list container (will be populated)
+  const programsListContainer = document.createElement('div');
+  programsListContainer.id = 'programs-list-container';
+  programsSection.appendChild(programsListContainer);
+  
+  container.appendChild(programsSection);
+  
+  // Resources section
+  const resourcesList = renderResourcesList(affiliateResources);
+  container.appendChild(resourcesList);
+  
+  // Function to update the programs list
+  function updateProgramsList(userId) {
+    // Fetch latest user affiliate data
+    fetchUserAffiliateData(userId).then(data => {
+      userAffiliates = data;
+      
+      // Render the programs list
+      const programsList = renderProgramsList(filteredPrograms, userAffiliates, userId);
+      
+      // Replace the old list with the new one
+      const oldList = document.getElementById('programs-list-container');
+      if (oldList) {
+        oldList.innerHTML = '';
+        oldList.appendChild(programsList);
+      }
+    });
+  }
   
   return container;
 }
