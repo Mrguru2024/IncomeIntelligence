@@ -2814,7 +2814,9 @@ function renderPageContent(container) {
         // Use the UI directly
         container.appendChild(moneyMentorContainer);
         break;
-          const renderFallbackMoneyMentor = () => {
+      case 'moneymentor-advanced':
+        // Define the fallback renderer function 
+        const renderFallbackMoneyMentor = () => {
             console.log('Using fallback Money Mentor interface');
             
             // Create main container
@@ -3597,6 +3599,7 @@ function renderPageContent(container) {
         // Use the UI directly
         container.appendChild(subscriptionSniperContainer);
         break;
+      case 'subscriptionsniper-advanced':
           const renderFallbackSubscriptionSniper = () => {
             console.log('Using fallback Subscription Sniper interface');
             
