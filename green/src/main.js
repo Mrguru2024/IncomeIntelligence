@@ -92,6 +92,7 @@ setupDesignSystem();
 const appState = {
   currentPage: 'dashboard',
   incomeEntries: [],
+  expenseEntries: [], // Initialize expense entries array
   user: {
     id: 1, // Add a default user ID for API calls
     name: 'User',
@@ -188,6 +189,7 @@ function loadStateFromStorage() {
     const parsedState = JSON.parse(savedState);
     // Merge with existing state
     appState.incomeEntries = parsedState.incomeEntries || [];
+    appState.expenseEntries = parsedState.expenseEntries || [];
     if (parsedState.user && !appState.user.isAuthenticated) { 
       // Only use localStorage user data if not authenticated via login
       appState.user.id = parsedState.user.id || 1;
@@ -195,6 +197,10 @@ function loadStateFromStorage() {
       appState.user.splitRatio = parsedState.user.splitRatio || { needs: 40, investments: 30, savings: 30 };
     }
     console.log('Data loaded from localStorage');
+  } else {
+    // Initialize empty arrays if no saved state
+    appState.incomeEntries = [];
+    appState.expenseEntries = [];
   }
   
   // Check authentication status after loading local state
@@ -205,6 +211,7 @@ function loadStateFromStorage() {
 function saveStateToStorage() {
   localStorage.setItem('stackrGreenState', JSON.stringify({
     incomeEntries: appState.incomeEntries,
+    expenseEntries: appState.expenseEntries,
     user: appState.user
   }));
   console.log('Data saved to localStorage');
