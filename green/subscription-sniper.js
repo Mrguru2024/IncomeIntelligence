@@ -661,6 +661,99 @@ function showSubscriptionDetails(subscription) {
   summarySection.appendChild(costSummary);
   summarySection.appendChild(annualCostRow);
   
+  // Value Assessment section (for Pro users)
+  const currentUser = getCurrentUser();
+  if (currentUser && hasProAccess(currentUser)) {
+    // Get value assessment
+    const valueAssessment = evaluateSubscriptionValue(subscription);
+    
+    // Create value assessment section
+    const valueSection = document.createElement('div');
+    valueSection.style.marginTop = '16px';
+    valueSection.style.padding = '16px';
+    valueSection.style.borderRadius = '8px';
+    valueSection.style.marginBottom = '24px';
+    
+    // Style based on rating
+    switch (valueAssessment.rating) {
+      case 'excellent':
+        valueSection.style.backgroundColor = '#c6f6d580'; // Light green with transparency
+        valueSection.style.border = '1px solid #22543d';
+        break;
+      case 'good':
+        valueSection.style.backgroundColor = '#c6f6d550'; // Light green with more transparency
+        valueSection.style.border = '1px solid #22543d';
+        break;
+      case 'fair':
+        valueSection.style.backgroundColor = '#fefcbf50'; // Light yellow with transparency
+        valueSection.style.border = '1px solid #744210';
+        break;
+      case 'poor':
+        valueSection.style.backgroundColor = '#fed7d750'; // Light red with transparency
+        valueSection.style.border = '1px solid #822727';
+        break;
+      default:
+        valueSection.style.backgroundColor = '#e2e8f050'; // Light gray with transparency
+        valueSection.style.border = '1px solid #4a5568';
+    }
+    
+    const valueTitle = document.createElement('div');
+    valueTitle.style.display = 'flex';
+    valueTitle.style.alignItems = 'center';
+    valueTitle.style.marginBottom = '8px';
+    
+    const valueIcon = document.createElement('div');
+    valueIcon.style.marginRight = '8px';
+    valueIcon.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+    
+    const valueTitleText = document.createElement('div');
+    valueTitleText.style.fontWeight = 'bold';
+    valueTitleText.textContent = `Value Assessment: ${valueAssessment.rating.charAt(0).toUpperCase() + valueAssessment.rating.slice(1)}`;
+    
+    valueTitle.appendChild(valueIcon);
+    valueTitle.appendChild(valueTitleText);
+    
+    const valueText = document.createElement('div');
+    valueText.style.fontSize = '14px';
+    valueText.style.lineHeight = '1.5';
+    valueText.textContent = valueAssessment.reasoning;
+    
+    const valueFooter = document.createElement('div');
+    valueFooter.style.marginTop = '12px';
+    valueFooter.style.fontSize = '12px';
+    valueFooter.style.display = 'flex';
+    valueFooter.style.alignItems = 'center';
+    
+    const proIcon = document.createElement('span');
+    proIcon.style.display = 'inline-flex';
+    proIcon.style.alignItems = 'center';
+    proIcon.style.justifyContent = 'center';
+    proIcon.style.width = '18px';
+    proIcon.style.height = '18px';
+    proIcon.style.backgroundColor = 'goldenrod';
+    proIcon.style.color = 'white';
+    proIcon.style.borderRadius = '50%';
+    proIcon.style.marginRight = '4px';
+    proIcon.style.fontWeight = 'bold';
+    proIcon.style.fontSize = '10px';
+    proIcon.textContent = 'PRO';
+    
+    const aiNote = document.createElement('span');
+    aiNote.style.color = 'var(--color-text-secondary)';
+    aiNote.textContent = valueAssessment.aiPowered ? 
+      'AI-powered value analysis by Perplexity API' : 
+      'Exclusive Pro feature';
+    
+    valueFooter.appendChild(proIcon);
+    valueFooter.appendChild(aiNote);
+    
+    valueSection.appendChild(valueTitle);
+    valueSection.appendChild(valueText);
+    valueSection.appendChild(valueFooter);
+    
+    summarySection.appendChild(valueSection);
+  }
+  
   // Payment details section
   const detailsSection = document.createElement('div');
   detailsSection.style.marginBottom = '24px';
@@ -963,11 +1056,11 @@ function evaluateSubscriptionValue(subscription) {
   const merchantName = subscription.merchantName.toLowerCase();
   if (merchantName.includes('netflix') || merchantName.includes('hulu') || 
       merchantName.includes('disney') || merchantName.includes('hbo')) {
-    reasoning += ' Consider how many streaming services you are subscribed to.';
+    reasoning += ' Consider how many streaming services you have.';
   } else if (merchantName.includes('gym') || merchantName.includes('fitness')) {
     reasoning += ' Value depends on your usage frequency.';
   } else if (merchantName.includes('cloud') || merchantName.includes('storage')) {
-    reasoning += ' Check if you are utilizing the full storage capacity.';
+    reasoning += ' Check if you use the full storage capacity.';
   }
   
   return {

@@ -207,6 +207,111 @@ export function registerPerplexityRoutes(app: Express) {
   });
   
   /**
+   * Subscription value analysis endpoint
+   * This endpoint requires Pro subscription
+   */
+  app.post('/api/perplexity/subscription-analysis', requireAuth, requireProSubscription, async (req: Request, res: Response) => {
+    try {
+      // Validate request body
+      const schema = z.object({
+        subscriptionName: z.string().min(1, 'Subscription name is required'),
+        amount: z.number().positive('Amount must be positive'),
+        frequency: z.string().min(1, 'Frequency is required'),
+        category: z.string().optional()
+      });
+
+      const validatedData = schema.parse(req.body);
+      
+      // Convert to monthly cost for better analysis
+      let monthlyCost = validatedData.amount;
+      if (validatedData.frequency === 'annual') {
+        monthlyCost = validatedData.amount / 12;
+      } else if (validatedData.frequency === 'quarterly') {
+        monthlyCost = validatedData.amount / 3;
+      } else if (validatedData.frequency === 'semi-annual') {
+        monthlyCost = validatedData.amount / 6;
+      } else if (validatedData.frequency === 'weekly') {
+        monthlyCost = validatedData.amount * 4.33; // Average weeks per month
+      } else if (validatedData.frequency === 'bi-weekly') {
+        monthlyCost = validatedData.amount * 2.17; // Average bi-weeks per month
+      }
+      
+      const userPrompt = `Analyze if this subscription provides good value: 
+      - Service: ${validatedData.subscriptionName}
+      - Monthly cost: $${monthlyCost.toFixed(2)}
+      - Payment frequency: ${validatedData.frequency}
+      - Category: ${validatedData.category || 'unknown'}
+      
+      Rate the value as "excellent", "good", "fair", or "poor".
+      Provide a brief explanation of the rating (max 40 words).
+      Format response as JSON with fields: "rating" and "analysis".`;
+
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            {
+              role: "system",
+              content: "You are an expert financial analyst specializing in subscription value assessment. Be precise and concise."
+            },
+            {
+              role: "user",
+              content: userPrompt
+            }
+          ],
+          temperature: 0.1,
+          max_tokens: 150,
+          top_p: 0.9,
+          response_format: { type: "json_object" },
+          stream: false
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Perplexity API error:', errorText);
+        return res.status(500).json({ error: 'Error analyzing subscription value' });
+      }
+
+      const data = await response.json();
+      
+      try {
+        const analysis = JSON.parse(data.choices[0].message.content);
+        return res.json({
+          rating: analysis.rating || 'good',
+          analysis: analysis.analysis || 'Analysis not available',
+          sources: data.citations || []
+        });
+      } catch (parseError) {
+        console.error('Error parsing Perplexity response:', parseError);
+        // Fall back to basic analysis if JSON parsing fails
+        return res.json({
+          rating: 'good',
+          analysis: data.choices[0].message.content,
+          sources: data.citations || []
+        });
+      }
+    } catch (error) {
+      console.error('Error analyzing subscription value:', error);
+      
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      res.status(500).json({ 
+        message: 'Failed to analyze subscription value',
+        error: error.message
+      });
+    }
+  });
+
+  /**
    * Health check endpoint for Perplexity AI service
    */
   app.get('/api/perplexity/health', async (req: Request, res: Response) => {
