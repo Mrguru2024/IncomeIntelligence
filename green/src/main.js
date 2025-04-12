@@ -494,7 +494,7 @@ function renderApp() {
   
   // Login page
   if (currentPage === 'login') {
-    import('../auth.js')
+    import('../login.js')
       .then(module => {
         try {
           const loginPage = module.renderLoginPage();
@@ -507,8 +507,8 @@ function renderApp() {
         }
       })
       .catch(error => {
-        console.error('Failed to load auth module:', error);
-        appContainer.innerHTML = '<div class="error">Failed to load authentication module</div>';
+        console.error('Failed to load login module:', error);
+        appContainer.innerHTML = '<div class="error">Failed to load login module</div>';
       });
     return;
   }

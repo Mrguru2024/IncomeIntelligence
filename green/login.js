@@ -3,6 +3,8 @@
  * This file handles user authentication UI and logic
  */
 
+import { appState } from './src/main.js';
+
 // Google OAuth function
 async function handleGoogleLogin() {
   try {
@@ -263,6 +265,49 @@ async function handleRegister(username, email, password) {
       submitButton.textContent = 'Create Account';
     }
   }
+}
+
+// Function to render the entire login page
+export function renderLoginPage() {
+  console.log("Login module loaded");
+  
+  // Create the main container
+  const container = document.createElement('div');
+  container.className = 'login-page-container';
+  container.style.minHeight = '100vh';
+  container.style.backgroundColor = '#f7f9fc';
+  container.style.display = 'flex';
+  container.style.flexDirection = 'column';
+  container.style.justifyContent = 'center';
+  container.style.alignItems = 'center';
+  container.style.padding = '24px';
+  
+  // Create the logo/branding section
+  const brandSection = document.createElement('div');
+  brandSection.className = 'login-brand-section';
+  brandSection.style.textAlign = 'center';
+  brandSection.style.marginBottom = '32px';
+  
+  const brandLogo = document.createElement('h1');
+  brandLogo.textContent = 'Stackr Finance';
+  brandLogo.style.fontSize = '32px';
+  brandLogo.style.fontWeight = 'bold';
+  brandLogo.style.color = '#34A853';
+  brandLogo.style.marginBottom = '8px';
+  
+  const brandTagline = document.createElement('p');
+  brandTagline.textContent = 'Smart income allocation with the 40/30/30 rule';
+  brandTagline.style.fontSize = '16px';
+  brandTagline.style.color = '#666';
+  
+  brandSection.appendChild(brandLogo);
+  brandSection.appendChild(brandTagline);
+  container.appendChild(brandSection);
+  
+  // Add the actual login form
+  container.appendChild(renderLoginForm());
+  
+  return container;
 }
 
 // Function to render the login form
