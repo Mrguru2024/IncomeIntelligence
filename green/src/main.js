@@ -131,8 +131,35 @@ function checkAuthentication() {
         
         console.log('User authenticated:', userData.username);
         
-        // Check if onboarding is completed
-        if (!userData.onboardingCompleted && appState.currentPage !== 'onboarding') {
+        // Check if onboarding is completed - multiple fallbacks to prevent redirect loops
+        const onboardingCompleted = 
+          userData.onboardingCompleted === true || 
+          userData.onboardingStep === 'complete' ||
+          localStorage.getItem('stackrOnboardingCompleted') === 'true';
+        
+        // Update app state with the definitive value
+        appState.user.onboardingCompleted = onboardingCompleted;
+        
+        // Store the definitive value back to localStorage for future checks
+        if (onboardingCompleted) {
+          try {
+            // Update localStorage to ensure consistency
+            const currentUserData = localStorage.getItem('stackrUser');
+            if (currentUserData) {
+              const user = JSON.parse(currentUserData);
+              user.onboardingCompleted = true;
+              user.onboardingStep = 'complete';
+              localStorage.setItem('stackrUser', JSON.stringify(user));
+              localStorage.setItem('stackrOnboardingCompleted', 'true');
+              console.log('Ensured onboarding completion state is synced');
+            }
+          } catch (e) {
+            console.error('Error syncing onboarding status:', e);
+          }
+        }
+        
+        // Only redirect if definitely not completed AND not already on onboarding page
+        if (!onboardingCompleted && appState.currentPage !== 'onboarding') {
           console.log('Onboarding not completed, redirecting to onboarding page');
           navigateTo('onboarding');
           return;
