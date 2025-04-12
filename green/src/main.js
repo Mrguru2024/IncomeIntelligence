@@ -3493,8 +3493,8 @@ function renderPageContent(container) {
               // Use async IIFE since renderMoneyMentorPage is async
               (async () => {
                 try {
-                if (!appState || !appState.user) {
-                  throw new Error('User data not available');
+                  if (!appState || !appState.user) {
+                    throw new Error('User data not available');
                 }
                 
                 // Verify the module has the required function
