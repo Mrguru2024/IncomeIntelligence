@@ -3495,19 +3495,19 @@ function renderPageContent(container) {
                 try {
                   if (!appState || !appState.user) {
                     throw new Error('User data not available');
-                }
+                  }
                 
-                // Verify the module has the required function
-                if (typeof module.renderMoneyMentorPage !== 'function') {
-                  throw new Error('renderMoneyMentorPage function not found in module');
-                }
-                
-                const mentorPage = await module.renderMoneyMentorPage(appState.user.id);
-                
-                // Verify we got a valid DOM element
-                if (!(mentorPage instanceof HTMLElement)) {
-                  throw new Error('Invalid return from renderMoneyMentorPage');
-                }
+                  // Verify the module has the required function
+                  if (typeof module.renderMoneyMentorPage !== 'function') {
+                    throw new Error('renderMoneyMentorPage function not found in module');
+                  }
+                  
+                  const mentorPage = await module.renderMoneyMentorPage(appState.user.id);
+                  
+                  // Verify we got a valid DOM element
+                  if (!(mentorPage instanceof HTMLElement)) {
+                    throw new Error('Invalid return from renderMoneyMentorPage');
+                  }
                 
                 // Successfully loaded the module, clear any previous error flag
                 sessionStorage.removeItem('moneyMentorImportFailed');
@@ -4558,12 +4558,12 @@ function renderPageContent(container) {
                 }
               })();
             }).catch(error => {
-            // Instead of logging the error which may be empty, just log a message
-            console.log('Unable to load Subscription Sniper module - using fallback interface');
-            
-            // Mark as failed in session storage to avoid future attempts
-            sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
-            container.appendChild(renderFallbackSubscriptionSniper());
+              // Instead of logging the error which may be empty, just log a message
+              console.log('Unable to load Subscription Sniper module - using fallback interface');
+              
+              // Mark as failed in session storage to avoid future attempts
+              sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
+              container.appendChild(renderFallbackSubscriptionSniper());
           });
         } catch (outerError) {
           console.error('Critical error initializing Subscription Sniper module:', outerError);
