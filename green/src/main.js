@@ -2797,6 +2797,12 @@ function renderPageContent(container) {
       case 'moneymentor':
         try {
           console.log('Loading Money Mentor module...');
+        } catch (error) {
+          console.error('Error in money mentor:', error);
+          // Display a fallback UI or error message
+          container.appendChild(createErrorMessage('Failed to load money mentor module'));
+        }
+        break;
           
           // Function to render a fallback Money Mentor when the module import fails
           const renderFallbackMoneyMentor = () => {
@@ -3564,6 +3570,12 @@ function renderPageContent(container) {
       case 'subscriptionsniper':
         try {
           console.log('Loading Subscription Sniper module...');
+        } catch (error) {
+          console.error('Error in subscription sniper:', error);
+          // Display a fallback UI or error message
+          container.appendChild(createErrorMessage('Failed to load subscription sniper module'));
+        }
+        break;
           
           // Check for previously stored import error flag in session storage
           // Function to render a fallback Subscription Sniper when module import fails
