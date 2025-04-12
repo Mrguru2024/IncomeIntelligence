@@ -1,21 +1,42 @@
 /**
  * Landing Page for Stackr Finance GREEN version
  * High-conversion landing page to drive signups and subscriptions
+ * Optimized for SEO with semantic HTML structure and rich content
  */
 
 /**
- * Render the landing page
+ * Render the landing page with enhanced SEO elements
  * @returns {HTMLElement} The landing page element
  */
 export function renderLandingPage() {
-  // Create page container
-  const container = document.createElement('div');
+  // Create page container with appropriate ARIA roles
+  const container = document.createElement('main');
   container.classList.add('landing-page');
+  container.setAttribute('role', 'main');
+  container.setAttribute('itemscope', '');
+  container.setAttribute('itemtype', 'https://schema.org/WebPage');
   container.style.minHeight = '100vh';
   container.style.width = '100%';
   container.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   container.style.color = '#333';
   container.style.overflowX = 'hidden';
+  
+  // Add structured data for WebPage
+  const structuredData = document.createElement('script');
+  structuredData.type = 'application/ld+json';
+  structuredData.textContent = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    'name': 'Stackr Finance - Smart Money Management for Service Providers',
+    'description': 'Financial management platform for freelancers and service providers featuring 40/30/30 budget splits, income tracking, and AI-powered advice',
+    'keywords': 'financial management, 40/30/30 rule, freelancer finances, service provider money management',
+    'url': 'https://stackr-finance.com',
+    'speakable': {
+      '@type': 'SpeakableSpecification',
+      'cssSelector': ['.hero-heading', '.hero-subheading', '.feature-heading']
+    }
+  });
+  container.appendChild(structuredData);
   
   // Add navigation
   const navbar = createNavbar();
@@ -270,10 +291,15 @@ function createNavbar() {
 
 /**
  * Create the hero section with compelling headline and call-to-action
+ * Enhanced with semantic HTML and accessibility attributes
  * @returns {HTMLElement} The hero section element
  */
 function createHeroSection() {
   const heroSection = document.createElement('section');
+  heroSection.id = 'hero';
+  heroSection.setAttribute('aria-labelledby', 'hero-heading');
+  heroSection.setAttribute('itemscope', '');
+  heroSection.setAttribute('itemtype', 'https://schema.org/WPHeader');
   heroSection.style.display = 'flex';
   heroSection.style.flexDirection = window.innerWidth <= 960 ? 'column' : 'row';
   heroSection.style.justifyContent = 'space-between';
@@ -312,8 +338,10 @@ function createHeroSection() {
   contentContainer.style.paddingRight = window.innerWidth <= 960 ? '0' : '2rem';
   contentContainer.style.textAlign = window.innerWidth <= 960 ? 'center' : 'left';
   
-  // Headline with highlighting
-  const headline = document.createElement('h2');
+  // Headline with highlighting - using h1 for SEO
+  const headline = document.createElement('h1');
+  headline.id = 'hero-heading';
+  headline.setAttribute('itemprop', 'headline');
   headline.innerHTML = `Take Control of Your Income with the <span style="background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">40/30/30 Split</span>`;
   headline.style.fontSize = window.innerWidth <= 768 ? '2rem' : '2.8rem';
   headline.style.fontWeight = '700';
@@ -321,9 +349,11 @@ function createHeroSection() {
   headline.style.margin = '0 0 1.5rem 0';
   contentContainer.appendChild(headline);
   
-  // Subheadline
+  // Subheadline with rich SEO content
   const subheadline = document.createElement('p');
-  subheadline.textContent = 'The smart financial platform built for service providers and gig workers to track income, maximize earnings, and build wealth through the proven 40/30/30 method.';
+  subheadline.className = 'hero-subheading';
+  subheadline.setAttribute('itemprop', 'description');
+  subheadline.textContent = 'The smart financial platform built for service providers and gig workers to track income, maximize earnings, and build wealth through the proven 40/30/30 method. Freelancers, independent contractors, and service professionals use Stackr to organize finances and achieve financial freedom.';
   subheadline.style.fontSize = '1.1rem';
   subheadline.style.lineHeight = '1.6';
   subheadline.style.color = '#555';

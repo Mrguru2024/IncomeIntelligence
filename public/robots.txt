@@ -1,0 +1,22 @@
+# Stackr Finance robots.txt
+User-agent: *
+Allow: /
+Allow: /blog/
+Allow: /about
+Allow: /pricing
+
+# Disallow sensitive areas
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /income
+Disallow: /expenses
+Disallow: /settings
+Disallow: /subscriptions
+Disallow: /moneymentor
+Disallow: /subscriptionsniper
+Disallow: /bankconnections
+Disallow: /challenges
+Disallow: /wellness
+
+# Sitemap location
+Sitemap: https://stackr-finance.com/sitemap.xml
