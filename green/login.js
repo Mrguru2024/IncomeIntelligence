@@ -615,14 +615,33 @@ function renderLoginForm() {
     e.preventDefault();
     e.stopPropagation();
     
-    // For mobile: don't blur immediately to prevent keyboard issues
+    // For mobile: improved handling to maintain keyboard focus
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      // Create a hidden dummy input to maintain keyboard focus during transition
+      const dummyInput = document.createElement('input');
+      dummyInput.type = 'text';
+      dummyInput.style.position = 'absolute';
+      dummyInput.style.opacity = '0';
+      dummyInput.style.height = '0';
+      dummyInput.style.fontSize = '16px'; // iOS requires 16px to prevent auto-zoom
+      
+      // Add the dummy field temporarily to the body
+      document.body.appendChild(dummyInput);
+      dummyInput.focus();
+      
       setTimeout(() => {
         const authContainer = document.querySelector('.auth-container');
         if (authContainer) {
           const registerForm = renderRegisterForm();
           authContainer.innerHTML = '';
           authContainer.appendChild(registerForm);
+          
+          // Focus on the first input field in the new form
+          setTimeout(() => {
+            document.body.removeChild(dummyInput);
+            const firstInput = registerForm.querySelector('input');
+            if (firstInput) firstInput.focus();
+          }, 50);
         }
       }, 10);
     } else {
@@ -772,7 +791,7 @@ function renderRegisterForm() {
     const email = e.target.elements.email.value;
     const password = e.target.elements.password.value;
     
-    // For mobile devices, use a different approach to keep keyboard open while processing
+    // For mobile devices, use an improved approach to keep keyboard open while processing
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       // Prevent multiple submissions
       if (formEl.getAttribute('data-submitting') === 'true') {
@@ -782,11 +801,24 @@ function renderRegisterForm() {
       // Mark form as currently submitting
       formEl.setAttribute('data-submitting', 'true');
       
-      // Process the registration without blurring first
+      // Create a hidden dummy input field to maintain keyboard focus
+      const dummyInput = document.createElement('input');
+      dummyInput.type = 'text';
+      dummyInput.style.position = 'absolute';
+      dummyInput.style.opacity = '0';
+      dummyInput.style.height = '0';
+      dummyInput.style.fontSize = '16px'; // iOS requires 16px to prevent auto-zoom
+      
+      // Add the dummy field temporarily
+      formEl.appendChild(dummyInput);
+      dummyInput.focus();
+      
+      // Process the registration without blurring keyboard
       handleRegister(username, email, password);
       
-      // Reset submission state after a delay
+      // Remove dummy input and reset submission state after a delay
       setTimeout(() => {
+        formEl.removeChild(dummyInput);
         formEl.setAttribute('data-submitting', 'false');
       }, 500);
     } else {
@@ -1069,14 +1101,33 @@ function renderRegisterForm() {
     e.preventDefault();
     e.stopPropagation();
     
-    // For mobile: don't blur immediately to prevent keyboard issues
+    // For mobile: improved handling to maintain keyboard focus
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      // Create a hidden dummy input to maintain keyboard focus during transition
+      const dummyInput = document.createElement('input');
+      dummyInput.type = 'text';
+      dummyInput.style.position = 'absolute';
+      dummyInput.style.opacity = '0';
+      dummyInput.style.height = '0';
+      dummyInput.style.fontSize = '16px'; // iOS requires 16px to prevent auto-zoom
+      
+      // Add the dummy field temporarily to the body
+      document.body.appendChild(dummyInput);
+      dummyInput.focus();
+      
       setTimeout(() => {
         const authContainer = document.querySelector('.auth-container');
         if (authContainer) {
           const loginForm = renderLoginForm();
           authContainer.innerHTML = '';
           authContainer.appendChild(loginForm);
+          
+          // Focus on the first input field in the new form
+          setTimeout(() => {
+            document.body.removeChild(dummyInput);
+            const firstInput = loginForm.querySelector('input');
+            if (firstInput) firstInput.focus();
+          }, 50);
         }
       }, 10);
     } else {
