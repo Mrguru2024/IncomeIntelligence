@@ -3603,52 +3603,41 @@ function renderPageContent(container) {
         container.appendChild(subscriptionSniperContainer);
         break;
       case 'subscriptionsniper-advanced':
-          const renderFallbackSubscriptionSniper = () => {
-            console.log('Using fallback Subscription Sniper interface');
-            
-            // Create main container
-            const fallbackContainer = document.createElement('div');
-            fallbackContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
-            
-            // Add fallback content here...
-            fallbackContainer.innerHTML = `
-              <div class="text-center p-8 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <h2 class="text-2xl font-bold mb-4">Subscription Sniper</h2>
-                <p class="mb-4">Track and manage your recurring subscriptions to save money.</p>
-                <div class="animate-pulse inline-block p-4 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                  Loading module...
-                </div>
+        // Use a simplified version to fix syntax errors
+        try {
+          console.log('Loading Subscription Sniper advanced...');
+          // Simple fallback implementation
+          const fallbackContainer = document.createElement('div');
+          fallbackContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
+          
+          fallbackContainer.innerHTML = `
+            <div class="text-center p-8 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <h2 class="text-2xl font-bold mb-4">Subscription Sniper</h2>
+              <p class="mb-4">Track and manage your recurring subscriptions to save money.</p>
+              <div class="animate-pulse inline-block p-4 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                Ready to optimize your subscriptions!
               </div>
-            `;
-            
-            return fallbackContainer;
-          };
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                <h3 class="text-xl font-bold mb-4">Your Subscriptions</h3>
+                <p class="text-gray-500">Connect your accounts to track subscriptions automatically.</p>
+              </div>
+              <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                <h3 class="text-xl font-bold mb-4">Recommendations</h3>
+                <p class="text-gray-500">Get personalized suggestions to optimize your spending.</p>
+              </div>
+            </div>
+          `;
           
-          const subscriptionSniperImportFailed = sessionStorage.getItem('subscriptionSniperImportFailed') === 'true';
-          
-          // If previously failed, don't attempt import again to avoid unnecessary console errors
-          if (subscriptionSniperImportFailed) {
-            console.log('Skipping Subscription Sniper import due to previous failure');
-            // Use fallback directly
-            container.appendChild(renderFallbackSubscriptionSniper());
-            return; // Use return instead of break since we're not in a loop or switch
-          }
-          
-          // Try importing the module
-          try {
-            console.log('Attempting to import Subscription Sniper module');
-            
-            // Import attempt would go here in the full implementation
-            // import('../subscription-sniper-advanced.js').then(...)
-            
-            // Create main container
-            const fallbackContainer = document.createElement('div');
-          } catch (error) {
-            console.error('Failed to load Subscription Sniper module:', error);
-            container.appendChild(renderFallbackSubscriptionSniper());
-            // Mark as failed in session storage to avoid future attempts
-            sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
-            return; // Return early
+          container.appendChild(fallbackContainer);
+        } catch (error) {
+          console.error('Error in Subscription Sniper module:', error);
+          const errorMessage = document.createElement('div');
+          errorMessage.className = 'error-message p-4 bg-red-100 text-red-600 rounded-lg';
+          errorMessage.textContent = 'An error occurred while loading the Subscription Sniper module.';
+          container.appendChild(errorMessage);
+        }
             fallbackContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
             
             // Create animated header with gradient background
