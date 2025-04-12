@@ -247,9 +247,27 @@ function createLayout() {
   
   // Import and use the sidebar component
   import('../sidebar.js').then(sidebarModule => {
-    // Add sidebar
-    const sidebar = sidebarModule.createSidebar(appState);
-    layoutContainer.appendChild(sidebar);
+    try {
+      // Check if createSidebar function exists
+      if (typeof sidebarModule.createSidebar !== 'function') {
+        throw new Error('createSidebar function not found in sidebar module');
+      }
+      
+      // Make sure appState is properly initialized before passing to createSidebar
+      const safeAppState = appState || {};
+      if (!safeAppState.user) {
+        safeAppState.user = {};
+      }
+      
+      // Add sidebar
+      const sidebar = sidebarModule.createSidebar(safeAppState);
+      
+      // Check if sidebar was successfully created
+      if (!sidebar || !(sidebar instanceof HTMLElement)) {
+        throw new Error('Sidebar could not be created properly');
+      }
+      
+      layoutContainer.appendChild(sidebar);
     
     // Create main content wrapper
     const mainContent = document.createElement('div');
@@ -386,6 +404,11 @@ function createLayout() {
     
     // Render page content in the content container
     renderPageContent(contentContainer);
+    
+    } catch (error) {
+      console.error('Error in sidebar initialization:', error);
+      throw error; // Rethrow so the outer catch can handle it
+    }
     
     // Handle window resize
     window.addEventListener('resize', () => {

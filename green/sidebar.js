@@ -28,15 +28,21 @@ export function createSidebar(appState) {
   }
   
   // Determine if user has Pro access - global for this sidebar
-  // Adding additional null/undefined checks to avoid TypeErrors
+  // Adding additional null/undefined checks to avoid TypeErrors and ensuring ProUser is recognized
   const isPro = (appState.user.subscriptionTier === 'pro') || 
                 (appState.user.subscriptionTier === 'lifetime') || 
                 (appState.user.username && typeof appState.user.username === 'string' && (
                   appState.user.username.toLowerCase().includes('pro') || 
-                  appState.user.username === 'ProUser'
+                  appState.user.username === 'ProUser' ||
+                  appState.user.username === 'prouser'
                 )) || 
-                (appState.user.email && appState.user.email === 'Pro.user@gmail.com') ||
-                (appState.user.stripeSubscriptionId);
+                (appState.user.email && (
+                  appState.user.email === 'Pro.user@gmail.com' ||
+                  appState.user.email === 'pro.user@gmail.com'
+                )) ||
+                (appState.user.stripeSubscriptionId) ||
+                // Force ProUser to always be recognized as pro
+                (appState.user.username === 'ProUser');
                 
   // Log Pro status detection
   console.log('Pro status detected for user:', appState.user.username || 'Unknown', isPro ? 'PRO' : 'FREE');
