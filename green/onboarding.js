@@ -2321,12 +2321,50 @@ function renderCompleteStep(container, appState) {
     // Mark onboarding as completed
     completeOnboarding(appState.user.id)
       .then(() => {
+        // Update app state and ensure localStorage is synced
         appState.user.onboardingCompleted = true;
+        appState.user.onboardingStep = 'complete';
+        
+        // Force update localStorage with the current app state
+        try {
+          const userData = localStorage.getItem('stackrUser');
+          if (userData) {
+            const user = JSON.parse(userData);
+            user.onboardingCompleted = true;
+            user.onboardingStep = 'complete';
+            localStorage.setItem('stackrUser', JSON.stringify(user));
+            console.log('Updated user data in localStorage before navigating to dashboard');
+          }
+        } catch (e) {
+          console.error('Error updating localStorage:', e);
+        }
+        
+        // Navigate to dashboard
         navigateTo('dashboard');
       })
       .catch(error => {
         console.error('Failed to complete onboarding:', error);
-        alert('There was an error. Please try again.');
+        
+        // Update app state anyway to prevent redirect loop
+        appState.user.onboardingCompleted = true;
+        appState.user.onboardingStep = 'complete';
+        
+        // Force update localStorage with the current app state even in error case
+        try {
+          const userData = localStorage.getItem('stackrUser');
+          if (userData) {
+            const user = JSON.parse(userData);
+            user.onboardingCompleted = true;
+            user.onboardingStep = 'complete';
+            localStorage.setItem('stackrUser', JSON.stringify(user));
+            console.log('Updated user data in localStorage (error fallback)');
+          }
+        } catch (e) {
+          console.error('Error updating localStorage:', e);
+        }
+        
+        // Navigate to dashboard even if there was an error
+        navigateTo('dashboard');
       });
   });
   
@@ -2633,12 +2671,43 @@ async function completeOnboarding(userId, retryCount = 0) {
       throw new Error(`Failed to complete onboarding: ${response.status} ${errorText}`);
     }
     
+    // Update local storage immediately to ensure the user isn't redirected back to onboarding
+    try {
+      const userData = localStorage.getItem('stackrUser');
+      if (userData) {
+        const user = JSON.parse(userData);
+        user.onboardingCompleted = true;
+        user.onboardingStep = 'complete';
+        localStorage.setItem('stackrUser', JSON.stringify(user));
+        console.log('Updated onboarding status in local storage');
+      } else {
+        console.warn('No user data found in local storage to update');
+      }
+    } catch (e) {
+      console.error('Failed to update onboarding status in local storage:', e);
+    }
+    
     return await response.json();
   } catch (error) {
     console.error('Error completing onboarding:', error);
     
-    // Fallback to allow user to continue
+    // Fallback to allow user to continue - ensure local storage is updated even in error case
     console.log('Using fallback method to complete onboarding');
+    
+    // Always update local storage to prevent redirect loop
+    try {
+      const userData = localStorage.getItem('stackrUser');
+      if (userData) {
+        const user = JSON.parse(userData);
+        user.onboardingCompleted = true;
+        user.onboardingStep = 'complete';
+        localStorage.setItem('stackrUser', JSON.stringify(user));
+        console.log('Updated onboarding status in local storage (fallback mode)');
+      }
+    } catch (e) {
+      console.error('Failed to update onboarding status in local storage:', e);
+    }
+    
     return { success: true, onboardingCompleted: true };
   }
 }
