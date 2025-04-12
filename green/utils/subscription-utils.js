@@ -41,7 +41,8 @@ export function canAccessFeature(user, featureId) {
     'moneymentor',
     'challenges',
     'bankconnections',
-    'subscriptionsniper'
+    'subscriptionsniper',
+    'financialmascot'
   ];
   
   // If the feature requires Pro, check Pro access
@@ -89,7 +90,8 @@ export function getSubscriptionDetails(user) {
         'Bank Connections',
         'Savings Challenges',
         'Unlimited Goals',
-        'Advanced Analytics'
+        'Advanced Analytics',
+        'Financial Mascot Personalities'
       ],
       restrictions: []
     };
@@ -291,6 +293,11 @@ function createProFeaturesModal() {
       name: 'Subscription Sniper',
       description: 'Track, manage, and optimize your recurring subscriptions. Identify unused services and potential savings opportunities automatically.',
       icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
+    },
+    {
+      name: 'Financial Mascot',
+      description: 'Customize your financial coach with different personalities and mascot styles to make your financial journey more engaging and personalized.',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" /><circle cx="12" cy="8" r="1" /><path d="M12 16v-5" /><path d="M16 16c-1.5 0-3-1.5-4-2-1 .5-2.5 2-4 2" /></svg>'
     },
     {
       name: 'Savings Challenges',
