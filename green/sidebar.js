@@ -145,6 +145,9 @@ export function createSidebar(appState) {
         case 'settings':
           iconSpan.textContent = '⚙️';
           break;
+        case 'download':
+          iconSpan.textContent = '⬇️';
+          break;
         default:
           iconSpan.textContent = '•';
       }

@@ -13,6 +13,48 @@ import { appState } from './src/main.js';
 export function renderLoginPage() {
   console.log("Auth module loaded");
   
+  // Auto login for development purposes
+  if (window.location.hostname === 'localhost' || window.location.hostname.includes('replit')) {
+    console.log('Auto-login enabled for development');
+    
+    // Set up demo user
+    appState.user = {
+      id: 1,
+      username: 'demo_user',
+      name: 'Demo User',
+      email: 'demo@example.com',
+      isAuthenticated: true,
+      subscription: {
+        tier: 'pro',
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      splitRatio: {
+        needs: 40,
+        investments: 30,
+        savings: 30
+      },
+      onboardingCompleted: true
+    };
+    
+    // Store in localStorage for persistence
+    localStorage.setItem('stackrUser', JSON.stringify({
+      username: 'demo_user',
+      email: 'demo@example.com',
+      isAuthenticated: true,
+      onboardingCompleted: true
+    }));
+    
+    // Update state
+    localStorage.setItem('stackr-finance-state', JSON.stringify(appState));
+    
+    console.log('Auto-login complete, redirecting to dashboard');
+    window.navigateTo('dashboard');
+    
+    // Return empty div since we're redirecting
+    const emptyDiv = document.createElement('div');
+    return emptyDiv;
+  }
+  
   // Create the container for the login page
   const container = document.createElement('div');
   container.className = 'auth-container';
