@@ -2814,9 +2814,7 @@ function renderPageContent(container) {
         // Use the UI directly
         container.appendChild(moneyMentorContainer);
         break;
-        
-      case 'money-mentor-fallback': // This case is never used, just to fix syntax
-        const renderFallbackMoneyMentor = () => {
+          const renderFallbackMoneyMentor = () => {
             console.log('Using fallback Money Mentor interface');
             
             // Create main container
