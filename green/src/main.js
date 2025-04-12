@@ -2806,177 +2806,529 @@ function renderPageContent(container) {
             const fallbackContainer = document.createElement('div');
             fallbackContainer.className = 'money-mentor-container p-4 max-w-5xl mx-auto';
             
-            // Create header
+            // Create header with animated gradient
             const header = document.createElement('div');
-            header.className = 'mb-6 text-center';
-            header.innerHTML = `
-              <h1 class="text-3xl font-bold text-primary mb-2">Money Mentor</h1>
-              <p class="text-gray-600 dark:text-gray-300">Your AI-powered financial assistant</p>
+            header.className = 'mb-8 text-center relative overflow-hidden rounded-xl p-6';
+            header.style.background = 'linear-gradient(135deg, #4f46e5, #7c3aed, #2563eb)';
+            header.style.backgroundSize = '300% 300%';
+            header.style.animation = 'gradient-animation 10s ease infinite';
+            
+            // Add keyframes for gradient animation
+            const style = document.createElement('style');
+            style.textContent = `
+              @keyframes gradient-animation {
+                0% { background-position: 0% 50% }
+                50% { background-position: 100% 50% }
+                100% { background-position: 0% 50% }
+              }
+              @keyframes bubble-animation {
+                0% { transform: translateY(0) scale(1); opacity: 0.7; }
+                50% { transform: translateY(-20px) scale(1.1); opacity: 0.9; }
+                100% { transform: translateY(-40px) scale(1); opacity: 0; }
+              }
+              .bubble {
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.1);
+                animation: bubble-animation 3s ease-in infinite;
+              }
             `;
+            document.head.appendChild(style);
+            
+            // Add decorative bubbles
+            for (let i = 0; i < 10; i++) {
+              const bubble = document.createElement('div');
+              bubble.className = 'bubble';
+              bubble.style.width = `${Math.random() * 50 + 10}px`;
+              bubble.style.height = bubble.style.width;
+              bubble.style.left = `${Math.random() * 100}%`;
+              bubble.style.bottom = `${Math.random() * 20}%`;
+              bubble.style.animationDelay = `${Math.random() * 3}s`;
+              header.appendChild(bubble);
+            }
+            
+            // Header content
+            const headerContent = document.createElement('div');
+            headerContent.className = 'relative z-10';
+            headerContent.innerHTML = `
+              <div class="flex items-center justify-center mb-3">
+                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                    <path d="M21 12c0 1.2-4 6-9 6s-9-4.8-9-6c0-1.2 4-6 9-6s9 4.8 9 6z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </div>
+              </div>
+              <h1 class="text-3xl font-bold text-white mb-2">Money Mentor AI</h1>
+              <p class="text-white/80">Your intelligent financial guide powered by advanced AI</p>
+              <div class="mt-3">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                  <span class="w-2 h-2 bg-green-400 rounded-full mr-1.5 animate-pulse"></span>
+                  PRO Feature
+                </span>
+              </div>
+            `;
+            
+            header.appendChild(headerContent);
             
             // Create main content grid
             const contentGrid = document.createElement('div');
             contentGrid.className = 'grid grid-cols-1 md:grid-cols-4 gap-6';
             
-            // Create chat area
+            // Create chat area with shadow and border
             const chatArea = document.createElement('div');
-            chatArea.className = 'md:col-span-3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow';
+            chatArea.className = 'md:col-span-3 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700';
             
-            // Chat message container
+            // Top tabs for different chat modes
+            const tabs = document.createElement('div');
+            tabs.className = 'flex space-x-1 mb-5 border-b border-gray-200 dark:border-gray-700 pb-3';
+            
+            const modes = [
+              { id: 'chat', name: 'Chat', icon: 'message-circle', active: true },
+              { id: 'assistant', name: 'Financial Plans', icon: 'pie-chart' },
+              { id: 'insights', name: 'Market Insights', icon: 'trending-up' }
+            ];
+            
+            modes.forEach(mode => {
+              const tab = document.createElement('button');
+              tab.className = `px-4 py-2 rounded-lg text-sm font-medium flex items-center ${mode.active ? 
+                'bg-primary/10 text-primary' : 
+                'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}`;
+              
+              tab.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                  ${mode.icon === 'message-circle' ? 
+                    '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>' : 
+                    mode.icon === 'pie-chart' ? 
+                    '<path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path>' :
+                    '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>'}
+                </svg>
+                ${mode.name}
+              `;
+              
+              // Add click event to tabs
+              tab.addEventListener('click', () => {
+                // Simulate tab change - in a real app this would show different content
+                document.querySelectorAll(tabs.querySelectorAll('button')).forEach(t => {
+                  t.classList.remove('bg-primary/10', 'text-primary');
+                  t.classList.add('text-gray-600', 'hover:bg-gray-100', 'dark:text-gray-300', 'dark:hover:bg-gray-700');
+                });
+                tab.classList.remove('text-gray-600', 'hover:bg-gray-100', 'dark:text-gray-300', 'dark:hover:bg-gray-700');
+                tab.classList.add('bg-primary/10', 'text-primary');
+              });
+              
+              tabs.appendChild(tab);
+            });
+            
+            // Chat message container with custom scrollbar
             const messageContainer = document.createElement('div');
             messageContainer.className = 'h-[400px] overflow-y-auto p-4 mb-4 bg-gray-50 dark:bg-gray-900 rounded-lg';
+            messageContainer.style.cssText = `
+              scrollbar-width: thin;
+              scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+            `;
             
-            // Create welcome message
+            // Add custom scrollbar styles
+            const scrollbarStyle = document.createElement('style');
+            scrollbarStyle.textContent = `
+              .money-mentor-container *::-webkit-scrollbar {
+                width: 6px;
+              }
+              .money-mentor-container *::-webkit-scrollbar-track {
+                background: transparent;
+              }
+              .money-mentor-container *::-webkit-scrollbar-thumb {
+                background-color: rgba(156, 163, 175, 0.5);
+                border-radius: 20px;
+              }
+            `;
+            document.head.appendChild(scrollbarStyle);
+            
+            // Create welcome message with animated typing effect
             const welcomeMessage = document.createElement('div');
-            welcomeMessage.className = 'flex p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-3';
-            welcomeMessage.innerHTML = `
-              <div class="mr-3">
-                <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-                    <path d="M12 16v-4"></path>
-                    <path d="M12 8h.01"></path>
-                  </svg>
-                </div>
-              </div>
-              <div>
-                <p class="font-medium">Money Mentor</p>
-                <p>Hello! I'm your AI-powered financial assistant. Ask me questions about budgeting, investing, or any financial topics. This feature requires a Pro subscription.</p>
-                <p class="text-xs text-gray-500 mt-1">${new Date().toLocaleTimeString()}</p>
+            welcomeMessage.className = 'flex p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg mb-4 border border-blue-100 dark:border-blue-800';
+            
+            const welcomeAvatar = document.createElement('div');
+            welcomeAvatar.className = 'mr-4 flex-shrink-0';
+            welcomeAvatar.innerHTML = `
+              <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
               </div>
             `;
             
+            const welcomeContent = document.createElement('div');
+            welcomeContent.innerHTML = `
+              <div class="flex items-center">
+                <p class="font-bold text-blue-800 dark:text-blue-300">Money Mentor AI</p>
+                <span class="ml-2 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded text-xs font-medium">PRO</span>
+              </div>
+              <div class="typing-animation mt-1">Hello! I'm your AI-powered financial assistant. I can help you with budgeting, investing, saving strategies, and much more. What would you like to know today?</div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">${new Date().toLocaleTimeString()} • Powered by Stackr AI</p>
+            `;
+            
+            // Add typing animation styles
+            const typingStyle = document.createElement('style');
+            typingStyle.textContent = `
+              .typing-animation {
+                border-right: 2px solid transparent;
+                white-space: wrap;
+                overflow: hidden;
+                animation: typing 3s steps(40, end), blink-caret .75s step-end infinite;
+              }
+              @keyframes typing {
+                from { width: 0 }
+                to { width: 100% }
+              }
+              @keyframes blink-caret {
+                from, to { border-color: transparent }
+                50% { border-color: #4f46e5 }
+              }
+            `;
+            document.head.appendChild(typingStyle);
+            
+            welcomeMessage.appendChild(welcomeAvatar);
+            welcomeMessage.appendChild(welcomeContent);
             messageContainer.appendChild(welcomeMessage);
             
-            // Create input area
+            // Add a sample conversation
+            const createMessage = (isUser, text) => {
+              const msgElement = document.createElement('div');
+              msgElement.className = `flex ${isUser ? 'flex-row-reverse' : ''} mb-4`;
+              
+              const avatar = document.createElement('div');
+              avatar.className = isUser ? 'ml-4 flex-shrink-0' : 'mr-4 flex-shrink-0';
+              
+              if (isUser) {
+                avatar.innerHTML = `
+                  <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </div>
+                `;
+              } else {
+                avatar.innerHTML = `
+                  <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                  </div>
+                `;
+              }
+              
+              const content = document.createElement('div');
+              content.className = `flex-1 ${isUser ? 'text-right' : ''}`;
+              content.innerHTML = `
+                <div class="flex items-center ${isUser ? 'justify-end' : ''}">
+                  <p class="font-bold ${isUser ? 'text-green-800 dark:text-green-300' : 'text-blue-800 dark:text-blue-300'}">${isUser ? 'You' : 'Money Mentor AI'}</p>
+                  ${!isUser ? '<span class="ml-2 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded text-xs font-medium">PRO</span>' : ''}
+                </div>
+                <p class="mt-1 text-gray-800 dark:text-gray-200">${text}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${new Date(Date.now() - Math.random() * 300000).toLocaleTimeString()}</p>
+              `;
+              
+              msgElement.appendChild(isUser ? content : avatar);
+              msgElement.appendChild(isUser ? avatar : content);
+              
+              return msgElement;
+            };
+            
+            // Add sample conversation
+            messageContainer.appendChild(createMessage(true, "How can I create a 40/30/30 budget for my income?"));
+            messageContainer.appendChild(createMessage(false, "The 40/30/30 budget is an excellent framework for financial stability! Here's how to implement it: <br><br><b>40%</b> - Essential needs (housing, utilities, groceries, transportation)<br><b>30%</b> - Long-term savings & investments<br><b>30%</b> - Personal spending & lifestyle"));
+            
+            // Add a sample AI-generated visualization
+            const chartElement = document.createElement('div');
+            chartElement.className = 'p-3 bg-white dark:bg-gray-800 rounded-lg mb-3 border border-gray-200 dark:border-gray-700 flex flex-col items-center';
+            chartElement.innerHTML = `
+              <div class="flex justify-center mb-2 w-full">
+                <div class="relative w-40 h-40">
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-xs font-medium text-gray-700 dark:text-gray-300">40/30/30 Split</div>
+                  </div>
+                  <svg viewBox="0 0 36 36" class="w-full h-full">
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#eee" stroke-width="2" stroke-dasharray="100, 100"/>
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#4f46e5" stroke-width="2" stroke-dasharray="40, 100"/>
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="30, 100" stroke-dashoffset="-40"/>
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="30, 100" stroke-dashoffset="-70"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-2 w-full text-center text-xs">
+                <div><span class="inline-block w-3 h-3 rounded-full bg-indigo-600 mr-1"></span>40% Needs</div>
+                <div><span class="inline-block w-3 h-3 rounded-full bg-blue-500 mr-1"></span>30% Savings</div>
+                <div><span class="inline-block w-3 h-3 rounded-full bg-emerald-500 mr-1"></span>30% Wants</div>
+              </div>
+            `;
+            messageContainer.appendChild(chartElement);
+            
+            // Continue conversation
+            messageContainer.appendChild(createMessage(true, "What's the best way to start investing with $500?"));
+            
+            // Create enhanced input area
             const inputArea = document.createElement('div');
-            inputArea.className = 'flex items-center space-x-2';
+            inputArea.className = 'relative';
             
             const textInput = document.createElement('input');
             textInput.type = 'text';
-            textInput.className = 'flex-1 p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600';
-            textInput.placeholder = 'Ask a financial question...';
+            textInput.className = 'w-full p-4 pl-5 pr-16 border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary dark:focus:border-primary transition-all duration-200';
+            textInput.placeholder = 'Ask anything about your finances...';
             
-            const sendButton = document.createElement('button');
-            sendButton.className = 'p-3 bg-primary text-white rounded-lg hover:bg-primary-dark';
-            sendButton.innerHTML = `
+            const inputIcons = document.createElement('div');
+            inputIcons.className = 'absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2';
+            
+            // Add voice input button
+            const voiceButton = document.createElement('button');
+            voiceButton.className = 'p-2 text-gray-500 hover:text-primary transition-colors duration-200';
+            voiceButton.innerHTML = `
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+            `;
+            
+            // Add send button
+            const sendButton = document.createElement('button');
+            sendButton.className = 'p-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors duration-200 flex items-center justify-center';
+            sendButton.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="22" y1="2" x2="11" y2="13"></line>
                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
               </svg>
             `;
             
+            inputIcons.appendChild(voiceButton);
+            inputIcons.appendChild(sendButton);
             inputArea.appendChild(textInput);
-            inputArea.appendChild(sendButton);
+            inputArea.appendChild(inputIcons);
             
             // Add event listener to input
-            sendButton.addEventListener('click', () => {
+            const handleSendMessage = () => {
               if (textInput.value.trim()) {
                 // Create user message
-                const userMessage = document.createElement('div');
-                userMessage.className = 'flex flex-row-reverse p-3 bg-primary-light dark:bg-primary-dark rounded-lg mb-3';
-                userMessage.innerHTML = `
-                  <div class="ml-3">
-                    <div class="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
+                messageContainer.appendChild(createMessage(true, textInput.value));
+                
+                // Loading indicator
+                const loadingIndicator = document.createElement('div');
+                loadingIndicator.className = 'flex p-4 bg-gray-100 dark:bg-gray-800 rounded-lg mb-3';
+                loadingIndicator.innerHTML = `
+                  <div class="mr-4 flex-shrink-0">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                       </svg>
                     </div>
                   </div>
-                  <div class="text-right">
-                    <p class="font-medium">You</p>
-                    <p>${textInput.value}</p>
-                    <p class="text-xs text-gray-500 mt-1">${new Date().toLocaleTimeString()}</p>
+                  <div class="flex items-center">
+                    <div class="typing-dots">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
                   </div>
                 `;
                 
-                messageContainer.appendChild(userMessage);
+                // Add typing dots animation
+                const dotsStyle = document.createElement('style');
+                dotsStyle.textContent = `
+                  .typing-dots {
+                    display: flex;
+                    align-items: center;
+                  }
+                  .typing-dots span {
+                    height: 8px;
+                    width: 8px;
+                    margin: 0 2px;
+                    background-color: #4f46e5;
+                    border-radius: 50%;
+                    opacity: 0.4;
+                    animation: dot-pulse 1.5s infinite ease-in-out;
+                  }
+                  .typing-dots span:nth-child(2) {
+                    animation-delay: 0.2s;
+                  }
+                  .typing-dots span:nth-child(3) {
+                    animation-delay: 0.4s;
+                  }
+                  @keyframes dot-pulse {
+                    0%, 100% { opacity: 0.4; transform: scale(1); }
+                    50% { opacity: 1; transform: scale(1.1); }
+                  }
+                `;
+                document.head.appendChild(dotsStyle);
+                
+                messageContainer.appendChild(loadingIndicator);
+                messageContainer.scrollTop = messageContainer.scrollHeight;
                 
                 // Add system message about Pro requirement
                 setTimeout(() => {
+                  messageContainer.removeChild(loadingIndicator);
+                  
                   const proMessage = document.createElement('div');
-                  proMessage.className = 'flex p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-3';
+                  proMessage.className = 'flex p-4 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-lg mb-3 border border-amber-200 dark:border-amber-800';
                   proMessage.innerHTML = `
-                    <div class="mr-3">
-                      <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-                          <path d="M12 16v-4"></path>
-                          <path d="M12 8h.01"></path>
+                    <div class="mr-4 flex-shrink-0">
+                      <div class="w-10 h-10 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-full flex items-center justify-center text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
                         </svg>
                       </div>
                     </div>
                     <div>
-                      <p class="font-medium">Money Mentor</p>
-                      <p>This feature requires a Pro subscription. Please upgrade to access personalized financial advice.</p>
-                      <p class="text-xs text-gray-500 mt-1">${new Date().toLocaleTimeString()}</p>
+                      <div class="flex items-center">
+                        <p class="font-bold text-amber-800 dark:text-amber-300">Money Mentor AI</p>
+                        <span class="ml-2 px-1.5 py-0.5 bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-300 rounded text-xs font-medium">PRO</span>
+                      </div>
+                      <p class="mt-1 text-gray-800 dark:text-gray-200">
+                        This feature requires a Pro subscription. Upgrade to unlock personalized financial advice tailored to your specific situation.
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${new Date().toLocaleTimeString()}</p>
+                      
+                      <button class="mt-3 px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg hover:from-amber-600 hover:to-yellow-600 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                        Upgrade to Pro
+                      </button>
                     </div>
                   `;
                   
                   messageContainer.appendChild(proMessage);
                   messageContainer.scrollTop = messageContainer.scrollHeight;
                   
-                  // Add upgrade button
-                  const upgradeButton = document.createElement('button');
-                  upgradeButton.className = 'mt-3 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 w-full';
-                  upgradeButton.textContent = 'Upgrade to Pro';
-                  upgradeButton.addEventListener('click', () => {
+                  // Add upgrade button click event
+                  proMessage.querySelector('button').addEventListener('click', () => {
                     window.location.hash = '#subscriptions';
                   });
-                  
-                  proMessage.querySelector('div:last-child').appendChild(upgradeButton);
-                }, 1000);
+                }, 1500);
                 
                 // Clear input
                 textInput.value = '';
-                
-                // Scroll to bottom
-                messageContainer.scrollTop = messageContainer.scrollHeight;
               }
-            });
+            };
+            
+            sendButton.addEventListener('click', handleSendMessage);
             
             // Allow Enter key to send
             textInput.addEventListener('keypress', (e) => {
               if (e.key === 'Enter') {
-                sendButton.click();
+                handleSendMessage();
               }
             });
             
+            // Voice button effect
+            voiceButton.addEventListener('click', () => {
+              voiceButton.classList.toggle('text-red-500');
+              voiceButton.classList.toggle('animate-pulse');
+              
+              // Simulate voice input after 2 seconds
+              if (voiceButton.classList.contains('text-red-500')) {
+                setTimeout(() => {
+                  textInput.value = "What are some passive income ideas?";
+                  voiceButton.classList.remove('text-red-500', 'animate-pulse');
+                  handleSendMessage();
+                }, 2000);
+              }
+            });
+            
+            chatArea.appendChild(tabs);
             chatArea.appendChild(messageContainer);
             chatArea.appendChild(inputArea);
             
-            // Create sidebar
+            // Create enhanced sidebar with more modern design
             const sidebar = document.createElement('div');
-            sidebar.className = 'md:col-span-1 space-y-6';
+            sidebar.className = 'md:col-span-1 space-y-5';
             
-            // Suggested topics
+            // User profile card
+            const profileCard = document.createElement('div');
+            profileCard.className = 'bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-700';
+            profileCard.innerHTML = `
+              <div class="flex items-center space-x-3">
+                <div class="relative">
+                  <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white text-lg font-bold">
+                    ${appState?.user?.username?.charAt(0)?.toUpperCase() || 'P'}
+                  </div>
+                  <span class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></span>
+                </div>
+                <div>
+                  <p class="font-medium">${appState?.user?.username || 'ProUser'}</p>
+                  <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                    <span class="bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">PRO</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <div class="text-sm text-gray-600 dark:text-gray-300 mb-2">Financial Health Score</div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                  <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-2.5 rounded-full" style="width: 68%"></div>
+                </div>
+                <p class="text-right text-xs text-gray-500 dark:text-gray-400 mt-1">68/100</p>
+              </div>
+            `;
+            
+            // AI topics with hover effects
             const topicsCard = document.createElement('div');
-            topicsCard.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded-lg';
+            topicsCard.className = 'bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-700';
             
             const topicsTitle = document.createElement('h3');
-            topicsTitle.className = 'text-lg font-medium mb-3';
-            topicsTitle.textContent = 'Suggested Topics';
+            topicsTitle.className = 'text-md font-semibold mb-3 flex items-center';
+            topicsTitle.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-primary">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              Popular Questions
+            `;
             
             const topicsList = document.createElement('ul');
-            topicsList.className = 'space-y-2 text-sm';
+            topicsList.className = 'space-y-2 mt-3';
             
             const suggestedTopics = [
-              'How can I start investing with $500?',
-              'Best strategies for student loans?',
-              'How much for retirement each month?',
-              'Side hustles to start this weekend?',
-              'Creating a 40/30/30 budget'
+              { text: 'How do I create a 40/30/30 budget?', icon: 'pie-chart' },
+              { text: 'Best strategies for student loans?', icon: 'book-open' },
+              { text: 'How much should I save for retirement?', icon: 'trending-up' },
+              { text: 'Side hustles to start this weekend?', icon: 'dollar-sign' },
+              { text: 'How to build an emergency fund?', icon: 'shield' }
             ];
             
             suggestedTopics.forEach(topic => {
               const item = document.createElement('li');
-              item.className = 'cursor-pointer hover:text-primary';
-              item.textContent = topic;
+              item.className = 'cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150 transform hover:scale-[1.01]';
+              
+              let iconPath = '';
+              switch (topic.icon) {
+                case 'pie-chart':
+                  iconPath = '<path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path>';
+                  break;
+                case 'book-open':
+                  iconPath = '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>';
+                  break;
+                case 'trending-up':
+                  iconPath = '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>';
+                  break;
+                case 'dollar-sign':
+                  iconPath = '<line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>';
+                  break;
+                case 'shield':
+                  iconPath = '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>';
+                  break;
+              }
+              
+              item.innerHTML = `
+                <div class="flex items-center">
+                  <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mr-2 text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      ${iconPath}
+                    </svg>
+                  </div>
+                  <span class="text-sm">${topic.text}</span>
+                </div>
+              `;
               
               item.addEventListener('click', () => {
-                textInput.value = topic;
-                sendButton.click();
+                textInput.value = topic.text;
+                handleSendMessage();
               });
               
               topicsList.appendChild(item);
@@ -2985,45 +3337,81 @@ function renderPageContent(container) {
             topicsCard.appendChild(topicsTitle);
             topicsCard.appendChild(topicsList);
             
-            // Pro features card
+            // Enhanced pro features card
             const proCard = document.createElement('div');
-            proCard.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded-lg';
+            proCard.className = 'bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 p-5 rounded-xl shadow-md border border-indigo-100 dark:border-indigo-800';
             
             const proTitle = document.createElement('h3');
-            proTitle.className = 'text-lg font-medium mb-2';
-            proTitle.textContent = 'Pro Features';
+            proTitle.className = 'text-md font-semibold mb-3 flex items-center text-indigo-900 dark:text-indigo-300';
+            proTitle.innerHTML = `
+              <div class="w-6 h-6 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center mr-2 text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 6L9 17l-5-5"></path>
+                </svg>
+              </div>
+              Pro Features
+            `;
             
             const proDescription = document.createElement('p');
-            proDescription.className = 'text-sm text-gray-600 dark:text-gray-300 mb-3';
-            proDescription.textContent = 'Upgrade to unlock Money Mentor:';
+            proDescription.className = 'text-xs text-gray-600 dark:text-gray-300 mb-4';
+            proDescription.textContent = 'Unlock powerful financial tools:';
             
             const proFeaturesList = document.createElement('ul');
-            proFeaturesList.className = 'space-y-2 text-sm';
+            proFeaturesList.className = 'space-y-3 mb-4';
             
             const proFeatures = [
-              'Unlimited AI financial advice',
-              'Custom income allocation plans',
-              'Personalized debt repayment',
-              'Investment strategy creation',
-              'Chat history & saved advice'
+              { text: 'Unlimited AI financial advice', icon: 'message-square' },
+              { text: 'Custom income allocation plans', icon: 'sliders' },
+              { text: 'Personalized debt repayment', icon: 'credit-card' },
+              { text: 'Investment strategy creation', icon: 'trending-up' },
+              { text: 'Chat history & saved advice', icon: 'save' }
             ];
             
             proFeatures.forEach(feature => {
               const item = document.createElement('li');
               item.className = 'flex items-center';
+              
+              let iconPath = '';
+              switch (feature.icon) {
+                case 'message-square':
+                  iconPath = '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>';
+                  break;
+                case 'sliders':
+                  iconPath = '<line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line>';
+                  break;
+                case 'credit-card':
+                  iconPath = '<rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line>';
+                  break;
+                case 'trending-up':
+                  iconPath = '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>';
+                  break;
+                case 'save':
+                  iconPath = '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline>';
+                  break;
+              }
+              
               item.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-primary">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                ${feature}
+                <div class="w-6 h-6 rounded-full bg-white/50 flex items-center justify-center mr-2 text-indigo-600 dark:text-indigo-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    ${iconPath}
+                  </svg>
+                </div>
+                <span class="text-xs text-indigo-900 dark:text-indigo-200">${feature.text}</span>
               `;
               
               proFeaturesList.appendChild(item);
             });
             
             const upgradeProButton = document.createElement('button');
-            upgradeProButton.className = 'mt-4 w-full py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600';
-            upgradeProButton.textContent = 'Upgrade to Pro';
+            upgradeProButton.className = 'w-full py-2.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg hover:from-amber-600 hover:to-yellow-600 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center';
+            upgradeProButton.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Upgrade to Pro
+            `;
+            
             upgradeProButton.addEventListener('click', () => {
               window.location.hash = '#subscriptions';
             });
@@ -3034,6 +3422,7 @@ function renderPageContent(container) {
             proCard.appendChild(upgradeProButton);
             
             // Add cards to sidebar
+            sidebar.appendChild(profileCard);
             sidebar.appendChild(topicsCard);
             sidebar.appendChild(proCard);
             
@@ -3147,318 +3536,935 @@ function renderPageContent(container) {
             const fallbackContainer = document.createElement('div');
             fallbackContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
             
-            // Create header
+            // Create animated header with gradient background
             const header = document.createElement('div');
-            header.className = 'mb-6 text-center';
-            header.innerHTML = `
-              <h1 class="text-3xl font-bold text-primary mb-2">Subscription Sniper</h1>
-              <p class="text-gray-600 dark:text-gray-300">Find and manage your recurring subscriptions</p>
+            header.className = 'mb-8 text-center relative overflow-hidden rounded-xl p-6';
+            header.style.background = 'linear-gradient(135deg, #ef4444, #f97316, #f59e0b)';
+            header.style.backgroundSize = '300% 300%';
+            header.style.animation = 'gradient-animation 8s ease infinite';
+            
+            // Add keyframes for gradient animation
+            const style = document.createElement('style');
+            style.textContent = `
+              @keyframes gradient-animation {
+                0% { background-position: 0% 50% }
+                50% { background-position: 100% 50% }
+                100% { background-position: 0% 50% }
+              }
+              @keyframes float-animation {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+                100% { transform: translateY(0px); }
+              }
+              @keyframes pulse-animation {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+              }
+              @keyframes slide-in {
+                0% { transform: translateX(-50px); opacity: 0; }
+                100% { transform: translateX(0); opacity: 1; }
+              }
+              @keyframes fade-in {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+              }
+              .subscription-item {
+                animation: fade-in 0.4s ease-out forwards;
+                opacity: 0;
+              }
+              .subscription-item:nth-child(1) { animation-delay: 0.1s; }
+              .subscription-item:nth-child(2) { animation-delay: 0.2s; }
+              .subscription-item:nth-child(3) { animation-delay: 0.3s; }
+              .subscription-item:nth-child(4) { animation-delay: 0.4s; }
+              .subscription-item:nth-child(5) { animation-delay: 0.5s; }
+              .grow-on-hover {
+                transition: all 0.2s ease;
+              }
+              .grow-on-hover:hover {
+                transform: scale(1.02);
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+              }
+            `;
+            document.head.appendChild(style);
+            
+            // Add decorative elements
+            for (let i = 0; i < 3; i++) {
+              const circle = document.createElement('div');
+              circle.className = 'absolute rounded-full bg-white/10';
+              circle.style.width = `${Math.random() * 100 + 50}px`;
+              circle.style.height = circle.style.width;
+              circle.style.left = `${Math.random() * 80}%`;
+              circle.style.top = `${Math.random() * 60 + 20}%`;
+              circle.style.animation = `float-animation ${Math.random() * 2 + 3}s ease-in-out infinite`;
+              circle.style.animationDelay = `${Math.random()}s`;
+              header.appendChild(circle);
+            }
+            
+            // Header content
+            const headerContent = document.createElement('div');
+            headerContent.className = 'relative z-10';
+            headerContent.innerHTML = `
+              <div class="flex items-center justify-center mb-4">
+                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                    <path d="M12 20V10"></path>
+                    <path d="M18 20V4"></path>
+                    <path d="M6 20v-6"></path>
+                  </svg>
+                </div>
+              </div>
+              <h1 class="text-3xl font-bold text-white mb-2">Subscription Sniper</h1>
+              <p class="text-white/80 mb-4">Track, manage, and optimize your recurring expenses</p>
+              <div class="flex justify-center space-x-2">
+                <span class="px-3 py-1 bg-white/20 rounded-full text-white text-sm backdrop-blur-sm">
+                  <span class="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse mr-1"></span>
+                  Premium Feature
+                </span>
+                <span class="px-3 py-1 bg-white/20 rounded-full text-white text-sm backdrop-blur-sm">AI Powered</span>
+              </div>
             `;
             
-            // Create main content area
-            const contentArea = document.createElement('div');
-            contentArea.className = 'space-y-6';
+            header.appendChild(headerContent);
             
-            // Create search bar
+            // Create tab navigation
+            const tabNav = document.createElement('div');
+            tabNav.className = 'flex justify-center -mt-5 mb-6 relative z-20';
+            
+            const tabs = [
+              { id: 'dashboard', name: 'Dashboard', icon: 'grid', active: true },
+              { id: 'analysis', name: 'Analysis', icon: 'bar-chart-2' },
+              { id: 'recommendations', name: 'Recommendations', icon: 'zap' }
+            ];
+            
+            // Create tab container with card-like styling
+            const tabContainer = document.createElement('div');
+            tabContainer.className = 'bg-white dark:bg-gray-800 rounded-full shadow-lg p-1.5 inline-flex';
+            
+            tabs.forEach(tab => {
+              const tabButton = document.createElement('button');
+              tabButton.className = `px-4 py-2 rounded-full text-sm font-medium flex items-center transition-all duration-200 ${
+                tab.active ? 
+                'bg-gradient-to-r from-red-500 to-amber-500 text-white shadow-md' : 
+                'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`;
+              
+              let iconPath = '';
+              switch (tab.icon) {
+                case 'grid':
+                  iconPath = '<rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>';
+                  break;
+                case 'bar-chart-2':
+                  iconPath = '<line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line>';
+                  break;
+                case 'zap':
+                  iconPath = '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>';
+                  break;
+              }
+              
+              tabButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                  ${iconPath}
+                </svg>
+                ${tab.name}
+              `;
+              
+              // Add click event
+              tabButton.addEventListener('click', () => {
+                document.querySelectorAll(tabContainer.querySelectorAll('button')).forEach(t => {
+                  t.classList.remove('bg-gradient-to-r', 'from-red-500', 'to-amber-500', 'text-white', 'shadow-md');
+                  t.classList.add('text-gray-600', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                });
+                tabButton.classList.remove('text-gray-600', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                tabButton.classList.add('bg-gradient-to-r', 'from-red-500', 'to-amber-500', 'text-white', 'shadow-md');
+                
+                // This would switch content panels in a real app
+              });
+              
+              tabContainer.appendChild(tabButton);
+            });
+            
+            tabNav.appendChild(tabContainer);
+            
+            // Create main content area with grid layout
+            const contentArea = document.createElement('div');
+            contentArea.className = 'grid grid-cols-1 xl:grid-cols-3 gap-6';
+            
+            // Left column - summary and controls
+            const leftColumn = document.createElement('div');
+            leftColumn.className = 'xl:col-span-1 space-y-6';
+            
+            // User profile card
+            const profileCard = document.createElement('div');
+            profileCard.className = 'bg-white dark:bg-gray-800 rounded-xl p-5 shadow-md border border-gray-100 dark:border-gray-700';
+            profileCard.innerHTML = `
+              <div class="flex items-center space-x-4">
+                <div class="relative">
+                  <div class="w-14 h-14 rounded-full bg-gradient-to-r from-red-500 to-amber-500 flex items-center justify-center text-white text-lg font-bold">
+                    ${appState?.user?.username?.charAt(0)?.toUpperCase() || 'P'}
+                  </div>
+                  <div class="absolute -top-1 -right-1 bg-green-500 rounded-full p-1 border-2 border-white dark:border-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                      <path d="M20 6L9 17l-5-5"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <h3 class="font-bold text-gray-900 dark:text-gray-100">${appState?.user?.username || 'ProUser'}</h3>
+                  <div class="flex items-center mt-1">
+                    <span class="inline-flex items-center bg-gradient-to-r from-amber-500 to-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                        <path d="M20 6L9 17l-5-5"></path>
+                      </svg>
+                      PRO
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">Since Apr 2025</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <div class="text-sm text-gray-700 dark:text-gray-300 font-medium mb-2">Optimization Score</div>
+                <div class="relative pt-1">
+                  <div class="flex mb-2 items-center justify-between">
+                    <div>
+                      <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-amber-600 bg-amber-100 dark:bg-amber-900 dark:text-amber-200">
+                        In Progress
+                      </span>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-xs font-semibold inline-block text-amber-600 dark:text-amber-200">
+                        72%
+                      </span>
+                    </div>
+                  </div>
+                  <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-amber-100 dark:bg-gray-700">
+                    <div style="width: 72%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-amber-500 to-red-500 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+            
+            // Create enhanced search bar with filter options
             const searchArea = document.createElement('div');
-            searchArea.className = 'relative';
-            searchArea.innerHTML = `
-              <input type="text" placeholder="Search subscriptions..." class="w-full p-3 pl-10 border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-3.5 text-gray-400">
+            searchArea.className = 'bg-white dark:bg-gray-800 rounded-xl p-5 shadow-md border border-gray-100 dark:border-gray-700';
+            
+            const searchTitle = document.createElement('h3');
+            searchTitle.className = 'text-md font-semibold mb-4 flex items-center';
+            searchTitle.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-amber-500">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Find Subscriptions
+            `;
+            
+            const searchForm = document.createElement('div');
+            searchForm.className = 'space-y-3';
+            
+            // Search input with icon
+            const searchInputGroup = document.createElement('div');
+            searchInputGroup.className = 'relative';
+            searchInputGroup.innerHTML = `
+              <input type="text" placeholder="Search by name or category..." class="w-full p-3 pl-10 pr-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-3.5 text-gray-400">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
             `;
             
-            // Create summary cards
+            // Add filter options
+            const filterOptions = document.createElement('div');
+            filterOptions.className = 'grid grid-cols-2 gap-2';
+            
+            const priceRangeSelect = document.createElement('div');
+            priceRangeSelect.className = 'relative';
+            priceRangeSelect.innerHTML = `
+              <select class="w-full appearance-none p-2 pl-8 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                <option>All Prices</option>
+                <option>Under $10</option>
+                <option>$10 - $25</option>
+                <option>Over $25</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-2 top-2.5 text-gray-400">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+            `;
+            
+            const categorySelect = document.createElement('div');
+            categorySelect.className = 'relative';
+            categorySelect.innerHTML = `
+              <select class="w-full appearance-none p-2 pl-8 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                <option>All Categories</option>
+                <option>Entertainment</option>
+                <option>Shopping</option>
+                <option>Health & Fitness</option>
+                <option>News & Media</option>
+                <option>Software & Services</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-2 top-2.5 text-gray-400">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+            `;
+            
+            const valueSelect = document.createElement('div');
+            valueSelect.className = 'relative';
+            valueSelect.innerHTML = `
+              <select class="w-full appearance-none p-2 pl-8 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                <option>All Value Rating</option>
+                <option>High Value</option>
+                <option>Medium Value</option>
+                <option>Low Value</option>
+                <option>Unrated</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-2 top-2.5 text-gray-400">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            `;
+            
+            const statusSelect = document.createElement('div');
+            statusSelect.className = 'relative';
+            statusSelect.innerHTML = `
+              <select class="w-full appearance-none p-2 pl-8 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                <option>All Status</option>
+                <option>Active</option>
+                <option>Inactive</option>
+                <option>Pending</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-2 top-2.5 text-gray-400">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            `;
+            
+            filterOptions.appendChild(priceRangeSelect);
+            filterOptions.appendChild(categorySelect);
+            filterOptions.appendChild(valueSelect);
+            filterOptions.appendChild(statusSelect);
+            
+            // Search button
+            const searchButton = document.createElement('button');
+            searchButton.className = 'w-full p-2 mt-2 bg-gradient-to-r from-amber-500 to-red-500 text-white rounded-lg hover:from-amber-600 hover:to-red-600 transition-all duration-300 flex items-center justify-center shadow hover:shadow-lg transform hover:-translate-y-0.5';
+            searchButton.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Search
+            `;
+            
+            searchForm.appendChild(searchInputGroup);
+            searchForm.appendChild(filterOptions);
+            searchForm.appendChild(searchButton);
+            
+            searchArea.appendChild(searchTitle);
+            searchArea.appendChild(searchForm);
+            
+            // AI value assessment card with enhanced design
+            const aiValueCard = document.createElement('div');
+            aiValueCard.className = 'bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl p-5 shadow-md border border-purple-100 dark:border-purple-800 overflow-hidden relative';
+            
+            // Add decorative circles
+            const circlesContainer = document.createElement('div');
+            circlesContainer.className = 'absolute inset-0 overflow-hidden';
+            
+            for (let i = 0; i < 5; i++) {
+              const circle = document.createElement('div');
+              const size = Math.random() * 50 + 20;
+              circle.className = 'absolute rounded-full bg-purple-500/5';
+              circle.style.width = `${size}px`;
+              circle.style.height = `${size}px`;
+              circle.style.top = `${Math.random() * 100}%`;
+              circle.style.left = `${Math.random() * 100}%`;
+              circlesContainer.appendChild(circle);
+            }
+            
+            aiValueCard.appendChild(circlesContainer);
+            
+            // AI card content
+            const aiCardContent = document.createElement('div');
+            aiCardContent.className = 'relative z-10';
+            aiCardContent.innerHTML = `
+              <div class="flex items-start">
+                <div class="mr-4">
+                  <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 flex items-center justify-center text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex items-center">
+                    <h3 class="font-bold text-purple-900 dark:text-purple-300">AI Value Analysis</h3>
+                    <span class="ml-2 px-2 py-0.5 bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 rounded text-xs font-medium">PRO</span>
+                  </div>
+                  <p class="text-sm text-purple-800/70 dark:text-purple-300/70 mt-1">Identify high-value vs. low-value subscriptions with AI-powered analysis</p>
+                </div>
+              </div>
+              
+              <div class="mt-5 bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 backdrop-blur-sm">
+                <div class="text-xs text-purple-800 dark:text-purple-300 font-medium mb-2">Recently Analyzed Services</div>
+                
+                <div class="space-y-2">
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Spotify</span>
+                    <span class="px-2 py-0.5 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-xs">High Value</span>
+                  </div>
+                  
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Gym Membership</span>
+                    <span class="px-2 py-0.5 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded text-xs">Low Value</span>
+                  </div>
+                  
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Amazon Prime</span>
+                    <span class="px-2 py-0.5 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-xs">High Value</span>
+                  </div>
+                </div>
+              </div>
+              
+              <button class="w-full mt-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:from-purple-600 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                  <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path>
+                  <line x1="16" y1="8" x2="2" y2="22"></line>
+                  <line x1="17.5" y1="15" x2="9" y2="15"></line>
+                </svg>
+                Analyze My Subscriptions
+              </button>
+            `;
+            
+            // Right column (main content) with subscription data
+            const rightColumn = document.createElement('div');
+            rightColumn.className = 'xl:col-span-2 space-y-6';
+            
+            // Create summary cards with animated counters
             const summaryGrid = document.createElement('div');
-            summaryGrid.className = 'grid grid-cols-1 md:grid-cols-3 gap-4';
+            summaryGrid.className = 'grid grid-cols-1 sm:grid-cols-3 gap-5';
             
-            // Monthly spend card
-            const monthlySpendCard = document.createElement('div');
-            monthlySpendCard.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 shadow';
-            monthlySpendCard.innerHTML = `
-              <h3 class="text-gray-500 dark:text-gray-400 font-medium text-sm">Monthly Subscriptions</h3>
-              <div class="flex items-baseline mt-1">
-                <span class="text-2xl font-bold text-primary">$58.97</span>
-                <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">/ month</span>
-              </div>
-              <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                <span class="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
-                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                    <polyline points="17 6 23 6 23 12"></polyline>
-                  </svg>
-                  7% higher than average
-                </span>
-              </div>
+            // Add counter animation
+            const counterStyle = document.createElement('style');
+            counterStyle.textContent = `
+              @property --num {
+                syntax: "<integer>";
+                initial-value: 0;
+                inherits: false;
+              }
+              .counter {
+                animation: counter 1.5s forwards;
+                counter-reset: num var(--num);
+              }
+              .counter::after {
+                content: counter(num);
+              }
+              @keyframes counter {
+                from {
+                  --num: 0;
+                }
+                to {
+                  --num: attr(data-value integer);
+                }
+              }
             `;
+            document.head.appendChild(counterStyle);
             
-            // Annual spend card
-            const annualSpendCard = document.createElement('div');
-            annualSpendCard.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 shadow';
-            annualSpendCard.innerHTML = `
-              <h3 class="text-gray-500 dark:text-gray-400 font-medium text-sm">Annual Cost</h3>
-              <div class="flex items-baseline mt-1">
-                <span class="text-2xl font-bold text-primary">$707.64</span>
-                <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">/ year</span>
-              </div>
-              <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                <span class="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <polyline points="19 12 12 19 5 12"></polyline>
+            // Summary cards with enhanced design
+            const createSummaryCard = (title, value, unit, icon, trend, trendValue, color, delay) => {
+              const card = document.createElement('div');
+              card.className = 'bg-white dark:bg-gray-800 rounded-xl p-5 shadow-md border border-gray-100 dark:border-gray-700 grow-on-hover';
+              card.style.animation = `fade-in 0.4s ease-out ${delay}s forwards`;
+              card.style.opacity = '0';
+              
+              // Icon based on parameter
+              let iconPath = '';
+              switch (icon) {
+                case 'dollar-sign':
+                  iconPath = '<line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>';
+                  break;
+                case 'calendar':
+                  iconPath = '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>';
+                  break;
+                case 'check-square':
+                  iconPath = '<polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>';
+                  break;
+              }
+              
+              // Trend icon based on trend parameter
+              let trendIcon = '';
+              let trendClass = '';
+              if (trend === 'up') {
+                trendIcon = '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>';
+                trendClass = 'text-red-500 dark:text-red-400';
+              } else if (trend === 'down') {
+                trendIcon = '<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline>';
+                trendClass = 'text-green-500 dark:text-green-400';
+              } else {
+                trendIcon = '<path d="M22 12H2"></path>';
+                trendClass = 'text-gray-500 dark:text-gray-400';
+              }
+              
+              card.innerHTML = `
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h3 class="text-sm text-gray-500 dark:text-gray-400 font-medium">${title}</h3>
+                    <div class="flex items-baseline mt-1">
+                      <span class="text-3xl font-bold ${color}" data-count="${value}">
+                        <span class="counter" data-value="${value}"></span>
+                      </span>
+                      <span class="ml-1 text-sm text-gray-500 dark:text-gray-400">${unit}</span>
+                    </div>
+                  </div>
+                  <div class="w-10 h-10 rounded-full ${color.replace('text', 'bg')}/10 flex items-center justify-center ${color}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      ${iconPath}
+                    </svg>
+                  </div>
+                </div>
+                <div class="flex items-center mt-4 text-xs">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${trendClass} mr-1">
+                    ${trendIcon}
                   </svg>
-                  $41.32 potential savings
-                </span>
-              </div>
-            `;
+                  <span class="${trendClass}">${trendValue}</span>
+                </div>
+              `;
+              
+              // Initialize counter animation
+              setTimeout(() => {
+                const counterElement = card.querySelector('.counter');
+                if (counterElement) {
+                  counterElement.style.animation = 'counter 1.5s forwards';
+                  counterElement.style.setProperty('--num', value);
+                }
+              }, delay * 1000 + 100);
+              
+              return card;
+            };
             
-            // Inactive subscriptions card
-            const inactiveCard = document.createElement('div');
-            inactiveCard.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 shadow';
-            inactiveCard.innerHTML = `
-              <h3 class="text-gray-500 dark:text-gray-400 font-medium text-sm">Inactive Subscriptions</h3>
-              <div class="flex items-baseline mt-1">
-                <span class="text-2xl font-bold text-green-500">3</span>
-                <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">identified</span>
-              </div>
-              <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                <span class="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 text-green-500">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                  $22.99 saved this month
-                </span>
-              </div>
-            `;
+            // Create summary cards
+            summaryGrid.appendChild(createSummaryCard('Monthly Spending', 59, '/mo', 'dollar-sign', 'up', '7% from last month', 'text-amber-600 dark:text-amber-400', 0.1));
+            summaryGrid.appendChild(createSummaryCard('Active Subscriptions', 8, 'services', 'calendar', 'up', '1 new subscription', 'text-blue-600 dark:text-blue-400', 0.2));
+            summaryGrid.appendChild(createSummaryCard('Optimization Savings', 23, '/mo', 'check-square', 'down', 'Canceled 3 services', 'text-green-600 dark:text-green-400', 0.3));
             
-            // Add cards to grid
-            summaryGrid.appendChild(monthlySpendCard);
-            summaryGrid.appendChild(annualSpendCard);
-            summaryGrid.appendChild(inactiveCard);
-            
-            // Create subscription list section
+            // Create subscription list section with enhanced cards
             const subscriptionSection = document.createElement('div');
-            subscriptionSection.className = 'space-y-4';
+            subscriptionSection.className = 'bg-white dark:bg-gray-800 rounded-xl p-5 shadow-md border border-gray-100 dark:border-gray-700';
             
-            // Section header
+            // Section header with tabs
             const sectionHeader = document.createElement('div');
-            sectionHeader.className = 'flex justify-between items-center';
-            sectionHeader.innerHTML = `
-              <h2 class="text-xl font-bold">Your Subscriptions</h2>
-              <div>
-                <select class="px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 text-sm">
-                  <option>All Subscriptions</option>
-                  <option>Monthly</option>
-                  <option>Annual</option>
-                  <option>Inactive</option>
-                </select>
-              </div>
+            sectionHeader.className = 'flex flex-col sm:flex-row sm:justify-between sm:items-center mb-5 gap-3';
+            
+            const sectionTitle = document.createElement('h2');
+            sectionTitle.className = 'text-xl font-bold flex items-center';
+            sectionTitle.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-amber-500">
+                <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path>
+                <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path>
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+              </svg>
+              Your Subscriptions
             `;
             
-            // Create subscription list
+            const subscriptionTabs = document.createElement('div');
+            subscriptionTabs.className = 'flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg';
+            
+            ['All', 'Monthly', 'Annual', 'Inactive'].forEach((tab, index) => {
+              const tabButton = document.createElement('button');
+              tabButton.className = `px-3 py-1 text-sm font-medium rounded-md ${index === 0 ? 'bg-white dark:bg-gray-600 shadow-sm' : 'text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white'}`;
+              tabButton.textContent = tab;
+              
+              tabButton.addEventListener('click', () => {
+                // Update active tab
+                subscriptionTabs.querySelectorAll('button').forEach(btn => {
+                  btn.classList.remove('bg-white', 'dark:bg-gray-600', 'shadow-sm');
+                  btn.classList.add('text-gray-500', 'dark:text-gray-300', 'hover:text-gray-700', 'dark:hover:text-white');
+                });
+                
+                tabButton.classList.remove('text-gray-500', 'dark:text-gray-300', 'hover:text-gray-700', 'dark:hover:text-white');
+                tabButton.classList.add('bg-white', 'dark:bg-gray-600', 'shadow-sm');
+                
+                // This would filter subscription items in a real app
+              });
+              
+              subscriptionTabs.appendChild(tabButton);
+            });
+            
+            sectionHeader.appendChild(sectionTitle);
+            sectionHeader.appendChild(subscriptionTabs);
+            
+            // Create enhanced subscription list
             const subscriptionList = document.createElement('div');
             subscriptionList.className = 'space-y-3';
             
-            // Sample subscription data
+            // Enhanced sample subscription data
             const subscriptions = [
               {
                 name: 'Netflix',
                 icon: '🎬',
+                logo: 'bg-red-600',
                 amount: 14.99,
                 frequency: 'Monthly',
                 nextBilling: '2025-05-02',
                 category: 'Entertainment',
-                status: 'Active'
+                status: 'Active',
+                usage: 'High'
               },
               {
                 name: 'Spotify',
                 icon: '🎵',
+                logo: 'bg-green-600',
                 amount: 9.99,
                 frequency: 'Monthly',
                 nextBilling: '2025-05-15',
                 category: 'Entertainment',
                 status: 'Active',
-                valueAssessment: 'High Value'
+                valueAssessment: 'High Value',
+                usage: 'Very High'
               },
               {
                 name: 'Amazon Prime',
                 icon: '📦',
+                logo: 'bg-blue-600',
                 amount: 12.99,
                 frequency: 'Monthly',
                 nextBilling: '2025-05-04',
                 category: 'Shopping',
                 status: 'Active',
-                valueAssessment: 'High Value'
+                valueAssessment: 'High Value',
+                usage: 'Medium'
               },
               {
                 name: 'Gym Membership',
                 icon: '💪',
+                logo: 'bg-purple-600',
                 amount: 29.99,
                 frequency: 'Monthly',
                 nextBilling: '2025-05-01',
                 category: 'Health',
                 status: 'Inactive',
-                valueAssessment: 'Low Value'
+                valueAssessment: 'Low Value',
+                usage: 'Low'
               },
               {
                 name: 'The New York Times',
                 icon: '📰',
+                logo: 'bg-gray-600',
                 amount: 17.99,
                 frequency: 'Monthly',
                 nextBilling: 'Canceled',
                 category: 'News',
-                status: 'Inactive'
+                status: 'Inactive',
+                usage: 'Very Low'
               }
             ];
             
-            // Create subscription items
-            subscriptions.forEach(sub => {
+            // Create enhanced subscription items
+            subscriptions.forEach((sub, index) => {
               const subItem = document.createElement('div');
-              subItem.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 shadow flex items-center justify-between';
+              subItem.className = 'subscription-item bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-200 hover:border-amber-200 dark:hover:border-amber-700 grow-on-hover';
               
-              // Left side with icon and name
-              const leftSide = document.createElement('div');
-              leftSide.className = 'flex items-center space-x-3';
-              
-              const iconEl = document.createElement('div');
-              iconEl.className = 'w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xl';
-              iconEl.textContent = sub.icon;
-              
-              const nameEl = document.createElement('div');
-              nameEl.innerHTML = `
-                <div class="font-medium">${sub.name}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">${sub.category}</div>
-              `;
-              
-              leftSide.appendChild(iconEl);
-              leftSide.appendChild(nameEl);
-              
-              // Middle section with price and frequency
-              const middleSection = document.createElement('div');
-              middleSection.className = 'flex-grow text-center mx-4';
-              middleSection.innerHTML = `
-                <div class="font-medium">$${sub.amount.toFixed(2)}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">${sub.frequency}</div>
-              `;
-              
-              // Value assessment badge (if any)
-              if (sub.valueAssessment) {
-                const badgeColor = sub.valueAssessment.includes('High') ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-                const badge = document.createElement('span');
-                badge.className = `text-xs px-2 py-1 rounded-full ${badgeColor} ml-2`;
-                badge.textContent = sub.valueAssessment;
-                middleSection.querySelector('div').appendChild(badge);
+              // Usage indicator
+              let usagePercentage = 0;
+              switch (sub.usage) {
+                case 'Very High': usagePercentage = 95; break;
+                case 'High': usagePercentage = 80; break;
+                case 'Medium': usagePercentage = 60; break;
+                case 'Low': usagePercentage = 30; break;
+                case 'Very Low': usagePercentage = 10; break;
               }
               
-              // Right side with actions
-              const rightSide = document.createElement('div');
-              rightSide.className = 'flex items-center space-x-2';
+              // Calculate days until next billing
+              let daysLeft = '';
+              let daysLeftClass = '';
               
-              // Status indicator
-              const statusIndicator = document.createElement('span');
-              statusIndicator.className = `inline-block w-2 h-2 rounded-full ${sub.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'}`;
+              if (sub.status === 'Active' && sub.nextBilling !== 'Canceled') {
+                const today = new Date();
+                const billingDate = new Date(sub.nextBilling);
+                const timeDiff = billingDate - today;
+                const dayDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                
+                daysLeft = `${dayDiff} days left`;
+                
+                if (dayDiff <= 3) {
+                  daysLeftClass = 'text-red-600 dark:text-red-400';
+                } else if (dayDiff <= 7) {
+                  daysLeftClass = 'text-amber-600 dark:text-amber-400';
+                } else {
+                  daysLeftClass = 'text-gray-500 dark:text-gray-400';
+                }
+              } else {
+                daysLeft = 'Canceled';
+                daysLeftClass = 'text-gray-500 dark:text-gray-400';
+              }
               
-              // Status text
-              const statusText = document.createElement('span');
-              statusText.className = 'text-sm text-gray-500 dark:text-gray-400 mr-2';
-              statusText.textContent = sub.status;
+              subItem.innerHTML = `
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-xl ${sub.logo} flex items-center justify-center text-xl text-white shadow-sm">
+                      ${sub.icon}
+                    </div>
+                    <div>
+                      <div class="font-medium text-gray-900 dark:text-gray-100">${sub.name}</div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                        <span>${sub.category}</span>
+                        <span class="mx-1.5">•</span>
+                        <span>${sub.frequency}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="flex flex-col items-end">
+                    <div class="font-bold text-gray-900 dark:text-gray-100">$${sub.amount.toFixed(2)}</div>
+                    <div class="text-xs ${daysLeftClass}">${daysLeft}</div>
+                  </div>
+                </div>
+                
+                <div class="mt-3 grid grid-cols-3 items-center gap-3">
+                  <div class="col-span-2">
+                    <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      <span>Usage</span>
+                      <span>${sub.usage}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+                      <div class="bg-gradient-to-r from-amber-400 to-amber-600 h-1.5 rounded-full" style="width: ${usagePercentage}%"></div>
+                    </div>
+                  </div>
+                  
+                  <div class="flex justify-end space-x-1">
+                    ${sub.valueAssessment ? 
+                      `<span class="px-2 py-0.5 rounded-full text-xs font-medium ${sub.valueAssessment.includes('High') ? 
+                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 
+                        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                      }">${sub.valueAssessment}</span>` : 
+                      ''
+                    }
+                    <button class="p-1.5 text-xs text-amber-600 bg-amber-100 hover:bg-amber-200 dark:text-amber-200 dark:bg-amber-900/50 dark:hover:bg-amber-800 rounded-lg transition-colors">
+                      ${sub.status === 'Active' ? 'Manage' : 'Reactivate'}
+                    </button>
+                  </div>
+                </div>
+              `;
               
-              // Action button
-              const actionButton = document.createElement('button');
-              actionButton.className = 'px-3 py-1 text-xs bg-primary text-white rounded-md hover:bg-primary-dark';
-              actionButton.textContent = sub.status === 'Active' ? 'Manage' : 'Reactivate';
+              // Add hover interactivity
+              subItem.addEventListener('mouseenter', () => {
+                subItem.style.transform = 'translateY(-2px)';
+              });
               
-              rightSide.appendChild(statusIndicator);
-              rightSide.appendChild(statusText);
-              rightSide.appendChild(actionButton);
+              subItem.addEventListener('mouseleave', () => {
+                subItem.style.transform = 'translateY(0)';
+              });
               
-              // Add all sections to the item
-              subItem.appendChild(leftSide);
-              subItem.appendChild(middleSection);
-              subItem.appendChild(rightSide);
-              
-              // Add the item to the list
               subscriptionList.appendChild(subItem);
             });
             
-            // Connect bank account button
-            const bankButton = document.createElement('div');
-            bankButton.className = 'text-center mt-6';
-            
-            const connectButton = document.createElement('button');
-            connectButton.className = 'px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark inline-flex items-center';
-            connectButton.innerHTML = `
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
-                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
-                <line x1="2" y1="10" x2="22" y2="10"></line>
+            // Add a new subscription button
+            const addNewButton = document.createElement('button');
+            addNewButton.className = 'w-full mt-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl flex items-center justify-center transition-colors duration-200 border border-dashed border-gray-300 dark:border-gray-600';
+            addNewButton.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
-              Connect Bank Account
+              Add Subscription Manually
             `;
             
-            // Add Pro badge
-            const proBadge = document.createElement('span');
-            proBadge.className = 'ml-2 px-2 py-0.5 text-xs bg-amber-500 text-white rounded-full';
-            proBadge.textContent = 'PRO';
-            connectButton.appendChild(proBadge);
+            // Add Savings Challenges section
+            const savingsChallengesSection = document.createElement('div');
+            savingsChallengesSection.className = 'bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl p-5 shadow-md border border-emerald-100 dark:border-emerald-800 animation-pulse';
             
-            connectButton.addEventListener('click', () => {
-              window.location.hash = '#bankconnections';
-            });
-            
-            bankButton.appendChild(connectButton);
-            
-            const proInfo = document.createElement('p');
-            proInfo.className = 'text-sm text-gray-500 dark:text-gray-400 mt-2';
-            proInfo.textContent = 'Connect your bank account to automatically detect all your subscriptions';
-            bankButton.appendChild(proInfo);
-            
-            // Add Pro badge for AI value assessment
-            const aiValueBadge = document.createElement('div');
-            aiValueBadge.className = 'mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-lg border border-blue-100 dark:border-blue-800 flex items-center';
-            aiValueBadge.innerHTML = `
-              <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white mr-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
-                  <path d="M12 2a10 10 0 1 1-10 10h10V2z"></path>
-                  <path d="M12 12l9-3"></path>
-                  <path d="M12 12l-9-3"></path>
-                  <path d="M12 12l3 9"></path>
-                  <path d="M12 12l-3-9"></path>
+            // Create header with title and description
+            const challengesHeader = document.createElement('div');
+            challengesHeader.className = 'flex items-start mb-5';
+            challengesHeader.innerHTML = `
+              <div class="w-12 h-12 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center text-white mr-4 shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                 </svg>
               </div>
               <div>
-                <div class="font-medium flex items-center">
-                  AI Value Assessment
-                  <span class="ml-2 px-2 py-0.5 text-xs bg-amber-500 text-white rounded-full">PRO</span>
-                </div>
-                <p class="text-sm text-gray-600 dark:text-gray-300">Upgrade to Pro for AI-powered analysis of which subscriptions provide the most value for your money</p>
+                <h3 class="text-lg font-bold text-emerald-900 dark:text-emerald-300">Subscription Savings Challenges</h3>
+                <p class="text-sm text-emerald-800/70 dark:text-emerald-300/70 mt-1">Complete these challenges to optimize your subscriptions and save money!</p>
               </div>
             `;
             
-            const upgradeButton = document.createElement('button');
-            upgradeButton.className = 'mt-6 w-full py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600';
-            upgradeButton.textContent = 'Upgrade to Pro';
-            upgradeButton.addEventListener('click', () => {
-              window.location.hash = '#subscriptions';
+            // Create challenges cards
+            const challengesGrid = document.createElement('div');
+            challengesGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 mt-3';
+            
+            const challenges = [
+              {
+                title: 'Cancel Unused Memberships',
+                description: 'Identify and cancel 2 subscriptions you haven\'t used in 30+ days',
+                reward: 'Save up to $35/month',
+                progress: 50,
+                icon: 'trash-2'
+              },
+              {
+                title: 'Downgrade Premium Plans',
+                description: 'Downgrade at least one subscription to a more affordable tier',
+                reward: 'Save $5-15/month',
+                progress: 0,
+                icon: 'arrow-down'
+              },
+              {
+                title: 'Switch to Annual Billing',
+                description: 'Convert 2 monthly subscriptions to annual billing',
+                reward: 'Save up to 20% overall',
+                progress: 75,
+                icon: 'calendar'
+              },
+              {
+                title: 'Subscription Detox Week',
+                description: 'Go one week without using paid streaming services',
+                reward: 'Learn which services you actually miss',
+                progress: 25,
+                icon: 'zap-off'
+              }
+            ];
+            
+            challenges.forEach(challenge => {
+              // Create challenge card
+              const challengeCard = document.createElement('div');
+              challengeCard.className = 'bg-white/70 dark:bg-gray-800/50 rounded-lg p-4 shadow-sm border border-emerald-100 dark:border-emerald-800/50 grow-on-hover';
+              
+              // Set icon based on challenge type
+              let iconPath = '';
+              switch (challenge.icon) {
+                case 'trash-2':
+                  iconPath = '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>';
+                  break;
+                case 'arrow-down':
+                  iconPath = '<line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline>';
+                  break;
+                case 'calendar':
+                  iconPath = '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>';
+                  break;
+                case 'zap-off':
+                  iconPath = '<polyline points="12.41 6.75 13 2 10.57 4.92"></polyline><polyline points="18.57 12.91 21 10 15.66 10"></polyline><polyline points="8 8 3 14 12 14 11 22 16 16"></polyline><line x1="1" y1="1" x2="23" y2="23"></line>';
+                  break;
+              }
+              
+              // Construct challenge card content
+              challengeCard.innerHTML = `
+                <div class="flex items-start">
+                  <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/70 flex items-center justify-center text-emerald-700 dark:text-emerald-300 mr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      ${iconPath}
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-medium text-emerald-900 dark:text-emerald-300">${challenge.title}</h4>
+                    <p class="text-xs text-emerald-800/70 dark:text-emerald-300/70 mt-1">${challenge.description}</p>
+                  </div>
+                </div>
+                
+                <div class="mt-3">
+                  <div class="flex justify-between text-xs text-emerald-700 dark:text-emerald-400 mb-1">
+                    <span>Progress</span>
+                    <span class="font-medium">${challenge.progress}%</span>
+                  </div>
+                  <div class="w-full bg-emerald-100 dark:bg-emerald-900/50 rounded-full h-2">
+                    <div class="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full" style="width: ${challenge.progress}%"></div>
+                  </div>
+                </div>
+                
+                <div class="mt-3 flex justify-between items-center">
+                  <span class="text-xs font-medium bg-emerald-100 dark:bg-emerald-900/70 text-emerald-800 dark:text-emerald-300 px-2 py-1 rounded-full">
+                    ${challenge.reward}
+                  </span>
+                  
+                  <button class="text-xs px-3 py-1.5 text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-lg shadow-sm">
+                    ${challenge.progress > 0 ? 'Continue' : 'Start'}
+                  </button>
+                </div>
+              `;
+              
+              challengesGrid.appendChild(challengeCard);
             });
             
-            // Assemble the sections
+            // Assemble the savings challenges section
+            savingsChallengesSection.appendChild(challengesHeader);
+            savingsChallengesSection.appendChild(challengesGrid);
+            
+            // Assemble subscription section
             subscriptionSection.appendChild(sectionHeader);
             subscriptionSection.appendChild(subscriptionList);
-            subscriptionSection.appendChild(bankButton);
-            subscriptionSection.appendChild(aiValueBadge);
-            subscriptionSection.appendChild(upgradeButton);
+            subscriptionSection.appendChild(addNewButton);
             
-            // Add all components to content area
-            contentArea.appendChild(searchArea);
-            contentArea.appendChild(summaryGrid);
-            contentArea.appendChild(subscriptionSection);
+            // Connect bank account section with enhanced design
+            const connectBankSection = document.createElement('div');
+            connectBankSection.className = 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-5 shadow-md border border-blue-100 dark:border-blue-800 relative overflow-hidden';
             
-            // Add header and content to main container
+            // Add decorative elements
+            const decorativeShapes = document.createElement('div');
+            decorativeShapes.className = 'absolute inset-0 overflow-hidden';
+            
+            // Add decorative circles with different opacities
+            for (let i = 0; i < 5; i++) {
+              const circle = document.createElement('div');
+              const size = Math.random() * 120 + 40;
+              circle.className = 'absolute rounded-full bg-blue-500/5';
+              circle.style.width = `${size}px`;
+              circle.style.height = `${size}px`;
+              circle.style.top = `${Math.random() * 100}%`;
+              circle.style.left = `${Math.random() * 100}%`;
+              decorativeShapes.appendChild(circle);
+            }
+            
+            connectBankSection.appendChild(decorativeShapes);
+            
+            // Connect bank content
+            const connectBankContent = document.createElement('div');
+            connectBankContent.className = 'relative z-10 flex items-center';
+            connectBankContent.innerHTML = `
+              <div class="mr-4 flex-shrink-0">
+                <div class="w-14 h-14 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg animation-pulse">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                    <line x1="2" y1="10" x2="22" y2="10"></line>
+                  </svg>
+                </div>
+              </div>
+              <div class="flex-grow">
+                <h3 class="font-bold text-blue-900 dark:text-blue-300">Connect Your Bank Account</h3>
+                <p class="text-sm text-blue-800/70 dark:text-blue-300/70 mt-1">Automatically detect all your recurring subscriptions and get personalized insights</p>
+                <div class="mt-3 flex items-center">
+                  <button class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 font-medium text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Connect with Plaid
+                    <span class="ml-2 text-xs bg-white/20 px-1.5 py-0.5 rounded text-white backdrop-blur-sm">PRO</span>
+                  </button>
+                </div>
+              </div>
+            `;
+            
+            // Assign click handler to the connect button
+            connectBankContent.querySelector('button').addEventListener('click', () => {
+              window.location.hash = '#bankconnections';
+            });
+            
+            connectBankSection.appendChild(connectBankContent);
+            
+            // Add everything to the left column
+            leftColumn.appendChild(profileCard);
+            leftColumn.appendChild(searchArea);
+            leftColumn.appendChild(aiValueCard);
+            
+            // Add everything to the right column
+            rightColumn.appendChild(summaryGrid);
+            rightColumn.appendChild(subscriptionSection);
+            rightColumn.appendChild(savingsChallengesSection);
+            rightColumn.appendChild(connectBankSection);
+            
+            // Add columns to content area
+            contentArea.appendChild(leftColumn);
+            contentArea.appendChild(rightColumn);
+            
+            // Add header, tabs and content to main container
             fallbackContainer.appendChild(header);
+            fallbackContainer.appendChild(tabNav);
             fallbackContainer.appendChild(contentArea);
             
             return fallbackContainer;
