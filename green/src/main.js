@@ -2798,6 +2798,17 @@ function renderPageContent(container) {
         try {
           console.log('Loading Money Mentor module...');
           
+          // Check for previously stored import error flag in session storage
+          const moneyMentorImportFailed = sessionStorage.getItem('moneyMentorImportFailed') === 'true';
+          
+          // If previously failed, don't attempt import again to avoid unnecessary console errors
+          if (moneyMentorImportFailed) {
+            console.log('Skipping Money Mentor import due to previous failure');
+            // Use fallback directly
+            container.appendChild(renderFallbackMoneyMentor());
+            break;
+          }
+          
           // Function to render a fallback Money Mentor when the module import fails
           const renderFallbackMoneyMentor = () => {
             console.log('Using fallback Money Mentor interface');
@@ -3458,16 +3469,23 @@ function renderPageContent(container) {
                   throw new Error('Invalid return from renderMoneyMentorPage');
                 }
                 
+                // Successfully loaded the module, clear any previous error flag
+                sessionStorage.removeItem('moneyMentorImportFailed');
                 container.appendChild(mentorPage);
               } catch (error) {
                 console.error('Error rendering money mentor page:', error);
                 console.log('Falling back to simplified Money Mentor interface');
+                // Mark as failed in session storage to avoid future attempts
+                sessionStorage.setItem('moneyMentorImportFailed', 'true');
                 container.appendChild(renderFallbackMoneyMentor());
               }
             })();
           }).catch(error => {
-            console.error('Error loading money mentor module:', error);
-            console.log('Using fallback Money Mentor due to import failure');
+            // Instead of logging the error which may be empty, just log a message
+            console.log('Unable to load Money Mentor module - using fallback interface');
+            
+            // Mark as failed in session storage to avoid future attempts
+            sessionStorage.setItem('moneyMentorImportFailed', 'true');
             container.appendChild(renderFallbackMoneyMentor());
           });
         } catch (outerError) {
@@ -3527,6 +3545,17 @@ function renderPageContent(container) {
       case 'subscriptionsniper':
         try {
           console.log('Loading Subscription Sniper module...');
+          
+          // Check for previously stored import error flag in session storage
+          const subscriptionSniperImportFailed = sessionStorage.getItem('subscriptionSniperImportFailed') === 'true';
+          
+          // If previously failed, don't attempt import again to avoid unnecessary console errors
+          if (subscriptionSniperImportFailed) {
+            console.log('Skipping Subscription Sniper import due to previous failure');
+            // Use fallback directly
+            container.appendChild(renderFallbackSubscriptionSniper());
+            break;
+          }
           
           // Function to render a fallback Subscription Sniper when module import fails
           const renderFallbackSubscriptionSniper = () => {
@@ -4491,16 +4520,23 @@ function renderPageContent(container) {
                   throw new Error('Invalid return from renderSubscriptionSniperPage');
                 }
                 
+                // Successfully loaded the module, clear any previous error flag
+                sessionStorage.removeItem('subscriptionSniperImportFailed');
                 container.appendChild(sniperPage);
               } catch (error) {
                 console.error('Error rendering subscription sniper page:', error);
                 console.log('Falling back to simplified Subscription Sniper interface');
+                // Mark as failed in session storage to avoid future attempts
+                sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
                 container.appendChild(renderFallbackSubscriptionSniper());
               }
             })();
           }).catch(error => {
-            console.error('Error loading subscription sniper module:', error);
-            console.log('Using fallback Subscription Sniper due to import failure');
+            // Instead of logging the error which may be empty, just log a message
+            console.log('Unable to load Subscription Sniper module - using fallback interface');
+            
+            // Mark as failed in session storage to avoid future attempts
+            sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
             container.appendChild(renderFallbackSubscriptionSniper());
           });
         } catch (outerError) {
