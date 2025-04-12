@@ -19,7 +19,7 @@ export function createSidebar(appState) {
   // Create sidebar container
   const sidebar = document.createElement('aside');
   sidebar.classList.add('sidebar');
-  sidebar.style.width = isMobile ? '0' : '280px';
+  sidebar.style.width = '280px'; // Always set width to avoid issues
   sidebar.style.height = '100vh';
   sidebar.style.position = 'fixed';
   sidebar.style.top = '0';
@@ -27,7 +27,7 @@ export function createSidebar(appState) {
   sidebar.style.zIndex = '1000';
   sidebar.style.backgroundColor = '#171F2A';
   sidebar.style.color = 'white';
-  sidebar.style.transition = 'all 0.3s ease';
+  sidebar.style.transition = 'transform 0.3s ease, width 0.3s ease';
   sidebar.style.boxShadow = '2px 0 10px rgba(0, 0, 0, 0.1)';
   sidebar.style.display = 'flex';
   sidebar.style.flexDirection = 'column';
@@ -502,44 +502,47 @@ export function toggleSidebar() {
   
   if (!sidebar) return;
   
-  const isMobile = window.innerWidth < 768;
+  // Always consider it mobile in the toggle function since this is only called from mobile menu
+  const isVisible = sidebar.style.transform === 'translateX(0px)';
   
-  if (isMobile) {
-    const isVisible = sidebar.style.transform === 'translateX(0)';
+  if (isVisible) {
+    // Hide sidebar
+    sidebar.style.transform = 'translateX(-100%)';
+    document.getElementById('sidebar-overlay')?.remove();
+  } else {
+    // Show sidebar
+    sidebar.style.width = '280px'; // Ensure width is set
+    sidebar.style.transform = 'translateX(0px)';
+    sidebar.style.display = 'flex'; // Make sure it's visible
+    sidebar.style.zIndex = '1000';  // Make sure it's on top
     
-    if (isVisible) {
-      // Hide sidebar
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'sidebar-overlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    overlay.style.zIndex = '999';
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.3s ease';
+    
+    // Click on overlay closes sidebar
+    overlay.addEventListener('click', () => {
       sidebar.style.transform = 'translateX(-100%)';
-      document.getElementById('sidebar-overlay')?.remove();
-    } else {
-      // Show sidebar
-      sidebar.style.transform = 'translateX(0)';
-      
-      // Create overlay
-      const overlay = document.createElement('div');
-      overlay.id = 'sidebar-overlay';
-      overlay.style.position = 'fixed';
-      overlay.style.top = '0';
-      overlay.style.left = '0';
-      overlay.style.width = '100%';
-      overlay.style.height = '100%';
-      overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-      overlay.style.zIndex = '999';
-      overlay.style.opacity = '0';
-      overlay.style.transition = 'opacity 0.3s ease';
-      
-      // Click on overlay closes sidebar
-      overlay.addEventListener('click', () => {
-        sidebar.style.transform = 'translateX(-100%)';
-        overlay.remove();
-      });
-      
-      document.body.appendChild(overlay);
-      
-      // Trigger transition
-      setTimeout(() => {
-        overlay.style.opacity = '1';
-      }, 10);
-    }
+      overlay.remove();
+    });
+    
+    document.body.appendChild(overlay);
+    
+    // Trigger transition
+    setTimeout(() => {
+      overlay.style.opacity = '1';
+    }, 10);
+    
+    // Log for debugging
+    console.log('Sidebar toggled: visible');
   }
 }

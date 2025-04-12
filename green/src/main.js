@@ -319,7 +319,50 @@ function createLayout() {
       `;
       
       menuButton.addEventListener('click', () => {
-        sidebarModule.toggleSidebar();
+        // Log for debugging
+        console.log('Menu button clicked');
+        
+        try {
+          // Toggle the sidebar directly if this approach is available
+          sidebarModule.toggleSidebar();
+          
+          // As a fallback, directly toggle sidebar visibility if we can find it
+          const sidebar = document.querySelector('.sidebar');
+          if (sidebar) {
+            console.log('Found sidebar element, toggling directly');
+            const isVisible = sidebar.style.transform === 'translateX(0px)';
+            
+            if (isVisible) {
+              sidebar.style.transform = 'translateX(-100%)';
+              document.getElementById('sidebar-overlay')?.remove();
+            } else {
+              sidebar.style.width = '280px';
+              sidebar.style.transform = 'translateX(0px)';
+              sidebar.style.display = 'flex';
+              
+              // Create overlay
+              const overlay = document.createElement('div');
+              overlay.id = 'sidebar-overlay';
+              overlay.style.position = 'fixed';
+              overlay.style.top = '0';
+              overlay.style.left = '0';
+              overlay.style.width = '100%';
+              overlay.style.height = '100%';
+              overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+              overlay.style.zIndex = '999';
+              
+              // Click on overlay closes sidebar
+              overlay.addEventListener('click', () => {
+                sidebar.style.transform = 'translateX(-100%)';
+                overlay.remove();
+              });
+              
+              document.body.appendChild(overlay);
+            }
+          }
+        } catch (error) {
+          console.error('Error toggling sidebar:', error);
+        }
       });
       
       mobileHeader.appendChild(menuButton);
