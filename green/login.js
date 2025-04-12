@@ -21,16 +21,18 @@ async function handleGoogleLogin() {
     // Simulate OAuth flow with a delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Create mock user data for demonstration
+    // Create mock Pro user data for demonstration
     const mockUser = {
       id: 'google-' + Date.now(),
-      username: 'googleuser',
-      email: 'user@gmail.com',
+      username: 'ProUser',
+      email: 'pro.user@gmail.com',
       role: 'user',
       authProvider: 'google',
       onboardingCompleted: true,
-      subscriptionTier: 'free',
-      subscriptionActive: false
+      subscriptionTier: 'pro',
+      subscriptionActive: true,
+      subscriptionStatus: 'pro',
+      subscriptionExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
     };
     
     // Store user data as if it came from a real authentication
@@ -42,7 +44,9 @@ async function handleGoogleLogin() {
       authProvider: 'google',
       onboardingCompleted: mockUser.onboardingCompleted,
       subscriptionTier: mockUser.subscriptionTier,
-      subscriptionActive: mockUser.subscriptionActive
+      subscriptionActive: mockUser.subscriptionActive,
+      subscriptionStatus: mockUser.subscriptionStatus,
+      subscriptionExpiry: mockUser.subscriptionExpiry
     });
     
     // Store token in localStorage for consistent login experience
