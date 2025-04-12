@@ -362,7 +362,7 @@ function renderLoginForm() {
     const password = e.target.elements.password.value;
     const rememberMe = e.target.elements.rememberMe?.checked || false;
     
-    // For mobile devices, use a different approach to keep keyboard open while processing
+    // For mobile devices, use an improved approach to keep keyboard open while processing
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       // Prevent multiple submissions
       if (formEl.getAttribute('data-submitting') === 'true') {
@@ -372,11 +372,24 @@ function renderLoginForm() {
       // Mark form as currently submitting
       formEl.setAttribute('data-submitting', 'true');
       
-      // Process the login without blurring first
+      // Create a hidden dummy input field to maintain keyboard focus
+      const dummyInput = document.createElement('input');
+      dummyInput.type = 'text';
+      dummyInput.style.position = 'absolute';
+      dummyInput.style.opacity = '0';
+      dummyInput.style.height = '0';
+      dummyInput.style.fontSize = '16px'; // iOS requires 16px to prevent auto-zoom
+      
+      // Add the dummy field temporarily
+      formEl.appendChild(dummyInput);
+      dummyInput.focus();
+      
+      // Process the login without blurring keyboard
       handleLogin(usernameOrEmail, password, rememberMe);
       
-      // Reset submission state after a delay
+      // Remove dummy input and reset submission state after a delay
       setTimeout(() => {
+        formEl.removeChild(dummyInput);
         formEl.setAttribute('data-submitting', 'false');
       }, 500);
     } else {
