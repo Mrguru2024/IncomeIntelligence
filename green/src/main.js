@@ -2774,32 +2774,54 @@ function renderPageContent(container) {
       case 'moneymentor':
         // Import the Money Mentor page module
         import('../money-mentor.js').then(module => {
-          const mentorPage = module.renderMoneyMentorPage(appState.user.id);
-          container.appendChild(mentorPage);
+          // Use async IIFE since renderMoneyMentorPage is async
+          (async () => {
+            try {
+              if (!appState || !appState.user) {
+                throw new Error('User data not available');
+              }
+              
+              const mentorPage = await module.renderMoneyMentorPage(appState.user.id);
+              container.appendChild(mentorPage);
+            } catch (error) {
+              console.error('Error rendering money mentor page:', error);
+              container.appendChild(createErrorMessage('Failed to load Money Mentor. Please check your API keys and try again.'));
+            }
+          })();
         }).catch(error => {
           console.error('Error loading money mentor module:', error);
-          container.appendChild(createErrorMessage('Failed to load Money Mentor. Please check your API keys and try again.'));
+          container.appendChild(createErrorMessage('Failed to load Money Mentor module. Please refresh the page and try again.'));
         });
         break;
         
       case 'blog':
         // Import the Blog page module
         import('../blog-page.js').then(module => {
-          // Check if specific article is requested
-          const urlParts = window.location.hash.split('/');
-          if (urlParts.length > 1 && urlParts[0] === '#blog') {
-            // Article view - urlParts[1] contains the slug
-            const articleSlug = urlParts[1];
-            const articlePage = module.renderArticlePage(articleSlug, appState.user.isAuthenticated);
-            container.appendChild(articlePage);
-          } else {
-            // Blog listing view - pass authentication status
-            const blogPage = module.renderBlogPage(appState.user.isAuthenticated);
-            container.appendChild(blogPage);
-          }
+          // Use async IIFE since blog rendering might be async
+          (async () => {
+            try {
+              // Check if specific article is requested
+              const urlParts = window.location.hash.split('/');
+              if (urlParts.length > 1 && urlParts[0] === '#blog') {
+                // Article view - urlParts[1] contains the slug
+                const articleSlug = urlParts[1];
+                const articlePage = await module.renderArticlePage(articleSlug, 
+                  appState?.user?.isAuthenticated || false);
+                container.appendChild(articlePage);
+              } else {
+                // Blog listing view - pass authentication status
+                const blogPage = await module.renderBlogPage(
+                  appState?.user?.isAuthenticated || false);
+                container.appendChild(blogPage);
+              }
+            } catch (error) {
+              console.error('Error rendering blog page:', error);
+              container.appendChild(createErrorMessage('Failed to load blog content. Please try again later.'));
+            }
+          })();
         }).catch(error => {
           console.error('Error loading blog module:', error);
-          container.appendChild(createErrorMessage('Failed to load blog content.'));
+          container.appendChild(createErrorMessage('Failed to load blog module. Please refresh the page and try again.'));
         });
         break;
       case 'challenges':
@@ -2823,28 +2845,63 @@ function renderPageContent(container) {
       case 'subscriptionsniper':
         // Import the subscription sniper page module
         import('../subscription-sniper.js').then(module => {
-          container.appendChild(module.renderSubscriptionSniperPage(appState.user.id));
+          // Use async IIFE since renderSubscriptionSniperPage is async
+          (async () => {
+            try {
+              if (!appState || !appState.user) {
+                throw new Error('User data not available');
+              }
+              
+              const sniperPage = await module.renderSubscriptionSniperPage(appState.user.id);
+              container.appendChild(sniperPage);
+            } catch (error) {
+              console.error('Error rendering subscription sniper page:', error);
+              container.appendChild(createErrorMessage('Failed to load subscription data. Please check your subscription settings and try again.'));
+            }
+          })();
         }).catch(error => {
           console.error('Error loading subscription sniper module:', error);
-          container.appendChild(createErrorMessage('Failed to load subscription sniper module'));
+          container.appendChild(createErrorMessage('Failed to load Subscription Sniper module. Please refresh the page and try again.'));
         });
         break;
       case 'bankconnections':
-        // Import the bank connections page module if needed
+        // Import the bank connections page module
         import('../bank-connections.js').then(module => {
-          container.appendChild(module.renderBankConnectionsPage(appState.user.id));
+          // Use async IIFE since renderBankConnectionsPage might be async
+          (async () => {
+            try {
+              if (!appState || !appState.user) {
+                throw new Error('User data not available');
+              }
+              
+              const connectionPage = await module.renderBankConnectionsPage(appState.user.id);
+              container.appendChild(connectionPage);
+            } catch (error) {
+              console.error('Error rendering bank connections page:', error);
+              container.appendChild(createErrorMessage('Failed to load bank account data. Please check your Plaid API connection and try again.'));
+            }
+          })();
         }).catch(error => {
           console.error('Error loading bank connections module:', error);
-          container.appendChild(createErrorMessage('Failed to load bank connections module'));
+          container.appendChild(createErrorMessage('Failed to load Bank Connections module. Please refresh the page and try again.'));
         });
         break;
       case 'subscriptions':
         // Import the subscriptions page module
         import('../subscriptions.js').then(module => {
-          container.appendChild(module.renderSubscriptionsPage());
+          // Use async IIFE since renderSubscriptionsPage might be async
+          (async () => {
+            try {
+              const subscriptionsPage = await module.renderSubscriptionsPage();
+              container.appendChild(subscriptionsPage);
+            } catch (error) {
+              console.error('Error rendering subscriptions page:', error);
+              container.appendChild(createErrorMessage('Failed to load subscription details. Please check your subscription settings and try again.'));
+            }
+          })();
         }).catch(error => {
           console.error('Error loading subscriptions module:', error);
-          container.appendChild(createErrorMessage('Failed to load subscriptions module'));
+          container.appendChild(createErrorMessage('Failed to load subscriptions module. Please refresh the page and try again.'));
         });
         break;
       case 'settings':
