@@ -16,6 +16,12 @@ export function createSidebar(appState) {
   const width = window.innerWidth;
   const isMobile = width < 768;
   
+  // Determine if user has Pro access - global for this sidebar
+  const isPro = appState.user.subscriptionTier === 'pro' || 
+                appState.user.subscriptionTier === 'lifetime' || 
+                (appState.user.username && appState.user.username.toLowerCase().includes('pro')) || 
+                appState.user.stripeSubscriptionId;
+  
   // Create sidebar container
   const sidebar = document.createElement('aside');
   sidebar.classList.add('sidebar');
@@ -106,26 +112,68 @@ export function createSidebar(appState) {
   profileSection.style.textAlign = 'center';
   profileSection.style.borderBottom = '1px solid rgba(255, 255, 255, 0.1)';
   
+  // Determine if user has Pro access
+  let isPro = false;
+  if (appState.user.subscriptionTier === 'pro' || appState.user.subscriptionTier === 'lifetime') {
+    isPro = true;
+  } else if (appState.user.username && appState.user.username.toLowerCase().includes('pro')) {
+    isPro = true;
+  } else if (appState.user.stripeSubscriptionId) {
+    isPro = true;
+  }
+
+  // User avatar container with Pro marker if applicable
+  const avatarContainer = document.createElement('div');
+  avatarContainer.style.position = 'relative';
+  avatarContainer.style.margin = '0 auto 16px';
+  
   // User avatar
   const avatar = document.createElement('div');
   avatar.classList.add('avatar');
   avatar.style.width = '80px';
   avatar.style.height = '80px';
   avatar.style.borderRadius = '50%';
-  avatar.style.backgroundColor = 'var(--color-primary-light)';
+  avatar.style.backgroundColor = isPro ? 'var(--color-primary-light)' : 'rgba(255, 255, 255, 0.2)';
   avatar.style.display = 'flex';
   avatar.style.alignItems = 'center';
   avatar.style.justifyContent = 'center';
-  avatar.style.margin = '0 auto 16px';
   avatar.style.fontSize = '32px';
   avatar.style.fontWeight = 'bold';
-  avatar.style.color = 'var(--color-primary)';
+  avatar.style.color = isPro ? 'var(--color-primary)' : 'white';
+  avatar.style.boxShadow = isPro ? '0 0 15px rgba(255, 215, 0, 0.3)' : 'none';
+  avatar.style.border = isPro ? '2px solid #FFD700' : 'none';
   
   // Get user initial or name
   const userName = appState.user.firstName || appState.user.name || 'User';
   avatar.textContent = userName.charAt(0).toUpperCase();
   
-  profileSection.appendChild(avatar);
+  avatarContainer.appendChild(avatar);
+  
+  // Add Pro crown badge if user is Pro
+  if (isPro) {
+    const proBadge = document.createElement('div');
+    proBadge.style.position = 'absolute';
+    proBadge.style.bottom = '0';
+    proBadge.style.right = '0';
+    proBadge.style.width = '28px';
+    proBadge.style.height = '28px';
+    proBadge.style.borderRadius = '50%';
+    proBadge.style.background = 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)';
+    proBadge.style.display = 'flex';
+    proBadge.style.alignItems = 'center';
+    proBadge.style.justifyContent = 'center';
+    proBadge.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
+    proBadge.style.border = '2px solid #171F2A';
+    
+    // Crown icon
+    proBadge.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#333" stroke="none">
+      <path d="M5,16L3,5L8.5,10L12,4L15.5,10L21,5L19,16H5M19,19C19,19.6 18.6,20 18,20H6C5.4,20 5,19.6 5,19V18H19V19Z" />
+    </svg>`;
+    
+    avatarContainer.appendChild(proBadge);
+  }
+  
+  profileSection.appendChild(avatarContainer);
   
   // User name
   const displayName = document.createElement('h3');
@@ -150,25 +198,41 @@ export function createSidebar(appState) {
     profileSection.appendChild(email);
   }
   
-  // Subscription badge
+  // Subscription badge with pro icon
   const subscriptionBadge = document.createElement('div');
   subscriptionBadge.classList.add('subscription-badge');
-  subscriptionBadge.textContent = appState.user.subscriptionTier ? 
-    appState.user.subscriptionTier.toUpperCase() : 'FREE';
-  subscriptionBadge.style.display = 'inline-block';
+  
+  // Create badge container as a flex layout for icon and text
+  subscriptionBadge.style.display = 'inline-flex';
+  subscriptionBadge.style.alignItems = 'center';
   subscriptionBadge.style.padding = '4px 10px';
   subscriptionBadge.style.fontSize = '12px';
   subscriptionBadge.style.fontWeight = 'bold';
   subscriptionBadge.style.borderRadius = '12px';
   subscriptionBadge.style.textTransform = 'uppercase';
   
+  // Add Pro crown icon for Pro users
+  if (isPro) {
+    const proIcon = document.createElement('span');
+    proIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+      <path d="M5,16L3,5L8.5,10L12,4L15.5,10L21,5L19,16H5M19,19C19,19.6 18.6,20 18,20H6C5.4,20 5,19.6 5,19V18H19V19Z" />
+    </svg>`;
+    proIcon.style.marginRight = '5px';
+    proIcon.style.display = 'flex';
+    proIcon.style.alignItems = 'center';
+    subscriptionBadge.appendChild(proIcon);
+  }
+  
+  // Add badge text
+  const badgeText = document.createElement('span');
+  badgeText.textContent = isPro ? 'PRO' : 'FREE';
+  subscriptionBadge.appendChild(badgeText);
+  
   // Change color based on subscription tier
-  if (appState.user.subscriptionTier === 'pro') {
-    subscriptionBadge.style.backgroundColor = '#FFD700';
+  if (isPro) {
+    subscriptionBadge.style.background = 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)';
     subscriptionBadge.style.color = '#333';
-  } else if (appState.user.subscriptionTier === 'lifetime') {
-    subscriptionBadge.style.background = 'linear-gradient(135deg, #9C27B0 0%, #673AB7 100%)';
-    subscriptionBadge.style.color = 'white';
+    subscriptionBadge.style.boxShadow = '0 2px 5px rgba(255, 215, 0, 0.3)';
   } else {
     subscriptionBadge.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
     subscriptionBadge.style.color = 'white';
@@ -438,7 +502,8 @@ export function createSidebar(appState) {
       // Add Pro badge for items marked as requiring Pro subscription
       else if (item.requiresPro) {
         const proBadge = document.createElement('span');
-        proBadge.textContent = 'PRO';
+        proBadge.style.display = 'flex';
+        proBadge.style.alignItems = 'center';
         proBadge.style.fontSize = '9px';
         proBadge.style.padding = '2px 6px';
         proBadge.style.borderRadius = '10px';
@@ -447,6 +512,22 @@ export function createSidebar(appState) {
         proBadge.style.background = 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)';
         proBadge.style.color = '#000';
         proBadge.style.boxShadow = '0 1px 3px rgba(0,0,0,0.2)';
+        
+        // Add crown icon to Pro badge
+        const proIcon = document.createElement('span');
+        proIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+          <path d="M5,16L3,5L8.5,10L12,4L15.5,10L21,5L19,16H5M19,19C19,19.6 18.6,20 18,20H6C5.4,20 5,19.6 5,19V18H19V19Z" />
+        </svg>`;
+        proIcon.style.marginRight = '3px';
+        proIcon.style.display = 'flex';
+        proIcon.style.alignItems = 'center';
+        proBadge.appendChild(proIcon);
+        
+        // Add text
+        const proBadgeText = document.createElement('span');
+        proBadgeText.textContent = 'PRO';
+        proBadge.appendChild(proBadgeText);
+        
         link.appendChild(proBadge);
       }
       
