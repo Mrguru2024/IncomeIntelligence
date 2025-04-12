@@ -3512,13 +3512,13 @@ function renderPageContent(container) {
                   // Successfully loaded the module, clear any previous error flag
                   sessionStorage.removeItem('moneyMentorImportFailed');
                   container.appendChild(mentorPage);
-              } catch (error) {
-                console.error('Error rendering money mentor page:', error);
-                console.log('Falling back to simplified Money Mentor interface');
-                // Mark as failed in session storage to avoid future attempts
-                sessionStorage.setItem('moneyMentorImportFailed', 'true');
-                container.appendChild(renderFallbackMoneyMentor());
-              }
+                } catch (error) {
+                  console.error('Error rendering money mentor page:', error);
+                  console.log('Falling back to simplified Money Mentor interface');
+                  // Mark as failed in session storage to avoid future attempts
+                  sessionStorage.setItem('moneyMentorImportFailed', 'true');
+                  container.appendChild(renderFallbackMoneyMentor());
+                }
             })();
           }).catch(error => {
             // Instead of logging the error which may be empty, just log a message
