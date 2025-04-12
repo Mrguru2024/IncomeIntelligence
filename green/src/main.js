@@ -2796,12 +2796,11 @@ function renderPageContent(container) {
         
       case 'moneymentor':
         try {
-          // Use the fully resolved module path to ensure proper loading
-          const modulePath = new URL('../money-mentor.js', import.meta.url).toString();
-          console.log('Loading Money Mentor from:', modulePath);
+          // Use a simple relative path instead of URL constructor
+          console.log('Loading Money Mentor module...');
           
-          // Import the Money Mentor page module with fixed path
-          import(modulePath).then(module => {
+          // Import the Money Mentor page module with simple path
+          import('../money-mentor.js').then(module => {
             // Use async IIFE since renderMoneyMentorPage is async
             (async () => {
               try {
@@ -2887,12 +2886,11 @@ function renderPageContent(container) {
         break;
       case 'subscriptionsniper':
         try {
-          // Use the fully resolved module path to ensure proper loading
-          const modulePath = new URL('../subscription-sniper.js', import.meta.url).toString();
-          console.log('Loading Subscription Sniper from:', modulePath);
+          // Use a simple relative path instead of URL constructor
+          console.log('Loading Subscription Sniper module...');
           
-          // Import the subscription sniper page module with resolved path
-          import(modulePath).then(module => {
+          // Import the subscription sniper page module with simple path
+          import('../subscription-sniper.js').then(module => {
             // Use async IIFE since renderSubscriptionSniperPage is async
             (async () => {
               try {
@@ -3257,9 +3255,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Initialize the financial education mascot
 function initFinancialMascot() {
+  // Make sure we don't attempt to load if not authenticated
+  if (!appState || !appState.user || !appState.user.isAuthenticated) {
+    console.log('Not initializing mascot: user not authenticated');
+    return;
+  }
+  
+  console.log('Loading financial mascot module...');
+  
   // Import and initialize the mascot
   import('../financial-mascot.js').then(module => {
     try {
+      console.log('Financial mascot module loaded successfully');
+      
       // Verify that the imported module has the required functions
       if (typeof module.initMascot !== 'function') {
         throw new Error('initMascot function not found in module');
@@ -3267,6 +3275,12 @@ function initFinancialMascot() {
       
       // Initialize the mascot when user is on a protected page
       const mascot = module.initMascot();
+      
+      if (!mascot) {
+        throw new Error('initMascot did not return a valid mascot instance');
+      }
+      
+      console.log('Financial mascot initialized successfully');
       
       // Store the mascot instance in the appState for future access
       appState.financialMascot = mascot;
