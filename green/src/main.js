@@ -3547,6 +3547,28 @@ function renderPageContent(container) {
           console.log('Loading Subscription Sniper module...');
           
           // Check for previously stored import error flag in session storage
+          // Function to render a fallback Subscription Sniper when module import fails
+          const renderFallbackSubscriptionSniper = () => {
+            console.log('Using fallback Subscription Sniper interface');
+            
+            // Create main container
+            const fallbackContainer = document.createElement('div');
+            fallbackContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
+            
+            // Add fallback content here...
+            fallbackContainer.innerHTML = `
+              <div class="text-center p-8 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <h2 class="text-2xl font-bold mb-4">Subscription Sniper</h2>
+                <p class="mb-4">Track and manage your recurring subscriptions to save money.</p>
+                <div class="animate-pulse inline-block p-4 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                  Loading module...
+                </div>
+              </div>
+            `;
+            
+            return fallbackContainer;
+          };
+          
           const subscriptionSniperImportFailed = sessionStorage.getItem('subscriptionSniperImportFailed') === 'true';
           
           // If previously failed, don't attempt import again to avoid unnecessary console errors
@@ -3556,10 +3578,6 @@ function renderPageContent(container) {
             container.appendChild(renderFallbackSubscriptionSniper());
             break;
           }
-          
-          // Function to render a fallback Subscription Sniper when module import fails
-          const renderFallbackSubscriptionSniper = () => {
-            console.log('Using fallback Subscription Sniper interface');
             
             // Create main container
             const fallbackContainer = document.createElement('div');
