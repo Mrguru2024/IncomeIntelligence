@@ -575,15 +575,57 @@ function renderPageContent(contentContainer) {
   // Use switch statement to render appropriate page
   switch (page) {
     case 'dashboard':
-      contentContainer.appendChild(renderDashboardPage());
+      // Import the Dashboard module dynamically
+      import('../dashboard.js')
+        .then(module => {
+          try {
+            const dashboardPage = module.renderDashboardPage();
+            contentContainer.appendChild(dashboardPage);
+          } catch (error) {
+            console.error('Error rendering dashboard page:', error);
+            contentContainer.appendChild(createErrorMessage('Failed to load the dashboard. Please try again later.'));
+          }
+        })
+        .catch(error => {
+          console.error('Error loading dashboard module:', error);
+          contentContainer.appendChild(createErrorMessage('Failed to load dashboard module. Please try again later.'));
+        });
       break;
       
     case 'income':
-      contentContainer.appendChild(renderIncomePage());
+      // Import the Income module dynamically
+      import('../income.js')
+        .then(module => {
+          try {
+            const incomePage = module.renderIncomePage();
+            contentContainer.appendChild(incomePage);
+          } catch (error) {
+            console.error('Error rendering income page:', error);
+            contentContainer.appendChild(createErrorMessage('Failed to load income tracking. Please try again later.'));
+          }
+        })
+        .catch(error => {
+          console.error('Error loading income module:', error);
+          contentContainer.appendChild(createErrorMessage('Failed to load income module. Please try again later.'));
+        });
       break;
       
     case 'expenses':
-      contentContainer.appendChild(renderExpensesPage());
+      // Import the Expenses module dynamically
+      import('../expenses.js')
+        .then(module => {
+          try {
+            const expensesPage = module.renderExpensesPage();
+            contentContainer.appendChild(expensesPage);
+          } catch (error) {
+            console.error('Error rendering expenses page:', error);
+            contentContainer.appendChild(createErrorMessage('Failed to load expense tracking. Please try again later.'));
+          }
+        })
+        .catch(error => {
+          console.error('Error loading expenses module:', error);
+          contentContainer.appendChild(createErrorMessage('Failed to load expenses module. Please try again later.'));
+        });
       break;
       
     case 'gigs':
@@ -610,24 +652,21 @@ function renderPageContent(contentContainer) {
       
     case 'moneymentor':
       console.log('Loading Money Mentor module...');
-      try {
-        // Create main container
-        const moneyMentorContainer = document.createElement('div');
-        moneyMentorContainer.className = 'money-mentor-container p-4 max-w-5xl mx-auto';
-        
-        // Add simple content
-        moneyMentorContainer.innerHTML = `
-          <div class="text-center p-8 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <h2 class="text-2xl font-bold mb-4">Money Mentor</h2>
-            <p class="mb-4">Get personalized financial advice powered by AI.</p>
-          </div>
-        `;
-        
-        contentContainer.appendChild(moneyMentorContainer);
-      } catch (error) {
-        console.error('Error rendering Money Mentor module:', error);
-        contentContainer.appendChild(createErrorMessage('Failed to load the Money Mentor. Please try again later.'));
-      }
+      // Import the Money Mentor module dynamically
+      import('../money-mentor.js')
+        .then(module => {
+          try {
+            const moneyMentorPage = module.renderMoneyMentorPage();
+            contentContainer.appendChild(moneyMentorPage);
+          } catch (error) {
+            console.error('Error rendering Money Mentor page:', error);
+            contentContainer.appendChild(createErrorMessage('Failed to load Money Mentor. Please try again later.'));
+          }
+        })
+        .catch(error => {
+          console.error('Error loading Money Mentor module:', error);
+          contentContainer.appendChild(createErrorMessage('Failed to load Money Mentor module. Please try again later.'));
+        });
       break;
       
     case 'blog':
