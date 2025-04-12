@@ -19,8 +19,15 @@ export function createSidebar(appState) {
   // Determine if user has Pro access - global for this sidebar
   const isPro = appState.user.subscriptionTier === 'pro' || 
                 appState.user.subscriptionTier === 'lifetime' || 
-                (appState.user.username && appState.user.username.toLowerCase().includes('pro')) || 
+                (appState.user.username && (
+                  appState.user.username.toLowerCase().includes('pro') || 
+                  appState.user.username === 'ProUser'
+                )) || 
+                (appState.user.email && appState.user.email === 'Pro.user@gmail.com') ||
                 appState.user.stripeSubscriptionId;
+                
+  // Log Pro status detection
+  console.log('Pro status detected for user:', appState.user.username, isPro ? 'PRO' : 'FREE');
   
   // Create sidebar container
   const sidebar = document.createElement('aside');

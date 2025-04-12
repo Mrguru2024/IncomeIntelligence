@@ -402,7 +402,11 @@ function createSubscriptionRow(subscription) {
   row.style.transition = 'background-color 0.2s ease';
   
   // Get value assessment for subscription
-  const valueAssessment = evaluateSubscriptionValue(subscription);
+  const valueAssessment = evaluateSubscriptionValue(subscription) || {
+    rating: 'pending', 
+    reasoning: 'Value assessment is being calculated',
+    aiPowered: false
+  };
   
   // Add hover effect
   row.addEventListener('mouseover', () => {
@@ -684,7 +688,11 @@ function showSubscriptionDetails(subscription) {
   const currentUser = getCurrentUser();
   if (currentUser && hasProAccess(currentUser)) {
     // Get value assessment
-    const valueAssessment = evaluateSubscriptionValue(subscription);
+    const valueAssessment = evaluateSubscriptionValue(subscription) || {
+      rating: 'pending', 
+      reasoning: 'Value assessment is being calculated',
+      aiPowered: false
+    };
     
     // Create value assessment section
     const valueSection = document.createElement('div');
