@@ -3,6 +3,13 @@
  * This module creates and manages the sidebar navigation.
  */
 
+import { appState } from './src/main.js';
+
+// Create and return the sidebar element
+export function renderSidebar() {
+  return createSidebar(appState);
+}
+
 // Create and return the sidebar element
 export function createSidebar(appState) {
   try {

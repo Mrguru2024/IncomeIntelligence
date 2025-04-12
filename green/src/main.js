@@ -516,8 +516,41 @@ function renderApp() {
   // For authenticated pages, create layout with sidebar
   appContainer.innerHTML = '';
   try {
-    const layoutContainer = createLayout();
-    appContainer.appendChild(layoutContainer);
+    // Import the sidebar module and create the layout
+    import('../sidebar.js')
+      .then(module => {
+        try {
+          // Create the layout container
+          const layoutContainer = document.createElement('div');
+          layoutContainer.className = 'app-layout';
+          layoutContainer.style.display = 'flex';
+          layoutContainer.style.minHeight = '100vh';
+          
+          // Add the sidebar
+          const sidebar = module.renderSidebar();
+          layoutContainer.appendChild(sidebar);
+          
+          // Create the main content area
+          const contentArea = document.createElement('div');
+          contentArea.className = 'content-area';
+          contentArea.style.flex = '1';
+          contentArea.style.padding = '1.5rem';
+          contentArea.style.overflow = 'auto';
+          
+          // Render the page content inside the content area
+          renderPageContent(contentArea);
+          
+          layoutContainer.appendChild(contentArea);
+          appContainer.appendChild(layoutContainer);
+        } catch (sidebarError) {
+          console.error('Error rendering sidebar:', sidebarError);
+          appContainer.innerHTML = '<div class="error">Error rendering application sidebar</div>';
+        }
+      })
+      .catch(importError => {
+        console.error('Error importing sidebar module:', importError);
+        appContainer.innerHTML = '<div class="error">Failed to load application sidebar</div>';
+      });
   } catch (error) {
     console.error('Error creating layout:', error);
     appContainer.innerHTML = '<div class="error">Error creating application layout</div>';
