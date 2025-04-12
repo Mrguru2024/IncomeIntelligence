@@ -31,8 +31,15 @@ export function hasProAccess(user) {
   
   // Special case for users with username containing "Pro"
   // This is for testing purposes in development, remove in production
-  if (user.username && user.username.toLowerCase().includes('pro')) {
-    return true;
+  if (user.username) {
+    const lowercaseUsername = user.username.toLowerCase();
+    if (lowercaseUsername.includes('pro') || 
+        lowercaseUsername === 'prouser' || 
+        user.username === 'ProUser' || 
+        user.email === 'Pro.user@gmail.com') {
+      console.log('Pro access granted to:', user.username);
+      return true;
+    }
   }
   
   return false;

@@ -454,33 +454,52 @@ function createSubscriptionRow(subscription) {
     valueBadge.style.fontWeight = 'bold';
     valueBadge.style.borderRadius = '4px';
     valueBadge.style.textTransform = 'uppercase';
+    valueBadge.style.display = 'inline-flex';
+    valueBadge.style.alignItems = 'center';
+    
+    // Check if this is an AI-powered assessment
+    if (valueAssessment.aiPowered) {
+      const aiIcon = document.createElement('span');
+      aiIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M12 2c5.5 0 10 4.5 10 10s-4.5 10-10 10S2 17.5 2 12 6.5 2 12 2"></path><path d="M12 12h4"></path><path d="M12 8v4"></path></svg>`;
+      valueBadge.appendChild(aiIcon);
+    }
+    
+    const valueText = document.createElement('span');
     
     // Style based on rating
     switch (valueAssessment.rating) {
       case 'excellent':
         valueBadge.style.backgroundColor = '#c6f6d5';
         valueBadge.style.color = '#22543d';
-        valueBadge.textContent = 'Excellent Value';
+        valueText.textContent = 'Excellent Value';
         break;
       case 'good':
         valueBadge.style.backgroundColor = '#c6f6d5';
         valueBadge.style.color = '#22543d';
-        valueBadge.textContent = 'Good Value';
+        valueText.textContent = 'Good Value';
         break;
       case 'fair':
         valueBadge.style.backgroundColor = '#fefcbf';
         valueBadge.style.color = '#744210';
-        valueBadge.textContent = 'Fair Value';
+        valueText.textContent = 'Fair Value';
         break;
       case 'poor':
         valueBadge.style.backgroundColor = '#fed7d7';
         valueBadge.style.color = '#822727';
-        valueBadge.textContent = 'Poor Value';
+        valueText.textContent = 'Poor Value';
         break;
       default:
         valueBadge.style.backgroundColor = '#e2e8f0';
         valueBadge.style.color = '#4a5568';
-        valueBadge.textContent = 'Value Analysis';
+        valueText.textContent = 'Value Analysis';
+    }
+    
+    valueBadge.appendChild(valueText);
+    
+    // Add tooltip with reasoning
+    if (valueAssessment.reasoning) {
+      valueBadge.title = valueAssessment.reasoning;
+      valueBadge.style.cursor = 'help';
     }
     
     merchantName.appendChild(valueBadge);
