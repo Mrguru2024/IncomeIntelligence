@@ -905,41 +905,53 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Placeholder for Dashboard Page rendering
+// Helper function to calculate income statistics
+function calculateIncomeStats() {
+  const total = appState.incomeEntries.reduce((sum, entry) => sum + entry.amount, 0);
+  const splitRatio = appState.user.splitRatio || { needs: 40, investments: 30, savings: 30 };
+  
+  return {
+    total,
+    needs: (total * splitRatio.needs / 100).toFixed(2),
+    investments: (total * splitRatio.investments / 100).toFixed(2),
+    savings: (total * splitRatio.savings / 100).toFixed(2)
+  };
+}
+
 function renderDashboardPage() {
   const isMobile = window.innerWidth < 640;
   const container = document.createElement('div');
-  container.className = 'dashboard-container';
   
-  // Page header
-  const header = document.createElement('div');
-  header.className = 'page-header';
-  header.style.marginBottom = 'var(--space-6, 1.5rem)';
+  // Animated welcome heading with gradient text
+  const welcomeHeading = document.createElement('h2');
+  welcomeHeading.textContent = `Welcome, ${appState.user.username || 'User'}!`;
+  welcomeHeading.style.marginBottom = 'var(--space-6, 1.5rem)';
+  welcomeHeading.style.fontSize = isMobile ? 'var(--font-size-xl, 1.5rem)' : 'var(--font-size-3xl, 2.25rem)';
+  welcomeHeading.style.fontWeight = 'var(--font-bold, 700)';
+  welcomeHeading.style.background = 'linear-gradient(to right, var(--color-primary, #34A853), var(--color-accent, #3b82f6))';
+  welcomeHeading.style.WebkitBackgroundClip = 'text';
+  welcomeHeading.style.WebkitTextFillColor = 'transparent';
+  welcomeHeading.style.backgroundClip = 'text';
+  welcomeHeading.style.textFillColor = 'transparent';
+  welcomeHeading.style.animation = 'fadeIn 0.6s ease-out';
+  container.appendChild(welcomeHeading);
+
+  // Dashboard summary - shows total income and quick stats
+  const dashboardSummary = document.createElement('div');
+  dashboardSummary.style.marginBottom = 'var(--space-8, 2rem)';
+  dashboardSummary.style.display = 'flex';
+  dashboardSummary.style.flexDirection = isMobile ? 'column' : 'row';
+  dashboardSummary.style.gap = 'var(--space-4, 1rem)';
   
-  const title = document.createElement('h1');
-  title.textContent = 'Dashboard';
-  title.style.fontSize = 'var(--text-2xl, 1.5rem)';
-  title.style.fontWeight = 'var(--font-bold, 700)';
-  title.style.marginBottom = 'var(--space-1, 0.25rem)';
+  // Calculate the stats
+  const stats = calculateIncomeStats();
   
-  const subtitle = document.createElement('p');
-  subtitle.textContent = 'Welcome back to your financial overview';
-  subtitle.style.color = 'var(--color-text-secondary, #6b7280)';
-  
-  header.appendChild(title);
-  header.appendChild(subtitle);
-  container.appendChild(header);
-  
-  // Add sample dashboard content - Income stats
-  const incomeStats = document.createElement('div');
-  incomeStats.className = 'income-stats';
-  incomeStats.style.marginBottom = 'var(--space-6, 1.5rem)';
-  
-  // Create a grid for dashboard cards
-  const grid = document.createElement('div');
-  grid.className = 'dashboard-grid';
-  grid.style.display = 'grid';
-  grid.style.gridTemplateColumns = isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))';
-  grid.style.gap = 'var(--space-4, 1rem)';
+  // Create summary cards grid
+  const summaryGrid = document.createElement('div');
+  summaryGrid.style.display = 'grid';
+  summaryGrid.style.gridTemplateColumns = isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))';
+  summaryGrid.style.gap = 'var(--space-4, 1rem)';
+  summaryGrid.style.width = '100%';
   
   // Add a placeholder card if no data
   if (!appState.incomeEntries || appState.incomeEntries.length === 0) {
@@ -953,61 +965,285 @@ function renderDashboardPage() {
     
     const emptyTitle = document.createElement('h3');
     emptyTitle.textContent = 'Track your first income entry';
-    emptyTitle.style.fontWeight = 'var(--font-semibold)';
-    emptyTitle.style.marginBottom = 'var(--space-2)';
-    emptyTitle.style.color = 'var(--color-accent)';
+    emptyTitle.style.fontWeight = 'var(--font-semibold, 600)';
+    emptyTitle.style.marginBottom = 'var(--space-2, 0.5rem)';
+    emptyTitle.style.color = 'var(--color-accent, #3b82f6)';
     emptyState.appendChild(emptyTitle);
     
     const emptyDesc = document.createElement('p');
     emptyDesc.textContent = 'Start by adding your income to see your Stackr Split in action.';
-    emptyDesc.style.marginBottom = 'var(--space-4)';
-    emptyDesc.style.color = 'var(--color-text-secondary)';
+    emptyDesc.style.marginBottom = 'var(--space-4, 1rem)';
+    emptyDesc.style.color = 'var(--color-text-secondary, #6b7280)';
     emptyState.appendChild(emptyDesc);
     
     const emptyButton = createButton('Add Your First Income', () => navigateTo('income'), 'var(--color-accent, #3b82f6)');
     emptyState.appendChild(emptyButton);
     
-    grid.appendChild(emptyState);
+    summaryGrid.appendChild(emptyState);
   } else {
-    // Placeholder for real data - Total Income Card
-    const incomeCard = createSummaryCard(
-      'Total Income', 
-      '$' + calculateTotalIncome().toFixed(2), 
-      'This Month', 
-      'var(--color-success, #34A853)'
-    );
-    grid.appendChild(incomeCard);
+    // Total Income Card (larger and more prominent)
+    const totalIncomeCard = document.createElement('div');
+    totalIncomeCard.style.background = 'linear-gradient(135deg, var(--color-primary, #34A853), var(--color-primary-dark, #2E7D49))';
+    totalIncomeCard.style.color = 'white';
+    totalIncomeCard.style.borderRadius = 'var(--radius-lg, 0.5rem)';
+    totalIncomeCard.style.padding = 'var(--space-6, 1.5rem)';
+    totalIncomeCard.style.display = 'flex';
+    totalIncomeCard.style.flexDirection = 'column';
+    totalIncomeCard.style.justifyContent = 'center';
+    totalIncomeCard.style.textAlign = 'center';
+    totalIncomeCard.style.boxShadow = 'var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06))';
+    totalIncomeCard.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
     
-    // Add split summary cards
-    const splitSummary = calculateIncomeSplit();
+    // Add hover effect
+    totalIncomeCard.addEventListener('mouseenter', () => {
+      totalIncomeCard.style.transform = 'translateY(-5px)';
+      totalIncomeCard.style.boxShadow = 'var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05))';
+    });
     
-    const needsCard = createSummaryCard(
-      'Needs (40%)', 
-      '$' + splitSummary.needs, 
-      'Housing, Food, Utilities', 
-      'var(--color-primary, #34A853)'
-    );
-    grid.appendChild(needsCard);
+    totalIncomeCard.addEventListener('mouseleave', () => {
+      totalIncomeCard.style.transform = 'translateY(0)';
+      totalIncomeCard.style.boxShadow = 'var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06))';
+    });
     
-    const investmentsCard = createSummaryCard(
-      'Investments (30%)', 
-      '$' + splitSummary.investments, 
-      'Stocks, Crypto, Real Estate', 
-      'var(--color-secondary, #9C27B0)'
-    );
-    grid.appendChild(investmentsCard);
+    const totalIncomeLabel = document.createElement('div');
+    totalIncomeLabel.textContent = 'Total Income';
+    totalIncomeLabel.style.fontSize = 'var(--font-size-sm, 0.875rem)';
+    totalIncomeLabel.style.opacity = '0.9';
+    totalIncomeLabel.style.marginBottom = 'var(--space-2, 0.5rem)';
+    totalIncomeCard.appendChild(totalIncomeLabel);
     
-    const savingsCard = createSummaryCard(
-      'Savings (30%)', 
-      '$' + splitSummary.savings, 
-      'Emergency Fund, Goals', 
-      'var(--color-tertiary, #3b82f6)'
-    );
-    grid.appendChild(savingsCard);
+    const totalIncomeValue = document.createElement('div');
+    totalIncomeValue.textContent = `$${stats.total.toFixed(2)}`;
+    totalIncomeValue.style.fontSize = isMobile ? 'var(--font-size-2xl, 1.5rem)' : 'var(--font-size-3xl, 1.875rem)';
+    totalIncomeValue.style.fontWeight = 'var(--font-bold, 700)';
+    totalIncomeCard.appendChild(totalIncomeValue);
+    
+    // Add chart visualizing the 40/30/30 split
+    const splitChart = document.createElement('div');
+    splitChart.style.display = 'flex';
+    splitChart.style.height = '8px';
+    splitChart.style.borderRadius = '4px';
+    splitChart.style.overflow = 'hidden';
+    splitChart.style.margin = '1rem 0';
+    
+    // Creates the three colored bars
+    const needsBar = document.createElement('div');
+    needsBar.style.flex = `${appState.user.splitRatio?.needs || 40}`;
+    needsBar.style.background = 'var(--color-primary, #34A853)';
+    
+    const investmentsBar = document.createElement('div');
+    investmentsBar.style.flex = `${appState.user.splitRatio?.investments || 30}`;
+    investmentsBar.style.background = 'var(--color-secondary, #9C27B0)';
+    
+    const savingsBar = document.createElement('div');
+    savingsBar.style.flex = `${appState.user.splitRatio?.savings || 30}`;
+    savingsBar.style.background = 'var(--color-tertiary, #3b82f6)';
+    
+    splitChart.appendChild(needsBar);
+    splitChart.appendChild(investmentsBar);
+    splitChart.appendChild(savingsBar);
+    
+    totalIncomeCard.appendChild(splitChart);
+    
+    summaryGrid.appendChild(totalIncomeCard);
+    
+    // Split summary cards
+    const splitCardsWrapper = document.createElement('div');
+    splitCardsWrapper.style.display = 'grid';
+    splitCardsWrapper.style.gridTemplateColumns = isMobile ? '1fr' : 'repeat(3, 1fr)';
+    splitCardsWrapper.style.gap = 'var(--space-4, 1rem)';
+    splitCardsWrapper.style.marginTop = 'var(--space-4, 1rem)';
+    
+    // Needs Card
+    const needsCard = document.createElement('div');
+    needsCard.style.backgroundColor = 'var(--color-bg-primary, white)';
+    needsCard.style.borderRadius = 'var(--radius-lg, 0.5rem)';
+    needsCard.style.padding = 'var(--space-4, 1rem)';
+    needsCard.style.boxShadow = 'var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05))';
+    needsCard.style.border = '1px solid var(--color-border, #e5e7eb)';
+    needsCard.style.position = 'relative';
+    needsCard.style.overflow = 'hidden';
+    
+    // Colored accent bar
+    const needsAccent = document.createElement('div');
+    needsAccent.style.position = 'absolute';
+    needsAccent.style.top = '0';
+    needsAccent.style.left = '0';
+    needsAccent.style.height = '4px';
+    needsAccent.style.width = '100%';
+    needsAccent.style.backgroundColor = 'var(--color-primary, #34A853)';
+    needsCard.appendChild(needsAccent);
+    
+    const needsLabel = document.createElement('div');
+    needsLabel.textContent = 'Needs';
+    needsLabel.style.fontSize = 'var(--font-size-sm, 0.875rem)';
+    needsLabel.style.color = 'var(--color-text-secondary, #6b7280)';
+    needsLabel.style.marginTop = 'var(--space-2, 0.5rem)';
+    needsCard.appendChild(needsLabel);
+    
+    const needsValue = document.createElement('div');
+    needsValue.textContent = `$${stats.needs}`;
+    needsValue.style.fontSize = 'var(--font-size-xl, 1.25rem)';
+    needsValue.style.fontWeight = 'var(--font-bold, 700)';
+    needsValue.style.marginTop = 'var(--space-1, 0.25rem)';
+    needsCard.appendChild(needsValue);
+    
+    const needsPercent = document.createElement('div');
+    needsPercent.textContent = `${appState.user.splitRatio?.needs || 40}%`;
+    needsPercent.style.fontSize = 'var(--font-size-xs, 0.75rem)';
+    needsPercent.style.fontWeight = 'var(--font-medium, 500)';
+    needsPercent.style.color = 'var(--color-primary, #34A853)';
+    needsPercent.style.marginTop = 'var(--space-1, 0.25rem)';
+    needsCard.appendChild(needsPercent);
+    
+    // Investments Card
+    const investmentsCard = document.createElement('div');
+    investmentsCard.style.backgroundColor = 'var(--color-bg-primary, white)';
+    investmentsCard.style.borderRadius = 'var(--radius-lg, 0.5rem)';
+    investmentsCard.style.padding = 'var(--space-4, 1rem)';
+    investmentsCard.style.boxShadow = 'var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05))';
+    investmentsCard.style.border = '1px solid var(--color-border, #e5e7eb)';
+    investmentsCard.style.position = 'relative';
+    investmentsCard.style.overflow = 'hidden';
+    
+    // Colored accent bar
+    const investmentsAccent = document.createElement('div');
+    investmentsAccent.style.position = 'absolute';
+    investmentsAccent.style.top = '0';
+    investmentsAccent.style.left = '0';
+    investmentsAccent.style.height = '4px';
+    investmentsAccent.style.width = '100%';
+    investmentsAccent.style.backgroundColor = 'var(--color-secondary, #9C27B0)';
+    investmentsCard.appendChild(investmentsAccent);
+    
+    const investmentsLabel = document.createElement('div');
+    investmentsLabel.textContent = 'Investments';
+    investmentsLabel.style.fontSize = 'var(--font-size-sm, 0.875rem)';
+    investmentsLabel.style.color = 'var(--color-text-secondary, #6b7280)';
+    investmentsLabel.style.marginTop = 'var(--space-2, 0.5rem)';
+    investmentsCard.appendChild(investmentsLabel);
+    
+    const investmentsValue = document.createElement('div');
+    investmentsValue.textContent = `$${stats.investments}`;
+    investmentsValue.style.fontSize = 'var(--font-size-xl, 1.25rem)';
+    investmentsValue.style.fontWeight = 'var(--font-bold, 700)';
+    investmentsValue.style.marginTop = 'var(--space-1, 0.25rem)';
+    investmentsCard.appendChild(investmentsValue);
+    
+    const investmentsPercent = document.createElement('div');
+    investmentsPercent.textContent = `${appState.user.splitRatio?.investments || 30}%`;
+    investmentsPercent.style.fontSize = 'var(--font-size-xs, 0.75rem)';
+    investmentsPercent.style.fontWeight = 'var(--font-medium, 500)';
+    investmentsPercent.style.color = 'var(--color-secondary, #9C27B0)';
+    investmentsPercent.style.marginTop = 'var(--space-1, 0.25rem)';
+    investmentsCard.appendChild(investmentsPercent);
+    
+    // Savings Card
+    const savingsCard = document.createElement('div');
+    savingsCard.style.backgroundColor = 'var(--color-bg-primary, white)';
+    savingsCard.style.borderRadius = 'var(--radius-lg, 0.5rem)';
+    savingsCard.style.padding = 'var(--space-4, 1rem)';
+    savingsCard.style.boxShadow = 'var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05))';
+    savingsCard.style.border = '1px solid var(--color-border, #e5e7eb)';
+    savingsCard.style.position = 'relative';
+    savingsCard.style.overflow = 'hidden';
+    
+    // Colored accent bar
+    const savingsAccent = document.createElement('div');
+    savingsAccent.style.position = 'absolute';
+    savingsAccent.style.top = '0';
+    savingsAccent.style.left = '0';
+    savingsAccent.style.height = '4px';
+    savingsAccent.style.width = '100%';
+    savingsAccent.style.backgroundColor = 'var(--color-tertiary, #3b82f6)';
+    savingsCard.appendChild(savingsAccent);
+    
+    const savingsLabel = document.createElement('div');
+    savingsLabel.textContent = 'Savings';
+    savingsLabel.style.fontSize = 'var(--font-size-sm, 0.875rem)';
+    savingsLabel.style.color = 'var(--color-text-secondary, #6b7280)';
+    savingsLabel.style.marginTop = 'var(--space-2, 0.5rem)';
+    savingsCard.appendChild(savingsLabel);
+    
+    const savingsValue = document.createElement('div');
+    savingsValue.textContent = `$${stats.savings}`;
+    savingsValue.style.fontSize = 'var(--font-size-xl, 1.25rem)';
+    savingsValue.style.fontWeight = 'var(--font-bold, 700)';
+    savingsValue.style.marginTop = 'var(--space-1, 0.25rem)';
+    savingsCard.appendChild(savingsValue);
+    
+    const savingsPercent = document.createElement('div');
+    savingsPercent.textContent = `${appState.user.splitRatio?.savings || 30}%`;
+    savingsPercent.style.fontSize = 'var(--font-size-xs, 0.75rem)';
+    savingsPercent.style.fontWeight = 'var(--font-medium, 500)';
+    savingsPercent.style.color = 'var(--color-tertiary, #3b82f6)';
+    savingsPercent.style.marginTop = 'var(--space-1, 0.25rem)';
+    savingsCard.appendChild(savingsPercent);
+    
+    splitCardsWrapper.appendChild(needsCard);
+    splitCardsWrapper.appendChild(investmentsCard);
+    splitCardsWrapper.appendChild(savingsCard);
+    
+    summaryGrid.appendChild(splitCardsWrapper);
   }
   
-  incomeStats.appendChild(grid);
-  container.appendChild(incomeStats);
+  dashboardSummary.appendChild(summaryGrid);
+  container.appendChild(dashboardSummary);
+  
+  // Add Quick Actions Section
+  const quickActions = document.createElement('div');
+  quickActions.style.marginBottom = 'var(--space-8, 2rem)';
+  
+  const quickActionsTitle = document.createElement('h3');
+  quickActionsTitle.textContent = 'Quick Actions';
+  quickActionsTitle.style.fontSize = 'var(--font-size-lg, 1.125rem)';
+  quickActionsTitle.style.fontWeight = 'var(--font-semibold, 600)';
+  quickActionsTitle.style.marginBottom = 'var(--space-4, 1rem)';
+  quickActions.appendChild(quickActionsTitle);
+  
+  const actionButtons = document.createElement('div');
+  actionButtons.style.display = 'flex';
+  actionButtons.style.flexWrap = 'wrap';
+  actionButtons.style.gap = 'var(--space-3, 0.75rem)';
+  
+  // Add Income Button
+  const addIncomeBtn = document.createElement('button');
+  addIncomeBtn.className = 'action-button';
+  addIncomeBtn.style.display = 'inline-flex';
+  addIncomeBtn.style.alignItems = 'center';
+  addIncomeBtn.style.justifyContent = 'center';
+  addIncomeBtn.style.padding = '0.5rem 1rem';
+  addIncomeBtn.style.backgroundColor = 'var(--color-primary, #34A853)';
+  addIncomeBtn.style.color = 'white';
+  addIncomeBtn.style.borderRadius = 'var(--radius-md, 0.375rem)';
+  addIncomeBtn.style.fontWeight = 'var(--font-medium, 500)';
+  addIncomeBtn.style.border = 'none';
+  addIncomeBtn.style.cursor = 'pointer';
+  addIncomeBtn.style.transition = 'background-color 0.2s ease';
+  addIncomeBtn.innerHTML = `<span>➕</span><span class="ml-2">Add Income</span>`;
+  addIncomeBtn.addEventListener('click', () => navigateTo('income'));
+  actionButtons.appendChild(addIncomeBtn);
+  
+  // Add Expense Button
+  const addExpenseBtn = document.createElement('button');
+  addExpenseBtn.className = 'action-button';
+  addExpenseBtn.style.display = 'inline-flex';
+  addExpenseBtn.style.alignItems = 'center';
+  addExpenseBtn.style.justifyContent = 'center';
+  addExpenseBtn.style.padding = '0.5rem 1rem';
+  addExpenseBtn.style.backgroundColor = 'var(--color-secondary, #9C27B0)';
+  addExpenseBtn.style.color = 'white';
+  addExpenseBtn.style.borderRadius = 'var(--radius-md, 0.375rem)';
+  addExpenseBtn.style.fontWeight = 'var(--font-medium, 500)';
+  addExpenseBtn.style.border = 'none';
+  addExpenseBtn.style.cursor = 'pointer';
+  addExpenseBtn.style.transition = 'background-color 0.2s ease';
+  addExpenseBtn.innerHTML = `<span>💰</span><span class="ml-2">Add Expense</span>`;
+  addExpenseBtn.addEventListener('click', () => navigateTo('expenses'));
+  actionButtons.appendChild(addExpenseBtn);
+  
+  quickActions.appendChild(actionButtons);
+  container.appendChild(quickActions);
   
   return container;
 }
