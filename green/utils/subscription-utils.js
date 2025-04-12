@@ -15,6 +15,15 @@ export function hasProAccess(user) {
     return ['pro', 'lifetime'].includes(user.subscriptionPlan.toLowerCase());
   }
   
+  // If user has a subscription status or tier set to pro/lifetime
+  if (user.subscriptionStatus && ['pro', 'lifetime'].includes(user.subscriptionStatus.toLowerCase())) {
+    return true;
+  }
+  
+  if (user.subscriptionTier && ['pro', 'lifetime'].includes(user.subscriptionTier.toLowerCase())) {
+    return true;
+  }
+  
   // If user has a stripe subscription ID, they have Pro access
   if (user.stripeSubscriptionId) {
     return true;

@@ -87,6 +87,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
 
+  // Register Perplexity API routes
+  registerPerplexityRoutes(app);
+
   // Serve static assets from green folder directly
   app.use(express.static(path.join(process.cwd(), 'green')));
   
