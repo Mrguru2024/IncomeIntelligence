@@ -248,12 +248,14 @@ export function createSidebar(appState) {
         {
           id: 'subscriptionsniper',
           label: 'Subscription Sniper',
-          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+          requiresPro: true
         },
         {
           id: 'bankconnections',
           label: 'Bank Accounts',
-          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>'
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>',
+          requiresPro: true
         }
       ]
     },
@@ -278,7 +280,8 @@ export function createSidebar(appState) {
         {
           id: 'challenges',
           label: 'Savings Challenges',
-          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>'
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>',
+          requiresPro: true
         },
         {
           id: 'wellness',
@@ -289,7 +292,7 @@ export function createSidebar(appState) {
           id: 'moneymentor',
           label: 'Money Mentor',
           icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path><path d="M17 21.32a10 10 0 0 0 5 -5.32"></path><path d="M9 15a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path><path d="M12 13v2"></path></svg>',
-          badge: 'Pro'
+          requiresPro: true
         }
       ]
     },
@@ -430,6 +433,20 @@ export function createSidebar(appState) {
         }
         
         link.appendChild(badge);
+      } 
+      // Add Pro badge for items marked as requiring Pro subscription
+      else if (item.requiresPro) {
+        const proBadge = document.createElement('span');
+        proBadge.textContent = 'PRO';
+        proBadge.style.fontSize = '9px';
+        proBadge.style.padding = '2px 6px';
+        proBadge.style.borderRadius = '10px';
+        proBadge.style.marginLeft = '8px';
+        proBadge.style.fontWeight = 'bold';
+        proBadge.style.background = 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)';
+        proBadge.style.color = '#000';
+        proBadge.style.boxShadow = '0 1px 3px rgba(0,0,0,0.2)';
+        link.appendChild(proBadge);
       }
       
       // Handle navigation or logout
