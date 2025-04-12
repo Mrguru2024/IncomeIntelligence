@@ -112,15 +112,7 @@ export function createSidebar(appState) {
   profileSection.style.textAlign = 'center';
   profileSection.style.borderBottom = '1px solid rgba(255, 255, 255, 0.1)';
   
-  // Determine if user has Pro access
-  let isPro = false;
-  if (appState.user.subscriptionTier === 'pro' || appState.user.subscriptionTier === 'lifetime') {
-    isPro = true;
-  } else if (appState.user.username && appState.user.username.toLowerCase().includes('pro')) {
-    isPro = true;
-  } else if (appState.user.stripeSubscriptionId) {
-    isPro = true;
-  }
+  // Using the global isPro variable defined earlier
 
   // User avatar container with Pro marker if applicable
   const avatarContainer = document.createElement('div');
