@@ -1715,11 +1715,155 @@ function renderIncomePage() {
   const submitBtn = createButton('Add Income', null, '#34A853');
   submitBtn.type = 'submit';
   form.appendChild(submitBtn);
+}
+
+// Expenses page function
+function renderExpensesPage() {
+  const container = document.createElement('div');
+  
+  const heading = document.createElement('h2');
+  heading.textContent = 'Expense Tracker';
+  heading.style.marginBottom = '20px';
+  container.appendChild(heading);
+  
+  // Expense Entry Form Card
+  const formCard = document.createElement('div');
+  formCard.style.backgroundColor = '#f5f5f5';
+  formCard.style.borderRadius = '8px';
+  formCard.style.padding = '20px';
+  formCard.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+  formCard.style.marginBottom = '30px';
+  
+  const formHeading = document.createElement('h3');
+  formHeading.textContent = 'Add New Expense';
+  formHeading.style.marginTop = '0';
+  formCard.appendChild(formHeading);
+  
+  // Initialize expenses array if it doesn't exist
+  if (!appState.expenseEntries) {
+    appState.expenseEntries = [];
+    saveStateToStorage();
+  }
+  
+  // Create form
+  const form = document.createElement('form');
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    
+    const description = document.getElementById('expense-description').value;
+    const amount = parseFloat(document.getElementById('expense-amount').value);
+    const date = document.getElementById('expense-date').value;
+    const category = document.getElementById('expense-category').value;
+    
+    if (description && amount && date && category) {
+      // Add new expense entry
+      const newEntry = {
+        id: Date.now(), // Use timestamp as ID
+        description,
+        amount,
+        date,
+        category,
+        timestamp: new Date().toISOString()
+      };
+      
+      appState.expenseEntries.push(newEntry);
+      saveStateToStorage();
+      renderApp(); // Re-render the app
+      
+      // Reset form
+      form.reset();
+    }
+  };
+  
+  // Form fields
+  const descriptionInput = createInput('text', 'Description', '', null);
+  descriptionInput.id = 'expense-description';
+  descriptionInput.required = true;
+  form.appendChild(createFormGroup('Description', descriptionInput));
+  
+  const amountInput = createInput('number', 'Amount', '', null);
+  amountInput.id = 'expense-amount';
+  amountInput.min = '0.01';
+  amountInput.step = '0.01';
+  amountInput.required = true;
+  form.appendChild(createFormGroup('Amount ($)', amountInput));
+  
+  const dateInput = createInput('date', '', new Date().toISOString().split('T')[0], null);
+  dateInput.id = 'expense-date';
+  dateInput.required = true;
+  form.appendChild(createFormGroup('Date', dateInput));
+  
+  // Category dropdown
+  const categoryField = document.createElement('div');
+  categoryField.style.marginBottom = '15px';
+  
+  const categoryLabel = document.createElement('label');
+  categoryLabel.textContent = 'Category';
+  categoryLabel.style.display = 'block';
+  categoryLabel.style.marginBottom = '5px';
+  categoryField.appendChild(categoryLabel);
+  
+  const categorySelect = document.createElement('select');
+  categorySelect.id = 'expense-category';
+  categorySelect.required = true;
+  categorySelect.style.width = '100%';
+  categorySelect.style.padding = '10px';
+  categorySelect.style.borderRadius = '4px';
+  categorySelect.style.border = '1px solid #ddd';
+  
+  // Default option
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = 'Select a category';
+  defaultOption.disabled = true;
+  defaultOption.selected = true;
+  categorySelect.appendChild(defaultOption);
+  
+  // Add expense categories - organized by 40/30/30 split
+  const categories = {
+    "Needs (40%)": [
+      "Housing", "Rent", "Mortgage", "Utilities", "Groceries", 
+      "Transportation", "Insurance", "Healthcare", "Childcare",
+      "Education", "Essential Supplies"
+    ],
+    "Investments (30%)": [
+      "Retirement", "Stocks", "Bonds", "Real Estate", 
+      "Business", "Education", "Skills Development", 
+      "Equipment", "Technology", "Professional Services"
+    ],
+    "Savings (30%)": [
+      "Emergency Fund", "Vacation", "Future Purchase", 
+      "Entertainment", "Dining Out", "Shopping", "Gifts", 
+      "Subscriptions", "Hobbies", "Personal Care"
+    ]
+  };
+  
+  // Create option groups
+  for (const [group, options] of Object.entries(categories)) {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = group;
+    
+    options.forEach(category => {
+      const option = document.createElement('option');
+      option.value = category;
+      option.textContent = category;
+      optgroup.appendChild(option);
+    });
+    
+    categorySelect.appendChild(optgroup);
+  }
+  
+  categoryField.appendChild(categorySelect);
+  form.appendChild(categoryField);
+  
+  const submitBtn = createButton('Add Expense', null, '#EA4335');
+  submitBtn.type = 'submit';
+  form.appendChild(submitBtn);
   
   formCard.appendChild(form);
   container.appendChild(formCard);
   
-  // Income History Card
+  // Expense History Card
   const historyCard = document.createElement('div');
   historyCard.style.backgroundColor = '#f5f5f5';
   historyCard.style.borderRadius = '8px';
@@ -1727,17 +1871,17 @@ function renderIncomePage() {
   historyCard.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
   
   const historyHeading = document.createElement('h3');
-  historyHeading.textContent = 'Income History';
+  historyHeading.textContent = 'Expense History';
   historyHeading.style.marginTop = '0';
   historyCard.appendChild(historyHeading);
   
-  if (appState.incomeEntries.length === 0) {
+  if (!appState.expenseEntries || appState.expenseEntries.length === 0) {
     const emptyMessage = document.createElement('p');
-    emptyMessage.textContent = 'No income entries yet. Add your first income above!';
+    emptyMessage.textContent = 'No expense entries yet. Add your first expense above!';
     emptyMessage.style.fontStyle = 'italic';
     historyCard.appendChild(emptyMessage);
   } else {
-    // Create table for income entries
+    // Create table for expense entries
     const table = document.createElement('table');
     table.style.width = '100%';
     table.style.borderCollapse = 'collapse';
@@ -1747,7 +1891,7 @@ function renderIncomePage() {
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
     
-    const headers = ['Description', 'Amount', 'Date', 'Source', 'Actions'];
+    const headers = ['Description', 'Amount', 'Date', 'Category', 'Actions'];
     headers.forEach(headerText => {
       const th = document.createElement('th');
       th.textContent = headerText;
@@ -1764,7 +1908,7 @@ function renderIncomePage() {
     const tbody = document.createElement('tbody');
     
     // Sort entries by date (newest first)
-    const sortedEntries = [...appState.incomeEntries].sort((a, b) => 
+    const sortedEntries = [...appState.expenseEntries].sort((a, b) => 
       new Date(b.date) - new Date(a.date)
     );
     
@@ -1789,11 +1933,11 @@ function renderIncomePage() {
       dateCell.style.borderBottom = '1px solid #ddd';
       row.appendChild(dateCell);
       
-      const sourceCell = document.createElement('td');
-      sourceCell.textContent = entry.source || '-';
-      sourceCell.style.padding = '10px';
-      sourceCell.style.borderBottom = '1px solid #ddd';
-      row.appendChild(sourceCell);
+      const categoryCell = document.createElement('td');
+      categoryCell.textContent = entry.category || '-';
+      categoryCell.style.padding = '10px';
+      categoryCell.style.borderBottom = '1px solid #ddd';
+      row.appendChild(categoryCell);
       
       const actionsCell = document.createElement('td');
       actionsCell.style.padding = '10px';
@@ -1808,7 +1952,7 @@ function renderIncomePage() {
       deleteBtn.style.borderRadius = '4px';
       deleteBtn.style.cursor = 'pointer';
       deleteBtn.onclick = () => {
-        appState.incomeEntries = appState.incomeEntries.filter(item => item.id !== entry.id);
+        appState.expenseEntries = appState.expenseEntries.filter(item => item.id !== entry.id);
         saveStateToStorage();
         renderApp();
       };
@@ -1829,10 +1973,58 @@ function renderIncomePage() {
     totalContainer.style.fontSize = '18px';
     totalContainer.style.textAlign = 'right';
     
-    const total = appState.incomeEntries.reduce((sum, entry) => sum + entry.amount, 0);
-    totalContainer.textContent = `Total Income: $${total.toFixed(2)}`;
+    const total = appState.expenseEntries.reduce((sum, entry) => sum + entry.amount, 0);
+    totalContainer.textContent = `Total Expenses: $${total.toFixed(2)}`;
     
     historyCard.appendChild(totalContainer);
+    
+    // Add breakdown by category
+    const breakdownContainer = document.createElement('div');
+    breakdownContainer.style.marginTop = '30px';
+    
+    const breakdownHeading = document.createElement('h4');
+    breakdownHeading.textContent = 'Expenses by Category';
+    breakdownHeading.style.marginBottom = '15px';
+    breakdownContainer.appendChild(breakdownHeading);
+    
+    // Calculate expenses by category
+    const categoryTotals = {};
+    appState.expenseEntries.forEach(entry => {
+      const category = entry.category || 'Uncategorized';
+      if (!categoryTotals[category]) {
+        categoryTotals[category] = 0;
+      }
+      categoryTotals[category] += entry.amount;
+    });
+    
+    // Create category breakdown list
+    const categoryList = document.createElement('ul');
+    categoryList.style.listStyleType = 'none';
+    categoryList.style.padding = '0';
+    
+    Object.entries(categoryTotals)
+      .sort((a, b) => b[1] - a[1]) // Sort by amount (highest first)
+      .forEach(([category, amount]) => {
+        const item = document.createElement('li');
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.padding = '8px 0';
+        item.style.borderBottom = '1px solid #ddd';
+        
+        const categoryName = document.createElement('span');
+        categoryName.textContent = category;
+        item.appendChild(categoryName);
+        
+        const categoryAmount = document.createElement('span');
+        categoryAmount.textContent = `$${amount.toFixed(2)}`;
+        categoryAmount.style.fontWeight = '500';
+        item.appendChild(categoryAmount);
+        
+        categoryList.appendChild(item);
+      });
+    
+    breakdownContainer.appendChild(categoryList);
+    historyCard.appendChild(breakdownContainer);
   }
   
   container.appendChild(historyCard);
@@ -2468,6 +2660,9 @@ function renderPageContent(container) {
         break;
       case 'income':
         container.appendChild(renderIncomePage());
+        break;
+      case 'expenses':
+        container.appendChild(renderExpensesPage());
         break;
       case 'gigs':
         container.appendChild(renderGigsPage());
