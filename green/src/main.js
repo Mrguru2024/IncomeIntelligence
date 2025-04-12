@@ -632,6 +632,24 @@ function renderPageContent(contentContainer) {
       contentContainer.appendChild(renderGigsPage());
       break;
       
+    case 'savings':
+      // Import the Savings Goals module dynamically
+      import('../savings-goals.js')
+        .then(module => {
+          try {
+            const savingsGoalsPage = module.renderSavingsGoalsPage();
+            contentContainer.appendChild(savingsGoalsPage);
+          } catch (error) {
+            console.error('Error rendering savings goals page:', error);
+            contentContainer.appendChild(createErrorMessage('Failed to load savings goals. Please try again later.'));
+          }
+        })
+        .catch(error => {
+          console.error('Error loading savings goals module:', error);
+          contentContainer.appendChild(createErrorMessage('Failed to load savings goals module. Please try again later.'));
+        });
+      break;
+      
     case 'affiliates':
       // Import the Affiliates Hub module dynamically
       import('../affiliates-hub.js')
@@ -784,6 +802,24 @@ function renderPageContent(contentContainer) {
         });
       break;
       
+    case 'export':
+      // Import the Data Export module dynamically
+      import('../data-export.js')
+        .then(module => {
+          try {
+            const dataExportPage = module.renderDataExportPage();
+            contentContainer.appendChild(dataExportPage);
+          } catch (error) {
+            console.error('Error rendering data export page:', error);
+            contentContainer.appendChild(createErrorMessage('Failed to load data export. Please try again later.'));
+          }
+        })
+        .catch(error => {
+          console.error('Error loading data export module:', error);
+          contentContainer.appendChild(createErrorMessage('Failed to load data export module. Please try again later.'));
+        });
+      break;
+        
     case 'settings':
       try {
         const settingsContainer = document.createElement('div');

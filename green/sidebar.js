@@ -69,7 +69,9 @@ export function createSidebar(appState) {
       { id: 'savings', label: 'Savings', icon: 'piggy-bank', pro: false },
       { id: 'moneymentor', label: 'Money Mentor', icon: 'message-circle', pro: true },
       { id: 'subscriptionsniper', label: 'Subscription Sniper', icon: 'scissors', pro: true },
+      { id: 'bankconnections', label: 'Bank Connections', icon: 'credit-card', pro: true },
       { divider: true },
+      { id: 'export', label: 'Export Data', icon: 'download' },
       { id: 'settings', label: 'Settings', icon: 'settings' }
     ];
     
