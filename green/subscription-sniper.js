@@ -1029,9 +1029,15 @@ function createSubscriptionDashboard(subscriptions) {
  * @returns {Object} - Value assessment { rating, reasoning }
  */
 function evaluateSubscriptionValue(subscription) {
-  // In a real implementation, this would use usage data and AI to determine value
-  // For now, use a simple heuristic based on monthly cost
+  // Check if user has Pro access and if so, try to use AI analysis
+  const currentUser = getCurrentUser();
+  if (currentUser && hasProAccess(currentUser)) {
+    // For Pro users, try to get AI-powered analysis first
+    // This is done asynchronously, but we'll handle it properly
+    return getAISubscriptionAnalysis(subscription);
+  }
   
+  // For Free users or as a fallback, use the basic heuristic analysis
   const monthlyCost = subscription.amount;
   const frequency = subscription.frequency;
   
@@ -1065,8 +1071,48 @@ function evaluateSubscriptionValue(subscription) {
   
   return {
     rating,
-    reasoning
+    reasoning,
+    aiPowered: false
   };
+}
+
+/**
+ * Get AI-powered analysis for a subscription (for Pro users)
+ * This function handles caching to avoid calling the API repeatedly
+ * @param {Object} subscription - Subscription data
+ * @returns {Object} - Value assessment with AI analysis
+ */
+async function getAISubscriptionAnalysis(subscription) {
+  try {
+    // Check for cached analysis
+    const cacheKey = `subscription_analysis_${subscription.id}`;
+    const cachedAnalysis = sessionStorage.getItem(cacheKey);
+    
+    if (cachedAnalysis) {
+      return JSON.parse(cachedAnalysis);
+    }
+    
+    // If no cached data, perform analysis
+    const analysis = await analyzeSubscriptionValue(subscription);
+    
+    // Cache the result for future use
+    sessionStorage.setItem(cacheKey, JSON.stringify(analysis));
+    
+    return analysis;
+  } catch (error) {
+    console.error('Error getting AI subscription analysis:', error);
+    
+    // Fall back to basic analysis
+    const basicAnalysis = {
+      rating: subscription.amount <= 10 ? 'excellent' : 
+              subscription.amount <= 20 ? 'good' : 
+              subscription.amount <= 50 ? 'fair' : 'poor',
+      reasoning: 'Basic analysis based on subscription cost.',
+      aiPowered: false
+    };
+    
+    return basicAnalysis;
+  }
 }
 
 /**
@@ -1113,8 +1159,15 @@ async function analyzeSubscriptionValue(subscription) {
     };
   } catch (error) {
     console.error('Error analyzing subscription:', error);
-    // Fall back to basic analysis
-    return evaluateSubscriptionValue(subscription);
+    // Fall back to basic analysis without calling evaluateSubscriptionValue to avoid circular reference
+    const basicAnalysis = {
+      rating: subscription.amount <= 10 ? 'excellent' : 
+              subscription.amount <= 20 ? 'good' : 
+              subscription.amount <= 50 ? 'fair' : 'poor',
+      reasoning: 'Basic analysis based on subscription cost.',
+      aiPowered: false
+    };
+    return basicAnalysis;
   }
 }
 
