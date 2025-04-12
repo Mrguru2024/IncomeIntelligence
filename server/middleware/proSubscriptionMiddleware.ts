@@ -12,7 +12,12 @@ export const requireProSubscription = async (req: Request, res: Response, next: 
 
   try {
     // Check if user has an active Pro subscription
-    const subscription = await storage.getUserSubscription(req.user.id);
+    // For development, we'll mock the subscription status based on user data
+    const user = await storage.getUser(req.user.id);
+    const subscription = user ? {
+      status: user.subscriptionActive ? 'active' : 'inactive',
+      plan: user.subscriptionTier || 'free'
+    } : null;
     
     // Allow if user has Pro or Lifetime subscription
     if (

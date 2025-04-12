@@ -42,6 +42,7 @@ export interface IStorage {
   setPasswordReset(id: number, token: string, expires: Date): Promise<User | undefined>;
   resetPassword(id: number, newPassword: string): Promise<User | undefined>;
   updateUserSubscription(userId: number, tier: string, active: boolean, startDate?: Date, endDate?: Date): Promise<User | undefined>;
+  getUserSubscription(userId: number): Promise<{ status: string, plan: string } | null>;
   updateStripeCustomerId(userId: number, customerId: string): Promise<User | undefined>;
   updateStripeSubscriptionId(userId: number, subscriptionId: string): Promise<User | undefined>;
   updateUserStripeInfo(userId: number, stripeInfo: { customerId: string, subscriptionId: string }): Promise<User | undefined>;
@@ -836,6 +837,16 @@ export class MemStorage implements IStorage {
       subscriptionActive: active,
       subscriptionStartDate: startDate || null,
       subscriptionEndDate: endDate || null,
+    };
+  }
+  
+  async getUserSubscription(userId: number): Promise<{ status: string, plan: string } | null> {
+    const user = await this.getUser(userId);
+    if (!user) return null;
+    
+    return {
+      status: user.subscriptionActive ? 'active' : 'inactive',
+      plan: user.subscriptionTier || 'free'
     };
     
     this.users.set(userId, updatedUser);
