@@ -4,6 +4,8 @@
  * and provides educational tips throughout the application.
  */
 
+import * as subscriptionUtils from './utils/subscription-utils.js';
+
 // Collection of financial tips organized by category
 const financialTips = {
   budgeting: [
@@ -598,36 +600,28 @@ function createMascotSettings(mascot) {
   container.style.maxWidth = '500px';
   container.style.margin = '0 auto';
   
-  // Import required modules
-  const subscriptionUtils = import.meta.url.includes('green') 
-    ? import('./utils/subscription-utils.js') 
-    : import('../utils/subscription-utils.js');
-  
   // Check if user has Pro access for mascot personality customization
-  subscriptionUtils.then(({ canAccessFeature }) => {
-    // Get current user
-    const currentUser = window.appState?.user || JSON.parse(localStorage.getItem('user')) || null;
-    
-    // Check if feature is accessible
-    const canAccessMascot = canAccessFeature(currentUser, 'financialmascot');
-    
-    if (!canAccessMascot) {
-      // Show upgrade prompt for non-Pro users
-      subscriptionUtils.then(({ createUpgradePrompt }) => {
-        const upgradePrompt = createUpgradePrompt('Financial Mascot Personalization');
-        container.innerHTML = '';
-        container.appendChild(upgradePrompt);
-      });
-      return;
-    }
-    
-    // Title
-    const title = document.createElement('h2');
-    title.textContent = 'Financial Mascot Settings';
-    title.style.marginBottom = '20px';
-    title.style.color = '#333';
-    title.style.fontSize = '20px';
-    container.appendChild(title);
+  // Get current user
+  const currentUser = window.appState?.user || JSON.parse(localStorage.getItem('user')) || null;
+  
+  // Check if feature is accessible
+  const canAccessMascot = subscriptionUtils.canAccessFeature(currentUser, 'financialmascot');
+  
+  if (!canAccessMascot) {
+    // Show upgrade prompt for non-Pro users
+    const upgradePrompt = subscriptionUtils.createUpgradePrompt('Financial Mascot Personalization');
+    container.innerHTML = '';
+    container.appendChild(upgradePrompt);
+    return;
+  }
+  
+  // Title
+  const title = document.createElement('h2');
+  title.textContent = 'Financial Mascot Settings';
+  title.style.marginBottom = '20px';
+  title.style.color = '#333';
+  title.style.fontSize = '20px';
+  container.appendChild(title);
     
     // PRO badge next to title
     const proBadge = document.createElement('span');
