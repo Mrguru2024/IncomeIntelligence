@@ -4527,37 +4527,37 @@ function renderPageContent(container) {
           try {
             // Try to import the module first
             import('../subscription-sniper.js').then(module => {
-              // Use async IIFE since renderSubscriptionSniperPage is async
-              (async () => {
-                try {
-                  if (!appState || !appState.user) {
-                    throw new Error('User data not available');
-                  }
-                  
-                  // Verify the module has the required function
-                  if (typeof module.renderSubscriptionSniperPage !== 'function') {
-                    throw new Error('renderSubscriptionSniperPage function not found in module');
-                  }
-                  
-                  const sniperPage = await module.renderSubscriptionSniperPage(appState.user.id);
-                  
-                  // Verify we got a valid DOM element
-                  if (!(sniperPage instanceof HTMLElement)) {
-                    throw new Error('Invalid return from renderSubscriptionSniperPage');
-                  }
-                  
-                  // Successfully loaded the module, clear any previous error flag
-                  sessionStorage.removeItem('subscriptionSniperImportFailed');
-                  container.appendChild(sniperPage);
-                } catch (error) {
-                  console.error('Error rendering subscription sniper page:', error);
-                  console.log('Falling back to simplified Subscription Sniper interface');
-                  // Mark as failed in session storage to avoid future attempts
-                  sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
-                  container.appendChild(renderFallbackSubscriptionSniper());
+            // Use async IIFE since renderSubscriptionSniperPage is async
+            (async () => {
+              try {
+                if (!appState || !appState.user) {
+                  throw new Error('User data not available');
                 }
-              })();
-            }).catch(error => {
+                
+                // Verify the module has the required function
+                if (typeof module.renderSubscriptionSniperPage !== 'function') {
+                  throw new Error('renderSubscriptionSniperPage function not found in module');
+                }
+                
+                const sniperPage = await module.renderSubscriptionSniperPage(appState.user.id);
+                
+                // Verify we got a valid DOM element
+                if (!(sniperPage instanceof HTMLElement)) {
+                  throw new Error('Invalid return from renderSubscriptionSniperPage');
+                }
+                
+                // Successfully loaded the module, clear any previous error flag
+                sessionStorage.removeItem('subscriptionSniperImportFailed');
+                container.appendChild(sniperPage);
+              } catch (error) {
+                console.error('Error rendering subscription sniper page:', error);
+                console.log('Falling back to simplified Subscription Sniper interface');
+                // Mark as failed in session storage to avoid future attempts
+                sessionStorage.setItem('subscriptionSniperImportFailed', 'true');
+                container.appendChild(renderFallbackSubscriptionSniper());
+              }
+            })();
+          }).catch(error => {
             // Instead of logging the error which may be empty, just log a message
             console.log('Unable to load Subscription Sniper module - using fallback interface');
             
