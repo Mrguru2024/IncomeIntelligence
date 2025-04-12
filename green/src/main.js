@@ -3638,14 +3638,7 @@ function renderPageContent(container) {
           errorMessage.textContent = 'An error occurred while loading the Subscription Sniper module.';
           container.appendChild(errorMessage);
         }
-            fallbackContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
-            
-            // Create animated header with gradient background
-            const header = document.createElement('div');
-            header.className = 'mb-8 text-center relative overflow-hidden rounded-xl p-6';
-            header.style.background = 'linear-gradient(135deg, #ef4444, #f97316, #f59e0b)';
-            header.style.backgroundSize = '300% 300%';
-            header.style.animation = 'gradient-animation 8s ease infinite';
+        break;
             
             // Add keyframes for gradient animation
             const style = document.createElement('style');
