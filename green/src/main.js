@@ -2795,16 +2795,25 @@ function renderPageContent(container) {
         break;
         
       case 'moneymentor':
-        try {
-          console.log('Loading Money Mentor module...');
-        } catch (error) {
-          console.error('Error in money mentor:', error);
-          // Display a fallback UI or error message
-          container.appendChild(createErrorMessage('Failed to load money mentor module'));
-        }
+        console.log('Loading Money Mentor module...');
+        // Create main container
+        const moneyMentorContainer = document.createElement('div');
+        moneyMentorContainer.className = 'money-mentor-container p-4 max-w-5xl mx-auto';
+        
+        // Add simple content
+        moneyMentorContainer.innerHTML = `
+          <div class="text-center p-8 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            <h2 class="text-2xl font-bold mb-4">Money Mentor</h2>
+            <p class="mb-4">Get personalized financial advice powered by AI.</p>
+            <div class="animate-pulse inline-block p-4 rounded-lg bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              Ready to help with your financial questions!
+            </div>
+          </div>
+        `;
+        
+        // Use the UI directly
+        container.appendChild(moneyMentorContainer);
         break;
-          
-          // Function to render a fallback Money Mentor when the module import fails
           const renderFallbackMoneyMentor = () => {
             console.log('Using fallback Money Mentor interface');
             
@@ -3568,17 +3577,25 @@ function renderPageContent(container) {
         });
         break;
       case 'subscriptionsniper':
-        try {
-          console.log('Loading Subscription Sniper module...');
-        } catch (error) {
-          console.error('Error in subscription sniper:', error);
-          // Display a fallback UI or error message
-          container.appendChild(createErrorMessage('Failed to load subscription sniper module'));
-        }
+        console.log('Loading Subscription Sniper module...');
+        // Create main container
+        const subscriptionSniperContainer = document.createElement('div');
+        subscriptionSniperContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
+        
+        // Add simple content
+        subscriptionSniperContainer.innerHTML = `
+          <div class="text-center p-8 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            <h2 class="text-2xl font-bold mb-4">Subscription Sniper</h2>
+            <p class="mb-4">Track and manage your recurring subscriptions to save money.</p>
+            <div class="animate-pulse inline-block p-4 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+              Ready to optimize your subscriptions!
+            </div>
+          </div>
+        `;
+        
+        // Use the UI directly
+        container.appendChild(subscriptionSniperContainer);
         break;
-          
-          // Check for previously stored import error flag in session storage
-          // Function to render a fallback Subscription Sniper when module import fails
           const renderFallbackSubscriptionSniper = () => {
             console.log('Using fallback Subscription Sniper interface');
             
