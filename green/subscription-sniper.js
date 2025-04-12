@@ -6,7 +6,8 @@
 
 // Import helper functions
 import { formatCurrency, formatDate } from './bank-connections.js';
-import { hasProAccess } from './utils/subscription-utils.js';
+import { hasProAccess, createUpgradePrompt } from './utils/subscription-utils.js';
+import { isAuthenticated, getCurrentUser } from './auth.js';
 
 /**
  * Fetch transactions for a specific user
@@ -400,6 +401,9 @@ function createSubscriptionRow(subscription) {
   row.style.borderBottom = '1px solid var(--color-border)';
   row.style.transition = 'background-color 0.2s ease';
   
+  // Get value assessment for subscription
+  const valueAssessment = evaluateSubscriptionValue(subscription);
+  
   // Add hover effect
   row.addEventListener('mouseover', () => {
     row.style.backgroundColor = 'var(--color-card)';
@@ -439,6 +443,48 @@ function createSubscriptionRow(subscription) {
   merchantName.style.fontWeight = 'bold';
   merchantName.style.marginBottom = '4px';
   merchantName.textContent = subscription.merchantName;
+  
+  // Value badge for Pro users
+  const currentUser = getCurrentUser();
+  if (currentUser && hasProAccess(currentUser)) {
+    const valueBadge = document.createElement('span');
+    valueBadge.style.marginLeft = '8px';
+    valueBadge.style.padding = '3px 6px';
+    valueBadge.style.fontSize = '12px';
+    valueBadge.style.fontWeight = 'bold';
+    valueBadge.style.borderRadius = '4px';
+    valueBadge.style.textTransform = 'uppercase';
+    
+    // Style based on rating
+    switch (valueAssessment.rating) {
+      case 'excellent':
+        valueBadge.style.backgroundColor = '#c6f6d5';
+        valueBadge.style.color = '#22543d';
+        valueBadge.textContent = 'Excellent Value';
+        break;
+      case 'good':
+        valueBadge.style.backgroundColor = '#c6f6d5';
+        valueBadge.style.color = '#22543d';
+        valueBadge.textContent = 'Good Value';
+        break;
+      case 'fair':
+        valueBadge.style.backgroundColor = '#fefcbf';
+        valueBadge.style.color = '#744210';
+        valueBadge.textContent = 'Fair Value';
+        break;
+      case 'poor':
+        valueBadge.style.backgroundColor = '#fed7d7';
+        valueBadge.style.color = '#822727';
+        valueBadge.textContent = 'Poor Value';
+        break;
+      default:
+        valueBadge.style.backgroundColor = '#e2e8f0';
+        valueBadge.style.color = '#4a5568';
+        valueBadge.textContent = 'Value Analysis';
+    }
+    
+    merchantName.appendChild(valueBadge);
+  }
   
   const subscriptionInfo = document.createElement('div');
   subscriptionInfo.style.display = 'flex';
@@ -882,6 +928,101 @@ function createSubscriptionDashboard(subscriptions) {
   });
   
   return dashboard;
+}
+
+/**
+ * Basic evaluation of subscription value based on cost and frequency
+ * @param {Object} subscription - Subscription data
+ * @returns {Object} - Value assessment { rating, reasoning }
+ */
+function evaluateSubscriptionValue(subscription) {
+  // In a real implementation, this would use usage data and AI to determine value
+  // For now, use a simple heuristic based on monthly cost
+  
+  const monthlyCost = subscription.amount;
+  const frequency = subscription.frequency;
+  
+  let rating = 'good';
+  let reasoning = '';
+  
+  if (monthlyCost > 50) {
+    rating = 'poor';
+    reasoning = 'High monthly cost exceeds typical value for this category.';
+  } else if (monthlyCost > 20) {
+    rating = 'fair';
+    reasoning = 'Moderate cost requires regular usage to justify.';
+  } else if (monthlyCost > 10) {
+    rating = 'good';
+    reasoning = 'Reasonable price for the service provided.';
+  } else {
+    rating = 'excellent';
+    reasoning = 'Low-cost subscription provides good value.';
+  }
+  
+  // Add category-specific analysis
+  const merchantName = subscription.merchantName.toLowerCase();
+  if (merchantName.includes('netflix') || merchantName.includes('hulu') || 
+      merchantName.includes('disney') || merchantName.includes('hbo')) {
+    reasoning += ' Consider how many streaming services you are subscribed to.';
+  } else if (merchantName.includes('gym') || merchantName.includes('fitness')) {
+    reasoning += ' Value depends on your usage frequency.';
+  } else if (merchantName.includes('cloud') || merchantName.includes('storage')) {
+    reasoning += ' Check if you are utilizing the full storage capacity.';
+  }
+  
+  return {
+    rating,
+    reasoning
+  };
+}
+
+/**
+ * Advanced analysis of subscription value using Perplexity AI
+ * @param {Object} subscription - Subscription data
+ * @returns {Promise<Object>} - AI-powered value assessment
+ */
+async function analyzeSubscriptionValue(subscription) {
+  try {
+    // Check if user has Pro access
+    const currentUser = getCurrentUser();
+    if (!currentUser || !hasProAccess(currentUser)) {
+      throw new Error('This feature requires a Pro subscription');
+    }
+    
+    const response = await fetch('/api/perplexity/subscription-analysis', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        subscriptionName: subscription.merchantName,
+        amount: subscription.amount,
+        frequency: subscription.frequency,
+        category: Array.isArray(subscription.category) && subscription.category.length > 0 
+          ? subscription.category[0] 
+          : 'unknown'
+      })
+    });
+    
+    if (!response.ok) {
+      if (response.status === 403) {
+        throw new Error('This feature requires a Pro subscription');
+      }
+      throw new Error('Failed to analyze subscription value');
+    }
+    
+    const data = await response.json();
+    
+    return {
+      rating: data.rating || 'good',
+      reasoning: data.analysis || 'Analysis not available',
+      aiPowered: true
+    };
+  } catch (error) {
+    console.error('Error analyzing subscription:', error);
+    // Fall back to basic analysis
+    return evaluateSubscriptionValue(subscription);
+  }
 }
 
 /**
