@@ -91,6 +91,20 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
 }
 
 // Setup authentication for the Express app
+// Function to generate a random token for password reset
+export function generateResetToken(): string {
+  return randomBytes(32).toString('hex');
+}
+
+// Function to send password reset email (placeholder for actual implementation)
+async function sendPasswordResetEmail(email: string, token: string): Promise<boolean> {
+  // In a real implementation, this would use an email service
+  console.log(`Sending password reset email to ${email} with token ${token}`);
+  
+  // For demonstration, we'll simulate successful email sending
+  return true;
+}
+
 export function setupAuth(app: Express) {
   // Configure session
   const sessionOptions: session.SessionOptions = {
@@ -293,7 +307,7 @@ export function setupAuth(app: Express) {
     });
   });
   
-  // Change password route
+  // Change password route (when logged in)
   app.post('/api/change-password', authenticateToken, async (req: Request, res: Response) => {
     try {
       const { currentPassword, newPassword } = req.body;
@@ -321,6 +335,92 @@ export function setupAuth(app: Express) {
     } catch (err) {
       console.error('Password change error:', err);
       res.status(500).json({ message: 'Server error during password change' });
+    }
+  });
+  
+  // Request password reset route (forgot password)
+  app.post('/api/forgot-password', async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+      
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      
+      // For security reasons, always return success even if the email doesn't exist
+      // This prevents attackers from determining which emails are registered
+      if (!user) {
+        return res.json({ 
+          message: 'If a user with that email exists, a password reset link has been sent.'
+        });
+      }
+      
+      // Generate a password reset token
+      const resetToken = generateResetToken();
+      const resetTokenExpires = new Date(Date.now() + 3600000); // 1 hour from now
+      
+      // Save the reset token and expiration to the user's record
+      await storage.updateUser(user.id, {
+        passwordResetToken: resetToken,
+        passwordResetExpires: resetTokenExpires,
+      });
+      
+      // Send reset email (this would be implemented in a production environment)
+      const resetUrl = `${req.protocol}://${req.get('host')}/#reset-password/${resetToken}`;
+      await sendPasswordResetEmail(email, resetUrl);
+      
+      res.json({
+        message: 'If a user with that email exists, a password reset link has been sent.'
+      });
+    } catch (err) {
+      console.error('Password reset request error:', err);
+      res.status(500).json({ message: 'Server error during password reset request' });
+    }
+  });
+  
+  // Reset password with token route
+  app.post('/api/reset-password/:token', async (req: Request, res: Response) => {
+    try {
+      const { token } = req.params;
+      const { newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: 'Token and new password are required' });
+      }
+      
+      // Find user with the given reset token
+      const user = await storage.getUserByResetToken(token);
+      
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid or expired password reset token' });
+      }
+      
+      // Check if token is expired
+      if (user.passwordResetExpires && user.passwordResetExpires < new Date()) {
+        return res.status(400).json({ message: 'Password reset token has expired' });
+      }
+      
+      // Update the user's password and clear the reset token
+      await storage.updateUser(user.id, {
+        password: await hashPassword(newPassword),
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      });
+      
+      // If the user has a session, log them out to be safe
+      if (req.session) {
+        req.session.destroy((err) => {
+          if (err) console.error('Error destroying session:', err);
+        });
+      }
+      
+      res.json({ message: 'Password has been reset successfully' });
+    } catch (err) {
+      console.error('Password reset error:', err);
+      res.status(500).json({ message: 'Server error during password reset' });
     }
   });
 }
