@@ -120,6 +120,13 @@ const navigationStructure = [
         icon: <BookOpen size={20} />,
       },
       {
+        name: "Money Mentor AI",
+        path: "/money-mentor",
+        icon: <Brain size={20} />,
+        badge: "Pro",
+        badgeColor: "bg-gradient-to-r from-indigo-500 to-purple-500",
+      },
+      {
         name: "Voice Commands",
         path: "/voice-commands",
         icon: <Mic size={20} />,

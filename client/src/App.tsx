@@ -9,6 +9,7 @@ import BudgetPlanner from "@/pages/BudgetPlanner";
 import VoiceCommands from "@/pages/VoiceCommands";
 import Expenses from "@/pages/Expenses";
 import FinancialAdvice from "@/pages/FinancialAdvice";
+import MoneyMentorPage from "@/pages/MoneyMentorPage";
 import Profile from "@/pages/Profile";
 import Reminders from "@/pages/Reminders";
 import AuthPage from "@/pages/auth-page";
@@ -43,6 +44,7 @@ function Router() {
       <ProtectedRoute path="/goals" component={Goals} />
       <ProtectedRoute path="/budget-planner" component={BudgetPlanner} />
       <ProtectedRoute path="/financial-advice" component={FinancialAdvice} />
+      <ProtectedRoute path="/money-mentor" component={MoneyMentorPage} />
       <ProtectedRoute path="/profile" component={Profile} />
       <ProtectedRoute path="/reminders" component={Reminders} />
       <ProtectedRoute path="/settings" component={Settings} />
