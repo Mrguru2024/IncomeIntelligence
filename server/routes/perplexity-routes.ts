@@ -1,83 +1,39 @@
 import { Express, Request, Response } from 'express';
+import { perplexityService, FinancialTopicCategory } from '../services/perplexity-service';
 import { z } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 import { requireAuth } from '../middleware/authMiddleware';
 import { requireProSubscription } from '../middleware/proSubscriptionMiddleware';
-import { 
-  getAdviceFromPerplexity, 
-  getFinancialAnalysisWithCitations, 
-  generateFinancialRecommendations 
-} from '../services/perplexity-service';
-import { storage } from '../storage';
 
+/**
+ * Register all Perplexity AI API routes
+ */
 export function registerPerplexityRoutes(app: Express) {
-  // Get financial advice from Perplexity AI - Protected by authentication
-  app.post('/api/perplexity/financial-advice', requireAuth, async (req: Request, res: Response) => {
+  /**
+   * Get financial advice from Perplexity AI
+   * This endpoint requires Pro subscription
+   */
+  app.post('/api/perplexity/financial-advice', requireAuth, requireProSubscription, async (req: Request, res: Response) => {
     try {
+      // Validate request body
       const schema = z.object({
-        userId: z.number().int().positive(),
-        question: z.string().optional(),
+        query: z.string().min(10, 'Query must be at least 10 characters long'),
+        category: z.nativeEnum(FinancialTopicCategory).optional(),
+        userContext: z.string().optional()
       });
-      
-      const { userId, question } = schema.parse(req.body);
-      
-      // Check if user ID matches authenticated user
-      if (req.user?.id !== userId) {
-        return res.status(403).json({ message: 'Unauthorized to get advice for this user' });
-      }
-      
-      // Gather relevant financial data for the user
-      const incomeData = await storage.getIncomesByUserId(userId);
-      const expenseData = await storage.getExpensesByUserId(userId);
-      const goalData = await storage.getGoalsByUserId(userId);
-      
-      // Get the most recent balance data
-      const today = new Date();
-      const currentYear = today.getFullYear();
-      const currentMonth = today.getMonth();
-      const balanceData = await storage.getBalance(userId, currentYear, currentMonth);
-      
-      // Prepare prompt with context
-      let prompt = `Based on the following financial information, provide personalized financial advice:
 
-Income data: ${JSON.stringify(incomeData)}
-Expense data: ${JSON.stringify(expenseData)}
-Goal data: ${JSON.stringify(goalData)}
-Balance data: ${JSON.stringify(balanceData)}
-`;
-
-      // Add the question if provided
-      if (question) {
-        prompt += `\nThe user's specific question is: "${question}"`;
-      }
+      const validatedData = schema.parse(req.body);
       
-      // Add formatting instructions
-      prompt += `\n\nYour response should be formatted as valid JSON with the following structure:
-{
-  "advice": "Main advice paragraph",
-  "suggestions": ["Suggestion 1", "Suggestion 2", "Suggestion 3"],
-  "summary": "Brief summary of financial situation"
-}`;
-
-      // Get advice from Perplexity
-      const systemPrompt = 'You are a certified financial advisor specializing in personal finance. Your expertise includes budgeting, debt management, savings strategies, and investment planning. Always provide accurate, relevant, and actionable financial advice. Format your response in valid JSON.';
-      const adviceResult = await getAdviceFromPerplexity(prompt, systemPrompt);
+      // Get financial advice
+      const advice = await perplexityService.getFinancialAdvice(
+        validatedData.query,
+        validatedData.category || FinancialTopicCategory.GENERAL,
+        validatedData.userContext
+      );
       
-      try {
-        // Parse JSON response
-        const parsedResponse = JSON.parse(adviceResult);
-        res.json(parsedResponse);
-      } catch (parseError) {
-        // If not valid JSON, wrap in a basic structure
-        console.error('Error parsing Perplexity response as JSON:', parseError);
-        res.json({
-          advice: adviceResult,
-          suggestions: [],
-          summary: 'Unable to format response properly'
-        });
-      }
+      res.json({ advice });
     } catch (error) {
-      console.error('Error getting financial advice from Perplexity:', error);
+      console.error('Error getting financial advice:', error);
       
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
@@ -86,85 +42,36 @@ Balance data: ${JSON.stringify(balanceData)}
       
       res.status(500).json({ 
         message: 'Failed to get financial advice',
-        error: error instanceof Error ? error.message : String(error)
+        error: error.message
       });
     }
   });
-  
-  // Get financial analysis with citations - Premium feature
-  app.post('/api/perplexity/financial-analysis', requireAuth, requireProSubscription, async (req: Request, res: Response) => {
+
+  /**
+   * Get income allocation recommendation
+   * This endpoint requires Pro subscription
+   */
+  app.post('/api/perplexity/income-allocation', requireAuth, requireProSubscription, async (req: Request, res: Response) => {
     try {
+      // Validate request body
       const schema = z.object({
-        userId: z.number().int().positive(),
-        topic: z.string().optional(),
-        period: z.enum(['week', 'month', 'year']).optional().default('month')
+        monthlyIncome: z.number().positive('Monthly income must be positive'),
+        financialGoals: z.array(z.string()).min(1, 'At least one financial goal is required'),
+        existingExpenses: z.record(z.string(), z.number())
       });
-      
-      const { userId, topic, period } = schema.parse(req.body);
-      
-      // Check if user ID matches authenticated user
-      if (req.user?.id !== userId) {
-        return res.status(403).json({ message: 'Unauthorized to get analysis for this user' });
-      }
-      
-      // Get expense data for the relevant period
-      const today = new Date();
-      const currentYear = today.getFullYear();
-      let expenseData;
-      
-      if (period === 'week') {
-        // For a week analysis, get the current month's data and filter client-side
-        expenseData = await storage.getExpensesByMonth(currentYear, today.getMonth());
-      } else if (period === 'month') {
-        expenseData = await storage.getExpensesByMonth(currentYear, today.getMonth());
-      } else if (period === 'year') {
-        // For a year analysis, we'd ideally collect data for all months
-        // This is simplified for now - in a real implementation, we'd aggregate all months
-        expenseData = await storage.getExpensesByUserId(userId);
-      }
-      
-      // Build prompt
-      let prompt = `Analyze the following financial data for the past ${period}:
 
-Expense data: ${JSON.stringify(expenseData)}`;
-
-      if (topic) {
-        prompt += `\n\nThe user is particularly interested in: "${topic}"`;
-      }
+      const validatedData = schema.parse(req.body);
       
-      prompt += `\n\nProvide a detailed analysis with specific insights, identifying patterns, and making realistic recommendations.
-Format your response as JSON with the following structure:
-{
-  "summary": "Overall financial health assessment",
-  "topCategories": [{"category": "Category name", "amount": 123.45, "percentage": 25.5}],
-  "insights": ["Insight 1", "Insight 2", "Insight 3"],
-  "recommendations": ["Recommendation 1", "Recommendation 2", "Recommendation 3"]
-}`;
-
-      // Get analysis from Perplexity
-      const systemPrompt = 'You are a financial analysis expert with deep expertise in personal finance metrics and patterns. Provide clear, actionable insights based on financial data.';
-      const result = await getFinancialAnalysisWithCitations(prompt, systemPrompt);
+      // Get allocation recommendation
+      const allocation = await perplexityService.getIncomeAllocationRecommendation(
+        validatedData.monthlyIncome,
+        validatedData.financialGoals,
+        validatedData.existingExpenses
+      );
       
-      try {
-        // Parse JSON response
-        const parsedContent = JSON.parse(result.content);
-        res.json({
-          ...parsedContent,
-          citations: result.citations
-        });
-      } catch (parseError) {
-        // If not valid JSON, wrap in a basic structure
-        console.error('Error parsing Perplexity response as JSON:', parseError);
-        res.json({
-          summary: result.content,
-          topCategories: [],
-          insights: [],
-          recommendations: [],
-          citations: result.citations
-        });
-      }
+      res.json({ allocation });
     } catch (error) {
-      console.error('Error getting financial analysis from Perplexity:', error);
+      console.error('Error getting income allocation recommendation:', error);
       
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
@@ -172,52 +79,39 @@ Format your response as JSON with the following structure:
       }
       
       res.status(500).json({ 
-        message: 'Failed to get financial analysis',
-        error: error instanceof Error ? error.message : String(error)
+        message: 'Failed to get income allocation recommendation',
+        error: error.message
       });
     }
   });
-  
-  // Generate investment recommendations - Premium feature
+
+  /**
+   * Get investment recommendations
+   * This endpoint requires Pro subscription
+   */
   app.post('/api/perplexity/investment-recommendations', requireAuth, requireProSubscription, async (req: Request, res: Response) => {
     try {
+      // Validate request body
       const schema = z.object({
-        userId: z.number().int().positive(),
-        riskTolerance: z.enum(['low', 'medium', 'high']).optional(),
-        investmentGoals: z.array(z.string()).optional(),
-        timeHorizon: z.string().optional()
+        riskTolerance: z.enum(['low', 'medium', 'high']),
+        investmentTimeframe: z.enum(['short', 'medium', 'long']),
+        investmentAmount: z.number().positive('Investment amount must be positive'),
+        financialGoals: z.array(z.string()).min(1, 'At least one financial goal is required')
       });
-      
-      const { userId, riskTolerance, investmentGoals, timeHorizon } = schema.parse(req.body);
-      
-      // Check if user ID matches authenticated user
-      if (req.user?.id !== userId) {
-        return res.status(403).json({ message: 'Unauthorized to get recommendations for this user' });
-      }
-      
-      // Get user profile and financial data
-      const profile = await storage.getUserProfile(userId);
-      const incomeData = await storage.getIncomesByUserId(userId);
-      const goalData = await storage.getGoalsByUserId(userId);
-      
-      // Build context
-      let userContext = `User Profile:
-- Income Level: ${getIncomeLevel(incomeData)}
-- Risk Tolerance: ${riskTolerance || 'Medium'}
-- Investment Goals: ${investmentGoals?.join(', ') || 'General wealth building'}
-- Time Horizon: ${timeHorizon || 'Long term (5+ years)'}
 
-Current Financial State:
-- Monthly Income: ${getTotalMonthlyIncome(incomeData)}
-- Financial Goals: ${formatGoals(goalData)}
-`;
-
-      // Get recommendations from Perplexity
-      const recommendations = await generateFinancialRecommendations(userContext);
+      const validatedData = schema.parse(req.body);
       
-      res.json(recommendations);
+      // Get investment recommendations
+      const recommendations = await perplexityService.getInvestmentRecommendations(
+        validatedData.riskTolerance,
+        validatedData.investmentTimeframe,
+        validatedData.investmentAmount,
+        validatedData.financialGoals
+      );
+      
+      res.json({ recommendations });
     } catch (error) {
-      console.error('Error generating investment recommendations:', error);
+      console.error('Error getting investment recommendations:', error);
       
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
@@ -225,47 +119,120 @@ Current Financial State:
       }
       
       res.status(500).json({ 
-        message: 'Failed to generate investment recommendations',
-        error: error instanceof Error ? error.message : String(error)
+        message: 'Failed to get investment recommendations',
+        error: error.message
       });
     }
   });
-}
 
-// Helper functions
-function getIncomeLevel(incomeData: any[]): string {
-  // Calculate total annual income
-  const totalMonthly = getTotalMonthlyIncome(incomeData);
-  const annualIncome = totalMonthly * 12;
-  
-  if (annualIncome < 30000) return 'Low';
-  if (annualIncome < 60000) return 'Lower-Middle';
-  if (annualIncome < 100000) return 'Middle';
-  if (annualIncome < 200000) return 'Upper-Middle';
-  return 'High';
-}
+  /**
+   * Get debt repayment plan
+   * This endpoint requires Pro subscription
+   */
+  app.post('/api/perplexity/debt-repayment-plan', requireAuth, requireProSubscription, async (req: Request, res: Response) => {
+    try {
+      // Validate request body
+      const schema = z.object({
+        debts: z.array(z.object({
+          name: z.string(),
+          balance: z.number().positive('Debt balance must be positive'),
+          interestRate: z.number().min(0, 'Interest rate cannot be negative'),
+          minimumPayment: z.number().min(0, 'Minimum payment cannot be negative')
+        })).min(1, 'At least one debt is required'),
+        monthlyIncomeAvailableForDebt: z.number().positive('Monthly income available for debt must be positive')
+      });
 
-function getTotalMonthlyIncome(incomeData: any[]): number {
-  if (!incomeData || !incomeData.length) return 0;
-  
-  // Sum all income amounts, assuming they're monthly
-  return incomeData.reduce((sum, income) => {
-    const amount = typeof income.amount === 'string' 
-      ? parseFloat(income.amount) 
-      : income.amount;
-    
-    return sum + (isNaN(amount) ? 0 : amount);
-  }, 0);
-}
+      const validatedData = schema.parse(req.body);
+      
+      // Get debt repayment plan
+      const plan = await perplexityService.getDebtRepaymentPlan(
+        validatedData.debts,
+        validatedData.monthlyIncomeAvailableForDebt
+      );
+      
+      res.json({ plan });
+    } catch (error) {
+      console.error('Error getting debt repayment plan:', error);
+      
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      res.status(500).json({ 
+        message: 'Failed to get debt repayment plan',
+        error: error.message
+      });
+    }
+  });
 
-function formatGoals(goalData: any[]): string {
-  if (!goalData || !goalData.length) return 'No specific goals set';
+  /**
+   * Demo endpoint for financial advice - no authentication required
+   * This is useful for displaying examples on the landing page
+   */
+  app.get('/api/perplexity/demo/advice', async (req: Request, res: Response) => {
+    try {
+      const demoQueries = [
+        "What's the 50/30/20 budget rule and how do I apply it?",
+        "How can I start investing with just $500?",
+        "What's the best way to pay off credit card debt?",
+        "How much should I save for an emergency fund?",
+        "What are some side hustles I can start to generate extra income?"
+      ];
+      
+      // Pick a random demo query
+      const randomQuery = demoQueries[Math.floor(Math.random() * demoQueries.length)];
+      
+      // Get financial advice with a short timeout to prevent long wait times
+      const advice = await Promise.race([
+        perplexityService.getFinancialAdvice(randomQuery),
+        new Promise<string>((resolve) => {
+          setTimeout(() => resolve(
+            "Based on the 50/30/20 rule, you should allocate 50% of your after-tax income to needs (housing, food, utilities), 30% to wants (entertainment, dining out), and 20% to savings and debt repayment. To apply it, track your spending for a month, categorize each expense, and adjust your budget to match these percentages. Start by focusing on reducing expenses in your 'wants' category if you're currently spending more than 30% there."
+          ), 3000);
+        })
+      ]);
+      
+      res.json({ 
+        query: randomQuery,
+        advice 
+      });
+    } catch (error) {
+      console.error('Error getting demo financial advice:', error);
+      res.status(500).json({ 
+        message: 'Failed to get demo financial advice',
+        error: error.message
+      });
+    }
+  });
   
-  return goalData.map(goal => {
-    const targetAmount = typeof goal.targetAmount === 'string' 
-      ? parseFloat(goal.targetAmount) 
-      : goal.targetAmount;
-    
-    return `${goal.name}: $${targetAmount} (${goal.isCompleted ? 'Completed' : 'In Progress'})`;
-  }).join(', ');
+  /**
+   * Health check endpoint for Perplexity AI service
+   */
+  app.get('/api/perplexity/health', async (req: Request, res: Response) => {
+    try {
+      // Simple health check - just verify we can connect to the API
+      const testQuery = "What is compound interest?";
+      
+      // Try with a short timeout
+      const result = await Promise.race([
+        perplexityService.getFinancialAdvice(testQuery),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("Perplexity API timeout")), 5000);
+        })
+      ]);
+      
+      res.json({ 
+        status: 'ok',
+        message: 'Perplexity AI API is working'
+      });
+    } catch (error) {
+      console.error('Perplexity health check failed:', error);
+      res.status(503).json({ 
+        status: 'error',
+        message: 'Perplexity AI API is not available',
+        error: error.message
+      });
+    }
+  });
 }
