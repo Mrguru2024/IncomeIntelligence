@@ -2909,7 +2909,7 @@ function renderPageContent(container) {
               // Add click event to tabs
               tab.addEventListener('click', () => {
                 // Simulate tab change - in a real app this would show different content
-                document.querySelectorAll(tabs.querySelectorAll('button')).forEach(t => {
+                tabs.querySelectorAll('button').forEach(t => {
                   t.classList.remove('bg-primary/10', 'text-primary');
                   t.classList.add('text-gray-600', 'hover:bg-gray-100', 'dark:text-gray-300', 'dark:hover:bg-gray-700');
                 });
@@ -3671,7 +3671,7 @@ function renderPageContent(container) {
               
               // Add click event
               tabButton.addEventListener('click', () => {
-                document.querySelectorAll(tabContainer.querySelectorAll('button')).forEach(t => {
+                tabContainer.querySelectorAll('button').forEach(t => {
                   t.classList.remove('bg-gradient-to-r', 'from-red-500', 'to-amber-500', 'text-white', 'shadow-md');
                   t.classList.add('text-gray-600', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-700');
                 });
