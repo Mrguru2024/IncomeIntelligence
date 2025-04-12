@@ -255,102 +255,98 @@ function navigateTo(page) {
 
 // Create page layout with sidebar
 function createLayout() {
-  try {
-    // Container for the entire app
-    const appContainer = document.createElement('div');
-    appContainer.className = 'app-container';
-    appContainer.style.display = 'flex';
-    appContainer.style.height = '100vh';
-    appContainer.style.overflow = 'hidden';
-    
-    // Import and render the sidebar
-    import('../sidebar.js').then(module => {
-      try {
-        // Create the sidebar
-        const sidebar = module.createSidebar();
-        sidebar.style.width = '240px';
-        sidebar.style.flexShrink = 0;
-        sidebar.style.borderRight = '1px solid var(--color-border)';
-        sidebar.style.backgroundColor = 'var(--color-bg-primary)';
-        sidebar.style.overflow = 'auto';
-        sidebar.style.zIndex = '10';
-        
-        // Handle mobile viewport sidebar behavior
-        const viewportWidth = window.innerWidth;
-        if (viewportWidth < 768) {
-          // On mobile, make sidebar initially hidden
-          sidebar.style.width = '240px';
-          sidebar.style.position = 'fixed';
-          sidebar.style.top = '0';
-          sidebar.style.left = appState.ui.sidebarOpen ? '0' : '-240px';
-          sidebar.style.bottom = '0';
-          sidebar.style.transition = 'left 0.3s ease';
-          
-          // Add backdrop when sidebar is open on mobile
-          if (appState.ui.sidebarOpen) {
-            const backdrop = document.createElement('div');
-            backdrop.className = 'sidebar-backdrop';
-            backdrop.style.position = 'fixed';
-            backdrop.style.top = '0';
-            backdrop.style.left = '0';
-            backdrop.style.right = '0';
-            backdrop.style.bottom = '0';
-            backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-            backdrop.style.zIndex = '5';
-            backdrop.style.opacity = '0';
-            backdrop.style.transition = 'opacity 0.3s ease';
-            
-            // Animate in
-            setTimeout(() => {
-              backdrop.style.opacity = '1';
-            }, 10);
-            
-            // Close sidebar when backdrop is clicked
-            backdrop.addEventListener('click', () => {
-              appState.ui.sidebarOpen = false;
-              renderApp();
-            });
-            
-            appContainer.appendChild(backdrop);
-          }
-        }
-        
-        // Create the main content area
-        const main = document.createElement('main');
-        main.style.flex = '1';
-        main.style.padding = 'var(--container-padding)';
-        main.style.overflow = 'auto';
-        main.style.backgroundColor = 'var(--color-bg-secondary)';
-        
-        // Render the page content
-        renderPageContent(main);
-        
-        // Add elements to the container
-        appContainer.appendChild(sidebar);
-        appContainer.appendChild(main);
-        
-        const app = document.getElementById('app');
-        app.innerHTML = '';
-        app.appendChild(appContainer);
-      } catch (error) {
-        console.error('Error creating sidebar:', error);
-        createFallbackHeader();
-      }
-    }).catch(error => {
-      console.error('Error loading sidebar module:', error);
-      createFallbackHeader();
-    });
-  } catch (error) {
-    console.error('Error creating layout:', error);
-    createFallbackHeader();
+  // Container for the entire app
+  const root = document.getElementById('root');
+  if (!root) {
+    console.error('Root element not found');
+    return;
   }
+  
+  // Start with clean slate
+  root.innerHTML = '';
+  
+  // Create a simplified layout
+  const simpleContainer = document.createElement('div');
+  simpleContainer.className = 'app-container';
+  simpleContainer.style.display = 'flex';
+  simpleContainer.style.flexDirection = 'column';
+  simpleContainer.style.minHeight = '100vh';
+    
+  // Create a simple header
+  const header = createSimpleHeader();
+  
+  // Create main content area
+  const main = document.createElement('main');
+  main.style.flex = '1';
+  main.style.padding = '1rem';
+  main.style.backgroundColor = 'var(--color-bg-secondary, #f5f5f5)';
+  
+  // Render the page content
+  renderPageContent(main);
+  
+  // Assemble the page
+  simpleContainer.appendChild(header);
+  simpleContainer.appendChild(main);
+  root.appendChild(simpleContainer);
+}
+
+// Create a simple header
+function createSimpleHeader() {
+  const header = document.createElement('header');
+  header.className = 'app-header';
+  header.style.backgroundColor = 'var(--color-primary, #34A853)';
+  header.style.color = 'white';
+  header.style.padding = '1rem';
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'center';
+  header.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+  
+  // Logo
+  const logo = document.createElement('div');
+  logo.className = 'app-logo';
+  logo.innerHTML = '<strong>Stackr</strong> Finance';
+  logo.style.fontSize = '1.25rem';
+  
+  // Navigation
+  const nav = document.createElement('nav');
+  nav.style.display = 'flex';
+  nav.style.gap = '1rem';
+  
+  // Basic navigation links
+  const pages = ['dashboard', 'income', 'expenses', 'settings'];
+  
+  pages.forEach(page => {
+    const link = document.createElement('a');
+    link.textContent = page.charAt(0).toUpperCase() + page.slice(1);
+    link.href = `#${page}`;
+    link.style.color = 'white';
+    link.style.textDecoration = 'none';
+    
+    if (appState.currentPage === page) {
+      link.style.fontWeight = 'bold';
+      link.style.borderBottom = '2px solid white';
+    }
+    
+    nav.appendChild(link);
+  });
+  
+  header.appendChild(logo);
+  header.appendChild(nav);
+  
+  return header;
 }
 
 // Create a fallback header when sidebar fails to load
 function createFallbackHeader() {
   try {
-    const app = document.getElementById('app');
-    app.innerHTML = '';
+    const root = document.getElementById('root');
+    if (!root) {
+      console.error('Root element not found');
+      return;
+    }
+    
+    root.innerHTML = '';
     
     const appContainer = document.createElement('div');
     appContainer.className = 'app-container';
@@ -361,9 +357,9 @@ function createFallbackHeader() {
     // Create a simple header
     const header = document.createElement('header');
     header.className = 'app-header';
-    header.style.backgroundColor = 'var(--color-primary)';
+    header.style.backgroundColor = 'var(--color-primary, #34A853)';
     header.style.color = 'white';
-    header.style.padding = 'var(--space-4)';
+    header.style.padding = '1rem';
     header.style.display = 'flex';
     header.style.justifyContent = 'space-between';
     header.style.alignItems = 'center';
@@ -383,20 +379,15 @@ function createFallbackHeader() {
       pages.forEach(page => {
         const link = document.createElement('a');
         link.textContent = page.charAt(0).toUpperCase() + page.slice(1);
-        link.href = '#';
+        link.href = `#${page}`;
         link.style.color = 'white';
-        link.style.marginLeft = 'var(--space-4)';
+        link.style.marginLeft = '1rem';
         link.style.textDecoration = 'none';
         
         if (appState.currentPage === page) {
           link.style.fontWeight = 'bold';
           link.style.textDecoration = 'underline';
         }
-        
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          navigateTo(page);
-        });
         
         nav.appendChild(link);
       });
@@ -405,20 +396,15 @@ function createFallbackHeader() {
       ['login', 'register'].forEach(page => {
         const link = document.createElement('a');
         link.textContent = page.charAt(0).toUpperCase() + page.slice(1);
-        link.href = '#';
+        link.href = `#${page}`;
         link.style.color = 'white';
-        link.style.marginLeft = 'var(--space-4)';
+        link.style.marginLeft = '1rem';
         link.style.textDecoration = 'none';
         
         if (appState.currentPage === page) {
           link.style.fontWeight = 'bold';
           link.style.textDecoration = 'underline';
         }
-        
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          navigateTo(page);
-        });
         
         nav.appendChild(link);
       });
@@ -430,22 +416,24 @@ function createFallbackHeader() {
     // Create main content area
     const main = document.createElement('main');
     main.style.flex = '1';
-    main.style.padding = 'var(--container-padding)';
+    main.style.padding = '1rem';
     main.style.overflow = 'auto';
-    main.style.backgroundColor = 'var(--color-bg-secondary)';
+    main.style.backgroundColor = 'var(--color-bg-secondary, #f5f5f5)';
     
     // Render the page content
     renderPageContent(main);
     
     appContainer.appendChild(header);
     appContainer.appendChild(main);
-    app.appendChild(appContainer);
+    root.appendChild(appContainer);
   } catch (error) {
     console.error('Error creating fallback header:', error);
     
     // Last resort fallback
-    const app = document.getElementById('app');
-    app.innerHTML = '<div style="padding: 20px; text-align: center;"><h1>Stackr Finance</h1><p>An error occurred. Please refresh the page.</p></div>';
+    const root = document.getElementById('root');
+    if (root) {
+      root.innerHTML = '<div style="padding: 20px; text-align: center;"><h1>Stackr Finance</h1><p>An error occurred. Please refresh the page.</p></div>';
+    }
   }
 }
 
@@ -464,8 +452,8 @@ function renderPageContent(container) {
           <h1 style="font-size: 2.5rem; margin-bottom: 20px;">Welcome to Stackr Finance</h1>
           <p style="font-size: 1.25rem; margin-bottom: 30px;">Track your income, manage your finances, and build wealth.</p>
           <div>
-            <button class="btn-primary" style="margin-right: 10px;">Get Started</button>
-            <button class="btn-secondary">Learn More</button>
+            <button class="btn-primary" style="margin-right: 10px; background-color: var(--color-primary, #34A853); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer;">Get Started</button>
+            <button class="btn-secondary" style="background-color: transparent; color: var(--color-primary, #34A853); border: 1px solid var(--color-primary, #34A853); padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer;">Learn More</button>
           </div>
         </div>
       `;
