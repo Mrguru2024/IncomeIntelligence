@@ -2795,26 +2795,46 @@ function renderPageContent(container) {
         break;
         
       case 'moneymentor':
-        // Import the Money Mentor page module
-        import('../money-mentor.js').then(module => {
-          // Use async IIFE since renderMoneyMentorPage is async
-          (async () => {
-            try {
-              if (!appState || !appState.user) {
-                throw new Error('User data not available');
+        try {
+          // Use the fully resolved module path to ensure proper loading
+          const modulePath = new URL('../money-mentor.js', import.meta.url).toString();
+          console.log('Loading Money Mentor from:', modulePath);
+          
+          // Import the Money Mentor page module with fixed path
+          import(modulePath).then(module => {
+            // Use async IIFE since renderMoneyMentorPage is async
+            (async () => {
+              try {
+                if (!appState || !appState.user) {
+                  throw new Error('User data not available');
+                }
+                
+                // Verify the module has the required function
+                if (typeof module.renderMoneyMentorPage !== 'function') {
+                  throw new Error('renderMoneyMentorPage function not found in module');
+                }
+                
+                const mentorPage = await module.renderMoneyMentorPage(appState.user.id);
+                
+                // Verify we got a valid DOM element
+                if (!(mentorPage instanceof HTMLElement)) {
+                  throw new Error('Invalid return from renderMoneyMentorPage');
+                }
+                
+                container.appendChild(mentorPage);
+              } catch (error) {
+                console.error('Error rendering money mentor page:', error);
+                container.appendChild(createErrorMessage('Failed to load Money Mentor. Please check your API keys and try again.'));
               }
-              
-              const mentorPage = await module.renderMoneyMentorPage(appState.user.id);
-              container.appendChild(mentorPage);
-            } catch (error) {
-              console.error('Error rendering money mentor page:', error);
-              container.appendChild(createErrorMessage('Failed to load Money Mentor. Please check your API keys and try again.'));
-            }
-          })();
-        }).catch(error => {
-          console.error('Error loading money mentor module:', error);
-          container.appendChild(createErrorMessage('Failed to load Money Mentor module. Please refresh the page and try again.'));
-        });
+            })();
+          }).catch(error => {
+            console.error('Error loading money mentor module:', error);
+            container.appendChild(createErrorMessage('Failed to load Money Mentor module. Please refresh the page and try again.'));
+          });
+        } catch (outerError) {
+          console.error('Critical error initializing Money Mentor module:', outerError);
+          container.appendChild(createErrorMessage('Critical error loading Money Mentor. Please reload the application.'));
+        }
         break;
         
       case 'blog':
@@ -2866,26 +2886,46 @@ function renderPageContent(container) {
         });
         break;
       case 'subscriptionsniper':
-        // Import the subscription sniper page module
-        import('../subscription-sniper.js').then(module => {
-          // Use async IIFE since renderSubscriptionSniperPage is async
-          (async () => {
-            try {
-              if (!appState || !appState.user) {
-                throw new Error('User data not available');
+        try {
+          // Use the fully resolved module path to ensure proper loading
+          const modulePath = new URL('../subscription-sniper.js', import.meta.url).toString();
+          console.log('Loading Subscription Sniper from:', modulePath);
+          
+          // Import the subscription sniper page module with resolved path
+          import(modulePath).then(module => {
+            // Use async IIFE since renderSubscriptionSniperPage is async
+            (async () => {
+              try {
+                if (!appState || !appState.user) {
+                  throw new Error('User data not available');
+                }
+                
+                // Verify the module has the required function
+                if (typeof module.renderSubscriptionSniperPage !== 'function') {
+                  throw new Error('renderSubscriptionSniperPage function not found in module');
+                }
+                
+                const sniperPage = await module.renderSubscriptionSniperPage(appState.user.id);
+                
+                // Verify we got a valid DOM element
+                if (!(sniperPage instanceof HTMLElement)) {
+                  throw new Error('Invalid return from renderSubscriptionSniperPage');
+                }
+                
+                container.appendChild(sniperPage);
+              } catch (error) {
+                console.error('Error rendering subscription sniper page:', error);
+                container.appendChild(createErrorMessage('Failed to load subscription data. Please check your subscription settings and try again.'));
               }
-              
-              const sniperPage = await module.renderSubscriptionSniperPage(appState.user.id);
-              container.appendChild(sniperPage);
-            } catch (error) {
-              console.error('Error rendering subscription sniper page:', error);
-              container.appendChild(createErrorMessage('Failed to load subscription data. Please check your subscription settings and try again.'));
-            }
-          })();
-        }).catch(error => {
-          console.error('Error loading subscription sniper module:', error);
-          container.appendChild(createErrorMessage('Failed to load Subscription Sniper module. Please refresh the page and try again.'));
-        });
+            })();
+          }).catch(error => {
+            console.error('Error loading subscription sniper module:', error);
+            container.appendChild(createErrorMessage('Failed to load Subscription Sniper module. Please refresh the page and try again.'));
+          });
+        } catch (outerError) {
+          console.error('Critical error initializing Subscription Sniper module:', outerError);
+          container.appendChild(createErrorMessage('Critical error loading Subscription Sniper. Please reload the application.'));
+        }
         break;
       case 'bankconnections':
         // Import the bank connections page module
