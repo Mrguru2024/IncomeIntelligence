@@ -244,6 +244,9 @@ function saveStateToStorage() {
   }
 }
 
+// Make saveStateToStorage globally accessible for auth.js
+window.saveStateToStorage = saveStateToStorage;
+
 // Router function - make navigateTo function accessible globally
 window.navigateTo = function(page) {
   appState.currentPage = page;
@@ -459,7 +462,7 @@ loadStateFromStorage();
 function renderApp() {
   console.log('Rendering app...');
   
-  const appContainer = document.getElementById('app');
+  const appContainer = document.getElementById('root');
   if (!appContainer) {
     console.error('App container not found');
     return;
