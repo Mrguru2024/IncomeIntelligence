@@ -3196,11 +3196,17 @@ document.addEventListener('DOMContentLoaded', () => {
 function initFinancialMascot() {
   // Import and initialize the mascot
   import('../financial-mascot.js').then(module => {
-    // Initialize the mascot when user is on a protected page
-    const mascot = module.initMascot();
-    
-    // Store the mascot instance in the appState for future access
-    appState.financialMascot = mascot;
+    try {
+      // Verify that the imported module has the required functions
+      if (typeof module.initMascot !== 'function') {
+        throw new Error('initMascot function not found in module');
+      }
+      
+      // Initialize the mascot when user is on a protected page
+      const mascot = module.initMascot();
+      
+      // Store the mascot instance in the appState for future access
+      appState.financialMascot = mascot;
     
     // Add mascot settings link to the settings page
     if (appState.currentPage === 'settings') {
@@ -3251,6 +3257,9 @@ function initFinancialMascot() {
         // Show a tip
         mascot.showNextTip();
       }, 3000); // Show tip after 3 seconds
+    }
+    } catch (err) {
+      console.error('Error setting up financial mascot:', err);
     }
   }).catch(error => {
     console.error('Error initializing financial mascot:', error);

@@ -28,9 +28,10 @@ export function createSidebar(appState) {
   }
   
   // Determine if user has Pro access - global for this sidebar
+  // Adding additional null/undefined checks to avoid TypeErrors
   const isPro = (appState.user.subscriptionTier === 'pro') || 
                 (appState.user.subscriptionTier === 'lifetime') || 
-                (appState.user.username && (
+                (appState.user.username && typeof appState.user.username === 'string' && (
                   appState.user.username.toLowerCase().includes('pro') || 
                   appState.user.username === 'ProUser'
                 )) || 
