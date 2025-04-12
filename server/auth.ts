@@ -46,7 +46,7 @@ async function comparePasswords(supplied: string, stored: string): Promise<boole
 }
 
 // Create JWT token
-function createToken(user: Express.User): string {
+function createToken(user: Express.User, rememberMe: boolean = false): string {
   const payload = {
     id: user.id,
     username: user.username,
@@ -59,7 +59,7 @@ function createToken(user: Express.User): string {
   };
   
   return jwt.sign(payload, process.env.JWT_SECRET || 'stackr-jwt-secret', {
-    expiresIn: '7d',
+    expiresIn: rememberMe ? '30d' : '24h', // 30 days if remember me is checked, 24 hours otherwise
   });
 }
 
@@ -102,7 +102,7 @@ export function setupAuth(app: Express) {
     }),
     cookie: {
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours by default
     },
   };
   
@@ -218,17 +218,46 @@ export function setupAuth(app: Express) {
         return res.status(401).json({ message: info?.message || 'Authentication failed' });
       }
       
+      // Handle "Remember Me" option
+      const rememberMe = req.body.rememberMe === true;
+      
+      // Set session cookie expiration based on "Remember Me" option
+      if (req.session) {
+        if (rememberMe) {
+          // 30 days if "Remember Me" is checked
+          req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+          console.log('Setting session with extended expiration (30 days) for Remember Me');
+        } else {
+          // 24 hours by default
+          req.session.cookie.maxAge = 24 * 60 * 60 * 1000;
+          console.log('Setting session with standard expiration (24 hours)');
+        }
+      }
+      
       req.login(user, (err) => {
         if (err) {
           return next(err);
         }
         
         // Generate JWT token for API access
-        const token = createToken(user);
+        // Also adjust token expiration based on rememberMe
+        const token = jwt.sign({
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          subscriptionTier: user.subscriptionTier,
+          subscriptionActive: user.subscriptionActive,
+          onboardingCompleted: user.onboardingCompleted,
+          onboardingStep: user.onboardingStep
+        }, process.env.JWT_SECRET || 'stackr-jwt-secret', {
+          expiresIn: rememberMe ? '30d' : '24h', // 30 days vs 24 hours
+        });
         
         res.json({
           ...user,
           token,
+          rememberMe, // Return the rememberMe state to the client for reference
         });
       });
     })(req, res, next);
