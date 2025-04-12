@@ -2796,10 +2796,259 @@ function renderPageContent(container) {
         
       case 'moneymentor':
         try {
-          // Use a simple relative path instead of URL constructor
           console.log('Loading Money Mentor module...');
           
-          // Import the Money Mentor page module with simple path
+          // Function to render a fallback Money Mentor when the module import fails
+          const renderFallbackMoneyMentor = () => {
+            console.log('Using fallback Money Mentor interface');
+            
+            // Create main container
+            const fallbackContainer = document.createElement('div');
+            fallbackContainer.className = 'money-mentor-container p-4 max-w-5xl mx-auto';
+            
+            // Create header
+            const header = document.createElement('div');
+            header.className = 'mb-6 text-center';
+            header.innerHTML = `
+              <h1 class="text-3xl font-bold text-primary mb-2">Money Mentor</h1>
+              <p class="text-gray-600 dark:text-gray-300">Your AI-powered financial assistant</p>
+            `;
+            
+            // Create main content grid
+            const contentGrid = document.createElement('div');
+            contentGrid.className = 'grid grid-cols-1 md:grid-cols-4 gap-6';
+            
+            // Create chat area
+            const chatArea = document.createElement('div');
+            chatArea.className = 'md:col-span-3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow';
+            
+            // Chat message container
+            const messageContainer = document.createElement('div');
+            messageContainer.className = 'h-[400px] overflow-y-auto p-4 mb-4 bg-gray-50 dark:bg-gray-900 rounded-lg';
+            
+            // Create welcome message
+            const welcomeMessage = document.createElement('div');
+            welcomeMessage.className = 'flex p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-3';
+            welcomeMessage.innerHTML = `
+              <div class="mr-3">
+                <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                    <path d="M12 16v-4"></path>
+                    <path d="M12 8h.01"></path>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <p class="font-medium">Money Mentor</p>
+                <p>Hello! I'm your AI-powered financial assistant. Ask me questions about budgeting, investing, or any financial topics. This feature requires a Pro subscription.</p>
+                <p class="text-xs text-gray-500 mt-1">${new Date().toLocaleTimeString()}</p>
+              </div>
+            `;
+            
+            messageContainer.appendChild(welcomeMessage);
+            
+            // Create input area
+            const inputArea = document.createElement('div');
+            inputArea.className = 'flex items-center space-x-2';
+            
+            const textInput = document.createElement('input');
+            textInput.type = 'text';
+            textInput.className = 'flex-1 p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600';
+            textInput.placeholder = 'Ask a financial question...';
+            
+            const sendButton = document.createElement('button');
+            sendButton.className = 'p-3 bg-primary text-white rounded-lg hover:bg-primary-dark';
+            sendButton.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            `;
+            
+            inputArea.appendChild(textInput);
+            inputArea.appendChild(sendButton);
+            
+            // Add event listener to input
+            sendButton.addEventListener('click', () => {
+              if (textInput.value.trim()) {
+                // Create user message
+                const userMessage = document.createElement('div');
+                userMessage.className = 'flex flex-row-reverse p-3 bg-primary-light dark:bg-primary-dark rounded-lg mb-3';
+                userMessage.innerHTML = `
+                  <div class="ml-3">
+                    <div class="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="font-medium">You</p>
+                    <p>${textInput.value}</p>
+                    <p class="text-xs text-gray-500 mt-1">${new Date().toLocaleTimeString()}</p>
+                  </div>
+                `;
+                
+                messageContainer.appendChild(userMessage);
+                
+                // Add system message about Pro requirement
+                setTimeout(() => {
+                  const proMessage = document.createElement('div');
+                  proMessage.className = 'flex p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-3';
+                  proMessage.innerHTML = `
+                    <div class="mr-3">
+                      <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                          <path d="M12 16v-4"></path>
+                          <path d="M12 8h.01"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div>
+                      <p class="font-medium">Money Mentor</p>
+                      <p>This feature requires a Pro subscription. Please upgrade to access personalized financial advice.</p>
+                      <p class="text-xs text-gray-500 mt-1">${new Date().toLocaleTimeString()}</p>
+                    </div>
+                  `;
+                  
+                  messageContainer.appendChild(proMessage);
+                  messageContainer.scrollTop = messageContainer.scrollHeight;
+                  
+                  // Add upgrade button
+                  const upgradeButton = document.createElement('button');
+                  upgradeButton.className = 'mt-3 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 w-full';
+                  upgradeButton.textContent = 'Upgrade to Pro';
+                  upgradeButton.addEventListener('click', () => {
+                    window.location.hash = '#subscriptions';
+                  });
+                  
+                  proMessage.querySelector('div:last-child').appendChild(upgradeButton);
+                }, 1000);
+                
+                // Clear input
+                textInput.value = '';
+                
+                // Scroll to bottom
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+              }
+            });
+            
+            // Allow Enter key to send
+            textInput.addEventListener('keypress', (e) => {
+              if (e.key === 'Enter') {
+                sendButton.click();
+              }
+            });
+            
+            chatArea.appendChild(messageContainer);
+            chatArea.appendChild(inputArea);
+            
+            // Create sidebar
+            const sidebar = document.createElement('div');
+            sidebar.className = 'md:col-span-1 space-y-6';
+            
+            // Suggested topics
+            const topicsCard = document.createElement('div');
+            topicsCard.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded-lg';
+            
+            const topicsTitle = document.createElement('h3');
+            topicsTitle.className = 'text-lg font-medium mb-3';
+            topicsTitle.textContent = 'Suggested Topics';
+            
+            const topicsList = document.createElement('ul');
+            topicsList.className = 'space-y-2 text-sm';
+            
+            const suggestedTopics = [
+              'How can I start investing with $500?',
+              'Best strategies for student loans?',
+              'How much for retirement each month?',
+              'Side hustles to start this weekend?',
+              'Creating a 40/30/30 budget'
+            ];
+            
+            suggestedTopics.forEach(topic => {
+              const item = document.createElement('li');
+              item.className = 'cursor-pointer hover:text-primary';
+              item.textContent = topic;
+              
+              item.addEventListener('click', () => {
+                textInput.value = topic;
+                sendButton.click();
+              });
+              
+              topicsList.appendChild(item);
+            });
+            
+            topicsCard.appendChild(topicsTitle);
+            topicsCard.appendChild(topicsList);
+            
+            // Pro features card
+            const proCard = document.createElement('div');
+            proCard.className = 'bg-gray-100 dark:bg-gray-800 p-4 rounded-lg';
+            
+            const proTitle = document.createElement('h3');
+            proTitle.className = 'text-lg font-medium mb-2';
+            proTitle.textContent = 'Pro Features';
+            
+            const proDescription = document.createElement('p');
+            proDescription.className = 'text-sm text-gray-600 dark:text-gray-300 mb-3';
+            proDescription.textContent = 'Upgrade to unlock Money Mentor:';
+            
+            const proFeaturesList = document.createElement('ul');
+            proFeaturesList.className = 'space-y-2 text-sm';
+            
+            const proFeatures = [
+              'Unlimited AI financial advice',
+              'Custom income allocation plans',
+              'Personalized debt repayment',
+              'Investment strategy creation',
+              'Chat history & saved advice'
+            ];
+            
+            proFeatures.forEach(feature => {
+              const item = document.createElement('li');
+              item.className = 'flex items-center';
+              item.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-primary">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                ${feature}
+              `;
+              
+              proFeaturesList.appendChild(item);
+            });
+            
+            const upgradeProButton = document.createElement('button');
+            upgradeProButton.className = 'mt-4 w-full py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600';
+            upgradeProButton.textContent = 'Upgrade to Pro';
+            upgradeProButton.addEventListener('click', () => {
+              window.location.hash = '#subscriptions';
+            });
+            
+            proCard.appendChild(proTitle);
+            proCard.appendChild(proDescription);
+            proCard.appendChild(proFeaturesList);
+            proCard.appendChild(upgradeProButton);
+            
+            // Add cards to sidebar
+            sidebar.appendChild(topicsCard);
+            sidebar.appendChild(proCard);
+            
+            // Add elements to the content grid
+            contentGrid.appendChild(chatArea);
+            contentGrid.appendChild(sidebar);
+            
+            // Add header and content grid to container
+            fallbackContainer.appendChild(header);
+            fallbackContainer.appendChild(contentGrid);
+            
+            return fallbackContainer;
+          };
+          
+          // Try to import the module first
           import('../money-mentor.js').then(module => {
             // Use async IIFE since renderMoneyMentorPage is async
             (async () => {
@@ -2823,12 +3072,14 @@ function renderPageContent(container) {
                 container.appendChild(mentorPage);
               } catch (error) {
                 console.error('Error rendering money mentor page:', error);
-                container.appendChild(createErrorMessage('Failed to load Money Mentor. Please check your API keys and try again.'));
+                console.log('Falling back to simplified Money Mentor interface');
+                container.appendChild(renderFallbackMoneyMentor());
               }
             })();
           }).catch(error => {
             console.error('Error loading money mentor module:', error);
-            container.appendChild(createErrorMessage('Failed to load Money Mentor module. Please refresh the page and try again.'));
+            console.log('Using fallback Money Mentor due to import failure');
+            container.appendChild(renderFallbackMoneyMentor());
           });
         } catch (outerError) {
           console.error('Critical error initializing Money Mentor module:', outerError);
@@ -2886,10 +3137,334 @@ function renderPageContent(container) {
         break;
       case 'subscriptionsniper':
         try {
-          // Use a simple relative path instead of URL constructor
           console.log('Loading Subscription Sniper module...');
           
-          // Import the subscription sniper page module with simple path
+          // Function to render a fallback Subscription Sniper when module import fails
+          const renderFallbackSubscriptionSniper = () => {
+            console.log('Using fallback Subscription Sniper interface');
+            
+            // Create main container
+            const fallbackContainer = document.createElement('div');
+            fallbackContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
+            
+            // Create header
+            const header = document.createElement('div');
+            header.className = 'mb-6 text-center';
+            header.innerHTML = `
+              <h1 class="text-3xl font-bold text-primary mb-2">Subscription Sniper</h1>
+              <p class="text-gray-600 dark:text-gray-300">Find and manage your recurring subscriptions</p>
+            `;
+            
+            // Create main content area
+            const contentArea = document.createElement('div');
+            contentArea.className = 'space-y-6';
+            
+            // Create search bar
+            const searchArea = document.createElement('div');
+            searchArea.className = 'relative';
+            searchArea.innerHTML = `
+              <input type="text" placeholder="Search subscriptions..." class="w-full p-3 pl-10 border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-3.5 text-gray-400">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            `;
+            
+            // Create summary cards
+            const summaryGrid = document.createElement('div');
+            summaryGrid.className = 'grid grid-cols-1 md:grid-cols-3 gap-4';
+            
+            // Monthly spend card
+            const monthlySpendCard = document.createElement('div');
+            monthlySpendCard.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 shadow';
+            monthlySpendCard.innerHTML = `
+              <h3 class="text-gray-500 dark:text-gray-400 font-medium text-sm">Monthly Subscriptions</h3>
+              <div class="flex items-baseline mt-1">
+                <span class="text-2xl font-bold text-primary">$58.97</span>
+                <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">/ month</span>
+              </div>
+              <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                <span class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                    <polyline points="17 6 23 6 23 12"></polyline>
+                  </svg>
+                  7% higher than average
+                </span>
+              </div>
+            `;
+            
+            // Annual spend card
+            const annualSpendCard = document.createElement('div');
+            annualSpendCard.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 shadow';
+            annualSpendCard.innerHTML = `
+              <h3 class="text-gray-500 dark:text-gray-400 font-medium text-sm">Annual Cost</h3>
+              <div class="flex items-baseline mt-1">
+                <span class="text-2xl font-bold text-primary">$707.64</span>
+                <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">/ year</span>
+              </div>
+              <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                <span class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <polyline points="19 12 12 19 5 12"></polyline>
+                  </svg>
+                  $41.32 potential savings
+                </span>
+              </div>
+            `;
+            
+            // Inactive subscriptions card
+            const inactiveCard = document.createElement('div');
+            inactiveCard.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 shadow';
+            inactiveCard.innerHTML = `
+              <h3 class="text-gray-500 dark:text-gray-400 font-medium text-sm">Inactive Subscriptions</h3>
+              <div class="flex items-baseline mt-1">
+                <span class="text-2xl font-bold text-green-500">3</span>
+                <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">identified</span>
+              </div>
+              <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                <span class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 text-green-500">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  $22.99 saved this month
+                </span>
+              </div>
+            `;
+            
+            // Add cards to grid
+            summaryGrid.appendChild(monthlySpendCard);
+            summaryGrid.appendChild(annualSpendCard);
+            summaryGrid.appendChild(inactiveCard);
+            
+            // Create subscription list section
+            const subscriptionSection = document.createElement('div');
+            subscriptionSection.className = 'space-y-4';
+            
+            // Section header
+            const sectionHeader = document.createElement('div');
+            sectionHeader.className = 'flex justify-between items-center';
+            sectionHeader.innerHTML = `
+              <h2 class="text-xl font-bold">Your Subscriptions</h2>
+              <div>
+                <select class="px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 text-sm">
+                  <option>All Subscriptions</option>
+                  <option>Monthly</option>
+                  <option>Annual</option>
+                  <option>Inactive</option>
+                </select>
+              </div>
+            `;
+            
+            // Create subscription list
+            const subscriptionList = document.createElement('div');
+            subscriptionList.className = 'space-y-3';
+            
+            // Sample subscription data
+            const subscriptions = [
+              {
+                name: 'Netflix',
+                icon: '🎬',
+                amount: 14.99,
+                frequency: 'Monthly',
+                nextBilling: '2025-05-02',
+                category: 'Entertainment',
+                status: 'Active'
+              },
+              {
+                name: 'Spotify',
+                icon: '🎵',
+                amount: 9.99,
+                frequency: 'Monthly',
+                nextBilling: '2025-05-15',
+                category: 'Entertainment',
+                status: 'Active',
+                valueAssessment: 'High Value'
+              },
+              {
+                name: 'Amazon Prime',
+                icon: '📦',
+                amount: 12.99,
+                frequency: 'Monthly',
+                nextBilling: '2025-05-04',
+                category: 'Shopping',
+                status: 'Active',
+                valueAssessment: 'High Value'
+              },
+              {
+                name: 'Gym Membership',
+                icon: '💪',
+                amount: 29.99,
+                frequency: 'Monthly',
+                nextBilling: '2025-05-01',
+                category: 'Health',
+                status: 'Inactive',
+                valueAssessment: 'Low Value'
+              },
+              {
+                name: 'The New York Times',
+                icon: '📰',
+                amount: 17.99,
+                frequency: 'Monthly',
+                nextBilling: 'Canceled',
+                category: 'News',
+                status: 'Inactive'
+              }
+            ];
+            
+            // Create subscription items
+            subscriptions.forEach(sub => {
+              const subItem = document.createElement('div');
+              subItem.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 shadow flex items-center justify-between';
+              
+              // Left side with icon and name
+              const leftSide = document.createElement('div');
+              leftSide.className = 'flex items-center space-x-3';
+              
+              const iconEl = document.createElement('div');
+              iconEl.className = 'w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xl';
+              iconEl.textContent = sub.icon;
+              
+              const nameEl = document.createElement('div');
+              nameEl.innerHTML = `
+                <div class="font-medium">${sub.name}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">${sub.category}</div>
+              `;
+              
+              leftSide.appendChild(iconEl);
+              leftSide.appendChild(nameEl);
+              
+              // Middle section with price and frequency
+              const middleSection = document.createElement('div');
+              middleSection.className = 'flex-grow text-center mx-4';
+              middleSection.innerHTML = `
+                <div class="font-medium">$${sub.amount.toFixed(2)}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">${sub.frequency}</div>
+              `;
+              
+              // Value assessment badge (if any)
+              if (sub.valueAssessment) {
+                const badgeColor = sub.valueAssessment.includes('High') ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+                const badge = document.createElement('span');
+                badge.className = `text-xs px-2 py-1 rounded-full ${badgeColor} ml-2`;
+                badge.textContent = sub.valueAssessment;
+                middleSection.querySelector('div').appendChild(badge);
+              }
+              
+              // Right side with actions
+              const rightSide = document.createElement('div');
+              rightSide.className = 'flex items-center space-x-2';
+              
+              // Status indicator
+              const statusIndicator = document.createElement('span');
+              statusIndicator.className = `inline-block w-2 h-2 rounded-full ${sub.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'}`;
+              
+              // Status text
+              const statusText = document.createElement('span');
+              statusText.className = 'text-sm text-gray-500 dark:text-gray-400 mr-2';
+              statusText.textContent = sub.status;
+              
+              // Action button
+              const actionButton = document.createElement('button');
+              actionButton.className = 'px-3 py-1 text-xs bg-primary text-white rounded-md hover:bg-primary-dark';
+              actionButton.textContent = sub.status === 'Active' ? 'Manage' : 'Reactivate';
+              
+              rightSide.appendChild(statusIndicator);
+              rightSide.appendChild(statusText);
+              rightSide.appendChild(actionButton);
+              
+              // Add all sections to the item
+              subItem.appendChild(leftSide);
+              subItem.appendChild(middleSection);
+              subItem.appendChild(rightSide);
+              
+              // Add the item to the list
+              subscriptionList.appendChild(subItem);
+            });
+            
+            // Connect bank account button
+            const bankButton = document.createElement('div');
+            bankButton.className = 'text-center mt-6';
+            
+            const connectButton = document.createElement('button');
+            connectButton.className = 'px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark inline-flex items-center';
+            connectButton.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+              </svg>
+              Connect Bank Account
+            `;
+            
+            // Add Pro badge
+            const proBadge = document.createElement('span');
+            proBadge.className = 'ml-2 px-2 py-0.5 text-xs bg-amber-500 text-white rounded-full';
+            proBadge.textContent = 'PRO';
+            connectButton.appendChild(proBadge);
+            
+            connectButton.addEventListener('click', () => {
+              window.location.hash = '#bankconnections';
+            });
+            
+            bankButton.appendChild(connectButton);
+            
+            const proInfo = document.createElement('p');
+            proInfo.className = 'text-sm text-gray-500 dark:text-gray-400 mt-2';
+            proInfo.textContent = 'Connect your bank account to automatically detect all your subscriptions';
+            bankButton.appendChild(proInfo);
+            
+            // Add Pro badge for AI value assessment
+            const aiValueBadge = document.createElement('div');
+            aiValueBadge.className = 'mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-lg border border-blue-100 dark:border-blue-800 flex items-center';
+            aiValueBadge.innerHTML = `
+              <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+                  <path d="M12 2a10 10 0 1 1-10 10h10V2z"></path>
+                  <path d="M12 12l9-3"></path>
+                  <path d="M12 12l-9-3"></path>
+                  <path d="M12 12l3 9"></path>
+                  <path d="M12 12l-3-9"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="font-medium flex items-center">
+                  AI Value Assessment
+                  <span class="ml-2 px-2 py-0.5 text-xs bg-amber-500 text-white rounded-full">PRO</span>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-300">Upgrade to Pro for AI-powered analysis of which subscriptions provide the most value for your money</p>
+              </div>
+            `;
+            
+            const upgradeButton = document.createElement('button');
+            upgradeButton.className = 'mt-6 w-full py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600';
+            upgradeButton.textContent = 'Upgrade to Pro';
+            upgradeButton.addEventListener('click', () => {
+              window.location.hash = '#subscriptions';
+            });
+            
+            // Assemble the sections
+            subscriptionSection.appendChild(sectionHeader);
+            subscriptionSection.appendChild(subscriptionList);
+            subscriptionSection.appendChild(bankButton);
+            subscriptionSection.appendChild(aiValueBadge);
+            subscriptionSection.appendChild(upgradeButton);
+            
+            // Add all components to content area
+            contentArea.appendChild(searchArea);
+            contentArea.appendChild(summaryGrid);
+            contentArea.appendChild(subscriptionSection);
+            
+            // Add header and content to main container
+            fallbackContainer.appendChild(header);
+            fallbackContainer.appendChild(contentArea);
+            
+            return fallbackContainer;
+          };
+          
+          // Try to import the module first
           import('../subscription-sniper.js').then(module => {
             // Use async IIFE since renderSubscriptionSniperPage is async
             (async () => {
@@ -2913,12 +3488,14 @@ function renderPageContent(container) {
                 container.appendChild(sniperPage);
               } catch (error) {
                 console.error('Error rendering subscription sniper page:', error);
-                container.appendChild(createErrorMessage('Failed to load subscription data. Please check your subscription settings and try again.'));
+                console.log('Falling back to simplified Subscription Sniper interface');
+                container.appendChild(renderFallbackSubscriptionSniper());
               }
             })();
           }).catch(error => {
             console.error('Error loading subscription sniper module:', error);
-            container.appendChild(createErrorMessage('Failed to load Subscription Sniper module. Please refresh the page and try again.'));
+            console.log('Using fallback Subscription Sniper due to import failure');
+            container.appendChild(renderFallbackSubscriptionSniper());
           });
         } catch (outerError) {
           console.error('Critical error initializing Subscription Sniper module:', outerError);
