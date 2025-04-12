@@ -25,7 +25,8 @@ import {
   BadgeDollarSign,
   ListChecks,
   CircleDollarSign,
-  Users
+  Users,
+  Brain
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
