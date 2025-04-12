@@ -552,6 +552,43 @@ function renderLoginForm() {
   
   passwordGroup.appendChild(passwordLabel);
   passwordGroup.appendChild(passwordInput);
+  
+  // Forgot Password link
+  const forgotPasswordLink = document.createElement('a');
+  forgotPasswordLink.href = '#forgot-password';
+  forgotPasswordLink.textContent = 'Forgot Password?';
+  forgotPasswordLink.style.display = 'block';
+  forgotPasswordLink.style.textAlign = 'right';
+  forgotPasswordLink.style.fontSize = '13px';
+  forgotPasswordLink.style.marginTop = '8px';
+  forgotPasswordLink.style.color = 'var(--color-primary)';
+  forgotPasswordLink.style.textDecoration = 'none';
+  
+  forgotPasswordLink.onclick = (e) => {
+    e.preventDefault();
+    
+    // Import the forgot password module and render it
+    import('./forgot-password.js').then(module => {
+      const authContainer = document.querySelector('.auth-page');
+      if (authContainer) {
+        // Clear the current content
+        const layoutContainer = authContainer.querySelector('.auth-layout');
+        if (layoutContainer) {
+          layoutContainer.innerHTML = '';
+          // Render the forgot password form
+          layoutContainer.appendChild(module.renderForgotPasswordPage());
+        }
+      }
+    }).catch(error => {
+      console.error('Error loading forgot password module:', error);
+      // Import the UI utils for showing toast
+      import('./utils/ui-utils.js').then(utils => {
+        utils.showToast('Error', 'Failed to load the forgot password form. Please try again.', 'error');
+      });
+    });
+  };
+  
+  passwordGroup.appendChild(forgotPasswordLink);
   formEl.appendChild(passwordGroup);
   
   // Remember Me checkbox
