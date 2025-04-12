@@ -2965,7 +2965,7 @@ function renderApp() {
   
   // Check authentication for protected routes
   if (!appState.user.isAuthenticated) {
-    const nonAuthRoutes = ['login', 'register', 'about', 'pricing', 'landing', 'blog'];
+    const nonAuthRoutes = ['login', 'register', 'about', 'pricing', 'landing', 'blog', 'forgot-password'];
     if (!nonAuthRoutes.includes(appState.currentPage)) {
       console.log('User not authenticated, redirecting to login page');
       navigateTo('login');
@@ -2989,6 +2989,7 @@ function renderApp() {
       appState.currentPage === 'register' || 
       appState.currentPage === 'landing' ||
       appState.currentPage === 'onboarding' ||
+      appState.currentPage === 'forgot-password' ||
       (appState.currentPage === 'blog' && !appState.user.isAuthenticated)) {
       
     // Create simple app container
