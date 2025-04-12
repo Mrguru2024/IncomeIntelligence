@@ -2798,6 +2798,28 @@ function renderPageContent(container) {
         try {
           console.log('Loading Money Mentor module...');
           
+          // Function to render a fallback Money Mentor when the module import fails
+          const renderFallbackMoneyMentor = () => {
+            console.log('Using fallback Money Mentor interface');
+            
+            // Create main container
+            const fallbackContainer = document.createElement('div');
+            fallbackContainer.className = 'money-mentor-container p-4 max-w-5xl mx-auto';
+            
+            // Add simple fallback content
+            fallbackContainer.innerHTML = `
+              <div class="text-center p-8 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <h2 class="text-2xl font-bold mb-4">Money Mentor</h2>
+                <p class="mb-4">Get personalized financial advice powered by AI.</p>
+                <div class="animate-pulse inline-block p-4 rounded-lg bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                  Loading module...
+                </div>
+              </div>
+            `;
+            
+            return fallbackContainer;
+          };
+          
           // Check for previously stored import error flag in session storage
           const moneyMentorImportFailed = sessionStorage.getItem('moneyMentorImportFailed') === 'true';
           
@@ -2808,9 +2830,6 @@ function renderPageContent(container) {
             container.appendChild(renderFallbackMoneyMentor());
             break;
           }
-          
-          // Function to render a fallback Money Mentor when the module import fails
-          const renderFallbackMoneyMentor = () => {
             console.log('Using fallback Money Mentor interface');
             
             // Create main container
