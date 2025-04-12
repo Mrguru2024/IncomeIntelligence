@@ -730,26 +730,22 @@ function renderPageContent(contentContainer) {
       break;
       
     case 'subscriptionsniper':
-      try {
-        console.log('Loading Subscription Sniper module...');
-        // Create main container
-        const subscriptionSniperContainer = document.createElement('div');
-        subscriptionSniperContainer.className = 'subscription-sniper-container p-4 max-w-5xl mx-auto';
-        
-        // Add simple content
-        subscriptionSniperContainer.innerHTML = `
-          <div class="text-center p-8 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <h2 class="text-2xl font-bold mb-4">Subscription Sniper</h2>
-            <p class="mb-4">Track and optimize your recurring subscriptions.</p>
-            <p class="text-sm text-gray-500">Premium feature - requires subscription upgrade</p>
-          </div>
-        `;
-        
-        contentContainer.appendChild(subscriptionSniperContainer);
-      } catch (error) {
-        console.error('Error rendering Subscription Sniper module:', error);
-        contentContainer.appendChild(createErrorMessage('Failed to load Subscription Sniper. Please try again later.'));
-      }
+      console.log('Loading Subscription Sniper module...');
+      // Import the Subscription Sniper module dynamically
+      import('../subscription-sniper.js')
+        .then(module => {
+          try {
+            const subscriptionSniperPage = module.renderSubscriptionSniperPage();
+            contentContainer.appendChild(subscriptionSniperPage);
+          } catch (error) {
+            console.error('Error rendering Subscription Sniper page:', error);
+            contentContainer.appendChild(createErrorMessage('Failed to load Subscription Sniper. Please try again later.'));
+          }
+        })
+        .catch(error => {
+          console.error('Error loading Subscription Sniper module:', error);
+          contentContainer.appendChild(createErrorMessage('Failed to load Subscription Sniper module. Please try again later.'));
+        });
       break;
       
     case 'bankconnections':
