@@ -3639,49 +3639,6 @@ function renderPageContent(container) {
           container.appendChild(errorMessage);
         }
         break;
-            
-            // Add keyframes for gradient animation
-            const style = document.createElement('style');
-            style.textContent = `
-              @keyframes gradient-animation {
-                0% { background-position: 0% 50% }
-                50% { background-position: 100% 50% }
-                100% { background-position: 0% 50% }
-              }
-              @keyframes float-animation {
-                0% { transform: translateY(0px); }
-                50% { transform: translateY(-10px); }
-                100% { transform: translateY(0px); }
-              }
-              @keyframes pulse-animation {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.05); }
-                100% { transform: scale(1); }
-              }
-              @keyframes slide-in {
-                0% { transform: translateX(-50px); opacity: 0; }
-                100% { transform: translateX(0); opacity: 1; }
-              }
-              @keyframes fade-in {
-                0% { opacity: 0; }
-                100% { opacity: 1; }
-              }
-              .subscription-item {
-                animation: fade-in 0.4s ease-out forwards;
-                opacity: 0;
-              }
-              .subscription-item:nth-child(1) { animation-delay: 0.1s; }
-              .subscription-item:nth-child(2) { animation-delay: 0.2s; }
-              .subscription-item:nth-child(3) { animation-delay: 0.3s; }
-              .subscription-item:nth-child(4) { animation-delay: 0.4s; }
-              .subscription-item:nth-child(5) { animation-delay: 0.5s; }
-              .grow-on-hover {
-                transition: all 0.2s ease;
-              }
-              .grow-on-hover:hover {
-                transform: scale(1.02);
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-              }
             `;
             document.head.appendChild(style);
             
