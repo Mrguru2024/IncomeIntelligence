@@ -2847,7 +2847,10 @@ function renderPageContent(container) {
             container.appendChild(renderFallbackMoneyMentor());
             return; // Use return instead of break since we're not in a loop or switch
           }
-            console.log('Using fallback Money Mentor interface');
+          
+          // Try importing the module
+          try {
+            console.log('Attempting to import Money Mentor module');
             
             // Create main container
             const fallbackContainer = document.createElement('div');
@@ -3630,6 +3633,10 @@ function renderPageContent(container) {
             container.appendChild(renderFallbackSubscriptionSniper());
             return; // Use return instead of break since we're not in a loop or switch
           }
+          
+          // Try importing the module
+          try {
+            console.log('Attempting to import Subscription Sniper module');
             
             // Create main container
             const fallbackContainer = document.createElement('div');
