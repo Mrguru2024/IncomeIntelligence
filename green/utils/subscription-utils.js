@@ -42,7 +42,8 @@ export function canAccessFeature(user, featureId) {
     'challenges',
     'bankconnections',
     'subscriptionsniper',
-    'financialmascot'
+    'financialmascot',
+    'affiliates'
   ];
   
   // If the feature requires Pro, check Pro access
@@ -91,7 +92,8 @@ export function getSubscriptionDetails(user) {
         'Savings Challenges',
         'Unlimited Goals',
         'Advanced Analytics',
-        'Financial Mascot Personalities'
+        'Financial Mascot Personalities',
+        'Affiliate Programs Hub'
       ],
       restrictions: []
     };
@@ -293,6 +295,11 @@ function createProFeaturesModal() {
       name: 'Subscription Sniper',
       description: 'Track, manage, and optimize your recurring subscriptions. Identify unused services and potential savings opportunities automatically.',
       icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
+    },
+    {
+      name: 'Affiliate Programs Hub',
+      description: 'Discover and join high-converting affiliate programs to generate additional income streams with detailed tracking and performance metrics.',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>'
     },
     {
       name: 'Financial Mascot',
