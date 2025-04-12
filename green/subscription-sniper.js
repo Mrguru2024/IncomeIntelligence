@@ -6,6 +6,7 @@
 
 // Import helper functions
 import { formatCurrency, formatDate } from './bank-connections.js';
+import { hasProAccess } from './utils/subscription-utils.js';
 
 /**
  * Fetch transactions for a specific user
