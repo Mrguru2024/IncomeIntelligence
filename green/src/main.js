@@ -525,17 +525,36 @@ function renderApp() {
           layoutContainer.className = 'app-layout';
           layoutContainer.style.display = 'flex';
           layoutContainer.style.minHeight = '100vh';
+          layoutContainer.style.position = 'relative';
           
           // Add the sidebar
           const sidebar = module.renderSidebar();
           layoutContainer.appendChild(sidebar);
           
-          // Create the main content area
+          // Create the main content area with transition
           const contentArea = document.createElement('div');
           contentArea.className = 'content-area';
           contentArea.style.flex = '1';
           contentArea.style.padding = '1.5rem';
           contentArea.style.overflow = 'auto';
+          contentArea.style.transition = 'margin-left 0.3s ease';
+          
+          // Add event listener to adjust content margin when sidebar collapse state changes
+          const sidebarObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+              if (mutation.type === 'attributes' && mutation.attributeName === 'data-collapsed') {
+                const isCollapsed = sidebar.getAttribute('data-collapsed') === 'true';
+                if (isCollapsed) {
+                  contentArea.style.marginLeft = '60px'; // Match collapsed sidebar width
+                } else {
+                  contentArea.style.marginLeft = '0';
+                }
+              }
+            });
+          });
+          
+          // Start observing sidebar for data-collapsed attribute changes
+          sidebarObserver.observe(sidebar, { attributes: true });
           
           // Render the page content inside the content area
           renderPageContent(contentArea);

@@ -286,7 +286,7 @@ export function createSidebar(appState) {
         <div style="width: 40px; height: 40px; border-radius: 50%; background-color: var(--color-primary, #34A853); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
           ${username.charAt(0).toUpperCase()}
         </div>
-        <div style="margin-left: 12px;">
+        <div class="user-text" style="margin-left: 12px;">
           <div style="font-weight: 500;">${username}</div>
           <div style="font-size: 12px; color: var(--color-text-secondary, #4b5563);">
             ${subscriptionTier === 'free' ? 'Free Plan' : subscriptionTier === 'pro' ? 'Pro Plan' : 'Lifetime Plan'}
