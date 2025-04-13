@@ -1,10 +1,14 @@
 import { Resend } from 'resend';
 
-if (!process.env.RESEND_API_KEY) {
-  console.warn("RESEND_API_KEY environment variable is not set. Email notifications will not work.");
-}
+let resend: Resend;
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+export function initializeEmailClient() {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("RESEND_API_KEY environment variable is not set. Email notifications will not work.");
+    return;
+  }
+  resend = new Resend(process.env.RESEND_API_KEY);
+}
 
 // Application constants
 const APP_NAME = 'Stackr';

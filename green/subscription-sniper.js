@@ -9,28 +9,105 @@ import { formatCurrency, formatDate } from './bank-connections.js';
 
 /**
  * Fetch transactions for a specific user
- * @param {number} userId - User ID
+ * @param {string|number} userId - User ID (can be string or number)
  * @param {number} lookbackDays - Number of days to look back (default 180 days)
  * @returns {Promise<Array>} - Array of transactions
  */
 async function fetchUserTransactions(userId, lookbackDays = 180) {
   try {
-    // Calculate date range for transactions
+    // First get all bank connections for the user
+    const connectionsResponse = await fetch(`/api/bank-connections/user/${encodeURIComponent(userId)}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!connectionsResponse.ok) {
+      const errorData = await connectionsResponse.json().catch(() => ({}));
+      console.error('Failed to fetch bank connections:', {
+        status: connectionsResponse.status,
+        statusText: connectionsResponse.statusText,
+        error: errorData,
+        userId: userId
+      });
+      
+      // If no bank connections found, return empty array instead of throwing
+      if (connectionsResponse.status === 404) {
+        console.warn('No bank connections found for user:', userId);
+        return [];
+      }
+      
+      throw new Error(`Failed to fetch bank connections: ${connectionsResponse.status} ${connectionsResponse.statusText}`);
+    }
+    
+    const connections = await connectionsResponse.json();
+    
+    if (!connections || connections.length === 0) {
+      console.warn('No bank connections found for user:', userId);
+      return [];
+    }
+    
+    // Get transactions for each account
+    const allTransactions = [];
+    for (const connection of connections) {
+      try {
+        const accountsResponse = await fetch(`/api/bank-connections/${connection.id}/accounts`, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!accountsResponse.ok) {
+          console.warn(`Failed to fetch accounts for connection ${connection.id}:`, {
+            status: accountsResponse.status,
+            statusText: accountsResponse.statusText
+          });
+          continue;
+        }
+        
+        const accounts = await accountsResponse.json();
+        for (const account of accounts) {
+          try {
+            const transactionsResponse = await fetch(`/api/bank-accounts/${account.id}/transactions`, {
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (!transactionsResponse.ok) {
+              console.warn(`Failed to fetch transactions for account ${account.id}:`, {
+                status: transactionsResponse.status,
+                statusText: transactionsResponse.statusText
+              });
+              continue;
+            }
+            
+            const transactions = await transactionsResponse.json();
+            allTransactions.push(...transactions);
+          } catch (error) {
+            console.error(`Error fetching transactions for account ${account.id}:`, error);
+            continue;
+          }
+        }
+      } catch (error) {
+        console.error(`Error fetching accounts for connection ${connection.id}:`, error);
+        continue;
+      }
+    }
+    
+    // Filter transactions by date range
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - lookbackDays);
     
-    // Format dates for API
-    const startDateStr = startDate.toISOString().split('T')[0];
-    const endDateStr = endDate.toISOString().split('T')[0];
+    return allTransactions.filter(tx => {
+      const txDate = new Date(tx.date);
+      return txDate >= startDate && txDate <= endDate;
+    });
     
-    const response = await fetch(`/api/transactions/user/${userId}?startDate=${startDateStr}&endDate=${endDateStr}`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch transactions');
-    }
-    
-    return await response.json();
   } catch (error) {
     console.error('Error fetching transactions:', error);
     return [];
@@ -889,79 +966,64 @@ function createSubscriptionDashboard(subscriptions) {
  * @returns {HTMLElement} - Rendered page
  */
 export async function renderSubscriptionSniperPage(userId) {
-  // Create page container
-  const container = document.createElement('div');
-  container.classList.add('subscription-sniper-page');
-  
-  // Page header
-  const header = document.createElement('div');
-  header.classList.add('page-header');
-  header.style.marginBottom = '24px';
-  
-  const title = document.createElement('h1');
-  title.classList.add('page-title');
-  title.style.fontSize = '24px';
-  title.style.fontWeight = 'bold';
-  title.style.marginBottom = '8px';
-  title.textContent = 'Subscription Sniper';
-  
-  const description = document.createElement('p');
-  description.classList.add('page-description');
-  description.style.fontSize = '16px';
-  description.style.color = 'var(--color-text-secondary)';
-  description.style.marginBottom = '24px';
-  description.textContent = 'Detect and manage your recurring subscriptions all in one place.';
-  
-  header.appendChild(title);
-  header.appendChild(description);
-  container.appendChild(header);
-  
-  // Loading state
-  const loadingContainer = document.createElement('div');
-  loadingContainer.style.textAlign = 'center';
-  loadingContainer.style.padding = '40px 0';
-  
-  const loadingSpinner = document.createElement('div');
-  loadingSpinner.style.width = '40px';
-  loadingSpinner.style.height = '40px';
-  loadingSpinner.style.margin = '0 auto 16px';
-  loadingSpinner.style.border = '3px solid rgba(0, 0, 0, 0.1)';
-  loadingSpinner.style.borderTop = '3px solid var(--color-primary)';
-  loadingSpinner.style.borderRadius = '50%';
-  loadingSpinner.style.animation = 'spin 1s linear infinite';
-  
-  // Add animation keyframes if not already in the document
-  if (!document.getElementById('spin-animation')) {
-    const style = document.createElement('style');
-    style.id = 'spin-animation';
-    style.textContent = `
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-  
-  const loadingText = document.createElement('div');
-  loadingText.textContent = 'Analyzing your transactions...';
-  
-  loadingContainer.appendChild(loadingSpinner);
-  loadingContainer.appendChild(loadingText);
-  container.appendChild(loadingContainer);
-  
   try {
+    // Create page container
+    const container = document.createElement('div');
+    container.classList.add('subscription-sniper-page');
+    
+    // Page header
+    const header = document.createElement('div');
+    header.classList.add('page-header');
+    header.style.marginBottom = '24px';
+    
+    const title = document.createElement('h1');
+    title.classList.add('page-title');
+    title.style.fontSize = '24px';
+    title.style.fontWeight = 'bold';
+    title.style.marginBottom = '8px';
+    title.textContent = 'Subscription Sniper';
+    
+    const description = document.createElement('p');
+    description.classList.add('page-description');
+    description.style.fontSize = '16px';
+    description.style.color = 'var(--color-text-secondary)';
+    description.style.marginBottom = '24px';
+    description.textContent = 'Detect and manage your recurring subscriptions all in one place.';
+    
+    header.appendChild(title);
+    header.appendChild(description);
+    container.appendChild(header);
+    
+    // Loading state
+    const loadingContainer = document.createElement('div');
+    loadingContainer.style.textAlign = 'center';
+    loadingContainer.style.padding = '40px 0';
+    
+    const loadingSpinner = document.createElement('div');
+    loadingSpinner.style.width = '40px';
+    loadingSpinner.style.height = '40px';
+    loadingSpinner.style.margin = '0 auto 16px';
+    loadingSpinner.style.border = '3px solid rgba(0, 0, 0, 0.1)';
+    loadingSpinner.style.borderTop = '3px solid var(--color-primary)';
+    loadingSpinner.style.borderRadius = '50%';
+    loadingSpinner.style.animation = 'spin 1s linear infinite';
+    
+    const loadingText = document.createElement('div');
+    loadingText.textContent = 'Analyzing your transactions...';
+    loadingText.style.color = 'var(--color-text-secondary)';
+    
+    loadingContainer.appendChild(loadingSpinner);
+    loadingContainer.appendChild(loadingText);
+    container.appendChild(loadingContainer);
+    
     // Fetch transactions
     const transactions = await fetchUserTransactions(userId);
     
-    // Detect subscriptions
-    const subscriptions = detectSubscriptions(transactions);
-    
-    // Remove loading indicator
+    // Remove loading state
     container.removeChild(loadingContainer);
     
-    // If no subscriptions found
-    if (subscriptions.length === 0) {
+    if (!transactions || transactions.length === 0) {
+      // Show empty state
       const emptyState = document.createElement('div');
       emptyState.style.textAlign = 'center';
       emptyState.style.padding = '40px 20px';
@@ -969,19 +1031,19 @@ export async function renderSubscriptionSniperPage(userId) {
       emptyState.style.borderRadius = '12px';
       
       const emptyIcon = document.createElement('div');
-      emptyIcon.innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-secondary)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6H3m10 2H3m10 4H3m18-4v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2Z"/></svg>';
+      emptyIcon.innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
       emptyIcon.style.marginBottom = '16px';
       
       const emptyTitle = document.createElement('h3');
       emptyTitle.style.fontSize = '18px';
       emptyTitle.style.fontWeight = 'bold';
       emptyTitle.style.marginBottom = '8px';
-      emptyTitle.textContent = 'No subscriptions detected';
+      emptyTitle.textContent = 'No transactions found';
       
       const emptyDescription = document.createElement('p');
       emptyDescription.style.color = 'var(--color-text-secondary)';
       emptyDescription.style.marginBottom = '16px';
-      emptyDescription.textContent = 'Connect your bank accounts to automatically detect your recurring subscriptions.';
+      emptyDescription.textContent = 'Connect your bank account to start tracking subscriptions.';
       
       const connectBankButton = document.createElement('button');
       connectBankButton.classList.add('btn', 'btn-primary');
@@ -995,7 +1057,6 @@ export async function renderSubscriptionSniperPage(userId) {
       connectBankButton.style.cursor = 'pointer';
       
       connectBankButton.addEventListener('click', () => {
-        // Navigate to bank connections page
         window.navigateTo('bankconnections');
       });
       
@@ -1005,6 +1066,40 @@ export async function renderSubscriptionSniperPage(userId) {
       emptyState.appendChild(connectBankButton);
       
       container.appendChild(emptyState);
+      return container;
+    }
+    
+    // Detect subscriptions
+    const subscriptions = detectSubscriptions(transactions);
+    
+    if (subscriptions.length === 0) {
+      // Show no subscriptions found state
+      const noSubscriptionsState = document.createElement('div');
+      noSubscriptionsState.style.textAlign = 'center';
+      noSubscriptionsState.style.padding = '40px 20px';
+      noSubscriptionsState.style.backgroundColor = 'var(--color-card)';
+      noSubscriptionsState.style.borderRadius = '12px';
+      
+      const noSubscriptionsIcon = document.createElement('div');
+      noSubscriptionsIcon.innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+      noSubscriptionsIcon.style.marginBottom = '16px';
+      
+      const noSubscriptionsTitle = document.createElement('h3');
+      noSubscriptionsTitle.style.fontSize = '18px';
+      noSubscriptionsTitle.style.fontWeight = 'bold';
+      noSubscriptionsTitle.style.marginBottom = '8px';
+      noSubscriptionsTitle.textContent = 'No subscriptions found';
+      
+      const noSubscriptionsDescription = document.createElement('p');
+      noSubscriptionsDescription.style.color = 'var(--color-text-secondary)';
+      noSubscriptionsDescription.style.marginBottom = '16px';
+      noSubscriptionsDescription.textContent = 'We couldn\'t detect any recurring subscriptions in your transactions.';
+      
+      noSubscriptionsState.appendChild(noSubscriptionsIcon);
+      noSubscriptionsState.appendChild(noSubscriptionsTitle);
+      noSubscriptionsState.appendChild(noSubscriptionsDescription);
+      
+      container.appendChild(noSubscriptionsState);
       return container;
     }
     
@@ -1121,7 +1216,10 @@ export async function renderSubscriptionSniperPage(userId) {
           cancelledBadge.textContent = 'CANCELLED';
           
           // Add badge to the row
-          row.querySelector('.subscription-row > div:nth-child(2)').appendChild(cancelledBadge);
+          const rowContent = row.querySelector('.subscription-row > div:nth-child(2)');
+          if (rowContent) {
+            rowContent.appendChild(cancelledBadge);
+          }
           
           subscriptionsList.appendChild(row);
         });
@@ -1132,13 +1230,11 @@ export async function renderSubscriptionSniperPage(userId) {
     subscriptionsContainer.appendChild(subscriptionsList);
     container.appendChild(subscriptionsContainer);
     
+    return container;
   } catch (error) {
     console.error('Error rendering subscription sniper page:', error);
     
-    // Remove loading indicator
-    container.removeChild(loadingContainer);
-    
-    // Show error state
+    // Create error state
     const errorState = document.createElement('div');
     errorState.style.textAlign = 'center';
     errorState.style.padding = '40px 20px';
@@ -1172,8 +1268,7 @@ export async function renderSubscriptionSniperPage(userId) {
     retryButton.style.cursor = 'pointer';
     
     retryButton.addEventListener('click', () => {
-      // Refresh the page
-      window.navigateTo('subscriptionsniper');
+      window.location.reload();
     });
     
     errorState.appendChild(errorIcon);
@@ -1181,8 +1276,6 @@ export async function renderSubscriptionSniperPage(userId) {
     errorState.appendChild(errorDescription);
     errorState.appendChild(retryButton);
     
-    container.appendChild(errorState);
+    return errorState;
   }
-  
-  return container;
 }

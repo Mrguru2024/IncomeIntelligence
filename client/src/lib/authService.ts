@@ -22,6 +22,7 @@ export interface User {
   createdAt?: string;
   updatedAt?: string;
   profileImageUrl?: string;
+  googleId?: string;
 }
 
 interface LoginCredentials {
@@ -33,6 +34,13 @@ interface RegisterCredentials {
   username: string;
   email: string;
   password: string;
+}
+
+interface GoogleCredentials {
+  token: string;
+  email: string;
+  name: string;
+  picture?: string;
 }
 
 interface AuthChangeListener {
@@ -105,6 +113,26 @@ class AuthService {
       
       if (!response.ok) {
         throw new Error('Login failed. Please check your credentials.');
+      }
+      
+      const user = await response.json();
+      this.setCurrentUser(user);
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Log in or register with Google
+   */
+  async loginWithGoogle(credentials: GoogleCredentials): Promise<User> {
+    try {
+      const response = await apiRequest('POST', '/api/auth/google', credentials);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Google authentication failed');
       }
       
       const user = await response.json();

@@ -838,6 +838,9 @@ export class MemStorage implements IStorage {
       subscriptionStartDate: startDate || null,
       subscriptionEndDate: endDate || null,
     };
+    
+    this.users.set(userId, updatedUser);
+    return updatedUser;
   }
   
   async getUserSubscription(userId: number): Promise<{ status: string, plan: string } | null> {
@@ -848,9 +851,6 @@ export class MemStorage implements IStorage {
       status: user.subscriptionActive ? 'active' : 'inactive',
       plan: user.subscriptionTier || 'free'
     };
-    
-    this.users.set(userId, updatedUser);
-    return updatedUser;
   }
   
   async updateStripeCustomerId(userId: number, customerId: string): Promise<User | undefined> {
@@ -915,7 +915,7 @@ export class MemStorage implements IStorage {
       date: income.date,
       source: income.source || 'Manual',
       category: income.category || 'other',
-      userId: income.userId,
+      userId: income.userId || null,
       notes: income.notes || null
     };
     
@@ -1107,110 +1107,6 @@ export class MemStorage implements IStorage {
     
     this.affiliatePrograms.set(id, updatedProgram);
     return updatedProgram;
-  }
-
-  async deleteAffiliateProgram(id: number): Promise<boolean> {
-    const exists = this.affiliatePrograms.has(id);
-    if (exists) {
-      this.affiliatePrograms.delete(id);
-      return true;
-    }
-    return false;
-  }
-
-  async getFeaturedAffiliatePrograms(): Promise<AffiliateProgram[]> {
-    return Array.from(this.affiliatePrograms.values()).filter(
-      program => program.featured === true
-    );
-  }
-
-  // User Affiliate methods
-  async getUserAffiliatePrograms(userId: number): Promise<UserAffiliate[]> {
-    return Array.from(this.userAffiliates.values()).filter(
-      affiliate => affiliate.userId === userId
-    );
-  }
-
-  async getUserAffiliateById(id: number): Promise<UserAffiliate | undefined> {
-    return this.userAffiliates.get(id);
-  }
-
-  async joinAffiliateProgram(userAffiliate: InsertUserAffiliate): Promise<UserAffiliate> {
-    const id = this.userAffiliateCurrentId++;
-    const now = new Date();
-    
-    const userAffiliateObj: UserAffiliate = {
-      id,
-      userId: userAffiliate.userId,
-      programId: userAffiliate.programId,
-      affiliateId: userAffiliate.affiliateId || null,
-      referralCode: userAffiliate.referralCode || null,
-      referralUrl: userAffiliate.referralUrl || null,
-      dateJoined: now,
-      totalEarnings: userAffiliate.totalEarnings || "0",
-      status: userAffiliate.status || "active",
-      lastPayout: userAffiliate.lastPayout || null,
-      notes: userAffiliate.notes || null
-    };
-    
-    this.userAffiliates.set(id, userAffiliateObj);
-    return userAffiliateObj;
-  }
-
-  async updateUserAffiliate(id: number, userAffiliate: Partial<InsertUserAffiliate>): Promise<UserAffiliate | undefined> {
-    const existingUserAffiliate = this.userAffiliates.get(id);
-    if (!existingUserAffiliate) return undefined;
-    
-    const updatedUserAffiliate: UserAffiliate = {
-      ...existingUserAffiliate,
-      ...userAffiliate
-    };
-    
-    this.userAffiliates.set(id, updatedUserAffiliate);
-    return updatedUserAffiliate;
-  }
-
-  async leaveAffiliateProgram(userId: number, programId: number): Promise<boolean> {
-    const userAffiliates = Array.from(this.userAffiliates.values());
-    const affiliateToRemove = userAffiliates.find(
-      affiliate => affiliate.userId === userId && affiliate.programId === programId
-    );
-    
-    if (affiliateToRemove) {
-      this.userAffiliates.delete(affiliateToRemove.id);
-      return true;
-    }
-    return false;
-  }
-
-  async updateUserAffiliateEarnings(id: number, earnings: string): Promise<UserAffiliate | undefined> {
-    const userAffiliate = this.userAffiliates.get(id);
-    if (!userAffiliate) return undefined;
-    
-    const updatedUserAffiliate: UserAffiliate = {
-      ...userAffiliate,
-      totalEarnings: earnings,
-      lastPayout: new Date()
-    };
-    
-    this.userAffiliates.set(id, updatedUserAffiliate);
-    return updatedUserAffiliate;
-  }
-
-  async getUserAffiliateProgramDetails(userId: number): Promise<Array<AffiliateProgram & { joined: boolean, joinedDate?: Date }>> {
-    const allPrograms = await this.getAffiliatePrograms();
-    const userAffiliates = await this.getUserAffiliatePrograms(userId);
-    
-    return allPrograms.map(program => {
-      const joined = userAffiliates.some(affiliate => affiliate.programId === program.id);
-      const affiliate = userAffiliates.find(affiliate => affiliate.programId === program.id);
-      
-      return {
-        ...program,
-        joined,
-        joinedDate: affiliate ? affiliate.dateJoined : undefined
-      };
-    });
   }
 
   async deleteAffiliateProgram(id: number): Promise<boolean> {

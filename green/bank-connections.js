@@ -56,7 +56,7 @@ async function fetchConnectionAccounts(connectionId) {
  * @param {string|number} value - The currency value to format
  * @returns {string} - Formatted currency string
  */
-function formatCurrency(value) {
+export function formatCurrency(value) {
   if (!value && value !== 0) return 'N/A';
   
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
@@ -72,7 +72,7 @@ function formatCurrency(value) {
  * @param {string} dateString - Date string to format
  * @returns {string} - Formatted date string
  */
-function formatDate(dateString) {
+export function formatDate(dateString) {
   if (!dateString) return 'Never';
   
   const date = new Date(dateString);

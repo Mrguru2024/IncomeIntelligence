@@ -8,11 +8,23 @@ import { queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import authService, { User } from "@/lib/authService";
 
+interface GoogleCredentials {
+  token: string;
+  email: string;
+  name: string;
+  picture?: string;
+  provider: 'google';
+}
+
+type LoginCredentials = 
+  | { username: string; password: string; provider?: never; }
+  | GoogleCredentials;
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<User, Error, { username: string; password: string }>;
+  loginMutation: UseMutationResult<User, Error, LoginCredentials>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<User, Error, { username: string; email: string; password: string }>;
 }
@@ -38,8 +50,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Login mutation
   const loginMutation = useMutation({
-    mutationFn: async (credentials: { username: string; password: string }) => {
-      return authService.login(credentials);
+    mutationFn: async (credentials: LoginCredentials) => {
+      if ('provider' in credentials && credentials.provider === 'google') {
+        return authService.loginWithGoogle(credentials);
+      } else {
+        return authService.login(credentials as { username: string; password: string });
+      }
     },
     onSuccess: (loggedInUser: User) => {
       setUser(loggedInUser);

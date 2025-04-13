@@ -1,9 +1,10 @@
 import { Express, Request, Response } from 'express';
-import { perplexityService, FinancialTopicCategory } from '../services/perplexity-service';
+import { getPerplexityService, FinancialTopicCategory } from '../services/perplexity-service';
 import { z } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 import { requireAuth } from '../middleware/authMiddleware';
 import { requireProSubscription } from '../middleware/proSubscriptionMiddleware';
+import { Router } from 'express';
 
 /**
  * Register all Perplexity AI API routes
@@ -25,6 +26,7 @@ export function registerPerplexityRoutes(app: Express) {
       const validatedData = schema.parse(req.body);
       
       // Get financial advice
+      const perplexityService = getPerplexityService();
       const advice = await perplexityService.getFinancialAdvice(
         validatedData.query,
         validatedData.category || FinancialTopicCategory.GENERAL,
@@ -42,7 +44,7 @@ export function registerPerplexityRoutes(app: Express) {
       
       res.status(500).json({ 
         message: 'Failed to get financial advice',
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
@@ -63,6 +65,7 @@ export function registerPerplexityRoutes(app: Express) {
       const validatedData = schema.parse(req.body);
       
       // Get allocation recommendation
+      const perplexityService = getPerplexityService();
       const allocation = await perplexityService.getIncomeAllocationRecommendation(
         validatedData.monthlyIncome,
         validatedData.financialGoals,
@@ -80,7 +83,7 @@ export function registerPerplexityRoutes(app: Express) {
       
       res.status(500).json({ 
         message: 'Failed to get income allocation recommendation',
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
@@ -102,6 +105,7 @@ export function registerPerplexityRoutes(app: Express) {
       const validatedData = schema.parse(req.body);
       
       // Get investment recommendations
+      const perplexityService = getPerplexityService();
       const recommendations = await perplexityService.getInvestmentRecommendations(
         validatedData.riskTolerance,
         validatedData.investmentTimeframe,
@@ -120,7 +124,7 @@ export function registerPerplexityRoutes(app: Express) {
       
       res.status(500).json({ 
         message: 'Failed to get investment recommendations',
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
@@ -145,6 +149,7 @@ export function registerPerplexityRoutes(app: Express) {
       const validatedData = schema.parse(req.body);
       
       // Get debt repayment plan
+      const perplexityService = getPerplexityService();
       const plan = await perplexityService.getDebtRepaymentPlan(
         validatedData.debts,
         validatedData.monthlyIncomeAvailableForDebt
@@ -161,7 +166,7 @@ export function registerPerplexityRoutes(app: Express) {
       
       res.status(500).json({ 
         message: 'Failed to get debt repayment plan',
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
@@ -184,6 +189,7 @@ export function registerPerplexityRoutes(app: Express) {
       const randomQuery = demoQueries[Math.floor(Math.random() * demoQueries.length)];
       
       // Get financial advice with a short timeout to prevent long wait times
+      const perplexityService = getPerplexityService();
       const advice = await Promise.race([
         perplexityService.getFinancialAdvice(randomQuery),
         new Promise<string>((resolve) => {
@@ -198,10 +204,10 @@ export function registerPerplexityRoutes(app: Express) {
         advice 
       });
     } catch (error) {
-      console.error('Error getting demo financial advice:', error);
+      console.error('Error getting demo advice:', error);
       res.status(500).json({ 
-        message: 'Failed to get demo financial advice',
-        error: error.message
+        message: 'Failed to get demo advice',
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
@@ -216,7 +222,7 @@ export function registerPerplexityRoutes(app: Express) {
       
       // Try with a short timeout
       const result = await Promise.race([
-        perplexityService.getFinancialAdvice(testQuery),
+        getPerplexityService().getFinancialAdvice(testQuery),
         new Promise((_, reject) => {
           setTimeout(() => reject(new Error("Perplexity API timeout")), 5000);
         })
@@ -231,8 +237,58 @@ export function registerPerplexityRoutes(app: Express) {
       res.status(503).json({ 
         status: 'error',
         message: 'Perplexity AI API is not available',
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
 }
+
+const router = Router();
+
+// Route to get financial advice
+router.post('/advice', requireAuth, requireProSubscription, async (req, res) => {
+  try {
+    const { query, category, userContext } = req.body;
+    
+    if (!query) {
+      return res.status(400).json({ error: 'Query is required' });
+    }
+
+    const perplexityService = getPerplexityService();
+    const advice = await perplexityService.getFinancialAdvice(
+      query,
+      category || FinancialTopicCategory.GENERAL,
+      userContext
+    );
+
+    res.json({ advice });
+  } catch (error: any) {
+    console.error('Error in /advice route:', error);
+    res.status(500).json({ error: error.message || 'Internal server error' });
+  }
+});
+
+// Route to get income allocation recommendation
+router.post('/income-allocation', requireAuth, requireProSubscription, async (req, res) => {
+  try {
+    const { monthlyIncome, financialGoals, existingExpenses } = req.body;
+
+    if (!monthlyIncome || !financialGoals || !existingExpenses) {
+      return res.status(400).json({ error: 'Missing required parameters' });
+    }
+
+    const perplexityService = getPerplexityService();
+    const allocation = await perplexityService.getIncomeAllocationRecommendation(
+      monthlyIncome,
+      financialGoals,
+      existingExpenses
+    );
+
+    res.json({ allocation });
+  } catch (error: any) {
+    console.error('Error in /income-allocation route:', error);
+    res.status(500).json({ error: error.message || 'Internal server error' });
+  }
+});
+
+export default router;

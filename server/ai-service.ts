@@ -20,14 +20,28 @@ export enum AIProvider {
 }
 
 // AI provider instances
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+let openai: OpenAI;
+let anthropic: Anthropic;
+let perplexity: OpenAI;
 
-// Custom Perplexity client (using OpenAI's client with a different baseURL)
-const perplexity = new OpenAI({
-  baseURL: "https://api.perplexity.ai",
-  apiKey: process.env.PERPLEXITY_API_KEY,
-});
+export function initializeAIClients() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is required');
+  }
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY is required');
+  }
+  if (!process.env.PERPLEXITY_API_KEY) {
+    throw new Error('PERPLEXITY_API_KEY is required');
+  }
+
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  perplexity = new OpenAI({
+    baseURL: "https://api.perplexity.ai",
+    apiKey: process.env.PERPLEXITY_API_KEY,
+  });
+}
 
 // Service settings
 const AI_SETTINGS = {

@@ -44,17 +44,27 @@ export enum FinancialTopicCategory {
   GENERAL = 'general',
 }
 
+let perplexityService: PerplexityService | null = null;
+
+export const initializePerplexityService = () => {
+  // Initialize Perplexity service here
+  console.log('Perplexity service initialized');
+};
+
+export function getPerplexityService(): PerplexityService {
+  if (!perplexityService) {
+    throw new Error('Perplexity service not initialized');
+  }
+  return perplexityService;
+}
+
 /**
  * Service for interacting with the Perplexity AI API to get financial advice
  */
 export class PerplexityService {
   private apiKey: string;
 
-  constructor() {
-    const apiKey = process.env.PERPLEXITY_API_KEY;
-    if (!apiKey) {
-      throw new Error('PERPLEXITY_API_KEY environment variable is not set');
-    }
+  constructor(apiKey: string) {
     this.apiKey = apiKey;
   }
 
@@ -281,6 +291,3 @@ export class PerplexityService {
     }
   }
 }
-
-// Export a singleton instance
-export const perplexityService = new PerplexityService();

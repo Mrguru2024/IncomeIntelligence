@@ -9,18 +9,103 @@ import MemoryStore from 'memorystore';
 import jwt from 'jsonwebtoken';
 
 // Types for authenticated users
+interface StorageUser {
+  id: number;
+  email: string;
+  name: string | null;
+  username: string;
+  password: string;
+  createdAt: Date | null;
+  role?: string;
+  subscriptionTier?: string;
+  subscriptionActive?: boolean;
+  onboardingCompleted?: boolean;
+  onboardingStep?: number | string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  verified?: boolean;
+  verificationToken?: string | null;
+  resetPasswordToken?: string | null;
+  resetPasswordExpires?: Date | null;
+  provider?: string;
+  providerId?: string | null;
+  profileImage?: string | null;
+  accountStatus?: string;
+  twoFactorEnabled?: boolean;
+  twoFactorSecret?: string | null;
+  twoFactorBackupCodes?: string[] | null;
+  twoFactorVerified?: boolean;
+  subscriptionStartDate?: Date | null;
+  subscriptionEndDate?: Date | null;
+  lastLogin?: Date | null;
+  profileCompleted?: boolean;
+}
+
+interface DatabaseUser {
+  id: number;
+  email: string;
+  name: string | null;
+  username: string;
+  password: string;
+  createdAt: Date | null;
+  role?: string;
+  subscriptionTier?: string;
+  subscriptionActive?: boolean;
+  onboardingCompleted?: boolean;
+  onboardingStep?: number | string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+}
+
+interface DatabaseUserCreate {
+  email: string;
+  username: string;
+  password: string;
+  name?: string | null;
+  role?: string;
+  subscriptionTier?: string;
+  subscriptionActive?: boolean;
+  onboardingCompleted?: boolean;
+  onboardingStep?: number | string;
+}
+
+interface DatabaseUserUpdate {
+  email?: string;
+  name?: string | null;
+  password?: string;
+  role?: string;
+  subscriptionTier?: string;
+  subscriptionActive?: boolean;
+  onboardingCompleted?: boolean;
+  onboardingStep?: number | string;
+}
+
+interface User {
+  id: string;
+  email: string;
+  name: string | null;
+  username: string;
+  password?: string;
+  createdAt: Date | null;
+  role?: string;
+  subscriptionTier?: string;
+  subscriptionActive?: boolean;
+  onboardingCompleted?: boolean;
+  onboardingStep?: number | string;
+}
+
+interface UserWithoutPassword extends Omit<User, 'password'> {}
+
+interface UserWithPassword extends User {
+  password: string;
+}
+
 declare global {
   namespace Express {
-    interface User {
-      id: number;
-      username: string;
-      email?: string;
-      role?: string;
-      subscriptionTier?: 'free' | 'pro' | 'lifetime';
-      subscriptionActive?: boolean;
-      onboardingCompleted?: boolean;
-      onboardingStep?: string;
-    }
+    interface User extends UserWithoutPassword {}
   }
 }
 
@@ -46,7 +131,7 @@ async function comparePasswords(supplied: string, stored: string): Promise<boole
 }
 
 // Create JWT token
-function createToken(user: Express.User): string {
+function createToken(user: User): string {
   const payload = {
     id: user.id,
     username: user.username,
@@ -58,16 +143,16 @@ function createToken(user: Express.User): string {
     onboardingStep: user.onboardingStep
   };
   
-  return jwt.sign(payload, process.env.JWT_SECRET || 'stackr-jwt-secret', {
+  return jwt.sign(payload, process.env.JWT_SECRET || 'nk7n456vXBYz9qrT3uLWsG8EmDcP5hKfAgd2QRxZJF', {
     expiresIn: '7d',
   });
 }
 
 // Verify JWT token
-function verifyToken(token: string): any {
+function verifyToken(token: string): UserWithoutPassword | null {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET || 'stackr-jwt-secret');
-  } catch (err) {
+    return jwt.verify(token, process.env.JWT_SECRET || 'nk7n456vXBYz9qrT3uLWsG8EmDcP5hKfAgd2QRxZJF') as UserWithoutPassword;
+  } catch (err: unknown) {
     return null;
   }
 }
@@ -112,21 +197,34 @@ export function setupAuth(app: Express) {
   
   // Setup LocalStrategy for username/password login
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
+    new LocalStrategy(async (username: string, password: string, done: Function) => {
       try {
         // Use the new method that accepts either username or email
-        const user = await storage.getUserByUsernameOrEmail(username);
+        const storageUser = await storage.getUserByUsernameOrEmail(username) as StorageUser | undefined;
         
-        if (!user) {
+        if (!storageUser || !storageUser.password || !storageUser.username) {
           return done(null, false, { message: 'Incorrect username or email' });
         }
         
-        const isValid = await comparePasswords(password, user.password);
+        const isValid = await comparePasswords(password, storageUser.password);
         if (!isValid) {
           return done(null, false, { message: 'Incorrect password' });
         }
         
-        // Don't include password in user object
+        // Convert storage user to API user format
+        const user: User = {
+          id: storageUser.id.toString(),
+          email: storageUser.email,
+          name: storageUser.name,
+          username: storageUser.username,
+          createdAt: storageUser.createdAt,
+          role: storageUser.role,
+          subscriptionTier: storageUser.subscriptionTier,
+          subscriptionActive: storageUser.subscriptionActive,
+          onboardingCompleted: storageUser.onboardingCompleted,
+          onboardingStep: storageUser.onboardingStep
+        };
+        
         const { password: _, ...userWithoutPassword } = user;
         return done(null, userWithoutPassword);
         
@@ -136,23 +234,37 @@ export function setupAuth(app: Express) {
     }),
   );
   
-  // Serialize user to session
-  passport.serializeUser((user, done) => {
+  // Serialize user for session
+  passport.serializeUser((user: User, done) => {
     done(null, user.id);
   });
   
   // Deserialize user from session
-  passport.deserializeUser(async (id: number, done) => {
+  passport.deserializeUser(async (id: string, done) => {
     try {
-      const user = await storage.getUser(id);
-      if (!user) {
+      const storageUser = await storage.getUser(parseInt(id, 10)) as StorageUser | undefined;
+      if (!storageUser || !storageUser.username) {
         return done(null, false);
       }
       
+      // Convert storage user to API user format
+      const user: User = {
+        id: storageUser.id.toString(),
+        email: storageUser.email,
+        name: storageUser.name,
+        username: storageUser.username,
+        createdAt: storageUser.createdAt,
+        role: storageUser.role,
+        subscriptionTier: storageUser.subscriptionTier,
+        subscriptionActive: storageUser.subscriptionActive,
+        onboardingCompleted: storageUser.onboardingCompleted,
+        onboardingStep: storageUser.onboardingStep
+      };
+      
       const { password: _, ...userWithoutPassword } = user;
-      done(null, userWithoutPassword);
-    } catch (err) {
-      done(err);
+      return done(null, userWithoutPassword);
+    } catch (err: unknown) {
+      return done(err);
     }
   });
   
@@ -174,7 +286,7 @@ export function setupAuth(app: Express) {
       }
       
       // Create new user with hashed password
-      const newUser = await storage.createUser({
+      const userData: DatabaseUserCreate = {
         ...req.body,
         password: await hashPassword(req.body.password),
         role: 'user',
@@ -182,10 +294,25 @@ export function setupAuth(app: Express) {
         subscriptionActive: false,
         onboardingCompleted: false,
         onboardingStep: 'welcome',
-      });
+      };
       
-      // Don't include password in response
-      const { password: _, ...userWithoutPassword } = newUser;
+      const storageUser = await storage.createUser(userData) as StorageUser;
+      
+      // Convert storage user to API user format
+      const user: User = {
+        id: storageUser.id.toString(),
+        email: storageUser.email,
+        name: storageUser.name,
+        username: storageUser.username,
+        createdAt: storageUser.createdAt,
+        role: storageUser.role,
+        subscriptionTier: storageUser.subscriptionTier,
+        subscriptionActive: storageUser.subscriptionActive,
+        onboardingCompleted: storageUser.onboardingCompleted,
+        onboardingStep: storageUser.onboardingStep
+      };
+      
+      const { password: _, ...userWithoutPassword } = user;
       
       // Log in the new user automatically
       req.login(userWithoutPassword, (err) => {
@@ -194,7 +321,7 @@ export function setupAuth(app: Express) {
         }
         
         // Generate JWT token for API access
-        const token = createToken(userWithoutPassword);
+        const token = createToken(user);
         
         res.status(201).json({
           ...userWithoutPassword,
@@ -209,7 +336,10 @@ export function setupAuth(app: Express) {
   
   // Login route
   app.post('/api/login', (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate('local', (err, user, info) => {
+    type AuthError = Error | null;
+    type AuthInfo = { message: string } | undefined;
+    
+    passport.authenticate('local', (err: AuthError, user: UserWithoutPassword | false, info: AuthInfo) => {
       if (err) {
         return next(err);
       }
@@ -224,7 +354,7 @@ export function setupAuth(app: Express) {
         }
         
         // Generate JWT token for API access
-        const token = createToken(user);
+        const token = createToken(user as User);
         
         res.json({
           ...user,
@@ -271,24 +401,26 @@ export function setupAuth(app: Express) {
     try {
       const { currentPassword, newPassword } = req.body;
       
-      if (!currentPassword || !newPassword) {
+      if (!currentPassword || !newPassword || !req.user) {
         return res.status(400).json({ message: 'Both current and new password are required' });
       }
       
-      const user = await storage.getUser(req.user.id);
-      if (!user) {
+      const dbUser = await storage.getUser(parseInt(req.user.id, 10)) as DatabaseUser | undefined;
+      if (!dbUser) {
         return res.status(404).json({ message: 'User not found' });
       }
       
-      const isValid = await comparePasswords(currentPassword, user.password);
+      const isValid = await comparePasswords(currentPassword, dbUser.password);
       if (!isValid) {
         return res.status(401).json({ message: 'Current password is incorrect' });
       }
       
       // Update password
-      await storage.updateUser(user.id, {
+      const update: DatabaseUserUpdate = {
         password: await hashPassword(newPassword),
-      });
+      };
+      
+      await storage.updateUser(dbUser.id, update);
       
       res.json({ message: 'Password updated successfully' });
     } catch (err) {

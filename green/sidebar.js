@@ -525,3 +525,29 @@ export function toggleSidebar() {
     }
   }
 }
+
+export function renderSidebar(appState) {
+  const sidebar = createSidebar(appState);
+  document.body.appendChild(sidebar);
+  
+  // Add overlay for mobile
+  if (window.innerWidth < 768) {
+    const overlay = document.createElement('div');
+    overlay.id = 'sidebar-overlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    overlay.style.zIndex = '999';
+    overlay.style.display = 'none';
+    overlay.addEventListener('click', () => {
+      sidebar.style.transform = 'translateX(-100%)';
+      overlay.style.display = 'none';
+    });
+    document.body.appendChild(overlay);
+  }
+  
+  return sidebar;
+}

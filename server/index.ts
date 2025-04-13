@@ -1,7 +1,8 @@
-import express, { type Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { createServer } from "http"; // Add this import explicitly
+import { createServer } from "http";
+import { createServer as createHttpsServer } from "https";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
@@ -15,13 +16,34 @@ import { optionalAuth } from "./middleware/authMiddleware";
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import { initializeAIClients } from './ai-service';
+import { initializeEmailClient } from './email-service';
+import { initializePerplexityService } from './services/perplexity-service';
+import { getSSLConfig } from './config/ssl';
+import { errorHandler } from './middleware/error-handler';
+import { initializeServices } from './services';
+import { logger } from './utils/logger';
+import { config } from './config';
+import https from 'https';
+import http from 'http';
 
 // Load environment variables from .env file
-const result = dotenv.config();
+const envPath = path.resolve(process.cwd(), '.env');
+const result = dotenv.config({ path: envPath });
+
 if (result.error) {
   console.error('Error loading .env file:', result.error);
-} else {
-  console.log('.env file loaded successfully');
+  process.exit(1);
+}
+
+// Initialize services
+try {
+  initializeAIClients();
+  initializeEmailClient();
+  initializePerplexityService();
+} catch (error) {
+  console.error('Error initializing services:', error);
+  process.exit(1);
 }
 
 const app = express();
@@ -29,38 +51,68 @@ const app = express();
 // Trust the Replit proxy
 app.set('trust proxy', 1);
 
-// Security Headers using helmet with additional security options
+// HTTP to HTTPS redirection middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (!req.secure && req.get('x-forwarded-proto') !== 'https' && process.env.NODE_ENV === 'production') {
+    return res.redirect(`https://${req.get('host')}${req.url}`);
+  }
+  next();
+});
+
+// Configure helmet security middleware
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.openai.com", "https://plaid.com", "https://*.plaid.com", "https://cdn.plaid.com", "https://replit.com", "https://*.replit.dev", "wss://*.replit.dev"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://replit.com", "https://cdn.replit.com", "https://cdn.plaid.com", "https://*.plaid.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://cdn.plaid.com"],
+      connectSrc: ["'self'", "https://api.openai.com", "https://*.plaid.com", "https://cdn.plaid.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.plaid.com", "https://*.plaid.com"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "blob:", "https://*.plaid.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
       frameAncestors: ["'none'"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
       workerSrc: ["'self'", "blob:"],
-      frameSrc: ["'self'", "https://*.plaid.com"], // Allow Plaid iframes
+      frameSrc: ["'self'", "https://*.plaid.com"]
     }
   },
   xssFilter: true,
   noSniff: true,
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   hsts: {
-    maxAge: 15552000, // 180 days in seconds
-    includeSubDomains: true
-  }
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  },
+  frameguard: {
+    action: 'deny'
+  },
+  dnsPrefetchControl: {
+    allow: false
+  },
+  hidePoweredBy: true
 }));
+
+// Additional security headers
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('X-Content-Security-Policy', "default-src 'self'");
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  res.setHeader('X-Download-Options', 'noopen');
+  res.setHeader('X-DNS-Prefetch-Control', 'off');
+  next();
+});
 
 // Configure CORS
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.ALLOWED_ORIGINS?.split(',') || 'https://yourdomainhere.com' 
-    : '*',
+  origin: config.clientUrl,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -86,24 +138,14 @@ app.use(hpp({
 }));
 
 // Rate limiting for API endpoints
-const standardApiLimiter = rateLimit({
+const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   standardHeaders: true, 
   legacyHeaders: false,
   message: 'Too many requests from this IP, please try again after 15 minutes'
 });
-app.use('/api/', standardApiLimiter);
-
-// More restrictive rate limiting for AI endpoints which use external services
-const aiLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 10, // Limit each IP to 10 requests per windowMs
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: 'Too many AI requests from this IP, please try again after 5 minutes'
-});
-app.use('/api/ai/', aiLimiter);
+app.use('/api/', apiLimiter);
 
 // CSRF protection for any routes that change state
 // Not applied to API routes assuming they will use token auth
@@ -158,45 +200,54 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
-  const server = await registerRoutes(app);
-  const dirname = new URL('.', import.meta.url).pathname;
-  
-  // Serve static files from public directory
-  app.use(express.static(path.join(dirname, '../client/public')));
-  app.use(express.static(path.join(dirname, '../dist/public')));
+// Initialize services
+initializeServices();
 
-  // NOTE: All static routes have been removed.
-  // We're focusing exclusively on the dynamic React application.
+// Setup routes
+await registerRoutes(app);
 
-  // Basic error handling
-  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    console.error('Error:', err);
-    res.status(500).json({ message: 'Internal server error' });
-  });
+// Error handling
+app.use(errorHandler);
 
-  // Handle 404s
-  app.use((req: Request, res: Response) => {
-    res.status(404).json({ message: 'Not found' });
-  });
+// Logging middleware
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`);
+  next();
+});
 
+// Load SSL certificate and private key
+const sslOptions = getSSLConfig();
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+// Create HTTPS server
+const server = createHttpsServer(sslOptions, app);
 
-  // IMPORTANT: Replit workflows are configured for port 5000
-  // use this port or the workflow won't be able to connect
-  // We're using a different port (5050) to avoid conflicts
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 5050;
-  
-  // Start server
-  server.listen(port, '0.0.0.0', () => {
-    log(`Server is running on port ${port} - Replit compatible`);
-  });
-})();
+// Create HTTP server for redirection
+const httpApp = express();
+httpApp.use((req: Request, res: Response) => {
+  res.redirect(`https://${req.headers.host}${req.url}`);
+});
+const httpServer = createServer(httpApp);
+
+// Start servers
+const PORT = process.env.PORT || 3000;
+const HTTPS_PORT = process.env.HTTPS_PORT || 443;
+
+httpServer.listen(PORT, () => {
+  logger.info(`HTTP Server running on port ${PORT} (redirecting to HTTPS)`);
+});
+
+server.listen(HTTPS_PORT, () => {
+  logger.info(`HTTPS Server running on port ${HTTPS_PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});
+
+// Error handling
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
+  process.exit(1);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});

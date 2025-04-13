@@ -4,11 +4,15 @@ import { InsertBankConnection, InsertBankAccount, InsertBankTransaction } from '
 
 // Plaid API configuration
 const configuration = new Configuration({
-  basePath: PlaidEnvironments.sandbox, // Use sandbox for development, change to production for live app
+  basePath: process.env.PLAID_ENV === 'production' 
+    ? PlaidEnvironments.production 
+    : PlaidEnvironments.sandbox,
   baseOptions: {
     headers: {
       'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
-      'PLAID-SECRET': process.env.PLAID_SECRET,
+      'PLAID-SECRET': process.env.PLAID_ENV === 'production' 
+        ? process.env.PLAID_SECRET 
+        : process.env.PLAID_SANDBOX_SECRET,
     },
   },
 });
@@ -18,27 +22,33 @@ const plaidClient = new PlaidApi(configuration);
 
 export class PlaidService {
   // Create a Plaid link token for client-side initialization
-  async createLinkToken(userId: number): Promise<string> {
+  async createLinkToken(userId: string | number): Promise<string> {
     try {
+      if (!process.env.PLAID_CLIENT_ID || !process.env.PLAID_SECRET) {
+        throw new Error('Plaid credentials not configured');
+      }
+
       const response = await plaidClient.linkTokenCreate({
         user: {
           client_user_id: userId.toString(),
         },
-        client_name: 'Stackr',
+        client_name: 'Income Intelligence',
         products: [Products.Transactions],
         country_codes: [CountryCode.Us],
         language: 'en',
+        webhook: process.env.PLAID_WEBHOOK_URL,
+        redirect_uri: process.env.PLAID_REDIRECT_URI,
       });
       
       return response.data.link_token;
     } catch (error) {
       console.error('Error creating link token:', error);
-      throw error;
+      throw new Error('Failed to create Plaid link token. Please check your Plaid configuration.');
     }
   }
   
   // Exchange public token for access token and store connection
-  async exchangePublicToken(userId: number, publicToken: string, metadata: Record<string, any>): Promise<number> {
+  async exchangePublicToken(userId: string | number, publicToken: string, metadata: Record<string, any>): Promise<number> {
     try {
       // Exchange public token for access token
       const response = await plaidClient.itemPublicTokenExchange({
@@ -53,7 +63,7 @@ export class PlaidService {
       
       // Create bank connection record
       const connectionData: InsertBankConnection = {
-        userId,
+        userId: userId.toString(),
         institutionId: institution.institution_id,
         institutionName: institution.name,
         accessToken,

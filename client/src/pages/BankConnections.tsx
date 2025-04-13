@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import AllBankAccounts from "@/components/AllBankAccounts";
 
 // Types for bank connection data
 interface BankConnection {
@@ -180,286 +181,147 @@ export default function BankConnections() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Bank Connections
-          </h1>
-          <p className="text-muted-foreground">
-            Connect your bank accounts to automatically track your finances
-          </p>
-        </div>
-        <Button
-          onClick={() => setIsModalOpen(true)}
-          className="w-full md:w-auto"
-        >
-          <Plus className="mr-2 h-4 w-4" /> Connect Bank
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Bank Connections</h1>
+        <Button onClick={() => setIsModalOpen(true)}>
+          <i className="fas fa-plus mr-2"></i> Add Bank
         </Button>
       </div>
 
-      {connectionsError ? (
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="text-center p-4">
-              <p className="text-destructive">
-                Failed to load bank connections
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {/* List of bank connections */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {isLoadingConnections ? (
-              // Loading skeletons
-              Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i} className="overflow-hidden">
-                  <CardHeader className="pb-2">
-                    <Skeleton className="h-4 w-1/2 mb-2" />
-                    <Skeleton className="h-3 w-3/4" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-3 w-full mb-2" />
-                    <Skeleton className="h-3 w-4/5" />
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Skeleton className="h-9 w-20" />
-                    <Skeleton className="h-9 w-20" />
-                  </CardFooter>
-                </Card>
-              ))
-            ) : connections?.length > 0 ? (
-              connections.map((connection: BankConnection) => (
-                <Card
-                  key={connection.id}
-                  className={`overflow-hidden cursor-pointer transition-all ${
-                    selectedConnection === connection.id
-                      ? "ring-2 ring-primary"
-                      : ""
-                  }`}
-                  onClick={() => handleSelectConnection(connection.id)}
-                >
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg font-semibold">
-                        {connection.institutionName}
-                      </CardTitle>
-                      <Badge
-                        variant={
-                          connection.status === "active"
-                            ? "default"
-                            : "destructive"
-                        }
-                      >
-                        {connection.status}
-                      </Badge>
-                    </div>
-                    <CardDescription>
-                      Last synced: {formatDate(connection.lastSyncTime)}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pb-2">
-                    <p className="text-sm">
-                      <span className="font-medium">Institution ID:</span>{" "}
-                      {connection.institutionId}
-                    </p>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        syncMutation.mutate(connection.id);
-                      }}
-                      disabled={
-                        syncMutation.isPending &&
-                        syncMutation.variables === connection.id
-                      }
-                    >
-                      {syncMutation.isPending &&
-                      syncMutation.variables === connection.id ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                      )}
-                      Sync
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        importIncomeMutation.mutate(connection.id);
-                      }}
-                      disabled={
-                        importIncomeMutation.isPending &&
-                        importIncomeMutation.variables === connection.id
-                      }
-                    >
-                      {importIncomeMutation.isPending &&
-                      importIncomeMutation.variables === connection.id ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Plus className="mr-2 h-4 w-4" />
-                      )}
-                      Import Income
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (
-                          window.confirm(
-                            "Are you sure you want to remove this connection?",
-                          )
-                        ) {
-                          deleteMutation.mutate(connection.id);
-                        }
-                      }}
-                      disabled={
-                        deleteMutation.isPending &&
-                        deleteMutation.variables === connection.id
-                      }
-                    >
-                      {deleteMutation.isPending &&
-                      deleteMutation.variables === connection.id ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))
-            ) : (
-              <Card className="col-span-full">
-                <CardContent className="flex flex-col items-center justify-center py-8">
-                  <Building className="h-16 w-16 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">
-                    No Bank Connections
-                  </h3>
-                  <p className="text-center text-muted-foreground mb-4">
-                    Connect your bank accounts to automatically track your
-                    finances and import transactions.
-                  </p>
-                  <Button onClick={() => setIsModalOpen(true)}>
-                    <Plus className="mr-2 h-4 w-4" /> Connect Bank
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+      {/* All Bank Accounts View */}
+      <AllBankAccounts userId={userId} />
+
+      {/* Existing Bank Connections List */}
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Bank Connections</h2>
+        {isLoadingConnections ? (
+          <div className="space-y-4">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
           </div>
-
-          {/* Account details when a connection is selected */}
-          {selectedConnection && (
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Accounts</CardTitle>
-                <CardDescription>
-                  Details of accounts from the selected bank connection
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoadingAccounts ? (
-                  <div className="space-y-2">
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
+        ) : connections?.length > 0 ? (
+          <div className="grid gap-4">
+            {connections.map((connection) => (
+              <Card
+                key={connection.id}
+                className={`overflow-hidden cursor-pointer transition-all ${
+                  selectedConnection === connection.id
+                    ? "ring-2 ring-primary"
+                    : ""
+                }`}
+                onClick={() => handleSelectConnection(connection.id)}
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-lg font-semibold">
+                      {connection.institutionName}
+                    </CardTitle>
+                    <Badge
+                      variant={
+                        connection.status === "active"
+                          ? "default"
+                          : "destructive"
+                      }
+                    >
+                      {connection.status}
+                    </Badge>
                   </div>
-                ) : accounts?.length > 0 ? (
-                  <Table>
-                    <TableCaption>List of connected accounts</TableCaption>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Account Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Mask</TableHead>
-                        <TableHead className="text-right">
-                          Available Balance
-                        </TableHead>
-                        <TableHead className="text-right">
-                          Current Balance
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {accounts.map((account: BankAccount) => (
-                        <TableRow key={account.id}>
-                          <TableCell className="font-medium">
-                            {account.accountName}
-                          </TableCell>
-                          <TableCell>
-                            {account.accountType}
-                            {account.accountSubtype
-                              ? ` (${account.accountSubtype})`
-                              : ""}
-                          </TableCell>
-                          <TableCell>{account.mask || "N/A"}</TableCell>
-                          <TableCell className="text-right">
-                            {formatCurrency(account.balanceAvailable)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatCurrency(account.balanceCurrent)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <div className="text-center p-4">
-                    <p className="text-muted-foreground">
-                      No accounts found for this connection
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    syncMutation.mutate(selectedConnection);
-                  }}
-                  disabled={syncMutation.isPending}
-                >
-                  {syncMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                  )}
-                  Sync Transactions
-                </Button>
-                <Button
-                  onClick={() => {
-                    importIncomeMutation.mutate(selectedConnection);
-                  }}
-                  disabled={importIncomeMutation.isPending}
-                >
-                  {importIncomeMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Plus className="mr-2 h-4 w-4" />
-                  )}
-                  Import as Income
-                </Button>
-              </CardFooter>
-            </Card>
-          )}
-        </>
-      )}
+                  <CardDescription>
+                    Last synced: {formatDate(connection.lastSyncTime)}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <p className="text-sm">
+                    <span className="font-medium">Institution ID:</span>{" "}
+                    {connection.institutionId}
+                  </p>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      syncMutation.mutate(connection.id);
+                    }}
+                    disabled={
+                      syncMutation.isPending &&
+                      syncMutation.variables === connection.id
+                    }
+                  >
+                    {syncMutation.isPending &&
+                    syncMutation.variables === connection.id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                    )}
+                    Sync
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      importIncomeMutation.mutate(connection.id);
+                    }}
+                    disabled={
+                      importIncomeMutation.isPending &&
+                      importIncomeMutation.variables === connection.id
+                    }
+                  >
+                    {importIncomeMutation.isPending &&
+                    importIncomeMutation.variables === connection.id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="mr-2 h-4 w-4" />
+                    )}
+                    Import Income
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (
+                        window.confirm(
+                          "Are you sure you want to remove this connection?",
+                        )
+                      ) {
+                        deleteMutation.mutate(connection.id);
+                      }
+                    }}
+                    disabled={
+                      deleteMutation.isPending &&
+                      deleteMutation.variables === connection.id
+                    }
+                  >
+                    {deleteMutation.isPending &&
+                    deleteMutation.variables === connection.id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-muted-foreground">
+                No bank connections found. Add your first bank account to get started.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
-      {/* Bank connection modal */}
+      {/* Existing Bank Connection Modal */}
       <BankConnectionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({
-            queryKey: ["/api/bank-connections/user/" + userId],
-          });
-        }}
         userId={userId}
       />
     </div>

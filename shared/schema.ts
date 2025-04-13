@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, numeric, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, numeric, json, jsonb, decimal, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -99,68 +99,15 @@ export const financialHealthStatuses = [
 ];
 
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
-  firstName: text("first_name"),
-  lastName: text("last_name"),
-  phone: text("phone"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  lastLogin: timestamp("last_login"),
-  profileCompleted: boolean("profile_completed").notNull().default(false),
-  onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
-  onboardingStep: text("onboarding_step").default("welcome"), // Current step in the onboarding process
-  verified: boolean("verified").notNull().default(false),
-  verificationToken: text("verification_token"),
-  resetPasswordToken: text("reset_password_token"),
-  resetPasswordExpires: timestamp("reset_password_expires"),
-  provider: text("provider").default("local"), // 'local', 'google', 'github', 'apple', etc.
-  providerId: text("provider_id"),
-  
-  profileImage: text("profile_image"), // URL to profile image, often provided by social login
-  role: text("role").notNull().default("user"), // 'user', 'admin'
-  accountStatus: text("account_status").notNull().default("active"), // 'active', 'suspended', 'inactive'
-  twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
-  twoFactorSecret: text("two_factor_secret"),
-  twoFactorBackupCodes: json("two_factor_backup_codes"),
-  twoFactorVerified: boolean("two_factor_verified").notNull().default(false),
-  // Subscription fields for Stackr Pro
-  subscriptionTier: text("subscription_tier").notNull().default("free"), // 'free', 'pro', 'lifetime'
-  subscriptionActive: boolean("subscription_active").notNull().default(false),
-  subscriptionStartDate: timestamp("subscription_start_date"),
-  subscriptionEndDate: timestamp("subscription_end_date"),
-  stripeCustomerId: text("stripe_customer_id"),
-  stripeSubscriptionId: text("stripe_subscription_id"),
+  name: text("name"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
   email: true,
-  firstName: true,
-  lastName: true,
-  phone: true,
-  provider: true,
-  providerId: true,
-  profileImage: true,
-  verificationToken: true,
-  role: true,
-  accountStatus: true,
-  verified: true,
-  onboardingCompleted: true,
-  onboardingStep: true,
-  twoFactorEnabled: true,
-  twoFactorSecret: true,
-  twoFactorBackupCodes: true,
-  twoFactorVerified: true,
-  // Subscription-related fields
-  subscriptionTier: true,
-  subscriptionActive: true,
-  subscriptionStartDate: true,
-  subscriptionEndDate: true,
-  stripeCustomerId: true,
-  stripeSubscriptionId: true,
+  name: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -169,7 +116,7 @@ export type User = typeof users.$inferSelect;
 // User profile for detailed personal and financial information
 export const userProfiles = pgTable("user_profiles", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().unique(),
+  userId: text("user_id").notNull().unique(),
   occupation: text("occupation"),
   occupationDetails: text("occupation_details"),
   businessName: text("business_name"),
@@ -314,7 +261,7 @@ export const incomes = pgTable("incomes", {
   date: timestamp("date").notNull().defaultNow(),
   source: text("source").notNull().default("Manual"),
   category: text("category").notNull().default("other"), // New category field
-  userId: integer("user_id"),
+  userId: text("user_id"),
   notes: text("notes"),
 });
 
@@ -358,8 +305,8 @@ export const stackrGigs = pgTable("stackr_gigs", {
   description: text("description").notNull(),
   amount: numeric("amount").notNull(),
   status: text("status").notNull().default("open"), // open, assigned, completed, cancelled
-  requesterUserId: integer("requester_user_id").notNull(), // User who created the gig
-  assignedUserId: integer("assigned_user_id"), // User who accepted the gig
+  requesterUserId: text("requester_user_id").notNull(), // User who created the gig
+  assignedUserId: text("assigned_user_id"), // User who accepted the gig
   category: text("category").notNull(),
   skills: json("skills"), // Array of required skills
   estimatedHours: numeric("estimated_hours"),
@@ -459,7 +406,7 @@ export type AffiliateProgram = typeof affiliatePrograms.$inferSelect;
 // User Affiliates schema (tracks which programs a user is part of)
 export const userAffiliates = pgTable("user_affiliates", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   programId: integer("program_id").notNull(),
   affiliateId: text("affiliate_id"), // User's ID in the affiliate program
   referralCode: text("referral_code"),
@@ -514,7 +461,7 @@ export type DiscountCode = typeof discountCodes.$inferSelect;
 export const discountCodeUsage = pgTable("discount_code_usage", {
   id: serial("id").primaryKey(),
   codeId: integer("code_id").notNull(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   appliedToOrder: text("applied_to_order"),
   usedAt: timestamp("used_at").notNull().defaultNow(),
   discountAmount: numeric("discount_amount").notNull(), // The actual discount amount applied
@@ -552,7 +499,7 @@ export type UserAffiliate = typeof userAffiliates.$inferSelect;
 // Digital Products schema
 export const digitalProducts = pgTable("digital_products", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(), // Creator of the product
+  userId: text("user_id").notNull(), // Creator of the product
   title: text("title").notNull(),
   description: text("description").notNull(),
   price: numeric("price").notNull(),
@@ -631,7 +578,7 @@ export type MoneyChallenge = typeof moneyChallenges.$inferSelect;
 // User Challenges schema (tracks user participation in challenges)
 export const userChallenges = pgTable("user_challenges", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   challengeId: integer("challenge_id").notNull(),
   startDate: timestamp("start_date").notNull().defaultNow(),
   completionDate: timestamp("completion_date"),
@@ -697,7 +644,7 @@ export type InvestmentStrategy = typeof investmentStrategies.$inferSelect;
 // Used Gear Listings schema
 export const usedGearListings = pgTable("used_gear_listings", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
   price: numeric("price").notNull(),
@@ -738,7 +685,7 @@ export type UsedGearListing = typeof usedGearListings.$inferSelect;
 // Invoices schema
 export const invoices = pgTable("invoices", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   clientName: text("client_name").notNull(),
   clientEmail: text("client_email"),
   clientPhone: text("client_phone"),
@@ -801,7 +748,7 @@ export const creativeGrants = pgTable("creative_grants", {
   maxApplicants: integer("max_applicants"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  winnerUserId: integer("winner_user_id"),
+  winnerUserId: text("winner_user_id"),
 });
 
 export const insertCreativeGrantSchema = createInsertSchema(creativeGrants).pick({
@@ -825,7 +772,7 @@ export type CreativeGrant = typeof creativeGrants.$inferSelect;
 export const grantApplications = pgTable("grant_applications", {
   id: serial("id").primaryKey(),
   grantId: integer("grant_id").notNull(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   applicationDate: timestamp("application_date").notNull().defaultNow(),
   status: text("status").notNull().default("submitted"), // submitted, under_review, accepted, rejected
   submissionContent: json("submission_content"), // JSON containing the application content
@@ -852,13 +799,13 @@ export type GrantApplication = typeof grantApplications.$inferSelect;
 // Referral System schema
 export const referrals = pgTable("referrals", {
   id: serial("id").primaryKey(),
-  referrerUserId: integer("referrer_user_id").notNull(),
+  referrerUserId: text("referrer_user_id").notNull(),
   referredEmail: text("referred_email").notNull(),
   referralCode: text("referral_code").notNull(),
   status: text("status").notNull().default("pending"), // pending, registered, subscribed, expired
   dateCreated: timestamp("date_created").notNull().defaultNow(),
   dateRegistered: timestamp("date_registered"),
-  referredUserId: integer("referred_user_id"),
+  referredUserId: text("referred_user_id"),
   rewardClaimed: boolean("reward_claimed").default(false),
   rewardAmount: numeric("reward_amount"),
   rewardType: text("reward_type"), // points, cash, subscription_extension
@@ -900,7 +847,7 @@ export const goals = pgTable("goals", {
   deadline: timestamp("deadline"),
   isCompleted: boolean("is_completed").notNull().default(false),
   startDate: timestamp("start_date").notNull().defaultNow(),
-  userId: integer("user_id"),
+  userId: text("user_id"),
   description: text("description"),
 });
 
@@ -952,14 +899,14 @@ export function getGoalTypeById(typeId: string) {
 // Bank connections schema
 export const bankConnections = pgTable("bank_connections", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   institutionId: text("institution_id").notNull(),
   institutionName: text("institution_name").notNull(),
   accessToken: text("access_token").notNull(),
   itemId: text("item_id").notNull(),
   status: text("status").notNull().default("active"),
   lastUpdated: timestamp("last_updated").notNull().defaultNow(),
-  metadata: json("metadata"),
+  metadata: jsonb("metadata"),
 });
 
 // Create the base schema
@@ -981,11 +928,11 @@ export type BankConnection = typeof bankConnections.$inferSelect;
 // Bank accounts schema
 export const bankAccounts = pgTable("bank_accounts", {
   id: serial("id").primaryKey(),
-  connectionId: integer("connection_id").notNull(),
-  accountId: text("account_id").notNull().unique(),
-  accountName: text("account_name").notNull(),
-  accountType: text("account_type").notNull(),
-  accountSubtype: text("account_subtype"),
+  connectionId: integer("connection_id").notNull().references(() => bankConnections.id),
+  accountId: text("account_id").notNull(),
+  name: text("name").notNull(),
+  type: text("type").notNull(),
+  subtype: text("subtype"),
   mask: text("mask"),
   balanceAvailable: numeric("balance_available"),
   balanceCurrent: numeric("balance_current"),
@@ -997,9 +944,9 @@ export const bankAccounts = pgTable("bank_accounts", {
 const baseInsertBankAccountSchema = createInsertSchema(bankAccounts).pick({
   connectionId: true,
   accountId: true,
-  accountName: true,
-  accountType: true,
-  accountSubtype: true,
+  name: true,
+  type: true,
+  subtype: true,
   mask: true,
   balanceAvailable: true,
   balanceCurrent: true,
@@ -1014,16 +961,16 @@ export type BankAccount = typeof bankAccounts.$inferSelect;
 // Bank Transactions schema
 export const bankTransactions = pgTable("bank_transactions", {
   id: serial("id").primaryKey(),
-  accountId: integer("account_id").notNull(),
-  transactionId: text("transaction_id").notNull().unique(),
-  amount: numeric("amount").notNull(),
-  date: timestamp("date").notNull(),
+  accountId: integer("account_id").notNull().references(() => bankAccounts.id),
+  transactionId: text("transaction_id").notNull(),
+  amount: decimal("amount").notNull(),
+  date: date("date").notNull(),
   name: text("name").notNull(),
   merchantName: text("merchant_name"),
-  category: text("category"),
+  category: text("category").array(),
   pending: boolean("pending").notNull().default(false),
   importedAsIncome: boolean("imported_as_income").notNull().default(false),
-  metadata: json("metadata"),
+  metadata: jsonb("metadata"),
 });
 
 // Create the base schema
@@ -1079,7 +1026,7 @@ export const expenses = pgTable("expenses", {
   amount: numeric("amount").notNull(),
   date: timestamp("date").notNull().defaultNow(),
   category: text("category").notNull().default("other"),
-  userId: integer("user_id"),
+  userId: text("user_id"),
   paymentMethod: text("payment_method").default("cash"),
   location: text("location"),
   notes: text("notes"),
@@ -1234,7 +1181,7 @@ export const incomeSplitProfiles = [
 // Balance tracking schema
 export const balances = pgTable("balances", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   beginningBalance: numeric("beginning_balance").notNull(),
   currentBalance: numeric("current_balance").notNull(),
   month: integer("month").notNull(),
@@ -1296,7 +1243,7 @@ export const insertAchievementSchema = baseInsertAchievementSchema;
 // User Achievements junction table
 export const userAchievements = pgTable("user_achievements", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   achievementId: integer("achievement_id").notNull(),
   dateEarned: timestamp("date_earned").notNull().defaultNow(),
   progress: json("progress"), // For tracking partial progress
@@ -1313,7 +1260,7 @@ export const insertUserAchievementSchema = baseInsertUserAchievementSchema;
 // Gamification Profile
 export const gamificationProfiles = pgTable("gamification_profiles", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().unique(),
+  userId: text("user_id").notNull().unique(),
   points: integer("points").notNull().default(0),
   level: integer("level").notNull().default(1),
   streak: integer("streak").notNull().default(0),
@@ -1350,7 +1297,7 @@ export const insertGamificationProfileSchema = baseInsertGamificationProfileSche
 // Point Transactions - history of points earned/spent
 export const pointTransactions = pgTable("point_transactions", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   amount: integer("amount").notNull(), // Positive = earned, Negative = spent
   reason: text("reason").notNull(),
   source: text("source").notNull(), // achievement, milestone, etc.
@@ -1399,7 +1346,7 @@ export const reminderTypes = [
 
 export const reminders = pgTable("reminders", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   title: text("title").notNull(),
   message: text("message").notNull(),
   type: text("type").notNull().default("custom"),
@@ -1449,7 +1396,7 @@ export const notificationTypes = [
 // Notifications schema
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   title: text("title").notNull(),
   message: text("message").notNull(),
   type: text("type").notNull().default("info"),
@@ -1476,7 +1423,7 @@ export type Notification = typeof notifications.$inferSelect;
 // Widget settings
 export const widgetSettings = pgTable("widget_settings", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().unique(),
+  userId: text("user_id").notNull().unique(),
   enabled: boolean("enabled").notNull().default(true),
   showBalance: boolean("show_balance").notNull().default(true),
   showIncomeGoal: boolean("show_income_goal").notNull().default(true),
@@ -1510,7 +1457,7 @@ export type WidgetSettings = typeof widgetSettings.$inferSelect;
 // Quiz Result Schema
 export const spendingPersonalityResults = pgTable("spending_personality_results", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   personalityType: text("personality_type").notNull(),
   score: json("score").notNull(), // Score breakdown by personality type
   answers: json("answers").notNull(), // Record of user's answers
@@ -1534,32 +1481,30 @@ export type SpendingPersonalityResult = typeof spendingPersonalityResults.$infer
 // Define budget schema
 export const budgets = pgTable("budgets", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  year: integer("year").notNull(),
+  userId: text("user_id").notNull(),
   month: integer("month").notNull(),
-  needsPercentage: integer("needs_percentage").notNull().default(40),
-  wantsPercentage: integer("wants_percentage").notNull().default(30),
-  savingsPercentage: integer("savings_percentage").notNull().default(30),
-  needsCategories: json("needs_categories").$type<string[]>().default([]),
-  wantsCategories: json("wants_categories").$type<string[]>().default([]),
-  savingsCategories: json("savings_categories").$type<string[]>().default([]),
-  rules: json("rules").$type<{ category: string, allocation: string }[]>().default([]),
-  monthlyIncome: numeric("monthly_income"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  year: integer("year").notNull(),
+  needsPercentage: decimal("needs_percentage").notNull(),
+  wantsPercentage: decimal("wants_percentage").notNull(),
+  savingsPercentage: decimal("savings_percentage").notNull(),
+  needsCategories: text("needs_categories").array(),
+  wantsCategories: text("wants_categories").array(),
+  savingsCategories: text("savings_categories").array(),
+  monthlyIncome: decimal("monthly_income"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertBudgetSchema = createInsertSchema(budgets).pick({
   userId: true,
-  year: true,
   month: true,
+  year: true,
   needsPercentage: true,
   wantsPercentage: true,
   savingsPercentage: true,
   needsCategories: true,
   wantsCategories: true,
   savingsCategories: true,
-  rules: true,
   monthlyIncome: true,
 });
 
@@ -1605,7 +1550,7 @@ export type QuizAnswer = z.infer<typeof quizAnswerSchema>;
 export const gigApplications = pgTable("gig_applications", {
   id: serial("id").primaryKey(),
   gigId: integer("gig_id").notNull(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   message: text("message"),
   status: text("status").notNull().default("pending"), // pending, accepted, rejected
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -1624,7 +1569,7 @@ export type GigApplication = typeof gigApplications.$inferSelect;
 // Professional Services schema
 export const professionalServices = pgTable("professional_services", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: text("user_id").notNull(),
   name: text("name").notNull(),
   description: text("description").notNull(),
   category: text("category").notNull(), // locksmith, plumber, electrician, etc.

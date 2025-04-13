@@ -57,6 +57,9 @@ import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import Stripe from "stripe";
 // Express already imported at top
 import dotenv from "dotenv";
+import { Router } from 'express';
+import { getPlaidClient } from './services/plaid-service';
+import { config } from './config';
 
 // Load environment variables
 dotenv.config();
@@ -552,17 +555,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get create link token for Plaid Link
   app.post("/api/plaid/create-link-token", async (req, res) => {
     try {
+      // Validate Plaid configuration
+      if (!process.env.PLAID_CLIENT_ID || !process.env.PLAID_SECRET) {
+        return res.status(500).json({ 
+          error: 'Plaid configuration is missing. Please check your environment variables.' 
+        });
+      }
+
       const schema = z.object({
-        userId: z.number().int().positive()
+        userId: z.union([z.number().int().positive(), z.string()])
       });
       
       const { userId } = schema.parse(req.body);
-      
+      if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+      }
+
       const linkToken = await plaidService.createLinkToken(userId);
-      res.json({ linkToken: linkToken });
+      res.json({ linkToken });
     } catch (error) {
       console.error('Error creating link token:', error);
-      res.status(500).json({ message: "Failed to create link token" });
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to create link token' 
+      });
     }
   });
   
@@ -570,7 +585,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/plaid/exchange-token", async (req, res) => {
     try {
       const schema = z.object({
-        userId: z.number().int().positive(),
+        userId: z.union([z.number().int().positive(), z.string()]),
         publicToken: z.string(),
         metadata: z.any()
       });
@@ -588,9 +603,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's bank connections
   app.get("/api/bank-connections/user/:userId", async (req, res) => {
     try {
-      const userId = parseInt(req.params.userId);
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
+      const userId = req.params.userId;
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
       }
       
       const connections = await storage.getBankConnections(userId);
@@ -1603,8 +1618,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/invoices", requireAuth, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      if (isNaN(userId) || req.user?.id !== userId) {
-        return res.status(403).json({ message: "Unauthorized" });
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
       }
       
       const invoices = await storage.getUserInvoices(userId);
@@ -4483,6 +4498,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       res.status(500).json({ error: 'Failed to load affiliates data' });
+    }
+  });
+
+  // Get all bank accounts for a user across all their connections
+  app.get("/api/bank-accounts/user/:userId", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+      }
+
+      // Check if user is requesting their own accounts
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized to view these bank accounts" });
+      }
+
+      const accounts = await storage.getAllUserBankAccounts(userId);
+      res.json(accounts);
+    } catch (error) {
+      console.error('Error getting user bank accounts:', error);
+      res.status(500).json({ error: 'Failed to get bank accounts' });
     }
   });
 
