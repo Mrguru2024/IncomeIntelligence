@@ -45,14 +45,108 @@ export function createSidebar(appState) {
     // Create sidebar container
     const sidebar = document.createElement('aside');
     sidebar.className = 'stackr-sidebar';
+    sidebar.style.transition = 'width 0.3s ease';
+    sidebar.style.position = 'relative';
+    sidebar.style.width = '250px';
+    sidebar.style.height = '100%';
+    sidebar.style.overflowX = 'hidden';
+    
+    // Set data attribute for collapsed state
+    sidebar.setAttribute('data-collapsed', 'false');
+    
+    // Create toggle button
+    const toggleButton = document.createElement('button');
+    toggleButton.className = 'sidebar-toggle';
+    toggleButton.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    `;
+    toggleButton.style.position = 'absolute';
+    toggleButton.style.top = '20px';
+    toggleButton.style.right = '-12px';
+    toggleButton.style.zIndex = '100';
+    toggleButton.style.display = 'flex';
+    toggleButton.style.alignItems = 'center';
+    toggleButton.style.justifyContent = 'center';
+    toggleButton.style.width = '24px';
+    toggleButton.style.height = '24px';
+    toggleButton.style.borderRadius = '50%';
+    toggleButton.style.backgroundColor = 'var(--color-primary)';
+    toggleButton.style.color = 'white';
+    toggleButton.style.border = 'none';
+    toggleButton.style.cursor = 'pointer';
+    toggleButton.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+    
+    // Add event listener to toggle button
+    toggleButton.addEventListener('click', () => {
+      const isCollapsed = sidebar.getAttribute('data-collapsed') === 'true';
+      
+      if (isCollapsed) {
+        // Expand
+        sidebar.style.width = '250px';
+        sidebar.setAttribute('data-collapsed', 'false');
+        toggleButton.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        `;
+        
+        // Show text labels
+        const menuTexts = sidebar.querySelectorAll('.menu-text');
+        menuTexts.forEach(text => {
+          text.style.display = 'inline';
+        });
+        
+        // Show logo text
+        const logoText = sidebar.querySelector('.logo-text');
+        if (logoText) logoText.style.display = 'inline';
+        
+        // Show user section text
+        const userTexts = sidebar.querySelectorAll('.user-text');
+        userTexts.forEach(text => {
+          text.style.display = 'block';
+        });
+      } else {
+        // Collapse
+        sidebar.style.width = '60px';
+        sidebar.setAttribute('data-collapsed', 'true');
+        toggleButton.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        `;
+        
+        // Hide text labels
+        const menuTexts = sidebar.querySelectorAll('.menu-text');
+        menuTexts.forEach(text => {
+          text.style.display = 'none';
+        });
+        
+        // Hide logo text
+        const logoText = sidebar.querySelector('.logo-text');
+        if (logoText) logoText.style.display = 'none';
+        
+        // Hide user section text
+        const userTexts = sidebar.querySelectorAll('.user-text');
+        userTexts.forEach(text => {
+          text.style.display = 'none';
+        });
+      }
+    });
+    
+    sidebar.appendChild(toggleButton);
     
     // Create logo section
     const logoSection = document.createElement('div');
     logoSection.className = 'sidebar-logo';
     logoSection.innerHTML = `
       <div style="font-size: 1.5rem; font-weight: bold; padding: 20px 16px; display: flex; align-items: center;">
-        <span style="color: var(--color-primary);">Stackr</span>
-        <span style="margin-left: 4px;">Finance</span>
+        <span style="color: var(--color-primary);">S</span>
+        <span class="logo-text" style="margin-left: 4px;">tack Finance</span>
       </div>
     `;
     
@@ -153,6 +247,7 @@ export function createSidebar(appState) {
       }
       
       const labelSpan = document.createElement('span');
+      labelSpan.className = 'menu-text';
       labelSpan.textContent = item.label;
       
       // Add PRO badge if feature is premium and user is not pro
