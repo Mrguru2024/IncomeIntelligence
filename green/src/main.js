@@ -2705,8 +2705,16 @@ function renderPageContent(container) {
       case 'moneymentor':
         // Import the Money Mentor page module
         import('../money-mentor.js').then(module => {
-          const mentorPage = module.renderMoneyMentorPage(appState.user.id);
-          container.appendChild(mentorPage);
+          console.log('Money Mentor module loaded successfully:', Object.keys(module));
+          try {
+            console.log('User ID being passed:', appState.user.id);
+            const mentorPage = module.renderMoneyMentorPage(appState.user.id);
+            console.log('Mentor page created successfully');
+            container.appendChild(mentorPage);
+          } catch (error) {
+            console.error('Error rendering Money Mentor page:', error);
+            container.appendChild(createErrorMessage('Error rendering Money Mentor: ' + error.message));
+          }
         }).catch(error => {
           console.error('Error loading money mentor module:', error);
           container.appendChild(createErrorMessage('Failed to load Money Mentor. Please check your API keys and try again.'));
