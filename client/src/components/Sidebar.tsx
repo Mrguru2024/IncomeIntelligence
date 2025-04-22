@@ -363,7 +363,7 @@ export default function Sidebar({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <RouterLink
-                              href={item.path} as="a"
+                              href={item.path}
                               className={cn(
                                 "flex items-center rounded-lg font-medium transition-colors",
                                 isActive 
@@ -575,7 +575,7 @@ export default function Sidebar({
                   {section.items.map((item) => (
                     <li key={item.path}>
                       <RouterLink
-                        href={item.path} as="a"
+                        href={item.path}
                         className={cn(
                           "flex items-center px-2 xxs:px-3 xs:px-4 py-2 xxs:py-2.5 xs:py-3 rounded-lg text-sm xxs:text-base font-medium w-full touch-manipulation",
                           location === item.path
