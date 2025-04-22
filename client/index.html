@@ -55,7 +55,7 @@
   </script>
   
   <script>
-    console.log('[FRESH] Loading completely Firebase-free Stackr Finance');
+    console.log('Loading Stackr Finance React application');
     
     // Add a debug logger for development
     window.debugLog = function(message, isError = false) {
@@ -63,14 +63,14 @@
       console[method](`[Stackr Finance] ${message}`);
     };
     
-    window.debugLog('Firebase-free application initialization starting');
+    window.debugLog('React application initialization starting');
   </script>
 </head>
 <body>
   <div id="root"></div>
   
-  <!-- Load our completely Firebase-free application entry point -->
-  <script type="module" src="/src/fresh-main.tsx"></script>
+  <!-- Load our React application entry point -->
+  <script type="module" src="/src/main.tsx"></script>
 
   <!-- Replit badge -->
   <script

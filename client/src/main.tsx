@@ -6,27 +6,16 @@ import { AuthProvider } from '@/hooks/use-auth';
 import { ThemeProvider } from '@/hooks/useTheme';
 import './index.css';
 
-// Import App component with custom Auth provider (no Firebase)
+// Import App component
 import App from './App';
-
-// No Firebase setup needed - we're using our own auth system
-console.log("STARTUP: Using custom authentication system");
-// Clean up any potential Firebase leftovers
-if (typeof window !== 'undefined') {
-  // Remove any previous storage keys
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.includes('firebase')) {
-      localStorage.removeItem(key);
-    }
-  }
-}
 
 // Add enhanced debugging
 console.log("STARTUP: Application initialization beginning");
 
-// Log that we're using Firebase-free version
-console.log("STARTUP: Using Firebase-free version of Stackr Finance");
+// Clean up any localStorage leftover
+if (typeof window !== 'undefined') {
+  localStorage.removeItem('firebaseLocalStorage');
+}
 
 // Configure the query client for API requests
 const queryClient = new QueryClient({
@@ -61,7 +50,7 @@ if (!rootElement) {
         </QueryClientProvider>
       </React.StrictMode>
     );
-    console.log("RENDER: App rendered successfully with Firebase-free authentication");
+    console.log("RENDER: App rendered successfully");
   } catch (error) {
     console.error("CRITICAL ERROR rendering app:", error);
     

@@ -118,21 +118,6 @@ export default function AuthPage() {
   
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Firebase Error Notification Banner */}
-      <div className="bg-green-600 text-white p-4 text-center">
-        <div className="flex flex-col sm:flex-row items-center justify-center">
-          <div className="mb-3 sm:mb-0 sm:mr-4">
-            <h3 className="text-lg font-bold">⚠️ Having trouble with login?</h3>
-            <p className="text-sm">We're fixing some Firebase dependencies. Try our Firebase-free version:</p>
-          </div>
-          <button 
-            onClick={goToGreenVersion}
-            className="bg-white text-green-600 px-4 py-2 rounded-md font-bold hover:bg-green-50 transition-colors"
-          >
-            Launch GREEN Version
-          </button>
-        </div>
-      </div>
     
       <div className="flex flex-1">
         {/* Left Column - Auth Forms */}

@@ -111,14 +111,6 @@ function App() {
 
   return (
     <>
-      {/* GREEN Version Banner */}
-      <div className="bg-green-600 text-white text-center p-2 flex items-center justify-center cursor-pointer" onClick={goToGreenVersion}>
-        <span className="mr-2 font-bold">⚠️ Firebase Issues?</span>
-        <span className="hidden sm:inline">Try our 100% Firebase-free</span>
-        <button className="ml-2 bg-white text-green-600 px-3 py-1 rounded-md font-bold text-sm">
-          GREEN Version
-        </button>
-      </div>
       
       {isFullScreenPage ? (
         <main className="w-full">
