@@ -89,7 +89,8 @@ function setupDesignSystem() {
 setupDesignSystem();
 
 // In-memory data store
-const appState = {
+// Export appState so it can be imported by other modules
+export const appState = {
   currentPage: 'dashboard',
   incomeEntries: [],
   expenseEntries: [], // Initialize expense entries array
