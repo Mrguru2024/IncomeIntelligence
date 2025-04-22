@@ -439,6 +439,128 @@ class FinancialMascot {
   /**
    * Show a tip from the selected category
    */
+  /**
+   * Create the speech bubble for the mascot
+   */
+  createBubble() {
+    if (this.bubble) {
+      return; // Bubble already exists
+    }
+    
+    if (!this.container) {
+      console.log('Container must be created first. Call init() before createBubble()');
+      return;
+    }
+    
+    // Speech bubble for messages
+    this.bubble = document.createElement('div');
+    this.bubble.className = 'financial-mascot-bubble';
+    this.bubble.style.maxWidth = '300px';
+    this.bubble.style.padding = '15px';
+    this.bubble.style.backgroundColor = 'white';
+    this.bubble.style.borderRadius = '15px';
+    this.bubble.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+    this.bubble.style.marginBottom = '10px';
+    this.bubble.style.position = 'relative';
+    this.bubble.style.transition = 'all 0.3s ease';
+    this.bubble.style.transformOrigin = 'bottom right';
+    this.bubble.style.opacity = '0';
+    this.bubble.style.transform = 'scale(0.8)';
+    this.bubble.style.pointerEvents = 'auto';
+    this.bubble.style.display = 'none';
+    
+    // Add the tail to the speech bubble
+    const bubbleTail = document.createElement('div');
+    bubbleTail.style.position = 'absolute';
+    bubbleTail.style.bottom = '-8px';
+    bubbleTail.style.right = '15px';
+    bubbleTail.style.width = '0';
+    bubbleTail.style.height = '0';
+    bubbleTail.style.borderLeft = '8px solid transparent';
+    bubbleTail.style.borderRight = '8px solid transparent';
+    bubbleTail.style.borderTop = '8px solid white';
+    
+    this.bubble.appendChild(bubbleTail);
+    
+    // Message content
+    const messageContent = document.createElement('div');
+    messageContent.className = 'financial-mascot-message';
+    
+    // Header with mascot name
+    const nameHeader = document.createElement('div');
+    nameHeader.textContent = this.name;
+    nameHeader.style.fontWeight = '600';
+    nameHeader.style.marginBottom = '8px';
+    nameHeader.style.color = this.color;
+    
+    // Text content
+    const textContent = document.createElement('div');
+    textContent.className = 'financial-mascot-text';
+    textContent.style.marginBottom = '10px';
+    textContent.style.lineHeight = '1.5';
+    textContent.textContent = this.personality.greeting;
+    
+    messageContent.appendChild(nameHeader);
+    messageContent.appendChild(textContent);
+    
+    // Add category selector for tips
+    const categoryLabel = document.createElement('div');
+    categoryLabel.textContent = 'Tip Category:';
+    categoryLabel.style.fontSize = '12px';
+    categoryLabel.style.marginBottom = '5px';
+    categoryLabel.style.color = '#64748b';
+    
+    const categorySelect = document.createElement('select');
+    categorySelect.style.padding = '4px 8px';
+    categorySelect.style.borderRadius = '4px';
+    categorySelect.style.border = '1px solid #e2e8f0';
+    categorySelect.style.marginBottom = '10px';
+    categorySelect.style.width = '100%';
+    categorySelect.style.fontSize = '14px';
+    
+    Object.keys(financialTips).forEach(category => {
+      const option = document.createElement('option');
+      option.value = category;
+      option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+      if (category === this.currentTipCategory) {
+        option.selected = true;
+      }
+      categorySelect.appendChild(option);
+    });
+    
+    categorySelect.addEventListener('change', () => {
+      this.currentTipCategory = categorySelect.value;
+      this.showNextTip();
+    });
+    
+    messageContent.appendChild(categoryLabel);
+    messageContent.appendChild(categorySelect);
+    
+    // Next tip button
+    const nextTipBtn = document.createElement('button');
+    nextTipBtn.textContent = 'Next Tip';
+    nextTipBtn.style.backgroundColor = this.color;
+    nextTipBtn.style.color = 'white';
+    nextTipBtn.style.border = 'none';
+    nextTipBtn.style.padding = '6px 12px';
+    nextTipBtn.style.borderRadius = '4px';
+    nextTipBtn.style.marginTop = '5px';
+    nextTipBtn.style.cursor = 'pointer';
+    nextTipBtn.style.transition = 'all 0.2s ease';
+    
+    nextTipBtn.addEventListener('click', () => {
+      this.showNextTip();
+    });
+    
+    messageContent.appendChild(nextTipBtn);
+    
+    this.bubble.appendChild(messageContent);
+    
+    if (this.container) {
+      this.container.appendChild(this.bubble);
+    }
+  }
+  
   showNextTip() {
     // Check if bubble exists first
     if (!this.bubble) {
@@ -448,9 +570,17 @@ class FinancialMascot {
     }
     
     const categoryTips = financialTips[this.currentTipCategory];
+    if (!categoryTips) {
+      console.error(`Category "${this.currentTipCategory}" not found in tips`);
+      return;
+    }
     
     // Get current index for this category
     let index = this.tipIndex[this.currentTipCategory];
+    if (index === undefined) {
+      index = 0;
+      this.tipIndex[this.currentTipCategory] = 0;
+    }
     
     // Update the message text
     const textElement = this.bubble.querySelector('.financial-mascot-text');
