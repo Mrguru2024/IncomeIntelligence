@@ -8,16 +8,30 @@ interface StackrLogoProps {
 const StackrLogo: React.FC<StackrLogoProps> = ({ className = "", showText = true }) => {
   return (
     <div className={`flex items-center ${className}`}>
-      <img 
-        src="/stackr-logo-vector.svg" 
-        alt="Stackr Logo" 
-        className="h-12 w-auto" 
-      />
-      {showText && (
-        <div className="ml-3">
-          <h1 className="text-2xl font-semibold text-foreground">Stackr</h1>
-          <p className="text-sm text-muted-foreground">40/30/30 Income Manager</p>
-        </div>
+      {showText ? (
+        <>
+          <h1 className="text-2xl font-bold m-0" style={{
+            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>
+            Stackr
+          </h1>
+          <span className="text-xs font-bold ml-2 py-1 px-2 rounded" style={{
+            background: 'linear-gradient(135deg, #34A853 0%, #2E8545 100%)',
+            color: 'white'
+          }}>
+            GREEN
+          </span>
+        </>
+      ) : (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 4L14 6H20V18H4V6H10L12 4Z" fill="currentColor" />
+          <path d="M12 4L14 6H20V18H4V6H10L12 4Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M9 10L15 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 14L15 14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       )}
     </div>
   );
