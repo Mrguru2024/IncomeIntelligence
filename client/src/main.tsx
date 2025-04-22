@@ -1,32 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/hooks/use-auth';
-import { ThemeProvider } from '@/hooks/useTheme';
 import './index.css';
 
-// Import App component
-import App from './App';
+// Import TestApp component
+import TestApp from './TestApp';
 
 // Add enhanced debugging
-console.log("STARTUP: Application initialization beginning");
+console.log("STARTUP: Simple application initialization beginning");
 
-// Clean up any localStorage leftover
+// Clean up any localStorage
 if (typeof window !== 'undefined') {
   localStorage.removeItem('firebaseLocalStorage');
 }
-
-// Configure the query client for API requests
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: false,
-      staleTime: 1000 * 60 * 5, // 5 minutes
-    },
-  },
-});
 
 // Ensure the root element exists
 const rootElement = document.getElementById("root");
@@ -37,20 +22,13 @@ if (!rootElement) {
   
   // Wrap in try/catch to display any rendering errors
   try {
-    // Create React root and render the app with all required providers
+    // Create React root and render the app
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <ThemeProvider>
-              <App />
-              <Toaster />
-            </ThemeProvider>
-          </AuthProvider>
-        </QueryClientProvider>
+        <TestApp />
       </React.StrictMode>
     );
-    console.log("RENDER: App rendered successfully");
+    console.log("RENDER: TestApp rendered successfully");
   } catch (error) {
     console.error("CRITICAL ERROR rendering app:", error);
     
