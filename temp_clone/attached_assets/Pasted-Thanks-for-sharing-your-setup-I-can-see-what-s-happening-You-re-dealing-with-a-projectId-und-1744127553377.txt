@@ -1,0 +1,127 @@
+Thanks for sharing your setup — I can see what’s happening.
+
+You're dealing with a **`projectId` undefined error**, and from the code and environment you shared, I can confirm a few things need to be fixed.
+
+---
+
+## ✅ Issue Summary
+
+The error:
+```
+Configuration must contain `projectId`
+```
+
+…is most likely coming from this part of your **Sanity config**:
+
+```ts
+createClient({
+  projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
+  ...
+})
+```
+
+But based on your `.env`:
+```env
+VITE_SANITY_PROJECT_ID=5enbinz3
+```
+
+You **do** have `projectId` defined — **so the most likely causes are**:
+
+---
+
+### 🔍 Root Causes
+
+#### 1. You're not restarting the Vite server after `.env` changes
+> 🛠 Fix: Run `npm run dev` again to reload the new env vars
+
+#### 2. The `.env` file is not being loaded (Replit or wrong location)
+> Make sure `.env` is in the root **of your Vite frontend project**
+
+#### 3. You're trying to use `import.meta.env.VITE_SANITY_PROJECT_ID` in a file that executes **outside of Vite context**
+> For example: If you're importing this `createClient()` file into the **backend**, `import.meta.env` won't work. That’s **frontend-only**.
+
+---
+
+## ✅ Actionable Fixes
+
+### ✅ Step 1: Confirm `.env` File Is in Right Place
+
+Your `.env` file must be in the **root directory** of your Vite (frontend) project — where `vite.config.ts` or `vite.config.js` lives.
+
+Example:
+```
+/stackr-frontend
+  ├── .env
+  ├── vite.config.ts
+  ├── src/
+  └── index.html
+```
+
+---
+
+### ✅ Step 2: Log and Test the Variable
+
+In the same file you use `createClient`, add this before it:
+
+```ts
+console.log('Sanity Project ID:', import.meta.env.VITE_SANITY_PROJECT_ID);
+```
+
+If this prints `undefined`, then the variable **isn’t loading properly** and you should recheck:
+
+- `.env` location
+- Spelling (no typos)
+- That you restarted the dev server
+
+---
+
+### ✅ Step 3: Fallback to Direct Value (for testing only)
+
+Temporarily hard-code the project ID to confirm:
+
+```ts
+export const client = createClient({
+  projectId: '5enbinz3',
+  ...
+})
+```
+
+✅ If this removes the error, your `import.meta.env` is not being read correctly — and the fix is in `.env` setup or Vite config.
+
+---
+
+### ✅ Step 4: Restart Your Dev Server
+
+After updating `.env`:
+
+```bash
+# Stop Vite dev server
+CTRL+C
+
+# Restart
+npm run dev
+```
+
+---
+
+## 🔒 Bonus: Avoid using `VITE_FIREBASE_STORAGE_BUCKET=stackr-19160.firebasestorage.app`
+
+This is incorrect.
+
+It should be:
+
+```env
+VITE_FIREBASE_STORAGE_BUCKET=stackr-19160.appspot.com
+```
+
+Because Firebase always uses `.appspot.com` for the storage bucket, **not `.firebasestorage.app`**.
+
+---
+
+## ✅ Next Steps
+
+Let me know:
+- If you’re using the `createClient()` inside a **backend file** (Node.js)
+- Or if you'd like me to **refactor the Sanity/Firebase config** for you based on your project structure
+
+I can also walk you through setting up `.env` for **frontend AND backend separation** for better practice as Stackr grows.

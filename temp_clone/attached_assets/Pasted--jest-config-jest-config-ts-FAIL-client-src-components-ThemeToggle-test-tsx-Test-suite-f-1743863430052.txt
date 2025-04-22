@@ -1,0 +1,128 @@
+ jest --config jest.config.ts
+
+ FAIL  client/src/components/ThemeToggle.test.tsx
+  ● Test suite failed to run
+
+    jest.setup.ts:6:1 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    6 jest.mock('@/lib/utils/format', () => ({
+      ~~~~
+    jest.setup.ts:11:1 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    11 jest.mock('@tanstack/react-query', () => ({
+       ~~~~
+    jest.setup.ts:12:6 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    12   ...jest.requireActual('@tanstack/react-query'),
+            ~~~~
+    jest.setup.ts:13:13 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    13   useQuery: jest.fn().mockReturnValue({ data: [], isLoading: false }),
+                   ~~~~
+    jest.setup.ts:14:16 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    14   QueryClient: jest.fn(),
+                      ~~~~
+    jest.setup.ts:20:12 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    20   getItem: jest.fn(),
+                  ~~~~
+    jest.setup.ts:21:12 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    21   setItem: jest.fn(),
+                  ~~~~
+    jest.setup.ts:22:10 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    22   clear: jest.fn(),
+                ~~~~
+    jest.setup.ts:24:1 - error TS2739: Type '{ getItem: any; setItem: any; clear: any; }' is missing the following properties from type 'Storage': length, key, removeItem
+
+    24 global.localStorage = localStorageMock;
+       ~~~~~~~~~~~~~~~~~~~
+
+ FAIL  client/src/components/SafeEnvelope.test.tsx
+  ● Test suite failed to run
+
+    jest.setup.ts:6:1 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    6 jest.mock('@/lib/utils/format', () => ({
+      ~~~~
+    jest.setup.ts:11:1 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    11 jest.mock('@tanstack/react-query', () => ({
+       ~~~~
+    jest.setup.ts:12:6 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    12   ...jest.requireActual('@tanstack/react-query'),
+            ~~~~
+    jest.setup.ts:13:13 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    13   useQuery: jest.fn().mockReturnValue({ data: [], isLoading: false }),
+                   ~~~~
+    jest.setup.ts:14:16 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    14   QueryClient: jest.fn(),
+                      ~~~~
+    jest.setup.ts:20:12 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    20   getItem: jest.fn(),
+                  ~~~~
+    jest.setup.ts:21:12 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    21   setItem: jest.fn(),
+                  ~~~~
+    jest.setup.ts:22:10 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    22   clear: jest.fn(),
+                ~~~~
+    jest.setup.ts:24:1 - error TS2739: Type '{ getItem: any; setItem: any; clear: any; }' is missing the following properties from type 'Storage': length, key, removeItem
+
+    24 global.localStorage = localStorageMock;
+       ~~~~~~~~~~~~~~~~~~~
+
+ FAIL  client/src/components/CashFlowCoach.test.tsx
+  ● Test suite failed to run
+
+    jest.setup.ts:6:1 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    6 jest.mock('@/lib/utils/format', () => ({
+      ~~~~
+    jest.setup.ts:11:1 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    11 jest.mock('@tanstack/react-query', () => ({
+       ~~~~
+    jest.setup.ts:12:6 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    12   ...jest.requireActual('@tanstack/react-query'),
+            ~~~~
+    jest.setup.ts:13:13 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    13   useQuery: jest.fn().mockReturnValue({ data: [], isLoading: false }),
+                   ~~~~
+    jest.setup.ts:14:16 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    14   QueryClient: jest.fn(),
+                      ~~~~
+    jest.setup.ts:20:12 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    20   getItem: jest.fn(),
+                  ~~~~
+    jest.setup.ts:21:12 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    21   setItem: jest.fn(),
+                  ~~~~
+    jest.setup.ts:22:10 - error TS2708: Cannot use namespace 'jest' as a value.
+
+    22   clear: jest.fn(),
+                ~~~~
+    jest.setup.ts:24:1 - error TS2739: Type '{ getItem: any; setItem: any; clear: any; }' is missing the following properties from type 'Storage': length, key, removeItem
+
+    24 global.localStorage = localStorageMock;
+       ~~~~~~~~~~~~~~~~~~~
+
+Test Suites: 3 failed, 3 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        21.141 s
+Ran all test suites.
+ Environment updated. Reloading shell...

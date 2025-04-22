@@ -1,8 +1,9 @@
 /**
  * Comprehensive Firebase mock to intercept any Firebase imports in the application
+ * This is a silent version that doesn't log to the console to avoid confusion
  */
 
-console.log('Firebase mock loaded and initialized');
+// No longer logging to console to avoid confusion
 
 // Create a mock Firebase app with a projectId
 const firebaseAppMock = {
@@ -28,7 +29,7 @@ const authMock = {
   currentUser: null,
   
   onAuthStateChanged(callback) {
-    console.log('Firebase persistence set');
+    // Silent execution without logging
     
     // Execute callback immediately with current user
     if (callback) {
@@ -48,17 +49,17 @@ const authMock = {
   },
   
   signInWithEmailAndPassword() {
-    console.log('Firebase mock: signInWithEmailAndPassword called');
+    // Silent execution
     return Promise.reject(new Error("Firebase authentication not available"));
   },
   
   createUserWithEmailAndPassword() {
-    console.log('Firebase mock: createUserWithEmailAndPassword called');
+    // Silent execution
     return Promise.reject(new Error("Firebase authentication not available"));
   },
   
   signOut() {
-    console.log('Firebase mock: signOut called');
+    // Silent execution
     currentUserMock = null;
     
     // Notify listeners
@@ -68,7 +69,7 @@ const authMock = {
   },
   
   setPersistence() {
-    console.log('Firebase mock: setPersistence called');
+    // Silent execution
     return Promise.resolve();
   },
   
@@ -86,7 +87,7 @@ const authMock = {
 const firebaseMock = {
   // Firebase app initialization
   initializeApp(config) {
-    console.log('Firebase mock: initializeApp called', config);
+    // Silent execution with no logging
     return firebaseAppMock;
   },
   

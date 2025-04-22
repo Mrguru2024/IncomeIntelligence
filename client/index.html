@@ -64,13 +64,84 @@
     };
     
     window.debugLog('React application initialization starting');
+    
+    // Clean up any lingering Firebase storage
+    localStorage.removeItem('firebaseLocalStorage');
+    sessionStorage.removeItem('firebase:authUser');
+    
+    // Create Firebase mock directly on the window object
+    const firebaseAppMock = {
+      projectId: "stackr-finance-mock",
+      name: "stackr-finance",
+      options: {
+        apiKey: "mock-api-key",
+        authDomain: "stackr-finance-mock.firebaseapp.com",
+        projectId: "stackr-finance-mock",
+        storageBucket: "stackr-finance-mock.firebasestorage.app",
+        messagingSenderId: "000000000000",
+        appId: "1:000000000000:web:0000000000000000000000",
+        measurementId: "G-00000000"
+      }
+    };
+    
+    // Mock auth state
+    const authMock = {
+      currentUser: null,
+      onAuthStateChanged(callback) {
+        if (callback) {
+          callback(null);
+          return () => {};
+        }
+        return () => {};
+      },
+      signInWithEmailAndPassword() {
+        return Promise.reject(new Error("Firebase authentication not available"));
+      },
+      createUserWithEmailAndPassword() {
+        return Promise.reject(new Error("Firebase authentication not available"));
+      },
+      signOut() {
+        return Promise.resolve();
+      },
+      setPersistence() {
+        return Promise.resolve();
+      },
+      sendPasswordResetEmail() {
+        return Promise.resolve();
+      },
+      confirmPasswordReset() {
+        return Promise.resolve();
+      }
+    };
+    
+    // Main Firebase module mock directly on window
+    window.firebase = {
+      initializeApp() {
+        return firebaseAppMock;
+      },
+      auth() {
+        return authMock;
+      },
+      firestore() {
+        return {};
+      },
+      analytics() {
+        return {};
+      }
+    };
+    
+    // Named exports for ES modules
+    window.firebaseApp = firebaseAppMock;
+    window.firebaseAuth = authMock;
+    
+    window.debugLog('Firebase mock initialized directly in the page');
   </script>
 </head>
 <body>
   <div id="root"></div>
   
-  <!-- Load our minimal React application entry point -->
-  <script type="module" src="/src/simple-main.tsx"></script>
+  <!-- Load our React application entry point -->
+  <script type="module" src="/src/main.tsx"></script>
 
   <!-- Replit badge -->
   <script

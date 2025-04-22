@@ -1,0 +1,24 @@
+[vite] connecting...
+[vite] connected.
+Firebase initialized successfully
+Error {}
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+Firebase persistence set
+[vite] server connection lost. Polling for restart...
+Google sign-in error: 
+ReferenceError {}
+message: "signInWithPopup is not defined"
+stack: "ReferenceError: signInWithPopup is not defined↵ at handleGoogleSignIn (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/src/pages/auth-page.tsx:100:22)↵ at HTMLUnknownElement.callCallback2 (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2824da47:3680:22)↵ at Object.invokeGuardedCallbackDev (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2824da47:3705:24)↵ at invokeGuardedCallback (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2824da47:3739:39)↵ at invokeGuardedCallbackAndCatchFirstError (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2824da47:3742:33)↵ at executeDispatch (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2824da47:7046:11)↵ at processDispatchQueueItemsInOrder (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2824da47:7066:15)↵ at processDispatchQueue (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2824da47:7075:13)↵ at dispatchEventsForPlugins (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2824da47:7083:11)↵ at https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2824da47:7206:20"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+Google sign-in error: 
+ReferenceError {}
+
+Google sign-in error: 
+ReferenceError {}
+
+Google sign-in error: 
+ReferenceError {}
+

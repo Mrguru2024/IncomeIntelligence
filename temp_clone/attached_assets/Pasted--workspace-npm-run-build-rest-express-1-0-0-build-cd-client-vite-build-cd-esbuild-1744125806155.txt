@@ -1,0 +1,35 @@
+~/workspace$ npm run build
+
+> rest-express@1.0.0 build
+> cd client && vite build && cd .. && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v6.2.5 building for production...
+transforming (1) src/main.tsx
+warn - The `content` option in your Tailwind CSS configuration is missing or empty.
+warn - Configure your content sources or your generated CSS will be missing styles.
+warn - https://tailwindcss.com/docs/content-configuration
+✓ 16 modules transformed.
+✗ Build failed in 311ms
+error during build:
+[vite:esbuild] Transform failed with 1 error:
+/home/runner/workspace/client/src/pages/FinancialAdvice.tsx:928:88: ERROR: Expected ">" but found "\" ? \""
+file: /home/runner/workspace/client/src/pages/FinancialAdvice.tsx:928:88
+
+Expected ">" but found "\" ? \""
+926|                    <div className="flex border rounded-md overflow-hidden w-full sm:w-auto">
+927|                      <Button
+928|                        type="button                      variant={expensePeriod === "week" ? "default" : "ghost"}                      className="rounded-none flex-1 text-xs sm:text-sm py-1 px-2 sm:py-2 sm:px-3"
+   |                                                                                          ^
+929|                        onClick={() => setExpensePeriod("week")}
+930|                      >
+
+    at failureErrorWithLog (/home/runner/workspace/node_modules/esbuild/lib/main.js:1477:15)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:756:50
+    at responseCallbacks.<computed> (/home/runner/workspace/node_modules/esbuild/lib/main.js:623:9)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/esbuild/lib/main.js:678:12)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/esbuild/lib/main.js:601:7)
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
