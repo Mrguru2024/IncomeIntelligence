@@ -1,0 +1,84 @@
+Thanks for sharing the list — this confirms you’ve added all the necessary **environment variables into Replit’s Secrets Manager** ✅
+
+Now let’s **verify 3 critical things** to make sure your `VITE_SANITY_PROJECT_ID` and other variables are working **inside your Vite-based frontend**.
+
+---
+
+## ✅ 1. **Confirm Vite Is Reading Environment Variables Correctly**
+
+Inside your project, add this **temporary debug log** right before you create the Sanity client (in `sanityClient.ts`):
+
+```ts
+console.log('Sanity Config Debug:', {
+  projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
+  dataset: import.meta.env.VITE_SANITY_DATASET,
+  apiVersion: import.meta.env.VITE_SANITY_API_VERSION,
+  token: import.meta.env.VITE_SANITY_TOKEN
+});
+```
+
+Then go to the browser dev console or terminal log and check the output.
+
+---
+
+## ✅ 2. If You Still See `undefined`, Add a `.env` Fallback for Local Use
+
+Replit Secrets are used in **hosted deployments** on Replit — if you’re developing **in a Replit workspace (frontend)** you also need a `.env` for local preview.
+
+In your frontend folder, create a **`.env` file** with:
+
+```env
+VITE_SANITY_PROJECT_ID=5enbinz3
+VITE_SANITY_DATASET=production
+VITE_SANITY_API_VERSION=2023-05-03
+VITE_SANITY_TOKEN=sk_abc123... (test token for dev only)
+VITE_STRIPE_PUBLIC_KEY=pk_test_abc123...
+```
+
+Then restart your Vite dev server:
+
+```bash
+npm run dev
+```
+
+---
+
+## ✅ 3. Final Vite-Safe Sanity Config Template
+
+Here’s a production-safe version of your `sanityClient.ts`:
+
+```ts
+import { createClient } from '@sanity/client';
+
+const sanityProjectId = import.meta.env.VITE_SANITY_PROJECT_ID;
+const sanityDataset = import.meta.env.VITE_SANITY_DATASET || 'production';
+const sanityApiVersion = import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03';
+const sanityToken = import.meta.env.VITE_SANITY_TOKEN;
+
+if (!sanityProjectId) {
+  throw new Error('Missing VITE_SANITY_PROJECT_ID – check .env or Secrets tab.');
+}
+
+export const client = createClient({
+  projectId: sanityProjectId,
+  dataset: sanityDataset,
+  apiVersion: sanityApiVersion,
+  token: sanityToken,
+  useCdn: true,
+  perspective: 'published',
+});
+```
+
+---
+
+## ✅ You’re Almost There
+
+If the `console.log()` finally shows valid values:
+- ✅ You’re good to start fetching Sanity content!
+- I can help you write a `getBudgetTips()` query or `getGoalsList()` next
+
+If it's still undefined:
+- 📸 Send a screenshot of the console log output
+- Or paste the **console output** here and I’ll pinpoint the final issue
+
+Want me to build a **working Sanity query** to fetch content and render in your app next?

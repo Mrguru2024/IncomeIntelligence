@@ -1,0 +1,85 @@
+// Professional Services methods
+async getProfessionalServices(): Promise<ProfessionalService[]> {
+  return Array.from(this.professionalServices.values());
+}
+
+async getProfessionalServiceById(id: number): Promise<ProfessionalService | undefined> {
+  return this.professionalServices.get(id);
+}
+
+async createProfessionalService(service: InsertProfessionalService): Promise<ProfessionalService> {
+  const id = this.professionalServiceCurrentId++;
+  const now = new Date();
+  
+  const newService: ProfessionalService = {
+    id,
+    userId: service.userId,
+    name: service.name,
+    description: service.description,
+    category: service.category,
+    pricing: service.pricing || null,
+    location: service.location || null,
+    availability: service.availability || null,
+    createdAt: now,
+    updatedAt: now,
+    isActive: service.isActive !== undefined ? service.isActive : true,
+    contactInfo: service.contactInfo || null,
+    ratings: "0",
+    reviewCount: 0,
+    licenseInfo: service.licenseInfo || null,
+    certifications: service.certifications || null,
+    serviceArea: service.serviceArea || null,
+    businessHours: service.businessHours || null
+  };
+  
+  this.professionalServices.set(id, newService);
+  return newService;
+}
+
+async updateProfessionalService(id: number, service: Partial<InsertProfessionalService>): Promise<ProfessionalService | undefined> {
+  const existingService = this.professionalServices.get(id);
+  if (!existingService) {
+    return undefined;
+  }
+  
+  const updatedService: ProfessionalService = {
+    ...existingService,
+    ...service,
+    updatedAt: new Date()
+  };
+  
+  this.professionalServices.set(id, updatedService);
+  return updatedService;
+}
+
+async deleteProfessionalService(id: number): Promise<boolean> {
+  return this.professionalServices.delete(id);
+}
+
+async getProfessionalServicesByUserId(userId: number): Promise<ProfessionalService[]> {
+  return Array.from(this.professionalServices.values()).filter(
+    service => service.userId === userId
+  );
+}
+
+async getProfessionalServicesByCategory(category: string): Promise<ProfessionalService[]> {
+  return Array.from(this.professionalServices.values()).filter(
+    service => service.category === category
+  );
+}
+
+async toggleProfessionalServiceActive(id: number, isActive: boolean): Promise<ProfessionalService | undefined> {
+  const existingService = this.professionalServices.get(id);
+  if (!existingService) {
+    return undefined;
+  }
+  
+  const updatedService: ProfessionalService = {
+    ...existingService,
+    isActive,
+    updatedAt: new Date()
+  };
+  
+  this.professionalServices.set(id, updatedService);
+  return updatedService;
+}

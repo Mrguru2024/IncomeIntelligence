@@ -1,0 +1,116 @@
+Got you, Anthony. If you're getting a **`projectId` console error in a Vite project**, it's almost always because your `.env` variable is either:
+
+- 🟥 **missing**
+- 🟨 **mislabeled**
+- 🟦 **not accessible in the place you're trying to use it**
+
+Let’s solve this step-by-step.
+
+---
+
+## ✅ Step-by-Step Fix for `projectId` Error in Vite + Firebase/Sanity
+
+---
+
+### ✅ 1. **Confirm `.env` Variables Are Set Correctly**
+
+In your root `.env` file (at the same level as `vite.config.ts` or `index.html`), you must define:
+
+```env
+VITE_FIREBASE_PROJECT_ID=stackr-19160
+```
+
+✅ Make sure:
+- It starts with `VITE_` (Vite **only exposes** env vars prefixed with `VITE_`)
+- There are **no quotes** around values unless it's a multi-line string
+
+---
+
+### ✅ 2. **Check How You Use It in Code**
+
+In your `firebase.ts` or `sanity.ts` config:
+
+```ts
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID, // <- THIS LINE MATTERS
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+}
+```
+
+❌ **DO NOT** use `process.env` in Vite projects  
+✅ **USE** `import.meta.env.VITE_...`
+
+---
+
+### ✅ 3. **Log It to Debug**
+
+Right before your Firebase or Sanity `createClient` or `initializeApp`, add:
+
+```ts
+console.log('projectId:', import.meta.env.VITE_FIREBASE_PROJECT_ID);
+```
+
+Check:
+- If it prints the correct ID (e.g., `stackr-19160`)
+- If it's `undefined` or blank, the `.env` isn't being loaded
+
+---
+
+### ✅ 4. **Restart Your Vite Dev Server**
+
+After changing `.env`, you **must restart** the Vite server:
+
+```bash
+# Stop the dev server
+CTRL + C
+
+# Restart
+npm run dev
+```
+
+Vite does **not automatically reload** new `.env` values.
+
+---
+
+### ✅ 5. **Optional: Vite Config Check**
+
+Make sure `vite.config.ts` does not override or strip out `import.meta.env`.
+
+You don’t need anything special, but it should not have:
+
+```ts
+define: {
+  'process.env': {}
+}
+```
+
+---
+
+### ✅ Bonus: Hardcoded Debug (if needed)
+
+Just for testing, you can replace the env value to confirm the cause:
+
+```ts
+projectId: 'stackr-19160', // If this works, your .env isn't loading
+```
+
+---
+
+## 🔥 Final Checklist
+
+| Task | Confirm |
+|------|---------|
+| `.env` file has `VITE_FIREBASE_PROJECT_ID=` | ✅ |
+| `firebaseConfig.projectId` uses `import.meta.env.VITE_FIREBASE_PROJECT_ID` | ✅ |
+| You restarted Vite (`npm run dev`) | ✅ |
+| No typos in key or file location | ✅ |
+
+---
+
+### Want to send me your full `firebase.ts` or `sanityClient.ts`?
+
+Paste it here, and I’ll rewrite it clean with proper env usage. We’ll solve this completely.

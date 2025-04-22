@@ -1,0 +1,125 @@
+Absolutely. Below is a **clean, scalable refactor** for your Firebase and Sanity config setup — split properly between frontend (Vite) and backend (Node/Express), with `.env` variables correctly handled for **Stackr**.
+
+---
+
+## ✅ 1. `.env` File Structure (Frontend)
+
+📁 **Location**: `/stackr-frontend/.env`
+
+```env
+# Firebase (for Vite frontend)
+VITE_FIREBASE_API_KEY=AIzaSyCnIly7WixD5bJqPKUms7HHqD41pQOei94
+VITE_FIREBASE_AUTH_DOMAIN=stackr-19160.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=stackr-19160
+VITE_FIREBASE_STORAGE_BUCKET=stackr-19160.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=887839576217
+VITE_FIREBASE_APP_ID=1:887839576217:web:37d47847b89cd4687d2808
+VITE_FIREBASE_MEASUREMENT_ID=G-DZ87C6BM55
+
+# Sanity
+VITE_SANITY_PROJECT_ID=5enbinz3
+VITE_SANITY_DATASET=production
+VITE_SANITY_API_VERSION=2023-05-03
+VITE_SANITY_TOKEN=sklhlPEHD... (hide this in frontend if possible)
+```
+
+> ✅ All frontend environment variables must start with `VITE_`
+
+---
+
+## ✅ 2. `firebase.ts` (Frontend Config)
+
+📁 `/stackr-frontend/src/lib/firebase.ts`
+
+```ts
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+```
+
+---
+
+## ✅ 3. `sanityClient.ts` (Frontend Config)
+
+📁 `/stackr-frontend/src/lib/sanityClient.ts`
+
+```ts
+import { createClient } from '@sanity/client';
+
+export const sanityClient = createClient({
+  projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
+  dataset: import.meta.env.VITE_SANITY_DATASET,
+  apiVersion: import.meta.env.VITE_SANITY_API_VERSION,
+  token: import.meta.env.VITE_SANITY_TOKEN, // ⚠️ Don't expose this in frontend if security matters
+  useCdn: false,
+});
+```
+
+> 🛑 **Warning**: If `token` is used for write access (like mutations), move that logic to your **backend**, not frontend.
+
+---
+
+## ✅ 4. Optional: Backend Firebase Admin (Node.js)
+
+📁 `/stackr-backend/.env`
+
+```env
+FIREBASE_PROJECT_ID=stackr-19160
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-fbsvc@stackr-19160.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```
+
+📁 `/stackr-backend/lib/firebaseAdmin.ts`
+
+```ts
+import { initializeApp, cert } from 'firebase-admin/app';
+
+const serviceAccount = {
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+  privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+};
+
+export const firebaseAdmin = initializeApp({
+  credential: cert(serviceAccount),
+});
+```
+
+---
+
+## 🔁 Don’t Forget
+After changing `.env`, always:
+
+```bash
+npm run dev
+```
+
+---
+
+## ✅ Now You Can Use:
+- Firebase Auth & Firestore in the frontend
+- Secure Firebase Admin + write logic in the backend
+- Sanity read/write access with a clear separation
+
+---
+
+Let me know if you want:
+- 🔐 A way to **secure Sanity token** using backend middleware
+- 🌐 API routes in backend to update Sanity content from Stackr dashboard
+- 🧪 Test login/register and write a secure auth flow using Firebase
+
+You're now building Stackr like a pro startup 💼🔥

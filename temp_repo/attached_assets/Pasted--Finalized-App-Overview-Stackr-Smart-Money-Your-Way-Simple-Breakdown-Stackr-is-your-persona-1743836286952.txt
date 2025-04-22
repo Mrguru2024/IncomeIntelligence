@@ -1,0 +1,130 @@
+💼 Finalized App Overview:
+💸 Stackr – Smart Money, Your Way
+Simple Breakdown
+Stackr is your personal money planner that helps you control where your cash goes, how it grows, and keeps you consistent — even when life gets busy. It's built using the 40/30/30 rule:
+
+40% Needs (rent, food, tools)
+
+30% Savings (emergencies, van upgrade, future)
+
+30% Investments (stock, business tools, growth)
+
+🧠 Smart, Competitive Features of Stackr
+✅ 1. Smart Planning Puzzle
+Plan your money with visual pieces that guide every dollar home.
+
+✅ 2. Goal Setting & Progress Tracker
+Set savings goals and watch your journey in real time — like “New Work Van” or “$1,000 Emergency Fund.”
+
+✅ 3. Cash Flow Coach Mode
+Weekly AI challenges: “Stack $50 this week by reducing DoorDash” or “Reinvest $100 of excess income.”
+
+✅ 4. Lock-Safe Envelopes
+Drag and drop income into virtual envelopes with locking options for tools, fuel, savings, etc.
+
+🔄 🔁 NEW: Stackr Smart Savings Rules Engine
+“Stackr does it for you — so you can focus on your hustle.”
+
+🧩 What Users Can Automate:
+Recurring Rules (ex. “Every Monday, move 15% of all deposits to Savings”)
+
+Income-Based Rules:
+
+"If I earn more than $3,000 this month, save 20% of the excess"
+
+"If an invoice is over $500, save $50 automatically"
+
+Time-Based Rules:
+
+"On the 1st and 15th, save $100 into Emergency Fund"
+
+Round-Up Rules:
+
+Every transaction rounds up to the next $1 or $5 — difference goes into savings
+
+Challenge Mode:
+
+Save $5 every time you log in
+
+Save $10 every time you cancel a subscription
+
+Seasonal Rules:
+
+Adjust savings plan in slow months (great for locksmith seasonality)
+
+Bonus Stack in high-revenue seasons
+
+🧠 How It Works (Tech Overview):
+All savings rules stored in SQLite (rules table)
+
+Background cron job (Node.js) runs every hour/day
+
+React UI allows toggle/edit of each rule
+
+Real-time visual feedback: “💰 You just stacked $25 with your Monday Rule!”
+
+✅ 5. Voice Journaling + Expense Logger
+“Yo Stackr, I spent $22 on tools today” → Auto-categorized + voice summary log.
+
+✅ 6. Income Forecasting
+Predicts income trends based on your locksmith jobs, seasons, and customer frequency.
+
+✅ 7. Receipt Scanner
+Snap invoices or receipts → AI tags them and logs into your 40/30/30 plan.
+
+💣 8. Subscription Sniper (NEW)
+Scans all your bank-connected accounts and shows you subscriptions draining your cash. Cancel with one click. Track saved totals in your Wealth Timeline.
+
+🧠 AI Stackr Assistant
+Your built-in budgeting expert:
+
+Suggests savings tweaks
+
+Reminds you when you're overspending
+
+Warns when goals are off track
+
+⚙️ Stackr Tech Stack
+Frontend:
+React + TypeScript
+
+Tailwind CSS + Shadcn/UI
+
+Zustand for state
+
+React Query for data
+
+Backend:
+Node.js + Express
+
+SQLite + Drizzle ORM
+
+OpenAI integration (AI assistant, voice logs)
+
+Plaid API (bank connections)
+
+📱 Stackr App Highlights:
+Mobile-first, responsive design
+
+Real-time dashboard
+
+Offline logging
+
+Light/Dark mode
+
+Data export (CSV/PDF)
+
+Voice control + journaling
+
+Auto-investment logic (coming soon)
+
+📣 Final Marketing Pitch
+💼 Stackr is the modern-day financial wingman built for entrepreneurs, tradesmen, and self-employed go-getters who need control over every cent. Whether you’re stacking $100 or $10,000 — Stackr helps you place it, track it, and grow it like a boss.
+
+If you’re ready, I can start building:
+
+💻 The Smart Rules Engine UI (React + Zustand)
+
+🧪 The Rules schema + automation runner (Node.js)
+
+🎨 Or a Stackr Brand Page mockup in Figma
