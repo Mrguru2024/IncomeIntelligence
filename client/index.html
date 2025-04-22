@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#4F46E5" />
   
   <script>
-    console.log('[FRESH] Loading completely Firebase-free Stackr Finance');
+    console.log('[STACKR] Loading Firebase-free Stackr Finance');
     
     // Add a debug logger for development
     window.debugLog = function(message, isError = false) {
@@ -23,8 +23,8 @@
 <body>
   <div id="root"></div>
   
-  <!-- Load our completely Firebase-free application entry point -->
-  <script type="module" src="/src/fresh-main.tsx"></script>
+  <!-- Use the standard main.tsx entry point that the server expects -->
+  <script type="module" src="/src/main.tsx"></script>
 
   <!-- Replit badge -->
   <script
