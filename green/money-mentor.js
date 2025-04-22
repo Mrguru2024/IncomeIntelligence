@@ -161,7 +161,7 @@ async function getFinancialAdvice(query, category) {
  * Render Money Mentor page
  * @returns {HTMLElement} - Page container
  */
-export async function renderMoneyMentorPage() {
+export async function renderMoneyMentorPage(userId) {
   if (!isAuthenticated()) {
     window.location.href = '/auth.html';
     return document.createElement('div');
