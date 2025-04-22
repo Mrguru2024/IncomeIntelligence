@@ -47,8 +47,18 @@ export enum FinancialTopicCategory {
 let perplexityService: PerplexityService | null = null;
 
 export const initializePerplexityService = () => {
-  // Initialize Perplexity service here
-  console.log('Perplexity service initialized');
+  const apiKey = process.env.PERPLEXITY_API_KEY;
+  
+  if (!apiKey) {
+    console.warn('Warning: PERPLEXITY_API_KEY not found in environment variables. Money Mentor features will be disabled.');
+    // Create a mock service to prevent crashes when API key is missing
+    perplexityService = new PerplexityService('mock-key');
+    return;
+  }
+  
+  // Initialize with real API key
+  perplexityService = new PerplexityService(apiKey);
+  console.log('Perplexity service initialized successfully');
 };
 
 export function getPerplexityService(): PerplexityService {
