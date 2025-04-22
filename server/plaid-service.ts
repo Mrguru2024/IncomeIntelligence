@@ -10,15 +10,16 @@ const configuration = new Configuration({
   baseOptions: {
     headers: {
       'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
-      'PLAID-SECRET': process.env.PLAID_ENV === 'production' 
-        ? process.env.PLAID_SECRET 
-        : process.env.PLAID_SANDBOX_SECRET,
+      'PLAID-SECRET': process.env.PLAID_SECRET,
     },
   },
 });
 
 // Initialize Plaid client
 const plaidClient = new PlaidApi(configuration);
+
+// Log successful initialization
+console.log('Plaid client initialized');
 
 export class PlaidService {
   // Create a Plaid link token for client-side initialization
@@ -28,6 +29,8 @@ export class PlaidService {
         throw new Error('Plaid credentials not configured');
       }
 
+      console.log('Creating link token with Plaid client ID:', process.env.PLAID_CLIENT_ID);
+      
       const response = await plaidClient.linkTokenCreate({
         user: {
           client_user_id: userId.toString(),
@@ -38,6 +41,8 @@ export class PlaidService {
         language: 'en',
         webhook: process.env.PLAID_WEBHOOK_URL,
         redirect_uri: process.env.PLAID_REDIRECT_URI,
+        client_id: process.env.PLAID_CLIENT_ID,
+        secret: process.env.PLAID_SECRET
       });
       
       return response.data.link_token;
@@ -53,6 +58,8 @@ export class PlaidService {
       // Exchange public token for access token
       const response = await plaidClient.itemPublicTokenExchange({
         public_token: publicToken,
+        client_id: process.env.PLAID_CLIENT_ID,
+        secret: process.env.PLAID_SECRET
       });
       
       const accessToken = response.data.access_token;
@@ -93,6 +100,8 @@ export class PlaidService {
       // Get accounts from Plaid
       const response = await plaidClient.accountsGet({
         access_token: accessToken,
+        client_id: process.env.PLAID_CLIENT_ID,
+        secret: process.env.PLAID_SECRET
       });
       
       const accounts = response.data.accounts;
@@ -140,6 +149,8 @@ export class PlaidService {
       // Prepare transaction sync request
       const syncRequest: TransactionsSyncRequest = {
         access_token: connection.accessToken,
+        client_id: process.env.PLAID_CLIENT_ID,
+        secret: process.env.PLAID_SECRET
       };
       
       if (cursor) {
