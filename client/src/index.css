@@ -180,20 +180,29 @@ html {
   border-radius: 2px;
 }
 
-/* Light mode colors - default */
+/* Light mode colors - default - GREEN edition */
 :root {
   --background: #f9fafb;
   --foreground: #111827;
   --card-background: #ffffff;
   --card-foreground: #111827;
+  --primary: #34A853;
+  --primary-dark: #2E8545; 
+  --primary-light: #6FCF8A;
   --primary-foreground: #ffffff;
+  --secondary: #FBBC05;
+  --accent: #4285F4;
+  --accent-dark: #3B77DB;
+  --error: #EA4335;
+  --success: #34A853;
   --muted-background: #f3f4f6;
   --muted-foreground: #6b7280;
   --accent-background: #f3f4f6;
   --accent-foreground: #111827;
   --border: #e5e7eb;
   --input-background: #ffffff;
-  --ring: rgba(59, 130, 246, 0.5);
+  --ring: rgba(52, 168, 83, 0.5);
+  --sidebar-bg: #171F2A;
 }
 
 /* Dark mode colors */
