@@ -7,23 +7,21 @@ import StackrLogo from "@/components/StackrLogo";
 import { 
   ChevronLeft, 
   ChevronRight, 
-  LayoutDashboard, 
-  Clock, 
-  Receipt, 
-  Building, 
+  LayoutDashboard,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  Building,
   Target, 
-  CalendarDays, 
+  Trophy,
+  Scissors,
   BookOpen, 
-  Bell, 
-  Mic, 
   User, 
-  Lock, 
-  Gift, 
   Settings, 
-  Home, 
+  CreditCard,
   Briefcase, 
   BadgeDollarSign,
-  ListChecks,
+  FileText,
+  HeartPulse,
   CircleDollarSign,
   Users,
   Brain
@@ -38,7 +36,7 @@ interface SidebarProps {
   setMobileMenuOpen: (open: boolean) => void;
 }
 
-// Navigation structure with categories
+// Navigation structure with categories - GREEN Edition
 const navigationStructure = [
   {
     category: "Main",
@@ -49,14 +47,14 @@ const navigationStructure = [
         icon: <LayoutDashboard size={20} />,
       },
       {
-        name: "Income History",
-        path: "/income-history",
-        icon: <Clock size={20} />,
+        name: "Income Tracker",
+        path: "/income",
+        icon: <ArrowUpCircle size={20} />,
       },
       {
         name: "Expenses",
         path: "/expenses",
-        icon: <Receipt size={20} />,
+        icon: <ArrowDownCircle size={20} />,
       },
       {
         name: "Bank Connections",
@@ -66,71 +64,70 @@ const navigationStructure = [
     ]
   },
   {
-    category: "Planning",
+    category: "Plan & Save",
     items: [
       {
-        name: "Goals",
-        path: "/goals",
+        name: "Savings Goals",
+        path: "/savings-goals",
         icon: <Target size={20} />,
       },
       {
-        name: "Budget Planner",
-        path: "/budget-planner",
-        icon: <CalendarDays size={20} />,
-      },
-      {
-        name: "Reminders",
-        path: "/reminders",
-        icon: <Bell size={20} />,
-      }
-    ]
-  },
-  {
-    category: "Income Generation",
-    items: [
-      {
-        name: "Income Hub",
-        path: "/income-hub",
-        icon: <BadgeDollarSign size={20} />,
+        name: "Savings Challenges",
+        path: "/savings-challenges",
+        icon: <Trophy size={20} />,
         badge: "New"
       },
       {
-        name: "Stackr Gigs",
-        path: "/income-hub/gigs",
-        icon: <Briefcase size={20} />,
-        badge: "Hot"
-      },
-      {
-        name: "Affiliate Program",
-        path: "/income-hub/affiliate",
-        icon: <Users size={20} />,
-      },
-      {
-        name: "Services",
-        path: "/income-hub/services",
-        icon: <CircleDollarSign size={20} />,
+        name: "Money Mentor",
+        path: "/money-mentor",
+        icon: <Brain size={20} />,
+        badge: "Pro",
+        badgeColor: "bg-gradient-to-r from-green-500 to-green-700",
       }
     ]
   },
   {
-    category: "Tools & Resources",
+    category: "Grow Income",
     items: [
       {
-        name: "Stackr Advice",
-        path: "/financial-advice",
-        icon: <BookOpen size={20} />,
+        name: "Gigs Marketplace",
+        path: "/gigs",
+        icon: <Briefcase size={20} />,
       },
       {
-        name: "Money Mentor AI",
-        path: "/money-mentor",
-        icon: <Brain size={20} />,
+        name: "Affiliate Hub",
+        path: "/affiliates-hub",
+        icon: <Users size={20} />,
+        badge: "Hot"
+      },
+      {
+        name: "Subscription Sniper",
+        path: "/subscription-sniper",
+        icon: <Scissors size={20} />,
         badge: "Pro",
-        badgeColor: "bg-gradient-to-r from-indigo-500 to-purple-500",
+        badgeColor: "bg-gradient-to-r from-green-500 to-green-700",
+      }
+    ]
+  },
+  {
+    category: "Insights",
+    items: [
+      {
+        name: "Data Export",
+        path: "/data-export",
+        icon: <FileText size={20} />,
       },
       {
-        name: "Voice Commands",
-        path: "/voice-commands",
-        icon: <Mic size={20} />,
+        name: "Financial Wellness",
+        path: "/wellness",
+        icon: <HeartPulse size={20} />,
+        badge: "Pro",
+        badgeColor: "bg-gradient-to-r from-green-500 to-green-700",
+      },
+      {
+        name: "Blog & Resources",
+        path: "/blog",
+        icon: <BookOpen size={20} />,
       }
     ]
   },
@@ -143,19 +140,14 @@ const navigationStructure = [
         icon: <User size={20} />,
       },
       {
-        name: "Security",
-        path: "/security",
-        icon: <Lock size={20} />,
-      },
-      {
-        name: "Subscription Benefits",
-        path: "/subscription-benefits",
-        icon: <Gift size={20} />,
-      },
-      {
         name: "Settings",
         path: "/settings",
         icon: <Settings size={20} />,
+      },
+      {
+        name: "Subscription",
+        path: "/subscription",
+        icon: <CreditCard size={20} />,
       }
     ]
   }
@@ -169,7 +161,7 @@ export default function Sidebar({
   const { logoutMutation, user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([
-    "Main", "Planning", "Income Generation", "Tools & Resources", "Account"
+    "Main", "Plan & Save", "Grow Income", "Insights", "Account"
   ]);
 
   // Fetch user profile data for improved avatar display
