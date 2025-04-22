@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link as RouterLink, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/use-auth";
@@ -30,6 +30,16 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useQuery } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+
+interface UserProfile {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  profileImage?: string;
+  profile?: {
+    occupation?: string;
+  };
+}
 
 interface SidebarProps {
   mobileMenuOpen: boolean;
@@ -165,7 +175,7 @@ export default function Sidebar({
   ]);
 
   // Fetch user profile data for improved avatar display
-  const { data: userProfile } = useQuery({
+  const { data: userProfile } = useQuery<UserProfile | undefined>({
     queryKey: ["/api/user/profile"],
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -352,8 +362,8 @@ export default function Sidebar({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Link
-                              href={item.path}
+                            <RouterLink
+                              href={item.path} as="a"
                               className={cn(
                                 "flex items-center rounded-lg font-medium transition-colors",
                                 isActive 
@@ -378,7 +388,7 @@ export default function Sidebar({
                                   {item.badge}
                                 </Badge>
                               )}
-                            </Link>
+                            </RouterLink>
                           </TooltipTrigger>
                           {collapsed && (
                             <TooltipContent side="right">
@@ -564,15 +574,15 @@ export default function Sidebar({
                 <ul className="space-y-0.5 xxs:space-y-1 mt-1">
                   {section.items.map((item) => (
                     <li key={item.path}>
-                      <Link
-                        href={item.path}
+                      <RouterLink
+                        href={item.path} as="a"
                         className={cn(
                           "flex items-center px-2 xxs:px-3 xs:px-4 py-2 xxs:py-2.5 xs:py-3 rounded-lg text-sm xxs:text-base font-medium w-full touch-manipulation",
                           location === item.path
                             ? "text-primary bg-accent-background"
                             : "text-foreground hover:bg-muted-background active:bg-muted",
                         )}
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent) => {
                           e.preventDefault(); // Prevent default link behavior temporarily
                           closeMobileMenu(); // Close the menu first
 
@@ -595,7 +605,7 @@ export default function Sidebar({
                             {item.badge}
                           </Badge>
                         )}
-                      </Link>
+                      </RouterLink>
                     </li>
                   ))}
                 </ul>
