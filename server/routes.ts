@@ -90,11 +90,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Perplexity API routes
   registerPerplexityRoutes(app);
 
-  // Serve static assets from green folder directly
-  app.use(express.static(path.join(process.cwd(), 'green')));
+  // GREEN version available at /green path
+  app.use('/green', express.static(path.join(process.cwd(), 'green')));
   
-  // Serve GREEN version directly at root path
-  app.get("/", (req, res) => {
+  // Serve GREEN version at /green path
+  app.get("/green", (req, res) => {
     const greenHtmlPath = path.join(process.cwd(), 'green', 'index.html');
     
     if (fs.existsSync(greenHtmlPath)) {
