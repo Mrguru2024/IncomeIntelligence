@@ -215,13 +215,24 @@ app.use((req, res, next) => {
 // Create HTTP server
 const httpServer = createServer(app);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-
-httpServer.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT} - Replit compatible`);
-  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Set up Vite in development mode (this serves the React app)
+// NOTE: This needs to come after API routes to ensure correct order of middleware
+(async () => {
+  try {
+    await setupVite(app, httpServer);
+    
+    // Start server after Vite is set up
+    const PORT = process.env.PORT || 5000;
+    
+    httpServer.listen(PORT, '0.0.0.0', () => {
+      logger.info(`Server is running on port ${PORT} - Replit compatible`);
+      logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  } catch (error) {
+    console.error('Failed to set up Vite:', error);
+    process.exit(1);
+  }
+})();
 
 // Error handling
 process.on('unhandledRejection', (err) => {
