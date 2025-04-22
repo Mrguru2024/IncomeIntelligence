@@ -233,12 +233,12 @@ export default function Sidebar({
   const DesktopSidebar = () => (
     <aside 
       className={cn(
-        "hidden lg:flex flex-col bg-opacity-100 bg-[var(--card-background)] border-r border-border min-h-screen transition-all duration-300 ease-in-out relative z-30",
+        "hidden lg:flex flex-col bg-opacity-100 bg-[var(--sidebar-bg)] border-r border-[rgba(255,255,255,0.1)] min-h-screen transition-all duration-300 ease-in-out relative z-30 text-white",
         collapsed ? "w-20" : "w-64"
       )}
     >
       <div className={cn(
-        "flex items-center border-b border-border transition-all duration-300 ease-in-out",
+        "flex items-center border-b border-[rgba(255,255,255,0.1)] transition-all duration-300 ease-in-out",
         collapsed ? "p-4 justify-center" : "p-6 justify-between"
       )}>
         {collapsed ? (
@@ -270,7 +270,7 @@ export default function Sidebar({
 
       {/* User profile section */}
       <div className={cn(
-        "border-b border-border transition-all duration-300",
+        "border-b border-[rgba(255,255,255,0.1)] transition-all duration-300",
         collapsed ? "px-2 py-4" : "p-4"
       )}>
         <div className={cn(
@@ -416,7 +416,7 @@ export default function Sidebar({
       
       {/* Footer - Theme toggle & Logout */}
       <div className={cn(
-        "border-t border-border",
+        "border-t border-[rgba(255,255,255,0.1)]",
         collapsed ? "px-2 py-4" : "p-4"
       )}>
         <div className={cn(
@@ -490,14 +490,14 @@ export default function Sidebar({
       {/* Mobile sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-[200] w-[85vw] max-w-64 bg-opacity-100 bg-[var(--card-background)] border-r border-border transition-transform duration-300 ease-in-out transform lg:hidden overflow-y-auto shadow-lg",
+          "fixed inset-y-0 left-0 z-[200] w-[85vw] max-w-64 bg-opacity-100 bg-[var(--sidebar-bg)] border-r border-[rgba(255,255,255,0.1)] transition-transform duration-300 ease-in-out transform lg:hidden overflow-y-auto shadow-lg text-white",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         )}
         style={{ pointerEvents: mobileMenuOpen ? "auto" : "none" }}
         aria-hidden={!mobileMenuOpen}
         aria-label="Mobile navigation"
       >
-        <div className="p-3 xxs:p-4 xs:p-6 border-b border-border flex justify-between items-center">
+        <div className="p-3 xxs:p-4 xs:p-6 border-b border-[rgba(255,255,255,0.1)] flex justify-between items-center">
           <StackrLogo className="scale-90" />
           <button
             onClick={closeMobileMenu}
@@ -524,7 +524,7 @@ export default function Sidebar({
         </div>
 
         {/* User profile section - mobile */}
-        <div className="p-4 border-b border-border">
+        <div className="p-4 border-b border-[rgba(255,255,255,0.1)]">
           <div className="flex items-center">
             <Avatar className="h-10 w-10 mr-3 bg-primary/10 text-primary font-medium">
               <AvatarImage 
@@ -613,7 +613,7 @@ export default function Sidebar({
         </nav>
         
         {/* Footer - mobile */}
-        <div className="p-2 xxs:p-3 xs:p-4 border-t border-border flex justify-between items-center">
+        <div className="p-2 xxs:p-3 xs:p-4 border-t border-[rgba(255,255,255,0.1)] flex justify-between items-center">
           <button
             className="flex items-center text-foreground text-xs xxs:text-sm xs:text-base"
             onClick={() => {
