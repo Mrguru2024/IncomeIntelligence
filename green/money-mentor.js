@@ -4,7 +4,7 @@
  * Powered by Perplexity API for intelligent responses
  */
 
-import { isAuthenticated, getCurrentUser, getUserSubscription } from './auth.js';
+import { isAuthenticated, getCurrentUser, getUserSubscriptionTier } from './auth.js';
 import { createToast } from './components/toast.js';
 import { renderSidebar } from './sidebar.js';
 
@@ -171,8 +171,8 @@ export async function renderMoneyMentorPage() {
   renderSidebar('moneymentor');
   
   // Check if user has Pro subscription
-  const subscription = await getUserSubscription(user.id);
-  const hasPro = subscription && (subscription.plan === 'pro' || subscription.plan === 'lifetime');
+  const subscriptionTier = getUserSubscriptionTier();
+  const hasPro = subscriptionTier === 'pro' || subscriptionTier === 'lifetime';
   
   // Create main container
   const container = document.createElement('div');
