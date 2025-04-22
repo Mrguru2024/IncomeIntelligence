@@ -1,6 +1,6 @@
 import { 
   InsertIncome, InsertUser, Income, User, InsertGoal, Goal, 
-  incomes, users, goals, bankConnections, bankAccounts, bankTransactions,
+  incomes, users, goals, bankAccounts, bankTransactions,
   InsertBankConnection, BankConnection, InsertBankAccount, BankAccount,
   InsertBankTransaction, BankTransaction, InsertExpense, Expense, expenses,
   InsertBalance, Balance, balances, UserProfile, InsertUserProfile, userProfiles,
@@ -14,7 +14,108 @@ import {
 } from '@shared/schema';
 import { IStorage } from './storage';
 import { db, pool } from './db';
-import { eq, and, gte, lte, desc } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, or } from 'drizzle-orm';
+import { pgTable, serial, text, timestamp, jsonb } from 'drizzle-orm/pg-core';
+
+export const bankConnections = pgTable('bank_connections', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  institutionId: text('institution_id').notNull(),
+  institutionName: text('institution_name').notNull(),
+  accessToken: text('access_token').notNull(),
+  itemId: text('item_id').notNull(),
+  status: text('status').notNull(),
+  lastUpdated: timestamp('last_updated').defaultNow(),
+  metadata: jsonb('metadata')
+});
+
+export interface IStorage {
+  // User methods
+  getUsers(): Promise<User[]>;
+  getUser(id: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByUsernameOrEmail(identifier: string): Promise<User | undefined>;
+  getUserByVerificationToken(token: string): Promise<User | undefined>;
+  getUserByResetToken(token: string): Promise<User | undefined>;
+  getUserByStripeCustomerId(customerId: string): Promise<User | undefined>;
+  getUserByStripeSubscriptionId(subscriptionId: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
+  updateUserLastLogin(id: string): Promise<User | undefined>;
+  verifyUser(id: string): Promise<User | undefined>;
+  setPasswordReset(id: string, token: string, expires: Date): Promise<User | undefined>;
+  resetPassword(id: string, newPassword: string): Promise<User | undefined>;
+  updateUserSubscription(userId: string, tier: string, active: boolean, startDate?: Date, endDate?: Date): Promise<User | undefined>;
+  getUserSubscription(userId: string): Promise<{ status: string, plan: string } | null>;
+  updateStripeCustomerId(userId: string, customerId: string): Promise<User | undefined>;
+  updateStripeSubscriptionId(userId: string, subscriptionId: string): Promise<User | undefined>;
+  updateUserStripeInfo(userId: string, stripeInfo: { customerId: string, subscriptionId: string }): Promise<User | undefined>;
+  
+  // User profile methods
+  getUserProfile(userId: string): Promise<UserProfile | undefined>;
+  createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
+  updateUserProfile(userId: string, profile: Partial<InsertUserProfile>): Promise<UserProfile | undefined>;
+  
+  // Bank connection methods
+  getBankConnections(userId: string | number): Promise<BankConnection[]>;
+  getBankConnectionById(id: number): Promise<BankConnection | undefined>;
+  createBankConnection(connection: InsertBankConnection): Promise<BankConnection>;
+  updateBankConnection(id: number, connection: Partial<InsertBankConnection>): Promise<BankConnection | undefined>;
+  deleteBankConnection(id: number): Promise<boolean>;
+  
+  // Bank account methods
+  getBankAccountsByConnectionId(connectionId: number): Promise<BankAccount[]>;
+  getBankAccountById(id: number): Promise<BankAccount | undefined>;
+  deleteBankAccount(id: number): Promise<boolean>;
+  
+  // Bank transaction methods
+  getBankTransactions(userId: string, limit?: number, offset?: number): Promise<BankTransaction[]>;
+  getBankTransactionById(id: number): Promise<BankTransaction | undefined>;
+  
+  // Expense methods
+  getExpenseById(id: number): Promise<Expense | undefined>;
+  createExpense(expense: InsertExpense): Promise<Expense>;
+  updateExpense(id: number, expense: Partial<InsertExpense>): Promise<Expense | undefined>;
+  deleteExpense(id: number): Promise<boolean>;
+  getExpenseStats(userId: string): Promise<any>;
+  getExpenseDistribution(userId: string, period?: string): Promise<any>;
+  
+  // Balance methods
+  createBalance(balance: InsertBalance): Promise<Balance>;
+  updateBalance(id: number, balance: Partial<InsertBalance>): Promise<Balance | undefined>;
+  
+  // Reminder methods
+  getReminderById(id: number): Promise<Reminder | undefined>;
+  createReminder(reminder: InsertReminder): Promise<Reminder>;
+  updateReminder(id: number, reminder: Partial<InsertReminder>): Promise<Reminder | undefined>;
+  
+  // Point transaction methods
+  createPointTransaction(transaction: InsertPointTransaction): Promise<PointTransaction>;
+  
+  // Notification methods
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationRead(id: number): Promise<Notification | undefined>;
+  
+  // Budget methods
+  getBudget(userId: string): Promise<Budget | undefined>;
+  createBudget(budget: InsertBudget): Promise<Budget>;
+  updateBudget(userId: string, budget: Partial<InsertBudget>): Promise<Budget | undefined>;
+  
+  // Affiliate Program methods
+  getAffiliatePrograms(): Promise<AffiliateProgram[]>;
+  getAffiliateProgramById(id: number): Promise<AffiliateProgram | undefined>;
+  getAffiliateProgramsByCategory(category: string): Promise<AffiliateProgram[]>;
+  createAffiliateProgram(program: InsertAffiliateProgram): Promise<AffiliateProgram>;
+  updateAffiliateProgram(id: number, program: Partial<InsertAffiliateProgram>): Promise<AffiliateProgram | undefined>;
+  deleteAffiliateProgram(id: number): Promise<boolean>;
+  
+  // User Affiliate methods
+  getUserAffiliatePrograms(userId: string): Promise<UserAffiliate[]>;
+  getUserAffiliateById(id: number): Promise<UserAffiliate | undefined>;
+  joinAffiliateProgram(userId: string, programId: number): Promise<UserAffiliate>;
+  leaveAffiliateProgram(userId: string, programId: number): Promise<boolean>;
+}
 
 export class DbStorage implements IStorage {
   constructor() {
@@ -142,7 +243,7 @@ export class DbStorage implements IStorage {
     }
   }
 
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string): Promise<User | undefined> {
     try {
       // Use pool directly for manual queries
       const { rows } = await pool.query(
@@ -266,7 +367,7 @@ export class DbStorage implements IStorage {
     }
   }
   
-  async updateUserLastLogin(id: number): Promise<User | undefined> {
+  async updateUserLastLogin(id: string): Promise<User | undefined> {
     try {
       const result = await db
         .update(users)
@@ -281,7 +382,7 @@ export class DbStorage implements IStorage {
     }
   }
   
-  async verifyUser(id: number): Promise<User | undefined> {
+  async verifyUser(id: string): Promise<User | undefined> {
     try {
       const result = await db
         .update(users)
@@ -300,7 +401,7 @@ export class DbStorage implements IStorage {
     }
   }
   
-  async setPasswordReset(id: number, token: string, expires: Date): Promise<User | undefined> {
+  async setPasswordReset(id: string, token: string, expires: Date): Promise<User | undefined> {
     try {
       const result = await db
         .update(users)
@@ -318,7 +419,7 @@ export class DbStorage implements IStorage {
     }
   }
   
-  async resetPassword(id: number, newPassword: string): Promise<User | undefined> {
+  async resetPassword(id: string, newPassword: string): Promise<User | undefined> {
     try {
       const result = await db
         .update(users)
@@ -347,7 +448,7 @@ export class DbStorage implements IStorage {
     }
   }
   
-  async updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined> {
+  async updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined> {
     try {
       const result = await db
         .update(users)
@@ -363,7 +464,7 @@ export class DbStorage implements IStorage {
   }
   
   // Subscription methods
-  async updateUserSubscription(userId: number, tier: string, active: boolean, startDate?: Date, endDate?: Date): Promise<User | undefined> {
+  async updateUserSubscription(userId: string, tier: string, active: boolean, startDate?: Date, endDate?: Date): Promise<User | undefined> {
     try {
       const result = await db
         .update(users)
@@ -383,7 +484,7 @@ export class DbStorage implements IStorage {
     }
   }
   
-  async updateStripeCustomerId(userId: number, customerId: string): Promise<User | undefined> {
+  async updateStripeCustomerId(userId: string, customerId: string): Promise<User | undefined> {
     try {
       const result = await db
         .update(users)
@@ -398,7 +499,7 @@ export class DbStorage implements IStorage {
     }
   }
   
-  async updateStripeSubscriptionId(userId: number, subscriptionId: string): Promise<User | undefined> {
+  async updateStripeSubscriptionId(userId: string, subscriptionId: string): Promise<User | undefined> {
     try {
       const result = await db
         .update(users)
@@ -413,7 +514,7 @@ export class DbStorage implements IStorage {
     }
   }
   
-  async updateUserStripeInfo(userId: number, stripeInfo: { customerId: string, subscriptionId: string }): Promise<User | undefined> {
+  async updateUserStripeInfo(userId: string, stripeInfo: { customerId: string, subscriptionId: string }): Promise<User | undefined> {
     try {
       const result = await db
         .update(users)
@@ -432,7 +533,7 @@ export class DbStorage implements IStorage {
   }
   
   // User Profile methods
-  async getUserProfile(userId: number): Promise<UserProfile | undefined> {
+  async getUserProfile(userId: string): Promise<UserProfile | undefined> {
     try {
       const result = await db
         .select()
@@ -475,7 +576,7 @@ export class DbStorage implements IStorage {
     }
   }
   
-  async updateUserProfile(userId: number, profile: Partial<InsertUserProfile>): Promise<UserProfile | undefined> {
+  async updateUserProfile(userId: string, profile: Partial<InsertUserProfile>): Promise<UserProfile | undefined> {
     try {
       const existingProfile = await this.getUserProfile(userId);
       if (!existingProfile) return undefined;
@@ -496,7 +597,7 @@ export class DbStorage implements IStorage {
     }
   }
   
-  async deleteUserProfile(userId: number): Promise<boolean> {
+  async deleteUserProfile(userId: string): Promise<boolean> {
     try {
       const result = await db
         .delete(userProfiles)
@@ -510,7 +611,7 @@ export class DbStorage implements IStorage {
     }
   }
   
-  async markProfileCompleted(userId: number): Promise<User | undefined> {
+  async markProfileCompleted(userId: string): Promise<User | undefined> {
     try {
       const result = await db
         .update(users)
@@ -584,7 +685,7 @@ export class DbStorage implements IStorage {
     }
   }
 
-  async getIncomesByUserId(userId: number): Promise<Income[]> {
+  async getIncomesByUserId(userId: string): Promise<Income[]> {
     try {
       return await db
         .select()
@@ -677,7 +778,7 @@ export class DbStorage implements IStorage {
     }
   }
 
-  async getGoalsByUserId(userId: number): Promise<Goal[]> {
+  async getGoalsByUserId(userId: string): Promise<Goal[]> {
     try {
       return await db
         .select()
@@ -735,13 +836,10 @@ export class DbStorage implements IStorage {
   }
 
   // Bank connection methods
-  async getBankConnections(userId: number): Promise<BankConnection[]> {
+  async getBankConnections(userId: string): Promise<BankConnection[]> {
     try {
-      return await db
-        .select()
-        .from(bankConnections)
-        .where(eq(bankConnections.userId, userId))
-        .orderBy(desc(bankConnections.lastUpdated));
+      const result = await db.select().from(bankConnections).where(eq(bankConnections.userId, userId));
+      return result;
     } catch (error) {
       console.error('Error getting bank connections:', error);
       return [];
@@ -767,7 +865,8 @@ export class DbStorage implements IStorage {
         .insert(bankConnections)
         .values({
           ...connection,
-          lastUpdated: new Date()
+          userId: connection.userId.toString(),
+          createdAt: new Date()
         })
         .returning();
       return result[0];
@@ -779,15 +878,23 @@ export class DbStorage implements IStorage {
 
   async updateBankConnection(id: number, connection: Partial<InsertBankConnection>): Promise<BankConnection | undefined> {
     try {
-      const result = await db
+      const [updatedConnection] = await db
         .update(bankConnections)
         .set({
           ...connection,
+          userId: connection.userId?.toString(),
           lastUpdated: new Date()
         })
         .where(eq(bankConnections.id, id))
         .returning();
-      return result.length > 0 ? result[0] : undefined;
+      
+      if (!updatedConnection) return undefined;
+      
+      return {
+        ...updatedConnection,
+        userId: parseInt(updatedConnection.userId),
+        lastUpdated: updatedConnection.lastUpdated || new Date()
+      };
     } catch (error) {
       console.error('Error updating bank connection:', error);
       return undefined;
@@ -814,14 +921,14 @@ export class DbStorage implements IStorage {
   }
 
   // Bank account methods
-  async getBankAccounts(connectionId: number): Promise<BankAccount[]> {
+  async getBankAccountsByConnectionId(connectionId: number): Promise<BankAccount[]> {
     try {
       return await db
         .select()
         .from(bankAccounts)
         .where(eq(bankAccounts.connectionId, connectionId));
     } catch (error) {
-      console.error('Error getting bank accounts:', error);
+      console.error('Error getting bank accounts by connection id:', error);
       return [];
     }
   }
@@ -858,7 +965,7 @@ export class DbStorage implements IStorage {
         .insert(bankAccounts)
         .values({
           ...account,
-          lastUpdated: new Date()
+          createdAt: new Date()
         })
         .returning();
       return result[0];
@@ -868,53 +975,44 @@ export class DbStorage implements IStorage {
     }
   }
 
-  async updateBankAccount(id: number, account: Partial<InsertBankAccount>): Promise<BankAccount | undefined> {
+  async updateBankAccount(id: number, account: Partial<BankAccount>): Promise<void> {
     try {
-      const result = await db
+      await db
         .update(bankAccounts)
-        .set({
-          ...account,
-          lastUpdated: new Date()
-        })
-        .where(eq(bankAccounts.id, id))
-        .returning();
-      return result.length > 0 ? result[0] : undefined;
+        .set(account)
+        .where(eq(bankAccounts.id, id));
     } catch (error) {
       console.error('Error updating bank account:', error);
-      return undefined;
+      throw error;
     }
   }
 
-  async deleteBankAccount(id: number): Promise<boolean> {
+  async deleteBankAccount(id: number): Promise<void> {
     try {
-      // Delete all associated transactions first
-      const transactions = await this.getBankTransactions(id);
-      for (const transaction of transactions) {
-        await this.deleteBankTransaction(transaction.id);
-      }
-      
-      const result = await db
+      await db
         .delete(bankAccounts)
-        .where(eq(bankAccounts.id, id))
-        .returning({ id: bankAccounts.id });
-      return result.length > 0;
+        .where(eq(bankAccounts.id, id));
     } catch (error) {
       console.error('Error deleting bank account:', error);
-      return false;
+      throw error;
     }
   }
 
   // Bank transaction methods
   async getBankTransactions(accountId: number): Promise<BankTransaction[]> {
     try {
-      return await db
+      const results = await db
         .select()
         .from(bankTransactions)
-        .where(eq(bankTransactions.accountId, accountId))
-        .orderBy(desc(bankTransactions.date));
+        .where(eq(bankTransactions.accountId, accountId));
+      
+      return results.map(transaction => ({
+        ...transaction,
+        date: new Date(transaction.date)
+      }));
     } catch (error) {
-      console.error('Error getting bank transactions:', error);
-      return [];
+      console.error('Error fetching bank transactions:', error);
+      throw error;
     }
   }
 
@@ -946,11 +1044,18 @@ export class DbStorage implements IStorage {
 
   async createBankTransaction(transaction: InsertBankTransaction): Promise<BankTransaction> {
     try {
-      const result = await db
+      const [newTransaction] = await db
         .insert(bankTransactions)
-        .values(transaction)
+        .values({
+          ...transaction,
+          date: transaction.date
+        })
         .returning();
-      return result[0];
+      
+      return {
+        ...newTransaction,
+        date: new Date(newTransaction.date)
+      };
     } catch (error) {
       console.error('Error creating bank transaction:', error);
       throw error;
@@ -1123,16 +1228,21 @@ export class DbStorage implements IStorage {
     }
   }
 
-  async getExpensesByCategory(category: string): Promise<Expense[]> {
+  async getExpensesByCategory(userId: number, category: string): Promise<Expense[]> {
     try {
       return await db
         .select()
         .from(expenses)
-        .where(eq(expenses.category, category))
+        .where(
+          and(
+            eq(expenses.userId, userId),
+            eq(expenses.category, category)
+          )
+        )
         .orderBy(desc(expenses.date));
     } catch (error) {
       console.error('Error getting expenses by category:', error);
-      return [];
+      throw error;
     }
   }
 
@@ -1915,11 +2025,11 @@ export class DbStorage implements IStorage {
         .insert(budgets)
         .values({
           ...budget,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          needsCategories: budget.needsCategories || [],
+          wantsCategories: budget.wantsCategories || [],
+          savingsCategories: budget.savingsCategories || []
         })
         .returning();
-      
       return newBudget;
     } catch (error) {
       console.error('Error creating budget:', error);
@@ -1933,15 +2043,16 @@ export class DbStorage implements IStorage {
         .update(budgets)
         .set({
           ...budget,
-          updatedAt: new Date()
+          needsCategories: budget.needsCategories || undefined,
+          wantsCategories: budget.wantsCategories || undefined,
+          savingsCategories: budget.savingsCategories || undefined
         })
         .where(eq(budgets.id, id))
         .returning();
-      
       return updatedBudget;
     } catch (error) {
       console.error('Error updating budget:', error);
-      return undefined;
+      throw error;
     }
   }
 
@@ -2185,8 +2296,8 @@ export class DbStorage implements IStorage {
         )
         .orderBy(desc(stackrGigs.createdAt));
     } catch (error) {
-      console.error('Error getting Stackr gigs by user ID:', error);
-      return [];
+      console.error('Error getting user stackr gigs:', error);
+      throw error;
     }
   }
   
@@ -2226,6 +2337,26 @@ export class DbStorage implements IStorage {
     } catch (error) {
       console.error('Error applying for Stackr gig:', error);
       throw error;
+    }
+  }
+
+  // Get all bank accounts for a user across all their connections
+  async getAllUserBankAccounts(userId: number): Promise<BankAccount[]> {
+    try {
+      // First get all connections for the user
+      const connections = await this.getBankConnections(userId.toString());
+      
+      // Get accounts for each connection
+      const allAccounts: BankAccount[] = [];
+      for (const connection of connections) {
+        const accounts = await this.getBankAccountsByConnectionId(connection.id);
+        allAccounts.push(...accounts);
+      }
+      
+      return allAccounts;
+    } catch (error) {
+      console.error('Error getting all user bank accounts:', error);
+      return [];
     }
   }
 }

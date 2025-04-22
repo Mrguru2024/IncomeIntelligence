@@ -1,404 +1,160 @@
-/**
- * Affiliate Programs Database
- * Provides data for available affiliate programs and resources
- */
+// Affiliate Program Data for Stackr Finance GREEN Edition
 
-// List of available affiliate programs
+// Sample affiliate programs that users can join to earn income
 export const affiliatePrograms = [
   {
     id: 'amazon',
     name: 'Amazon Associates',
-    description: 'Earn up to 10% in advertising fees when customers purchase products through your links.',
-    category: 'ecommerce',
-    commission: '1-10%',
-    cookieDuration: '24 hours',
-    paymentThreshold: '$10',
-    paymentMethods: ['Direct Deposit', 'Amazon Gift Card', 'Check'],
-    applicationProcess: 'Simple registration, requires website/app/channel',
-    beginnerFriendly: true,
-    logo: 'https://s3.amazonaws.com/affiliate-program-assets/amazon-associates-logo.png',
+    description: 'Earn commissions by promoting products from Amazon.com.',
+    commission: '1-10% depending on product category',
+    requirements: 'Website, blog, or social media presence',
     link: 'https://affiliate-program.amazon.com/',
-    requirements: [
-      'Website, app, or social media presence',
-      'Content must comply with Amazon guidelines',
-      'Regular traffic or audience'
-    ],
-    tips: [
-      'Focus on product niches you know well',
-      'Create honest, detailed reviews',
-      'Use Native Shopping Ads for better conversions'
-    ]
-  },
-  {
-    id: 'upwork',
-    name: 'Upwork Referral Program',
-    description: 'Earn when you refer clients or freelancers who spend or earn on the platform.',
-    category: 'freelance',
-    commission: 'Up to $150 per client; Up to $50 per freelancer',
-    cookieDuration: '90 days',
-    paymentThreshold: '$10',
-    paymentMethods: ['Direct Deposit', 'PayPal', 'Wire Transfer'],
-    applicationProcess: 'Automatic for Upwork users',
-    beginnerFriendly: true,
-    logo: 'https://s3.amazonaws.com/affiliate-program-assets/upwork-logo.png',
-    link: 'https://www.upwork.com/referral/',
-    requirements: [
-      'Active Upwork account',
-      'Compliance with Upwork terms'
-    ],
-    tips: [
-      'Target businesses looking to hire freelancers',
-      'Share success stories from the platform',
-      'Focus on referring clients for higher returns'
-    ]
+    categories: ['retail', 'e-commerce', 'general'],
+    beginner_friendly: true
   },
   {
     id: 'shopify',
     name: 'Shopify Affiliate Program',
-    description: 'Earn 200% commission (on average $58) for each user who signs up for a paid plan.',
-    category: 'ecommerce',
-    commission: '200% of first month subscription fee',
-    cookieDuration: '30 days',
-    paymentThreshold: '$25',
-    paymentMethods: ['PayPal', 'Bank Deposit'],
-    applicationProcess: 'Application review process, may take 5-10 days',
-    beginnerFriendly: false,
-    logo: 'https://s3.amazonaws.com/affiliate-program-assets/shopify-logo.png',
+    description: 'Earn by referring new merchants to Shopify e-commerce platform.',
+    commission: '$58 per paying customer referred',
+    requirements: 'Website or audience interested in e-commerce',
     link: 'https://www.shopify.com/affiliates',
-    requirements: [
-      'Established audience or following',
-      'Marketing experience',
-      'Ecommerce-focused content'
-    ],
-    tips: [
-      'Create how-to guides for starting online stores',
-      'Compare Shopify with other platforms',
-      'Target entrepreneur and small business audiences'
-    ]
+    categories: ['e-commerce', 'business', 'tech'],
+    beginner_friendly: true
+  },
+  {
+    id: 'hostgator',
+    name: 'HostGator',
+    description: 'Promote web hosting services and earn per signup.',
+    commission: 'Up to $100 per signup',
+    requirements: 'Tech or business audience',
+    link: 'https://www.hostgator.com/affiliates',
+    categories: ['hosting', 'tech', 'business'],
+    beginner_friendly: true
   },
   {
     id: 'fiverr',
     name: 'Fiverr Affiliates',
-    description: 'Earn up to $1000 for every first-time buyer or seller you refer to Fiverr.',
-    category: 'freelance',
-    commission: '$15-$50 CPA or 10% revenue share',
-    cookieDuration: '30 days',
-    paymentThreshold: '$100',
-    paymentMethods: ['PayPal', 'Payoneer', 'Bank Transfer'],
-    applicationProcess: 'Application review (1-3 days)',
-    beginnerFriendly: true,
-    logo: 'https://s3.amazonaws.com/affiliate-program-assets/fiverr-logo.png',
+    description: 'Earn by referring buyers and sellers to Fiverr marketplace.',
+    commission: '$15-$150 per first-time buyer or seller',
+    requirements: 'Audience interested in freelance services',
     link: 'https://affiliates.fiverr.com/',
-    requirements: [
-      'Active website, blog, or social media',
-      'Regular content publishing',
-      'Genuine interest in promoting services'
-    ],
-    tips: [
-      'Target entrepreneurs and small businesses',
-      'Promote specific services that solve problems',
-      'Create "best of Fiverr" service lists'
-    ]
+    categories: ['freelance', 'gig economy', 'services'],
+    beginner_friendly: true
   },
   {
-    id: 'hostgator',
-    name: 'HostGator Affiliate Program',
-    description: 'Earn up to $125 per signup and receive competitive commissions on hosting plans.',
-    category: 'hosting',
-    commission: '$65-$125 per sale',
-    cookieDuration: '60 days',
-    paymentThreshold: '$100',
-    paymentMethods: ['PayPal', 'Check'],
-    applicationProcess: 'Instant approval',
-    beginnerFriendly: true,
-    logo: 'https://s3.amazonaws.com/affiliate-program-assets/hostgator-logo.png',
-    link: 'https://www.hostgator.com/affiliates',
-    requirements: [
-      'Website or blog',
-      'Basic marketing knowledge'
-    ],
-    tips: [
-      'Target website creators and small businesses',
-      'Create hosting comparison content',
-      'Highlight promotional deals and discounts'
-    ]
+    id: 'convertkit',
+    name: 'ConvertKit',
+    description: 'Promote email marketing tools to creators and earn recurring commissions.',
+    commission: '30% recurring commission monthly',
+    requirements: 'Creator or business audience',
+    link: 'https://convertkit.com/affiliates',
+    categories: ['email marketing', 'creator economy', 'tech'],
+    beginner_friendly: false
   },
   {
-    id: 'bluehost',
-    name: 'Bluehost Affiliate Program',
-    description: 'Earn $65 or more for each qualified sign-up you refer to Bluehost.',
-    category: 'hosting',
-    commission: '$65+ per sale',
-    cookieDuration: '90 days',
-    paymentThreshold: '$100',
-    paymentMethods: ['PayPal', 'Check'],
-    applicationProcess: 'Quick application review',
-    beginnerFriendly: true,
-    logo: 'https://s3.amazonaws.com/affiliate-program-assets/bluehost-logo.png',
-    link: 'https://www.bluehost.com/affiliates',
-    requirements: [
-      'Website or digital presence',
-      'Basic understanding of web hosting'
-    ],
-    tips: [
-      'Create WordPress hosting tutorials',
-      'Target beginners setting up their first website',
-      'Emphasize reliability and customer support'
-    ]
+    id: 'teachable',
+    name: 'Teachable',
+    description: 'Earn by promoting this course creation platform.',
+    commission: '30% recurring for the life of referred user',
+    requirements: 'Education, creator, or entrepreneurial audience',
+    link: 'https://teachable.com/affiliates',
+    categories: ['education', 'creator economy', 'courses'],
+    beginner_friendly: true
   },
   {
     id: 'robinhood',
-    name: 'Robinhood Referral Program',
-    description: 'Earn free stock (worth $5-$200) for each new qualified user.',
-    category: 'finance',
-    commission: 'Free stock valued at $5-$200',
-    cookieDuration: 'No expiration (unique link)',
-    paymentThreshold: 'N/A',
-    paymentMethods: ['Free Stock'],
-    applicationProcess: 'Automatic for Robinhood users',
-    beginnerFriendly: true,
-    logo: 'https://s3.amazonaws.com/affiliate-program-assets/robinhood-logo.png',
-    link: 'https://robinhood.com/us/en/about/referral/',
-    requirements: [
-      'Have a Robinhood account',
-      'Use personal referral link'
-    ],
-    tips: [
-      'Target friends and family new to investing',
-      'Explain the benefits of commission-free trades',
-      'Highlight free stock opportunity to entice sign-ups'
-    ]
+    name: 'Robinhood',
+    description: 'Refer friends to get free stocks for both of you.',
+    commission: 'Free stock for each referral (valued $3-$225)',
+    requirements: 'Personal referrals only, no web marketing',
+    link: 'https://robinhood.com/us/en/support/articles/invite-friends-get-free-stock/',
+    categories: ['investing', 'finance', 'stocks'],
+    beginner_friendly: true
   },
   {
-    id: 'coinbase',
-    name: 'Coinbase Referral Program',
-    description: 'Earn $10 in Bitcoin when your referral buys or sells $100 in cryptocurrency.',
-    category: 'finance',
-    commission: '$10 in Bitcoin',
-    cookieDuration: 'No expiration (unique link)',
-    paymentThreshold: 'N/A',
-    paymentMethods: ['Bitcoin transfer to Coinbase account'],
-    applicationProcess: 'Automatic for Coinbase users',
-    beginnerFriendly: true,
-    logo: 'https://s3.amazonaws.com/affiliate-program-assets/coinbase-logo.png',
-    link: 'https://www.coinbase.com/referral',
-    requirements: [
-      'Have a Coinbase account',
-      'Share personal referral link'
-    ],
-    tips: [
-      'Target crypto beginners',
-      'Create educational content about cryptocurrency',
-      'Help people through the sign-up process'
-    ]
+    id: 'wealthfront',
+    name: 'Wealthfront',
+    description: 'Refer friends to this automated investment service.',
+    commission: '$5,000 managed free for each referral',
+    requirements: 'Personal network only',
+    link: 'https://www.wealthfront.com/invite',
+    categories: ['investing', 'finance', 'robo-advisor'],
+    beginner_friendly: true
   },
   {
-    id: 'etsy',
-    name: 'Etsy Affiliate Program',
-    description: 'Earn 4% commission on purchases made by users you refer to Etsy.',
-    category: 'ecommerce',
-    commission: '4% on qualifying purchases',
-    cookieDuration: '30 days',
-    paymentThreshold: '$20',
-    paymentMethods: ['Direct Deposit', 'Check', 'PayPal'],
-    applicationProcess: 'Application via Awin affiliate network',
-    beginnerFriendly: false,
-    logo: 'https://s3.amazonaws.com/affiliate-program-assets/etsy-logo.png',
-    link: 'https://www.awin.com/us/affiliate-program/etsy',
-    requirements: [
-      'Join Awin affiliate network',
-      'Have established blog or website',
-      'Create relevant content for Etsy audience'
-    ],
-    tips: [
-      'Create gift guides featuring Etsy products',
-      'Focus on handmade and unique product recommendations',
-      'Target specific niches (wedding, home decor, etc.)'
-    ]
+    id: 'bluehost',
+    name: 'Bluehost',
+    description: 'Promote web hosting services to your audience.',
+    commission: '$65 per referral',
+    requirements: 'Website or tech-focused audience',
+    link: 'https://www.bluehost.com/affiliates',
+    categories: ['hosting', 'tech', 'websites'],
+    beginner_friendly: true
   },
   {
     id: 'udemy',
     name: 'Udemy Affiliate Program',
-    description: 'Earn up to 15% commission on course purchases made through your links.',
-    category: 'education',
-    commission: '15% on course sales',
-    cookieDuration: '7 days',
-    paymentThreshold: '$50',
-    paymentMethods: ['PayPal', 'Payoneer'],
-    applicationProcess: 'Application via affiliate networks (Rakuten, CJ, etc.)',
-    beginnerFriendly: true,
-    logo: 'https://s3.amazonaws.com/affiliate-program-assets/udemy-logo.png',
+    description: 'Earn by promoting online courses on various topics.',
+    commission: '15% of course purchases',
+    requirements: 'Website, blog, or email list',
     link: 'https://www.udemy.com/affiliate/',
-    requirements: [
-      'Join an affiliated network',
-      'Have a platform to share links',
-      'Create relevant educational content'
-    ],
-    tips: [
-      'Promote courses related to your audience\'s interests',
-      'Share during Udemy sales events for better conversions',
-      'Create "best courses for X" content'
-    ]
-  },
-  {
-    id: 'namecheap',
-    name: 'Namecheap Affiliate Program',
-    description: 'Earn up to 50% commission on domain registrations and hosting plans.',
-    category: 'hosting',
-    commission: '20-50% commission',
-    cookieDuration: '90 days',
-    paymentThreshold: '$50',
-    paymentMethods: ['PayPal', 'Namecheap Account Balance'],
-    applicationProcess: 'Simple signup, quick approval',
-    beginnerFriendly: true,
-    logo: 'https://s3.amazonaws.com/affiliate-program-assets/namecheap-logo.png',
-    link: 'https://www.namecheap.com/affiliates/',
-    requirements: [
-      'Website or social media presence',
-      'Basic understanding of domain names/hosting'
-    ],
-    tips: [
-      'Target website creators and entrepreneurs',
-      'Highlight cost-saving compared to competitors',
-      'Create tutorials on domain registration process'
-    ]
-  },
-  {
-    id: 'notion',
-    name: 'Notion Ambassador Program',
-    description: 'Earn 20% of paid plans purchased using your referral link, recurring monthly.',
-    category: 'productivity',
-    commission: '20% recurring monthly commission',
-    cookieDuration: 'Lifetime attribution',
-    paymentThreshold: '$20',
-    paymentMethods: ['PayPal'],
-    applicationProcess: 'Application review (selective)',
-    beginnerFriendly: false,
-    logo: 'https://s3.amazonaws.com/affiliate-program-assets/notion-logo.png',
-    link: 'https://www.notion.so/affiliates',
-    requirements: [
-      'Established audience',
-      'Quality content creation',
-      'Genuine Notion usage and expertise'
-    ],
-    tips: [
-      'Create Notion templates and tutorials',
-      'Showcase creative use cases',
-      'Demonstrate productivity improvements'
-    ]
+    categories: ['education', 'courses', 'skills'],
+    beginner_friendly: true
   }
 ];
 
-// List of affiliate marketing resources
+// Affiliate marketing resources and guides
 export const affiliateResources = [
   {
-    id: 'guide-beginners',
-    title: 'Complete Beginner\'s Guide to Affiliate Marketing',
-    type: 'article',
-    category: 'beginner',
-    description: 'Learn the fundamentals of affiliate marketing, how it works, and how to start earning your first commission.',
-    link: 'https://stackrfinance.com/resources/affiliate-beginners-guide',
-    featured: true
-  },
-  {
-    id: 'ethical-promotion',
-    title: 'Ethical Affiliate Promotion: Best Practices',
-    type: 'article',
-    category: 'strategy',
-    description: 'Guidelines for promoting affiliate products with integrity while maintaining audience trust.',
-    link: 'https://stackrfinance.com/resources/ethical-affiliate-promotion',
-    featured: false
-  },
-  {
-    id: 'income-taxes',
-    title: 'Managing Taxes for Affiliate Income',
-    type: 'article',
-    category: 'finance',
-    description: 'Understanding tax obligations for affiliate earnings and how to properly track your income.',
-    link: 'https://stackrfinance.com/resources/affiliate-income-taxes',
-    featured: true
-  },
-  {
-    id: 'content-strategies',
-    title: 'Content Strategies that Convert',
-    type: 'video',
-    category: 'strategy',
-    description: 'Learn effective content creation techniques that drive affiliate conversions without being pushy.',
-    link: 'https://stackrfinance.com/resources/affiliate-content-strategies',
-    featured: false
-  },
-  {
-    id: 'disclosure-templates',
-    title: 'Affiliate Disclosure Templates',
-    type: 'template',
-    category: 'compliance',
-    description: 'FTC-compliant disclosure templates you can use for your blog, social media, or videos.',
-    link: 'https://stackrfinance.com/resources/affiliate-disclosure-templates',
-    featured: true
-  },
-  {
-    id: 'seo-affiliate',
-    title: 'SEO for Affiliate Marketers',
+    title: 'Getting Started Guide',
+    description: 'Learn the basics of affiliate marketing and how to choose the right programs.',
     type: 'guide',
-    category: 'strategy',
-    description: 'Optimize your affiliate content to rank higher in search engines and drive organic traffic.',
-    link: 'https://stackrfinance.com/resources/seo-for-affiliates',
-    featured: false
+    difficulty: 'beginner'
   },
   {
-    id: 'social-media-promotion',
-    title: 'Social Media Affiliate Promotion Guide',
-    type: 'guide',
-    category: 'strategy',
-    description: 'Platform-specific strategies for promoting affiliate offers on social media without spamming.',
-    link: 'https://stackrfinance.com/resources/social-media-affiliate-guide',
-    featured: false
+    title: 'Affiliate Link Disclosures',
+    description: 'Learn about legal requirements for disclosing affiliate relationships.',
+    type: 'legal',
+    difficulty: 'beginner'
   },
   {
-    id: 'tracking-analytics',
-    title: 'Affiliate Link Tracking and Analytics',
-    type: 'tutorial',
-    category: 'technical',
-    description: 'How to properly track your affiliate links and analyze performance to maximize earnings.',
-    link: 'https://stackrfinance.com/resources/affiliate-tracking-analytics',
-    featured: true
+    title: 'Conversion Optimization',
+    description: 'Tips to increase your affiliate conversion rates.',
+    type: 'strategy',
+    difficulty: 'intermediate'
+  },
+  {
+    title: 'Content Marketing for Affiliates',
+    description: 'How to create valuable content that drives affiliate sales.',
+    type: 'strategy',
+    difficulty: 'intermediate'
+  },
+  {
+    title: 'Email Marketing Strategies',
+    description: 'Using email lists to promote affiliate offers effectively.',
+    type: 'strategy',
+    difficulty: 'advanced'
   }
 ];
 
-/**
- * Get programs by category
- * @param {string} category - Category to filter by
- * @returns {Array} - Filtered programs
- */
+// Helper function to filter programs by category
 export function getProgramsByCategory(category) {
-  if (!category || category === 'all') {
-    return affiliatePrograms;
-  }
-  
-  return affiliatePrograms.filter(program => program.category === category);
-}
-
-/**
- * Get beginner-friendly programs
- * @returns {Array} - Beginner-friendly programs
- */
-export function getBeginnerFriendlyPrograms() {
-  return affiliatePrograms.filter(program => program.beginnerFriendly === true);
-}
-
-/**
- * Search programs by query
- * @param {string} query - Search query
- * @returns {Array} - Search results
- */
-export function searchPrograms(query) {
-  if (!query) return affiliatePrograms;
-  
-  const lowerQuery = query.toLowerCase();
-  
   return affiliatePrograms.filter(program => 
-    program.name.toLowerCase().includes(lowerQuery) || 
-    program.description.toLowerCase().includes(lowerQuery) || 
-    program.category.toLowerCase().includes(lowerQuery)
+    program.categories.includes(category)
+  );
+}
+
+// Helper function to get beginner-friendly programs
+export function getBeginnerFriendlyPrograms() {
+  return affiliatePrograms.filter(program => program.beginner_friendly);
+}
+
+// Helper function to search programs by name or description
+export function searchPrograms(query) {
+  const searchText = query.toLowerCase();
+  return affiliatePrograms.filter(program => 
+    program.name.toLowerCase().includes(searchText) || 
+    program.description.toLowerCase().includes(searchText)
   );
 }

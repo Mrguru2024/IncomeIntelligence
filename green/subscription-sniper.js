@@ -1,1417 +1,1281 @@
 /**
- * Subscription Sniper - Track and optimize recurring subscriptions
- * This module helps users identify and manage their subscription services
+ * Subscription Sniper Module
+ * This module detects recurring subscription payments from bank transaction data
+ * and provides tools to manage and cancel subscriptions
  */
 
-import { appState } from './src/main.js';
+// Import helper functions
+import { formatCurrency, formatDate } from './bank-connections.js';
 
-// Helper function to format currency
-function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-}
-
-// Helper function to format date
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
-// Get app subscription data or generate sample data
-function getSubscriptionData() {
-  if (!appState.subscriptions || appState.subscriptions.length === 0) {
-    // Sample subscription data
-    const today = new Date();
-    const nextMonth = new Date();
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
-    
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    
-    return [
-      {
-        id: 1,
-        name: 'Netflix',
-        category: 'entertainment',
-        amount: 19.99,
-        billingCycle: 'monthly',
-        nextBillingDate: nextMonth.toISOString(),
-        logo: '🎬',
-        active: true,
-        essential: false,
-        usage: 'high',
-        notes: 'Family plan',
-        addedDate: today.toISOString()
-      },
-      {
-        id: 2,
-        name: 'Spotify Premium',
-        category: 'entertainment',
-        amount: 9.99,
-        billingCycle: 'monthly',
-        nextBillingDate: nextMonth.toISOString(),
-        logo: '🎵',
-        active: true,
-        essential: false,
-        usage: 'high',
-        notes: 'Individual plan',
-        addedDate: today.toISOString()
-      },
-      {
-        id: 3,
-        name: 'Adobe Creative Cloud',
-        category: 'productivity',
-        amount: 52.99,
-        billingCycle: 'monthly',
-        nextBillingDate: nextMonth.toISOString(),
-        logo: '🎨',
-        active: true,
-        essential: true,
-        usage: 'medium',
-        notes: 'Work subscription',
-        addedDate: today.toISOString()
-      },
-      {
-        id: 4,
-        name: 'Gym Membership',
-        category: 'health',
-        amount: 29.99,
-        billingCycle: 'monthly',
-        nextBillingDate: nextMonth.toISOString(),
-        logo: '💪',
-        active: true,
-        essential: true,
-        usage: 'low',
-        notes: 'Planet Fitness',
-        addedDate: today.toISOString()
-      },
-      {
-        id: 5,
-        name: 'Amazon Prime',
-        category: 'shopping',
-        amount: 139,
-        billingCycle: 'annual',
-        nextBillingDate: new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()).toISOString(),
-        logo: '📦',
-        active: true,
-        essential: false,
-        usage: 'high',
-        notes: 'Includes Prime Video and free shipping',
-        addedDate: today.toISOString()
-      },
-      {
-        id: 6,
-        name: 'Cloud Storage',
-        category: 'technology',
-        amount: 9.99,
-        billingCycle: 'monthly',
-        nextBillingDate: nextMonth.toISOString(),
-        logo: '☁️',
-        active: true,
-        essential: true,
-        usage: 'high',
-        notes: 'Google One 2TB plan',
-        addedDate: today.toISOString()
-      },
-      {
-        id: 7,
-        name: 'News Subscription',
-        category: 'content',
-        amount: 4.99,
-        billingCycle: 'monthly',
-        nextBillingDate: nextWeek.toISOString(),
-        logo: '📰',
-        active: true,
-        essential: false,
-        usage: 'low',
-        notes: 'Digital edition',
-        addedDate: today.toISOString()
+/**
+ * Fetch transactions for a specific user
+ * @param {string|number} userId - User ID (can be string or number)
+ * @param {number} lookbackDays - Number of days to look back (default 180 days)
+ * @returns {Promise<Array>} - Array of transactions
+ */
+async function fetchUserTransactions(userId, lookbackDays = 180) {
+  try {
+    // First get all bank connections for the user
+    const connectionsResponse = await fetch(`/api/bank-connections/user/${encodeURIComponent(userId)}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
-    ];
-  }
-  
-  return appState.subscriptions;
-}
-
-// Get categories for subscriptions
-function getSubscriptionCategories() {
-  return [
-    { id: 'entertainment', name: 'Entertainment', icon: '🍿' },
-    { id: 'productivity', name: 'Productivity', icon: '💼' },
-    { id: 'health', name: 'Health & Fitness', icon: '🏃‍♂️' },
-    { id: 'shopping', name: 'Shopping', icon: '🛒' },
-    { id: 'technology', name: 'Technology', icon: '💻' },
-    { id: 'content', name: 'Content & Media', icon: '📱' },
-    { id: 'gaming', name: 'Gaming', icon: '🎮' },
-    { id: 'education', name: 'Education', icon: '📚' },
-    { id: 'food', name: 'Food & Drink', icon: '🍕' },
-    { id: 'other', name: 'Other', icon: '📌' }
-  ];
-}
-
-// Calculate monthly subscription costs
-function calculateMonthlyCost(subscriptions) {
-  if (!subscriptions || subscriptions.length === 0) {
-    return 0;
-  }
-  
-  return subscriptions.reduce((total, sub) => {
-    if (!sub.active) return total;
+    });
     
-    const amount = sub.amount;
-    
-    // Convert to monthly amount based on billing cycle
-    switch (sub.billingCycle) {
-      case 'weekly':
-        return total + (amount * 4.33); // Average weeks in a month
-      case 'monthly':
-        return total + amount;
-      case 'quarterly':
-        return total + (amount / 3);
-      case 'biannual':
-        return total + (amount / 6);
-      case 'annual':
-        return total + (amount / 12);
-      default:
-        return total + amount;
+    if (!connectionsResponse.ok) {
+      const errorData = await connectionsResponse.json().catch(() => ({}));
+      console.error('Failed to fetch bank connections:', {
+        status: connectionsResponse.status,
+        statusText: connectionsResponse.statusText,
+        error: errorData,
+        userId: userId
+      });
+      
+      // If no bank connections found, return empty array instead of throwing
+      if (connectionsResponse.status === 404) {
+        console.warn('No bank connections found for user:', userId);
+        return [];
+      }
+      
+      throw new Error(`Failed to fetch bank connections: ${connectionsResponse.status} ${connectionsResponse.statusText}`);
     }
-  }, 0);
-}
-
-// Calculate annual subscription costs
-function calculateAnnualCost(subscriptions) {
-  if (!subscriptions || subscriptions.length === 0) {
-    return 0;
-  }
-  
-  return subscriptions.reduce((total, sub) => {
-    if (!sub.active) return total;
     
-    const amount = sub.amount;
+    const connections = await connectionsResponse.json();
     
-    // Convert to annual amount based on billing cycle
-    switch (sub.billingCycle) {
-      case 'weekly':
-        return total + (amount * 52);
-      case 'monthly':
-        return total + (amount * 12);
-      case 'quarterly':
-        return total + (amount * 4);
-      case 'biannual':
-        return total + (amount * 2);
-      case 'annual':
-        return total + amount;
-      default:
-        return total + (amount * 12);
+    if (!connections || connections.length === 0) {
+      console.warn('No bank connections found for user:', userId);
+      return [];
     }
-  }, 0);
+    
+    // Get transactions for each account
+    const allTransactions = [];
+    for (const connection of connections) {
+      try {
+        const accountsResponse = await fetch(`/api/bank-connections/${connection.id}/accounts`, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!accountsResponse.ok) {
+          console.warn(`Failed to fetch accounts for connection ${connection.id}:`, {
+            status: accountsResponse.status,
+            statusText: accountsResponse.statusText
+          });
+          continue;
+        }
+        
+        const accounts = await accountsResponse.json();
+        for (const account of accounts) {
+          try {
+            const transactionsResponse = await fetch(`/api/bank-accounts/${account.id}/transactions`, {
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (!transactionsResponse.ok) {
+              console.warn(`Failed to fetch transactions for account ${account.id}:`, {
+                status: transactionsResponse.status,
+                statusText: transactionsResponse.statusText
+              });
+              continue;
+            }
+            
+            const transactions = await transactionsResponse.json();
+            allTransactions.push(...transactions);
+          } catch (error) {
+            console.error(`Error fetching transactions for account ${account.id}:`, error);
+            continue;
+          }
+        }
+      } catch (error) {
+        console.error(`Error fetching accounts for connection ${connection.id}:`, error);
+        continue;
+      }
+    }
+    
+    // Filter transactions by date range
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - lookbackDays);
+    
+    return allTransactions.filter(tx => {
+      const txDate = new Date(tx.date);
+      return txDate >= startDate && txDate <= endDate;
+    });
+    
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    return [];
+  }
 }
 
-// Generate optimization suggestions
-function generateOptimizationSuggestions(subscriptions) {
-  if (!subscriptions || subscriptions.length === 0) {
+/**
+ * Detect recurring subscription payments from transaction data
+ * @param {Array} transactions - Transaction data
+ * @returns {Array} - Array of detected subscription objects
+ */
+function detectSubscriptions(transactions) {
+  if (!transactions || transactions.length === 0) {
     return [];
   }
   
-  const suggestions = [];
+  // Group transactions by merchant name
+  const groupedByMerchant = {};
   
-  // Find low usage subscriptions
-  const lowUsage = subscriptions.filter(sub => sub.active && sub.usage === 'low' && !sub.essential);
-  if (lowUsage.length > 0) {
-    const totalSavings = lowUsage.reduce((total, sub) => {
-      const amount = sub.amount;
-      
-      // Convert to annual amount based on billing cycle
-      switch (sub.billingCycle) {
-        case 'weekly':
-          return total + (amount * 52);
-        case 'monthly':
-          return total + (amount * 12);
-        case 'quarterly':
-          return total + (amount * 4);
-        case 'biannual':
-          return total + (amount * 2);
-        case 'annual':
-          return total + amount;
-        default:
-          return total + (amount * 12);
-      }
-    }, 0);
-    
-    suggestions.push({
-      title: 'Low Usage Subscriptions',
-      description: `You have ${lowUsage.length} subscription${lowUsage.length > 1 ? 's' : ''} with low usage. Consider cancelling or pausing them.`,
-      impact: `Potential annual savings: ${formatCurrency(totalSavings)}`,
-      items: lowUsage.map(sub => sub.name)
-    });
-  }
-  
-  // Find subscriptions in the same category for potential bundling
-  const categories = {};
-  subscriptions.forEach(sub => {
-    if (!sub.active) return;
-    
-    if (!categories[sub.category]) {
-      categories[sub.category] = [];
+  transactions.forEach(transaction => {
+    const name = transaction.merchantName || transaction.name;
+    if (!groupedByMerchant[name]) {
+      groupedByMerchant[name] = [];
     }
-    categories[sub.category].push(sub);
+    groupedByMerchant[name].push(transaction);
   });
   
-  const bundlingOpportunities = Object.values(categories).filter(subs => subs.length >= 2);
+  // Analyze patterns for recurring payments
+  const subscriptions = [];
   
-  if (bundlingOpportunities.length > 0) {
-    bundlingOpportunities.forEach(subs => {
-      if (subs.length >= 2) {
-        const category = getSubscriptionCategories().find(cat => cat.id === subs[0].category)?.name || subs[0].category;
-        
-        suggestions.push({
-          title: `${category} Bundle Opportunity`,
-          description: `You have ${subs.length} subscriptions in the ${category} category. Look for bundle deals.`,
-          impact: 'Potential for savings through bundling',
-          items: subs.map(sub => sub.name)
-        });
-      }
-    });
-  }
-  
-  // Find annual vs monthly payment savings
-  const monthlySubscriptions = subscriptions.filter(sub => sub.active && sub.billingCycle === 'monthly');
-  if (monthlySubscriptions.length > 0) {
-    suggestions.push({
-      title: 'Annual Payment Savings',
-      description: `${monthlySubscriptions.length} subscription${monthlySubscriptions.length > 1 ? 's' : ''} might offer discounts for annual payment.`,
-      impact: 'Typically 10-20% savings on annual plans',
-      items: monthlySubscriptions.map(sub => sub.name)
-    });
-  }
-  
-  return suggestions;
-}
-
-// Get upcoming billing dates
-function getUpcomingBillings(subscriptions, daysAhead = 30) {
-  if (!subscriptions || subscriptions.length === 0) {
-    return [];
-  }
-  
-  const today = new Date();
-  const cutoffDate = new Date();
-  cutoffDate.setDate(today.getDate() + daysAhead);
-  
-  // Filter for subscriptions with billing dates in the next {daysAhead} days
-  return subscriptions
-    .filter(sub => {
-      if (!sub.active) return false;
+  for (const [merchant, merchantTransactions] of Object.entries(groupedByMerchant)) {
+    // Skip if there's only 1 transaction from this merchant
+    if (merchantTransactions.length <= 1) {
+      continue;
+    }
+    
+    // Sort by date (newest first)
+    merchantTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    // Check for recurring patterns
+    if (isLikelySubscription(merchantTransactions)) {
+      // Get the most recent transaction for details
+      const latestTransaction = merchantTransactions[0];
       
-      const billingDate = new Date(sub.nextBillingDate);
-      return billingDate >= today && billingDate <= cutoffDate;
-    })
-    .sort((a, b) => new Date(a.nextBillingDate) - new Date(b.nextBillingDate));
-}
-
-// Save subscription to app state
-function saveSubscription(subscription) {
-  if (!appState.subscriptions) {
-    appState.subscriptions = [];
-  }
-  
-  // Generate ID if not provided
-  if (!subscription.id) {
-    subscription.id = Date.now();
-  }
-  
-  // If editing an existing subscription, replace it
-  const existingIndex = appState.subscriptions.findIndex(sub => sub.id === subscription.id);
-  if (existingIndex !== -1) {
-    appState.subscriptions[existingIndex] = subscription;
-  } else {
-    // Add new subscription
-    appState.subscriptions.push(subscription);
-  }
-  
-  // Save to local storage
-  if (typeof window !== 'undefined' && window.localStorage) {
-    try {
-      localStorage.setItem('stackr-finance-state', JSON.stringify(appState));
-      console.log('Subscription saved successfully');
-    } catch (error) {
-      console.error('Error saving subscription to localStorage:', error);
+      // Estimate next charge date
+      const nextChargeDate = estimateNextChargeDate(merchantTransactions);
+      
+      // Create subscription object
+      subscriptions.push({
+        id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        merchantName: merchant,
+        amount: latestTransaction.amount,
+        currency: latestTransaction.currencyCode || 'USD',
+        lastChargeDate: latestTransaction.date,
+        nextChargeDate: nextChargeDate,
+        frequency: detectFrequency(merchantTransactions),
+        accountId: latestTransaction.accountId,
+        connectionId: latestTransaction.connectionId,
+        institutionName: latestTransaction.institutionName,
+        category: latestTransaction.category || [],
+        transactionCount: merchantTransactions.length,
+        transactions: merchantTransactions.slice(0, 5), // Include last 5 transactions as reference
+        status: 'active',
+        logoUrl: getLogoUrl(merchant),
+        cancelUrl: getCancelUrl(merchant),
+        estimatedAnnualCost: calculateAnnualCost(latestTransaction.amount, detectFrequency(merchantTransactions)),
+      });
     }
   }
   
-  return subscription;
+  // Sort by estimated annual cost (most expensive first)
+  return subscriptions.sort((a, b) => b.estimatedAnnualCost - a.estimatedAnnualCost);
 }
 
-// Delete subscription
-function deleteSubscription(subscriptionId) {
-  if (!appState.subscriptions) return false;
+/**
+ * Determine if a set of transactions is likely a subscription
+ * @param {Array} transactions - Transactions for a single merchant
+ * @returns {boolean} - Whether it's likely a subscription
+ */
+function isLikelySubscription(transactions) {
+  // Need at least 2 transactions to detect patterns
+  if (transactions.length < 2) {
+    return false;
+  }
   
-  const initialLength = appState.subscriptions.length;
-  appState.subscriptions = appState.subscriptions.filter(sub => sub.id !== subscriptionId);
+  // Check if amounts are consistent
+  const amounts = transactions.map(t => t.amount);
+  const uniqueAmounts = new Set(amounts);
+  if (uniqueAmounts.size > 3) {
+    // Too many different amounts, probably not a subscription
+    return false;
+  }
   
-  if (appState.subscriptions.length < initialLength) {
-    // Save to local storage
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        localStorage.setItem('stackr-finance-state', JSON.stringify(appState));
-        console.log('Subscription deleted successfully');
-      } catch (error) {
-        console.error('Error saving state to localStorage after deletion:', error);
-      }
+  // Check if transaction intervals are consistent
+  const dates = transactions.map(t => new Date(t.date).getTime());
+  // Convert to array and sort
+  const sortedDates = [...dates].sort((a, b) => b - a);
+  
+  // Calculate intervals between consecutive dates
+  const intervals = [];
+  for (let i = 0; i < sortedDates.length - 1; i++) {
+    intervals.push(Math.round((sortedDates[i] - sortedDates[i + 1]) / (1000 * 60 * 60 * 24)));
+  }
+  
+  // Subscriptions typically have relatively consistent intervals
+  // Allow for small variations (a few days)
+  const avgInterval = intervals.reduce((sum, val) => sum + val, 0) / intervals.length;
+  
+  // Calculate standard deviation
+  const squareDiffs = intervals.map(interval => {
+    const diff = interval - avgInterval;
+    return diff * diff;
+  });
+  const standardDeviation = Math.sqrt(squareDiffs.reduce((sum, val) => sum + val, 0) / intervals.length);
+  
+  // If standard deviation is more than 7 days, intervals are too irregular for a subscription
+  if (standardDeviation > 7) {
+    return false;
+  }
+  
+  // Categories that typically indicate subscriptions
+  const subscriptionCategories = [
+    'subscription', 'streaming', 'digital', 'recurring', 'service',
+    'entertainment', 'software', 'saas', 'membership', 'music', 'video'
+  ];
+  
+  // Check if any transaction has a subscription-related category
+  const hasSubscriptionCategory = transactions.some(t => {
+    if (!t.category || !Array.isArray(t.category)) return false;
+    return t.category.some(cat => 
+      subscriptionCategories.some(subCat => 
+        cat.toLowerCase().includes(subCat)));
+  });
+  
+  // Common subscription merchant keywords
+  const subscriptionKeywords = [
+    'netflix', 'spotify', 'hulu', 'disney+', 'disney', 'apple', 'amazon prime',
+    'amazon music', 'youtube', 'hbo', 'paramount', 'peacock', 'adobe', 'microsoft',
+    'github', 'dropbox', 'google one', 'google storage', 'icloud', 'office365',
+    'norton', 'mcafee', 'vpn', 'gym', 'fitness', 'health', 'club', 'membership',
+    'magazine', 'news', 'subscription', 'medium', 'substack', 'patreon'
+  ];
+  
+  // Check if merchant name contains a subscription keyword
+  const merchantName = transactions[0].merchantName || transactions[0].name;
+  const hasSubscriptionKeyword = subscriptionKeywords.some(keyword => 
+    merchantName.toLowerCase().includes(keyword.toLowerCase()));
+  
+  // Combine all factors to determine if likely a subscription
+  return (
+    // Consistent amounts
+    uniqueAmounts.size <= 3 &&
+    // Regular intervals (approximately monthly, quarterly, etc)
+    avgInterval > 20 && avgInterval < 100 && standardDeviation < 7 &&
+    // Either has a subscription category or keyword in merchant name
+    (hasSubscriptionCategory || hasSubscriptionKeyword)
+  );
+}
+
+/**
+ * Detect frequency pattern from transactions
+ * @param {Array} transactions - Transactions for a single merchant
+ * @returns {string} - Frequency label (monthly, quarterly, etc.)
+ */
+function detectFrequency(transactions) {
+  if (transactions.length < 2) {
+    return 'unknown';
+  }
+  
+  // Calculate average interval in days
+  const dates = transactions.map(t => new Date(t.date).getTime());
+  // Convert to array and sort in descending order (newest first)
+  const sortedDates = [...dates].sort((a, b) => b - a);
+  
+  // Calculate intervals between consecutive dates
+  const intervals = [];
+  for (let i = 0; i < sortedDates.length - 1; i++) {
+    intervals.push(Math.round((sortedDates[i] - sortedDates[i + 1]) / (1000 * 60 * 60 * 24)));
+  }
+  
+  const avgInterval = intervals.reduce((sum, val) => sum + val, 0) / intervals.length;
+  
+  // Determine frequency based on average interval
+  if (avgInterval <= 7.5) {
+    return 'weekly';
+  } else if (avgInterval <= 15) {
+    return 'bi-weekly';
+  } else if (avgInterval <= 35) {
+    return 'monthly';
+  } else if (avgInterval <= 70) {
+    return 'bi-monthly';
+  } else if (avgInterval <= 100) {
+    return 'quarterly';
+  } else if (avgInterval <= 190) {
+    return 'semi-annual';
+  } else {
+    return 'annual';
+  }
+}
+
+/**
+ * Estimate the next charge date for a subscription
+ * @param {Array} transactions - Transactions for a merchant
+ * @returns {string} - ISO date string for estimated next charge
+ */
+function estimateNextChargeDate(transactions) {
+  if (transactions.length < 2) {
+    return null;
+  }
+  
+  // Get most recent transaction date
+  const lastDate = new Date(transactions[0].date);
+  
+  // Determine frequency in days
+  const frequency = detectFrequency(transactions);
+  let daysToAdd = 30; // Default to monthly
+  
+  switch (frequency) {
+    case 'weekly':
+      daysToAdd = 7;
+      break;
+    case 'bi-weekly':
+      daysToAdd = 14;
+      break;
+    case 'monthly':
+      daysToAdd = 30;
+      break;
+    case 'bi-monthly':
+      daysToAdd = 60;
+      break;
+    case 'quarterly':
+      daysToAdd = 90;
+      break;
+    case 'semi-annual':
+      daysToAdd = 180;
+      break;
+    case 'annual':
+      daysToAdd = 365;
+      break;
+  }
+  
+  // Calculate next date
+  const nextDate = new Date(lastDate);
+  nextDate.setDate(nextDate.getDate() + daysToAdd);
+  
+  return nextDate.toISOString();
+}
+
+/**
+ * Calculate estimated annual cost for a subscription
+ * @param {number} amount - Transaction amount
+ * @param {string} frequency - Subscription frequency
+ * @returns {number} - Estimated annual cost
+ */
+function calculateAnnualCost(amount, frequency) {
+  switch (frequency) {
+    case 'weekly':
+      return amount * 52;
+    case 'bi-weekly':
+      return amount * 26;
+    case 'monthly':
+      return amount * 12;
+    case 'bi-monthly':
+      return amount * 6;
+    case 'quarterly':
+      return amount * 4;
+    case 'semi-annual':
+      return amount * 2;
+    case 'annual':
+      return amount;
+    default:
+      return amount * 12; // Default to monthly
+  }
+}
+
+/**
+ * Get logo URL for a merchant (placeholder for now)
+ * @param {string} merchantName - Merchant name
+ * @returns {string} - Logo URL
+ */
+function getLogoUrl(merchantName) {
+  // This would ideally use a service or database to get accurate logos
+  // For now, return a placeholder URL or generate one based on the merchant name
+  const firstLetter = merchantName.charAt(0).toUpperCase();
+  return `https://via.placeholder.com/48x48.png?text=${firstLetter}`;
+}
+
+/**
+ * Get cancel URL for a merchant (placeholder for now)
+ * @param {string} merchantName - Merchant name
+ * @returns {string} - Cancellation URL or instructions
+ */
+function getCancelUrl(merchantName) {
+  // This would ideally use a database of known subscription services
+  // For now, return a generic Google search URL
+  return `https://www.google.com/search?q=how+to+cancel+${encodeURIComponent(merchantName)}+subscription`;
+}
+
+/**
+ * Format a frequency string to user-friendly text
+ * @param {string} frequency - Frequency string
+ * @returns {string} - User-friendly frequency text
+ */
+function formatFrequency(frequency) {
+  switch (frequency) {
+    case 'weekly':
+      return 'Weekly';
+    case 'bi-weekly':
+      return 'Every 2 weeks';
+    case 'monthly':
+      return 'Monthly';
+    case 'bi-monthly':
+      return 'Every 2 months';
+    case 'quarterly':
+      return 'Quarterly';
+    case 'semi-annual':
+      return 'Twice a year';
+    case 'annual':
+      return 'Yearly';
+    default:
+      return 'Unknown frequency';
+  }
+}
+
+/**
+ * Get help text for cancelling a subscription
+ * @param {Object} subscription - Subscription object
+ * @returns {string} - Help text
+ */
+function getCancellationHelpText(subscription) {
+  const merchant = subscription.merchantName.toLowerCase();
+  
+  // Predefined instructions for common services
+  if (merchant.includes('netflix')) {
+    return "Sign in to Netflix → Profile icon → Account → Cancel Membership";
+  } else if (merchant.includes('spotify')) {
+    return "Sign in to Spotify → Account → Available plans → Cancel Premium → Yes, Cancel";
+  } else if (merchant.includes('amazon prime') || merchant.includes('prime video')) {
+    return "Sign in to Amazon → Accounts & Lists → Prime → Manage Prime Membership → End Membership";
+  } else if (merchant.includes('hulu')) {
+    return "Sign in to Hulu → Account → Cancel → Cancel Subscription";
+  } else if (merchant.includes('disney')) {
+    return "Sign in to Disney+ → Profile → Account → Cancel Subscription";
+  } else if (merchant.includes('apple')) {
+    return "iPhone/iPad: Settings → Apple ID → Subscriptions → Select service → Cancel\nor Mac: App Store → Account → View Information → Manage → Select service → Cancel";
+  } else if (merchant.includes('youtube')) {
+    return "Sign in to YouTube → Settings → Memberships → Manage → Deactivate";
+  } else if (merchant.includes('hbo')) {
+    return "Sign in to HBO Max → Profile → Billing Information → Manage Subscription → Cancel Subscription";
+  } else {
+    return "Contact the service directly through their website or customer support to cancel. You may also be able to cancel through your bank.";
+  }
+}
+
+/**
+ * Create a subscription detail row for a single subscription
+ * @param {Object} subscription - Subscription object
+ * @returns {HTMLElement} - Subscription row element
+ */
+function createSubscriptionRow(subscription) {
+  const row = document.createElement('div');
+  row.classList.add('subscription-row');
+  row.style.display = 'flex';
+  row.style.alignItems = 'center';
+  row.style.padding = '16px';
+  row.style.borderBottom = '1px solid var(--color-border)';
+  row.style.transition = 'background-color 0.2s ease';
+  
+  // Add hover effect
+  row.addEventListener('mouseover', () => {
+    row.style.backgroundColor = 'var(--color-card)';
+  });
+  row.addEventListener('mouseout', () => {
+    row.style.backgroundColor = 'transparent';
+  });
+  
+  // Logo/icon
+  const logoContainer = document.createElement('div');
+  logoContainer.style.width = '48px';
+  logoContainer.style.height = '48px';
+  logoContainer.style.flexShrink = 0;
+  logoContainer.style.marginRight = '16px';
+  
+  const logo = document.createElement('div');
+  logo.style.width = '100%';
+  logo.style.height = '100%';
+  logo.style.borderRadius = '8px';
+  logo.style.backgroundColor = 'var(--color-border)';
+  logo.style.display = 'flex';
+  logo.style.alignItems = 'center';
+  logo.style.justifyContent = 'center';
+  logo.style.fontWeight = 'bold';
+  logo.style.fontSize = '24px';
+  logo.style.color = 'var(--color-primary)';
+  logo.textContent = subscription.merchantName.charAt(0).toUpperCase();
+  
+  logoContainer.appendChild(logo);
+  row.appendChild(logoContainer);
+  
+  // Subscription details
+  const detailsContainer = document.createElement('div');
+  detailsContainer.style.flexGrow = 1;
+  
+  const merchantName = document.createElement('div');
+  merchantName.style.fontWeight = 'bold';
+  merchantName.style.marginBottom = '4px';
+  merchantName.textContent = subscription.merchantName;
+  
+  const subscriptionInfo = document.createElement('div');
+  subscriptionInfo.style.display = 'flex';
+  subscriptionInfo.style.flexWrap = 'wrap';
+  subscriptionInfo.style.gap = '12px';
+  subscriptionInfo.style.fontSize = '14px';
+  subscriptionInfo.style.color = 'var(--color-text-secondary)';
+  
+  const frequency = document.createElement('span');
+  frequency.textContent = formatFrequency(subscription.frequency);
+  
+  const lastCharge = document.createElement('span');
+  lastCharge.textContent = `Last: ${formatDate(subscription.lastChargeDate)}`;
+  
+  const nextCharge = document.createElement('span');
+  nextCharge.textContent = `Next: ~${formatDate(subscription.nextChargeDate)}`;
+  
+  const accountInfo = document.createElement('span');
+  accountInfo.textContent = subscription.institutionName || 'Unknown Bank';
+  
+  subscriptionInfo.appendChild(frequency);
+  subscriptionInfo.appendChild(lastCharge);
+  subscriptionInfo.appendChild(nextCharge);
+  subscriptionInfo.appendChild(accountInfo);
+  
+  detailsContainer.appendChild(merchantName);
+  detailsContainer.appendChild(subscriptionInfo);
+  row.appendChild(detailsContainer);
+  
+  // Amount
+  const amountContainer = document.createElement('div');
+  amountContainer.style.display = 'flex';
+  amountContainer.style.flexDirection = 'column';
+  amountContainer.style.alignItems = 'flex-end';
+  amountContainer.style.marginLeft = '16px';
+  
+  const amount = document.createElement('div');
+  amount.style.fontWeight = 'bold';
+  amount.style.fontSize = '16px';
+  amount.textContent = formatCurrency(subscription.amount);
+  
+  const annualAmount = document.createElement('div');
+  annualAmount.style.fontSize = '12px';
+  annualAmount.style.color = 'var(--color-text-secondary)';
+  annualAmount.textContent = `${formatCurrency(subscription.estimatedAnnualCost)}/year`;
+  
+  amountContainer.appendChild(amount);
+  amountContainer.appendChild(annualAmount);
+  row.appendChild(amountContainer);
+  
+  // Make the entire row clickable to show details
+  row.style.cursor = 'pointer';
+  row.addEventListener('click', () => {
+    showSubscriptionDetails(subscription);
+  });
+  
+  return row;
+}
+
+/**
+ * Show detailed modal for a subscription
+ * @param {Object} subscription - Subscription object
+ */
+function showSubscriptionDetails(subscription) {
+  // Create modal overlay
+  const overlay = document.createElement('div');
+  overlay.classList.add('modal-overlay');
+  overlay.style.position = 'fixed';
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.width = '100%';
+  overlay.style.height = '100%';
+  overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.style.zIndex = 1000;
+  
+  // Create modal container
+  const modal = document.createElement('div');
+  modal.classList.add('subscription-detail-modal');
+  modal.style.width = '90%';
+  modal.style.maxWidth = '600px';
+  modal.style.maxHeight = '90vh';
+  modal.style.backgroundColor = 'white';
+  modal.style.borderRadius = '12px';
+  modal.style.overflow = 'hidden';
+  modal.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.2)';
+  modal.style.display = 'flex';
+  modal.style.flexDirection = 'column';
+  
+  // Modal header
+  const header = document.createElement('div');
+  header.style.padding = '20px';
+  header.style.backgroundColor = 'var(--color-primary)';
+  header.style.color = 'white';
+  header.style.position = 'relative';
+  
+  // Close button
+  const closeButton = document.createElement('button');
+  closeButton.style.position = 'absolute';
+  closeButton.style.top = '12px';
+  closeButton.style.right = '12px';
+  closeButton.style.backgroundColor = 'transparent';
+  closeButton.style.border = 'none';
+  closeButton.style.color = 'white';
+  closeButton.style.fontSize = '24px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.innerHTML = '&times;';
+  closeButton.addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+  
+  const title = document.createElement('h2');
+  title.style.margin = 0;
+  title.style.marginRight = '20px';
+  title.textContent = subscription.merchantName;
+  
+  const subtitle = document.createElement('div');
+  subtitle.style.marginTop = '8px';
+  subtitle.style.opacity = 0.9;
+  subtitle.textContent = `${formatFrequency(subscription.frequency)} subscription`;
+  
+  header.appendChild(closeButton);
+  header.appendChild(title);
+  header.appendChild(subtitle);
+  
+  // Modal body
+  const body = document.createElement('div');
+  body.style.padding = '20px';
+  body.style.overflowY = 'auto';
+  
+  // Subscription summary section
+  const summarySection = document.createElement('div');
+  summarySection.style.marginBottom = '24px';
+  
+  const costSummary = document.createElement('div');
+  costSummary.style.display = 'flex';
+  costSummary.style.justifyContent = 'space-between';
+  costSummary.style.padding = '16px';
+  costSummary.style.backgroundColor = 'var(--color-card)';
+  costSummary.style.borderRadius = '8px';
+  costSummary.style.marginBottom = '16px';
+  
+  const perPaymentLabel = document.createElement('div');
+  perPaymentLabel.style.fontWeight = 'bold';
+  perPaymentLabel.textContent = 'Per payment';
+  
+  const perPaymentValue = document.createElement('div');
+  perPaymentValue.style.fontWeight = 'bold';
+  perPaymentValue.textContent = formatCurrency(subscription.amount);
+  
+  costSummary.appendChild(perPaymentLabel);
+  costSummary.appendChild(perPaymentValue);
+  
+  const annualCostRow = document.createElement('div');
+  annualCostRow.style.display = 'flex';
+  annualCostRow.style.justifyContent = 'space-between';
+  annualCostRow.style.padding = '16px';
+  annualCostRow.style.backgroundColor = 'var(--color-primary-light)';
+  annualCostRow.style.color = 'var(--color-primary-dark)';
+  annualCostRow.style.borderRadius = '8px';
+  annualCostRow.style.fontWeight = 'bold';
+  
+  const annualCostLabel = document.createElement('div');
+  annualCostLabel.textContent = 'Estimated annual cost';
+  
+  const annualCostValue = document.createElement('div');
+  annualCostValue.textContent = formatCurrency(subscription.estimatedAnnualCost);
+  
+  annualCostRow.appendChild(annualCostLabel);
+  annualCostRow.appendChild(annualCostValue);
+  
+  summarySection.appendChild(costSummary);
+  summarySection.appendChild(annualCostRow);
+  
+  // Payment details section
+  const detailsSection = document.createElement('div');
+  detailsSection.style.marginBottom = '24px';
+  
+  const detailsTitle = document.createElement('h3');
+  detailsTitle.style.marginBottom = '12px';
+  detailsTitle.textContent = 'Payment Details';
+  
+  const detailsList = document.createElement('div');
+  detailsList.style.display = 'grid';
+  detailsList.style.gridTemplateColumns = 'repeat(2, 1fr)';
+  detailsList.style.gap = '12px';
+  detailsList.style.fontSize = '14px';
+  
+  // Details items
+  const details = [
+    { label: 'Frequency', value: formatFrequency(subscription.frequency) },
+    { label: 'Last charge', value: formatDate(subscription.lastChargeDate) },
+    { label: 'Next charge (est.)', value: formatDate(subscription.nextChargeDate) },
+    { label: 'Institution', value: subscription.institutionName || 'Unknown' },
+    { label: 'Detected transactions', value: subscription.transactionCount.toString() }
+  ];
+  
+  details.forEach(detail => {
+    const detailItem = document.createElement('div');
+    
+    const detailLabel = document.createElement('div');
+    detailLabel.style.color = 'var(--color-text-secondary)';
+    detailLabel.style.marginBottom = '4px';
+    detailLabel.textContent = detail.label;
+    
+    const detailValue = document.createElement('div');
+    detailValue.style.fontWeight = '500';
+    detailValue.textContent = detail.value;
+    
+    detailItem.appendChild(detailLabel);
+    detailItem.appendChild(detailValue);
+    
+    detailsList.appendChild(detailItem);
+  });
+  
+  detailsSection.appendChild(detailsTitle);
+  detailsSection.appendChild(detailsList);
+  
+  // Cancellation help section
+  const cancellationSection = document.createElement('div');
+  cancellationSection.style.marginBottom = '24px';
+  
+  const cancellationTitle = document.createElement('h3');
+  cancellationTitle.style.marginBottom = '12px';
+  cancellationTitle.textContent = 'How to Cancel';
+  
+  const cancellationText = document.createElement('p');
+  cancellationText.style.marginBottom = '16px';
+  cancellationText.style.lineHeight = '1.5';
+  cancellationText.textContent = getCancellationHelpText(subscription);
+  
+  const cancellationNote = document.createElement('div');
+  cancellationNote.style.fontSize = '14px';
+  cancellationNote.style.padding = '12px';
+  cancellationNote.style.backgroundColor = 'rgba(255, 229, 100, 0.2)';
+  cancellationNote.style.borderRadius = '8px';
+  cancellationNote.style.borderLeft = '4px solid #ffd426';
+  cancellationNote.innerHTML = '<strong>Note:</strong> You can also cancel most subscriptions by contacting your bank to stop recurring payments. However, this may lead to service interruptions or penalties.';
+  
+  cancellationSection.appendChild(cancellationTitle);
+  cancellationSection.appendChild(cancellationText);
+  cancellationSection.appendChild(cancellationNote);
+  
+  // Action buttons
+  const actionsSection = document.createElement('div');
+  
+  const websiteButton = document.createElement('a');
+  websiteButton.href = subscription.cancelUrl;
+  websiteButton.target = '_blank';
+  websiteButton.style.display = 'block';
+  websiteButton.style.width = '100%';
+  websiteButton.style.padding = '12px';
+  websiteButton.style.backgroundColor = 'var(--color-primary)';
+  websiteButton.style.color = 'white';
+  websiteButton.style.textAlign = 'center';
+  websiteButton.style.borderRadius = '8px';
+  websiteButton.style.fontWeight = 'bold';
+  websiteButton.style.textDecoration = 'none';
+  websiteButton.style.marginBottom = '12px';
+  websiteButton.textContent = 'Go to Cancellation Page';
+  
+  const markCancelledButton = document.createElement('button');
+  markCancelledButton.style.display = 'block';
+  markCancelledButton.style.width = '100%';
+  markCancelledButton.style.padding = '12px';
+  markCancelledButton.style.backgroundColor = 'transparent';
+  markCancelledButton.style.border = '2px solid var(--color-primary)';
+  markCancelledButton.style.color = 'var(--color-primary)';
+  markCancelledButton.style.textAlign = 'center';
+  markCancelledButton.style.borderRadius = '8px';
+  markCancelledButton.style.fontWeight = 'bold';
+  markCancelledButton.style.cursor = 'pointer';
+  markCancelledButton.textContent = 'Mark as Cancelled';
+  
+  markCancelledButton.addEventListener('click', () => {
+    // Mark the subscription as cancelled
+    markSubscriptionAsCancelled(subscription.id);
+    document.body.removeChild(overlay);
+    
+    // Refresh the subscription list
+    const container = document.querySelector('.subscription-sniper-page');
+    if (container) {
+      renderSubscriptionSniperPage(subscription.userId);
+    }
+  });
+  
+  actionsSection.appendChild(websiteButton);
+  actionsSection.appendChild(markCancelledButton);
+  
+  // Assemble modal body
+  body.appendChild(summarySection);
+  body.appendChild(detailsSection);
+  body.appendChild(cancellationSection);
+  body.appendChild(actionsSection);
+  
+  // Assemble modal
+  modal.appendChild(header);
+  modal.appendChild(body);
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+/**
+ * Mark a subscription as cancelled
+ * @param {string} subscriptionId - Subscription ID
+ */
+async function markSubscriptionAsCancelled(subscriptionId) {
+  try {
+    // In a real implementation, this would make a backend API call
+    // For this prototype, we'll use localStorage to save the cancellation state
+    const cancelledSubscriptions = JSON.parse(localStorage.getItem('cancelledSubscriptions') || '[]');
+    
+    if (!cancelledSubscriptions.includes(subscriptionId)) {
+      cancelledSubscriptions.push(subscriptionId);
+      localStorage.setItem('cancelledSubscriptions', JSON.stringify(cancelledSubscriptions));
     }
     
     return true;
+  } catch (error) {
+    console.error('Error marking subscription as cancelled:', error);
+    return false;
   }
-  
-  return false;
 }
 
-// Render Subscription Sniper page
-export function renderSubscriptionSniperPage() {
-  // Check if premium feature
-  const isPremium = appState.user?.subscription?.tier === 'pro' || 
-                   appState.user?.subscription?.tier === 'lifetime';
-  
-  // Main container
-  const sniperContainer = document.createElement('div');
-  sniperContainer.className = 'subscription-sniper-container p-4 max-w-6xl mx-auto';
-  
-  // If not premium, show upgrade message
-  if (!isPremium) {
-    const upgradeContainer = document.createElement('div');
-    upgradeContainer.className = 'upgrade-container';
-    upgradeContainer.innerHTML = `
-      <div class="text-center p-8 mb-8 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg">
-        <h1 class="text-3xl font-bold mb-4">Subscription Sniper</h1>
-        <p class="text-lg mb-4">Track and optimize your recurring subscriptions</p>
-        <div class="max-w-lg mx-auto">
-          <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
-            <h2 class="text-xl font-semibold mb-3">Premium Feature</h2>
-            <p class="mb-4">Subscription Sniper is a premium feature available on Pro and Lifetime plans.</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div class="feature-item flex items-start">
-                <div class="mr-2 text-primary">✓</div>
-                <div>Track all your subscriptions in one place</div>
-              </div>
-              <div class="feature-item flex items-start">
-                <div class="mr-2 text-primary">✓</div>
-                <div>Get notified before billing dates</div>
-              </div>
-              <div class="feature-item flex items-start">
-                <div class="mr-2 text-primary">✓</div>
-                <div>Identify subscription overlap</div>
-              </div>
-              <div class="feature-item flex items-start">
-                <div class="mr-2 text-primary">✓</div>
-                <div>Find savings opportunities</div>
-              </div>
-            </div>
-            
-            <a href="#subscriptions" class="block w-full bg-primary text-white text-center py-3 rounded-lg hover:bg-primary-dark">
-              Upgrade to Pro
-            </a>
-          </div>
-          
-          <div class="bg-white p-6 rounded-lg shadow-sm">
-            <div class="subscription-preview">
-              <img src="https://placehold.co/600x300" alt="Subscription Sniper Preview" class="w-full h-auto rounded-lg mb-4">
-              <p class="text-sm text-gray-600 text-center">Track and optimize all your recurring payments</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-    sniperContainer.appendChild(upgradeContainer);
-    return sniperContainer;
+/**
+ * Check if a subscription is marked as cancelled
+ * @param {string} subscriptionId - Subscription ID
+ * @returns {boolean} - Whether the subscription is cancelled
+ */
+function isSubscriptionCancelled(subscriptionId) {
+  try {
+    const cancelledSubscriptions = JSON.parse(localStorage.getItem('cancelledSubscriptions') || '[]');
+    return cancelledSubscriptions.includes(subscriptionId);
+  } catch (error) {
+    console.error('Error checking subscription cancelled status:', error);
+    return false;
   }
+}
+
+/**
+ * Create subscription sniper dashboard with stats
+ * @param {Array} subscriptions - Subscription data
+ * @returns {HTMLElement} - Dashboard element
+ */
+function createSubscriptionDashboard(subscriptions) {
+  // Filter out cancelled subscriptions
+  const activeSubscriptions = subscriptions.filter(sub => !isSubscriptionCancelled(sub.id));
   
-  // Get subscription data
-  const subscriptions = getSubscriptionData();
-  const categories = getSubscriptionCategories();
+  // Calculate total monthly and annual costs
+  const monthlyCost = activeSubscriptions.reduce((total, sub) => {
+    if (sub.frequency === 'monthly') {
+      return total + sub.amount;
+    } else if (sub.frequency === 'annual') {
+      return total + (sub.amount / 12);
+    } else if (sub.frequency === 'quarterly') {
+      return total + (sub.amount / 3);
+    } else if (sub.frequency === 'semi-annual') {
+      return total + (sub.amount / 6);
+    } else if (sub.frequency === 'weekly') {
+      return total + (sub.amount * 4.33); // Average weeks per month
+    } else if (sub.frequency === 'bi-weekly') {
+      return total + (sub.amount * 2.17); // Average bi-weeks per month
+    } else {
+      return total + (sub.amount / 12); // Default to annual payments
+    }
+  }, 0);
   
-  // Calculate costs
-  const monthlyCost = calculateMonthlyCost(subscriptions);
-  const annualCost = calculateAnnualCost(subscriptions);
-  const activeCount = subscriptions.filter(sub => sub.active).length;
+  const annualCost = activeSubscriptions.reduce((total, sub) => total + sub.estimatedAnnualCost, 0);
   
-  // Get optimization suggestions
-  const suggestions = generateOptimizationSuggestions(subscriptions);
+  // Create dashboard container
+  const dashboard = document.createElement('div');
+  dashboard.classList.add('subscription-dashboard');
+  dashboard.style.display = 'grid';
+  dashboard.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
+  dashboard.style.gap = '16px';
+  dashboard.style.marginBottom = '32px';
   
-  // Get upcoming billings
-  const upcomingBillings = getUpcomingBillings(subscriptions);
+  // Create dashboard cards
+  const cards = [
+    {
+      title: 'Active Subscriptions',
+      value: activeSubscriptions.length.toString(),
+      icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>',
+      color: 'var(--color-primary)'
+    },
+    {
+      title: 'Monthly Cost',
+      value: formatCurrency(monthlyCost),
+      icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12H9"></path></svg>',
+      color: 'var(--color-secondary)'
+    },
+    {
+      title: 'Annual Cost',
+      value: formatCurrency(annualCost),
+      icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
+      color: 'var(--color-accent)'
+    }
+  ];
   
-  // Header section
-  const header = document.createElement('header');
-  header.className = 'mb-6';
-  header.innerHTML = `
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-      <div>
-        <h1 class="text-2xl font-bold mb-1">Subscription Sniper</h1>
-        <p class="text-gray-600">Track and optimize your recurring subscriptions</p>
-      </div>
-      <div class="mt-4 md:mt-0">
-        <button id="add-subscription-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark">
-          + Add Subscription
-        </button>
-      </div>
-    </div>
-  `;
-  sniperContainer.appendChild(header);
-  
-  // Summary cards
-  const summarySection = document.createElement('section');
-  summarySection.className = 'summary-cards grid grid-cols-1 md:grid-cols-3 gap-4 mb-8';
-  
-  // Monthly cost card
-  const monthlyCard = document.createElement('div');
-  monthlyCard.className = 'card bg-white p-4 rounded-lg shadow-sm';
-  monthlyCard.innerHTML = `
-    <div class="card-header mb-2">
-      <h3 class="text-lg font-semibold">Monthly Cost</h3>
-    </div>
-    <div class="card-value text-2xl font-bold">${formatCurrency(monthlyCost)}</div>
-    <div class="text-sm text-gray-600 mt-1">${activeCount} active subscriptions</div>
-  `;
-  
-  // Annual cost card
-  const annualCard = document.createElement('div');
-  annualCard.className = 'card bg-white p-4 rounded-lg shadow-sm';
-  annualCard.innerHTML = `
-    <div class="card-header mb-2">
-      <h3 class="text-lg font-semibold">Annual Cost</h3>
-    </div>
-    <div class="card-value text-2xl font-bold">${formatCurrency(annualCost)}</div>
-    <div class="text-sm text-gray-600 mt-1">${formatCurrency(monthlyCost)} per month average</div>
-  `;
-  
-  // Upcoming bills card
-  const upcomingCard = document.createElement('div');
-  upcomingCard.className = 'card bg-white p-4 rounded-lg shadow-sm';
-  upcomingCard.innerHTML = `
-    <div class="card-header mb-2">
-      <h3 class="text-lg font-semibold">Upcoming Bills</h3>
-    </div>
-    ${upcomingBillings.length > 0 ? `
-      <div class="upcoming-list">
-        ${upcomingBillings.slice(0, 3).map(sub => `
-          <div class="flex justify-between items-center py-1 border-b last:border-0">
-            <div class="flex items-center">
-              <span class="mr-2">${sub.logo}</span>
-              <span>${sub.name}</span>
-            </div>
-            <div>
-              <span class="font-medium">${formatCurrency(sub.amount)}</span>
-              <span class="text-sm text-gray-600 ml-1">${formatDate(sub.nextBillingDate)}</span>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-      ${upcomingBillings.length > 3 ? `
-        <div class="text-sm text-center mt-2">
-          <a href="#" class="text-primary hover:underline" id="view-all-upcoming">
-            View all ${upcomingBillings.length} upcoming
-          </a>
-        </div>
-      ` : ''}
-    ` : `
-      <div class="text-center py-4 text-gray-500">
-        No upcoming bills in the next 30 days
-      </div>
-    `}
-  `;
-  
-  summarySection.appendChild(monthlyCard);
-  summarySection.appendChild(annualCard);
-  summarySection.appendChild(upcomingCard);
-  sniperContainer.appendChild(summarySection);
-  
-  // Optimization insights section
-  const insightsSection = document.createElement('section');
-  insightsSection.className = 'insights-section mb-8';
-  insightsSection.innerHTML = `
-    <div class="bg-white p-4 rounded-lg shadow-sm">
-      <h2 class="text-xl font-semibold mb-4">Optimization Insights</h2>
-      
-      ${suggestions.length > 0 ? `
-        <div class="insights-list space-y-4">
-          ${suggestions.map(suggestion => `
-            <div class="insight-item p-4 border border-gray-100 rounded-lg">
-              <div class="flex items-start">
-                <div class="insight-icon mr-3 bg-primary/10 p-2 rounded-full">
-                  <span class="text-xl">💡</span>
-                </div>
-                <div class="flex-1">
-                  <h3 class="font-medium mb-1">${suggestion.title}</h3>
-                  <p class="text-sm mb-2">${suggestion.description}</p>
-                  <p class="text-sm text-primary font-medium mb-2">${suggestion.impact}</p>
-                  
-                  ${suggestion.items && suggestion.items.length > 0 ? `
-                    <div class="items-list bg-gray-50 p-2 rounded-md">
-                      ${suggestion.items.map(item => `
-                        <div class="text-sm py-1">${item}</div>
-                      `).join('')}
-                    </div>
-                  ` : ''}
-                </div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      ` : `
-        <div class="text-center py-8 text-gray-500">
-          <p>No optimization suggestions available yet</p>
-          <p class="text-sm mt-2">Add more subscriptions to get personalized insights</p>
-        </div>
-      `}
-    </div>
-  `;
-  sniperContainer.appendChild(insightsSection);
-  
-  // Subscriptions list
-  const subscriptionsSection = document.createElement('section');
-  subscriptionsSection.className = 'subscriptions-section mb-8';
-  subscriptionsSection.innerHTML = `
-    <div class="bg-white p-4 rounded-lg shadow-sm">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold">Your Subscriptions</h2>
-        <div class="flex space-x-2">
-          <select id="subscription-filter" class="p-2 border rounded-md text-sm">
-            <option value="all">All Categories</option>
-            ${categories.map(category => `
-              <option value="${category.id}">${category.icon} ${category.name}</option>
-            `).join('')}
-          </select>
-          <select id="subscription-sort" class="p-2 border rounded-md text-sm">
-            <option value="name">Name</option>
-            <option value="amount">Amount</option>
-            <option value="date">Next Billing</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead>
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subscription</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Billing</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Next Date</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usage</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200" id="subscription-entries">
-            ${subscriptions.map((subscription, index) => {
-              const category = categories.find(cat => cat.id === subscription.category) || { name: 'Other', icon: '📌' };
-              
-              return `
-                <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${!subscription.active ? 'opacity-50' : ''}" data-subscription-id="${subscription.id}">
-                  <td class="px-4 py-3 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="text-xl mr-2">${subscription.logo}</div>
-                      <div>
-                        <div class="font-medium">${subscription.name}</div>
-                        <div class="text-xs text-gray-500">${subscription.notes || ''}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm">
-                    <span class="inline-flex items-center">
-                      <span class="mr-1">${category.icon}</span>
-                      ${category.name}
-                    </span>
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                    ${formatCurrency(subscription.amount)}
-                    <div class="text-xs text-gray-500">${subscription.billingCycle}</div>
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm">
-                    ${subscription.billingCycle.charAt(0).toUpperCase() + subscription.billingCycle.slice(1)}
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm">
-                    ${formatDate(subscription.nextBillingDate)}
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm">
-                    <span class="px-2 py-1 text-xs rounded-full ${
-                      subscription.usage === 'high' ? 'bg-green-100 text-green-800' : 
-                      subscription.usage === 'medium' ? 'bg-blue-100 text-blue-800' : 
-                      'bg-yellow-100 text-yellow-800'
-                    }">
-                      ${subscription.usage.charAt(0).toUpperCase() + subscription.usage.slice(1)}
-                    </span>
-                    ${subscription.essential ? '<span class="ml-1 px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">Essential</span>' : ''}
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm">
-                    <button class="edit-subscription-btn text-blue-600 hover:text-blue-800 mr-2">
-                      Edit
-                    </button>
-                    <button class="toggle-subscription-btn ${subscription.active ? 'text-yellow-600 hover:text-yellow-800' : 'text-green-600 hover:text-green-800'} mr-2">
-                      ${subscription.active ? 'Pause' : 'Activate'}
-                    </button>
-                    <button class="delete-subscription-btn text-red-600 hover:text-red-800">
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-      
-      ${subscriptions.length === 0 ? `
-        <div class="text-center py-8 text-gray-500">
-          <p>No subscriptions found</p>
-          <button id="add-first-subscription-btn" class="mt-2 text-primary hover:underline">Add your first subscription</button>
-        </div>
-      ` : ''}
-    </div>
-  `;
-  sniperContainer.appendChild(subscriptionsSection);
-  
-  // Category breakdown
-  const breakdownSection = document.createElement('section');
-  breakdownSection.className = 'breakdown-section mb-8 grid grid-cols-1 md:grid-cols-2 gap-6';
-  
-  // Category breakdown chart
-  const categoryBreakdown = document.createElement('div');
-  categoryBreakdown.className = 'category-breakdown bg-white p-4 rounded-lg shadow-sm';
-  categoryBreakdown.innerHTML = `
-    <h2 class="text-xl font-semibold mb-4">Category Breakdown</h2>
-    <div class="chart-container" style="height: 250px;">
-      <canvas id="categoryChart"></canvas>
-    </div>
-  `;
-  
-  // Essential vs Non-essential breakdown
-  const essentialBreakdown = document.createElement('div');
-  essentialBreakdown.className = 'essential-breakdown bg-white p-4 rounded-lg shadow-sm';
-  
-  // Calculate essential vs non-essential
-  const essentialTotal = subscriptions
-    .filter(sub => sub.active && sub.essential)
-    .reduce((total, sub) => {
-      return total + (sub.billingCycle === 'monthly' ? sub.amount : sub.amount / 12);
-    }, 0);
+  cards.forEach(card => {
+    const cardElement = document.createElement('div');
+    cardElement.classList.add('dashboard-card');
+    cardElement.style.backgroundColor = 'white';
+    cardElement.style.borderRadius = '12px';
+    cardElement.style.padding = '20px';
+    cardElement.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+    cardElement.style.display = 'flex';
+    cardElement.style.flexDirection = 'column';
     
-  const nonEssentialTotal = subscriptions
-    .filter(sub => sub.active && !sub.essential)
-    .reduce((total, sub) => {
-      return total + (sub.billingCycle === 'monthly' ? sub.amount : sub.amount / 12);
-    }, 0);
+    const iconContainer = document.createElement('div');
+    iconContainer.style.display = 'flex';
+    iconContainer.style.alignItems = 'center';
+    iconContainer.style.justifyContent = 'center';
+    iconContainer.style.width = '48px';
+    iconContainer.style.height = '48px';
+    iconContainer.style.borderRadius = '50%';
+    iconContainer.style.backgroundColor = `${card.color}20`; // 20% opacity
+    iconContainer.style.color = card.color;
+    iconContainer.style.marginBottom = '16px';
+    iconContainer.innerHTML = card.icon;
+    
+    const titleElement = document.createElement('div');
+    titleElement.style.fontSize = '14px';
+    titleElement.style.color = 'var(--color-text-secondary)';
+    titleElement.style.marginBottom = '8px';
+    titleElement.textContent = card.title;
+    
+    const valueElement = document.createElement('div');
+    valueElement.style.fontSize = '24px';
+    valueElement.style.fontWeight = 'bold';
+    valueElement.textContent = card.value;
+    
+    cardElement.appendChild(iconContainer);
+    cardElement.appendChild(titleElement);
+    cardElement.appendChild(valueElement);
+    
+    dashboard.appendChild(cardElement);
+  });
   
-  essentialBreakdown.innerHTML = `
-    <h2 class="text-xl font-semibold mb-4">Essential vs Non-Essential</h2>
-    <div class="chart-container" style="height: 250px;">
-      <canvas id="essentialChart"></canvas>
-    </div>
-    <div class="grid grid-cols-2 gap-4 mt-4">
-      <div class="text-center">
-        <div class="text-sm font-medium text-gray-500">Essential</div>
-        <div class="text-xl font-bold">${formatCurrency(essentialTotal)}/mo</div>
-        <div class="text-sm text-gray-600">${Math.round((essentialTotal / monthlyCost) * 100)}% of total</div>
-      </div>
-      <div class="text-center">
-        <div class="text-sm font-medium text-gray-500">Non-Essential</div>
-        <div class="text-xl font-bold">${formatCurrency(nonEssentialTotal)}/mo</div>
-        <div class="text-sm text-gray-600">${Math.round((nonEssentialTotal / monthlyCost) * 100)}% of total</div>
-      </div>
-    </div>
-  `;
-  
-  breakdownSection.appendChild(categoryBreakdown);
-  breakdownSection.appendChild(essentialBreakdown);
-  sniperContainer.appendChild(breakdownSection);
-  
-  // Subscription form modal
-  const modalContainer = document.createElement('div');
-  modalContainer.id = 'subscription-modal';
-  modalContainer.className = 'modal-container fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden';
-  modalContainer.style.backdropFilter = 'blur(3px)';
-  
-  modalContainer.innerHTML = `
-    <div class="modal-content bg-white rounded-lg w-full max-w-md p-6 relative">
-      <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">&times;</button>
-      <h3 class="text-xl font-bold mb-4" id="modal-title">Add Subscription</h3>
+  return dashboard;
+}
+
+/**
+ * Render the subscription sniper page
+ * @param {number} userId - User ID
+ * @returns {HTMLElement} - Rendered page
+ */
+export async function renderSubscriptionSniperPage(userId) {
+  try {
+    // Create page container
+    const container = document.createElement('div');
+    container.classList.add('subscription-sniper-page');
+    
+    // Page header
+    const header = document.createElement('div');
+    header.classList.add('page-header');
+    header.style.marginBottom = '24px';
+    
+    const title = document.createElement('h1');
+    title.classList.add('page-title');
+    title.style.fontSize = '24px';
+    title.style.fontWeight = 'bold';
+    title.style.marginBottom = '8px';
+    title.textContent = 'Subscription Sniper';
+    
+    const description = document.createElement('p');
+    description.classList.add('page-description');
+    description.style.fontSize = '16px';
+    description.style.color = 'var(--color-text-secondary)';
+    description.style.marginBottom = '24px';
+    description.textContent = 'Detect and manage your recurring subscriptions all in one place.';
+    
+    header.appendChild(title);
+    header.appendChild(description);
+    container.appendChild(header);
+    
+    // Loading state
+    const loadingContainer = document.createElement('div');
+    loadingContainer.style.textAlign = 'center';
+    loadingContainer.style.padding = '40px 0';
+    
+    const loadingSpinner = document.createElement('div');
+    loadingSpinner.style.width = '40px';
+    loadingSpinner.style.height = '40px';
+    loadingSpinner.style.margin = '0 auto 16px';
+    loadingSpinner.style.border = '3px solid rgba(0, 0, 0, 0.1)';
+    loadingSpinner.style.borderTop = '3px solid var(--color-primary)';
+    loadingSpinner.style.borderRadius = '50%';
+    loadingSpinner.style.animation = 'spin 1s linear infinite';
+    
+    const loadingText = document.createElement('div');
+    loadingText.textContent = 'Analyzing your transactions...';
+    loadingText.style.color = 'var(--color-text-secondary)';
+    
+    loadingContainer.appendChild(loadingSpinner);
+    loadingContainer.appendChild(loadingText);
+    container.appendChild(loadingContainer);
+    
+    // Fetch transactions
+    const transactions = await fetchUserTransactions(userId);
+    
+    // Remove loading state
+    container.removeChild(loadingContainer);
+    
+    if (!transactions || transactions.length === 0) {
+      // Show empty state
+      const emptyState = document.createElement('div');
+      emptyState.style.textAlign = 'center';
+      emptyState.style.padding = '40px 20px';
+      emptyState.style.backgroundColor = 'var(--color-card)';
+      emptyState.style.borderRadius = '12px';
       
-      <form id="subscription-form">
-        <input type="hidden" id="subscription-id">
-        
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label for="subscription-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input type="text" id="subscription-name" required
-                   class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-          </div>
-          <div>
-            <label for="subscription-logo" class="block text-sm font-medium text-gray-700 mb-1">Logo/Icon</label>
-            <input type="text" id="subscription-logo" placeholder="Emoji or icon"
-                   class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label for="subscription-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-            <input type="number" id="subscription-amount" min="0" step="0.01" required
-                   class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-          </div>
-          <div>
-            <label for="subscription-billing-cycle" class="block text-sm font-medium text-gray-700 mb-1">Billing Cycle</label>
-            <select id="subscription-billing-cycle" required
-                    class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-              <option value="weekly">Weekly</option>
-              <option value="monthly" selected>Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="biannual">Biannual</option>
-              <option value="annual">Annual</option>
-            </select>
-          </div>
-        </div>
-        
-        <div class="mb-4">
-          <label for="subscription-category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-          <select id="subscription-category" required
-                  class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-            ${categories.map(category => `
-              <option value="${category.id}">${category.icon} ${category.name}</option>
-            `).join('')}
-          </select>
-        </div>
-        
-        <div class="mb-4">
-          <label for="subscription-date" class="block text-sm font-medium text-gray-700 mb-1">Next Billing Date</label>
-          <input type="date" id="subscription-date" required
-                 class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label for="subscription-usage" class="block text-sm font-medium text-gray-700 mb-1">Usage Level</label>
-            <select id="subscription-usage" required
-                    class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-              <option value="high">High (Regular)</option>
-              <option value="medium">Medium (Occasional)</option>
-              <option value="low">Low (Rarely)</option>
-            </select>
-          </div>
-          <div class="flex items-end">
-            <label class="flex items-center p-2 cursor-pointer">
-              <input type="checkbox" id="subscription-essential"
-                     class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
-              <span class="ml-2 text-sm">Essential</span>
-            </label>
-            <label class="flex items-center p-2 cursor-pointer ml-4">
-              <input type="checkbox" id="subscription-active" checked
-                     class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
-              <span class="ml-2 text-sm">Active</span>
-            </label>
-          </div>
-        </div>
-        
-        <div class="mb-6">
-          <label for="subscription-notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-          <textarea id="subscription-notes" rows="2"
-                   class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
-        </div>
-        
-        <div class="flex justify-end">
-          <button type="button" id="cancel-subscription-btn" 
-                  class="px-4 py-2 border border-gray-300 rounded-md mr-2 hover:bg-gray-50">
-            Cancel
-          </button>
-          <button type="submit" id="save-subscription-btn"
-                  class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark">
-            Save Subscription
-          </button>
-        </div>
-      </form>
-    </div>
-  `;
-  sniperContainer.appendChild(modalContainer);
-  
-  // Add event listeners
-  setTimeout(() => {
-    // Add subscription button
-    const addSubscriptionBtn = sniperContainer.querySelector('#add-subscription-btn');
-    if (addSubscriptionBtn) {
-      addSubscriptionBtn.addEventListener('click', () => {
-        const modal = sniperContainer.querySelector('#subscription-modal');
-        const modalTitle = modal.querySelector('#modal-title');
-        const form = modal.querySelector('#subscription-form');
-        
-        // Reset form
-        form.reset();
-        document.getElementById('subscription-id').value = '';
-        
-        // Set default date to next month
-        const nextMonth = new Date();
-        nextMonth.setMonth(nextMonth.getMonth() + 1);
-        document.getElementById('subscription-date').valueAsDate = nextMonth;
-        
-        // Set default values
-        document.getElementById('subscription-logo').value = '📱';
-        document.getElementById('subscription-active').checked = true;
-        
-        // Update modal title
-        modalTitle.textContent = 'Add Subscription';
-        
-        // Show modal
-        modal.classList.remove('hidden');
+      const emptyIcon = document.createElement('div');
+      emptyIcon.innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+      emptyIcon.style.marginBottom = '16px';
+      
+      const emptyTitle = document.createElement('h3');
+      emptyTitle.style.fontSize = '18px';
+      emptyTitle.style.fontWeight = 'bold';
+      emptyTitle.style.marginBottom = '8px';
+      emptyTitle.textContent = 'No transactions found';
+      
+      const emptyDescription = document.createElement('p');
+      emptyDescription.style.color = 'var(--color-text-secondary)';
+      emptyDescription.style.marginBottom = '16px';
+      emptyDescription.textContent = 'Connect your bank account to start tracking subscriptions.';
+      
+      const connectBankButton = document.createElement('button');
+      connectBankButton.classList.add('btn', 'btn-primary');
+      connectBankButton.textContent = 'Connect Bank Account';
+      connectBankButton.style.padding = '10px 16px';
+      connectBankButton.style.backgroundColor = 'var(--color-primary)';
+      connectBankButton.style.color = 'white';
+      connectBankButton.style.border = 'none';
+      connectBankButton.style.borderRadius = '8px';
+      connectBankButton.style.fontWeight = 'bold';
+      connectBankButton.style.cursor = 'pointer';
+      
+      connectBankButton.addEventListener('click', () => {
+        window.navigateTo('bankconnections');
       });
+      
+      emptyState.appendChild(emptyIcon);
+      emptyState.appendChild(emptyTitle);
+      emptyState.appendChild(emptyDescription);
+      emptyState.appendChild(connectBankButton);
+      
+      container.appendChild(emptyState);
+      return container;
     }
     
-    // Add first subscription button (shown when no subscriptions exist)
-    const addFirstSubscriptionBtn = sniperContainer.querySelector('#add-first-subscription-btn');
-    if (addFirstSubscriptionBtn) {
-      addFirstSubscriptionBtn.addEventListener('click', () => {
-        const addSubscriptionBtn = sniperContainer.querySelector('#add-subscription-btn');
-        if (addSubscriptionBtn) {
-          addSubscriptionBtn.click();
-        }
-      });
+    // Detect subscriptions
+    const subscriptions = detectSubscriptions(transactions);
+    
+    if (subscriptions.length === 0) {
+      // Show no subscriptions found state
+      const noSubscriptionsState = document.createElement('div');
+      noSubscriptionsState.style.textAlign = 'center';
+      noSubscriptionsState.style.padding = '40px 20px';
+      noSubscriptionsState.style.backgroundColor = 'var(--color-card)';
+      noSubscriptionsState.style.borderRadius = '12px';
+      
+      const noSubscriptionsIcon = document.createElement('div');
+      noSubscriptionsIcon.innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+      noSubscriptionsIcon.style.marginBottom = '16px';
+      
+      const noSubscriptionsTitle = document.createElement('h3');
+      noSubscriptionsTitle.style.fontSize = '18px';
+      noSubscriptionsTitle.style.fontWeight = 'bold';
+      noSubscriptionsTitle.style.marginBottom = '8px';
+      noSubscriptionsTitle.textContent = 'No subscriptions found';
+      
+      const noSubscriptionsDescription = document.createElement('p');
+      noSubscriptionsDescription.style.color = 'var(--color-text-secondary)';
+      noSubscriptionsDescription.style.marginBottom = '16px';
+      noSubscriptionsDescription.textContent = 'We couldn\'t detect any recurring subscriptions in your transactions.';
+      
+      noSubscriptionsState.appendChild(noSubscriptionsIcon);
+      noSubscriptionsState.appendChild(noSubscriptionsTitle);
+      noSubscriptionsState.appendChild(noSubscriptionsDescription);
+      
+      container.appendChild(noSubscriptionsState);
+      return container;
     }
     
-    // Close modal buttons
-    const closeModalBtn = sniperContainer.querySelector('#close-modal-btn');
-    const cancelSubscriptionBtn = sniperContainer.querySelector('#cancel-subscription-btn');
+    // Add dashboard
+    const dashboard = createSubscriptionDashboard(subscriptions);
+    container.appendChild(dashboard);
     
-    [closeModalBtn, cancelSubscriptionBtn].forEach(btn => {
-      if (btn) {
-        btn.addEventListener('click', () => {
-          const modal = sniperContainer.querySelector('#subscription-modal');
-          modal.classList.add('hidden');
-        });
-      }
+    // Create subscriptions list
+    const subscriptionsContainer = document.createElement('div');
+    subscriptionsContainer.classList.add('subscriptions-container');
+    
+    // Create tabs for Active and Cancelled
+    const tabsContainer = document.createElement('div');
+    tabsContainer.style.display = 'flex';
+    tabsContainer.style.marginBottom = '16px';
+    tabsContainer.style.borderBottom = '1px solid var(--color-border)';
+    
+    const activeTab = document.createElement('div');
+    activeTab.style.padding = '12px 16px';
+    activeTab.style.fontWeight = 'bold';
+    activeTab.style.borderBottom = '2px solid var(--color-primary)';
+    activeTab.style.color = 'var(--color-primary)';
+    activeTab.style.cursor = 'pointer';
+    activeTab.textContent = 'Active Subscriptions';
+    
+    const cancelledTab = document.createElement('div');
+    cancelledTab.style.padding = '12px 16px';
+    cancelledTab.style.color = 'var(--color-text-secondary)';
+    cancelledTab.style.cursor = 'pointer';
+    cancelledTab.textContent = 'Cancelled';
+    
+    tabsContainer.appendChild(activeTab);
+    tabsContainer.appendChild(cancelledTab);
+    
+    // Subscriptions list
+    const subscriptionsList = document.createElement('div');
+    subscriptionsList.classList.add('subscriptions-list');
+    subscriptionsList.style.backgroundColor = 'white';
+    subscriptionsList.style.borderRadius = '12px';
+    subscriptionsList.style.overflow = 'hidden';
+    
+    // Filter out cancelled subscriptions initially
+    const activeSubscriptions = subscriptions.filter(sub => !isSubscriptionCancelled(sub.id));
+    
+    // Add subscription rows
+    activeSubscriptions.forEach(subscription => {
+      const row = createSubscriptionRow(subscription);
+      subscriptionsList.appendChild(row);
     });
     
-    // Edit subscription buttons
-    const editButtons = sniperContainer.querySelectorAll('.edit-subscription-btn');
-    editButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const row = e.target.closest('tr');
-        const subscriptionId = parseInt(row.dataset.subscriptionId);
-        
-        // Find the subscription
-        const subscription = subscriptions.find(s => s.id === subscriptionId);
-        if (!subscription) return;
-        
-        // Populate the form
-        document.getElementById('subscription-id').value = subscription.id;
-        document.getElementById('subscription-name').value = subscription.name;
-        document.getElementById('subscription-logo').value = subscription.logo;
-        document.getElementById('subscription-amount').value = subscription.amount;
-        document.getElementById('subscription-billing-cycle').value = subscription.billingCycle;
-        document.getElementById('subscription-category').value = subscription.category;
-        document.getElementById('subscription-date').value = new Date(subscription.nextBillingDate).toISOString().split('T')[0];
-        document.getElementById('subscription-usage').value = subscription.usage;
-        document.getElementById('subscription-essential').checked = subscription.essential;
-        document.getElementById('subscription-active').checked = subscription.active;
-        document.getElementById('subscription-notes').value = subscription.notes || '';
-        
-        // Update modal title
-        document.getElementById('modal-title').textContent = 'Edit Subscription';
-        
-        // Show modal
-        document.getElementById('subscription-modal').classList.remove('hidden');
-      });
-    });
-    
-    // Toggle subscription buttons
-    const toggleButtons = sniperContainer.querySelectorAll('.toggle-subscription-btn');
-    toggleButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const row = e.target.closest('tr');
-        const subscriptionId = parseInt(row.dataset.subscriptionId);
-        
-        // Find the subscription
-        const subscription = subscriptions.find(s => s.id === subscriptionId);
-        if (!subscription) return;
-        
-        // Toggle active status
-        subscription.active = !subscription.active;
-        
-        // Save the updated subscription
-        saveSubscription(subscription);
-        
-        // Refresh the page
-        window.location.reload();
-      });
-    });
-    
-    // Delete subscription buttons
-    const deleteButtons = sniperContainer.querySelectorAll('.delete-subscription-btn');
-    deleteButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        if (confirm('Are you sure you want to delete this subscription?')) {
-          const row = e.target.closest('tr');
-          const subscriptionId = parseInt(row.dataset.subscriptionId);
-          
-          // Delete the subscription
-          if (deleteSubscription(subscriptionId)) {
-            // Refresh the page
-            window.location.reload();
-          }
-        }
-      });
-    });
-    
-    // Subscription form submission
-    const subscriptionForm = sniperContainer.querySelector('#subscription-form');
-    if (subscriptionForm) {
-      subscriptionForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        // Get form values
-        const id = document.getElementById('subscription-id').value ? parseInt(document.getElementById('subscription-id').value) : null;
-        const name = document.getElementById('subscription-name').value;
-        const logo = document.getElementById('subscription-logo').value;
-        const amount = parseFloat(document.getElementById('subscription-amount').value);
-        const billingCycle = document.getElementById('subscription-billing-cycle').value;
-        const category = document.getElementById('subscription-category').value;
-        const nextBillingDate = document.getElementById('subscription-date').value;
-        const usage = document.getElementById('subscription-usage').value;
-        const essential = document.getElementById('subscription-essential').checked;
-        const active = document.getElementById('subscription-active').checked;
-        const notes = document.getElementById('subscription-notes').value;
-        
-        // Create subscription object
-        const subscription = {
-          id,
-          name,
-          logo,
-          amount,
-          billingCycle,
-          category,
-          nextBillingDate: new Date(nextBillingDate).toISOString(),
-          usage,
-          essential,
-          active,
-          notes,
-          addedDate: id ? subscriptions.find(s => s.id === id)?.addedDate : new Date().toISOString()
-        };
-        
-        // Save the subscription
-        saveSubscription(subscription);
-        
-        // Close the modal
-        document.getElementById('subscription-modal').classList.add('hidden');
-        
-        // Refresh the page
-        window.location.reload();
-      });
-    }
-    
-    // Subscription filter
-    const subscriptionFilter = sniperContainer.querySelector('#subscription-filter');
-    const subscriptionSort = sniperContainer.querySelector('#subscription-sort');
-    
-    function applyFiltersAndSort() {
-      const filterValue = subscriptionFilter.value;
-      const sortValue = subscriptionSort.value;
+    // Handle tab switching
+    activeTab.addEventListener('click', () => {
+      activeTab.style.fontWeight = 'bold';
+      activeTab.style.borderBottom = '2px solid var(--color-primary)';
+      activeTab.style.color = 'var(--color-primary)';
       
-      // Clone the subscriptions array
-      let filteredSubscriptions = [...subscriptions];
+      cancelledTab.style.fontWeight = 'normal';
+      cancelledTab.style.borderBottom = 'none';
+      cancelledTab.style.color = 'var(--color-text-secondary)';
       
-      // Apply category filter
-      if (filterValue !== 'all') {
-        filteredSubscriptions = filteredSubscriptions.filter(sub => sub.category === filterValue);
-      }
+      // Clear and rebuild list with active subscriptions
+      subscriptionsList.innerHTML = '';
+      const activeSubscriptions = subscriptions.filter(sub => !isSubscriptionCancelled(sub.id));
       
-      // Apply sorting
-      filteredSubscriptions.sort((a, b) => {
-        if (sortValue === 'name') {
-          return a.name.localeCompare(b.name);
-        } else if (sortValue === 'amount') {
-          // Convert to monthly amount for fair comparison
-          const aMonthly = a.billingCycle === 'monthly' ? a.amount : 
-                         a.billingCycle === 'annual' ? a.amount / 12 :
-                         a.billingCycle === 'quarterly' ? a.amount / 3 :
-                         a.billingCycle === 'biannual' ? a.amount / 6 :
-                         a.amount * 4.33; // weekly
-                         
-          const bMonthly = b.billingCycle === 'monthly' ? b.amount : 
-                         b.billingCycle === 'annual' ? b.amount / 12 :
-                         b.billingCycle === 'quarterly' ? b.amount / 3 :
-                         b.billingCycle === 'biannual' ? b.amount / 6 :
-                         b.amount * 4.33; // weekly
-                         
-          return bMonthly - aMonthly; // Higher amount first
-        } else if (sortValue === 'date') {
-          return new Date(a.nextBillingDate) - new Date(b.nextBillingDate);
-        }
-        
-        return 0;
-      });
-      
-      // Rebuild the table with filtered and sorted subscriptions
-      const tableBody = sniperContainer.querySelector('#subscription-entries');
-      
-      if (filteredSubscriptions.length === 0) {
-        tableBody.innerHTML = `
-          <tr>
-            <td colspan="7" class="text-center py-4 text-gray-500">
-              No subscriptions found matching your filters
-            </td>
-          </tr>
-        `;
+      if (activeSubscriptions.length === 0) {
+        const emptyMessage = document.createElement('div');
+        emptyMessage.style.padding = '24px';
+        emptyMessage.style.textAlign = 'center';
+        emptyMessage.style.color = 'var(--color-text-secondary)';
+        emptyMessage.textContent = 'No active subscriptions found.';
+        subscriptionsList.appendChild(emptyMessage);
       } else {
-        tableBody.innerHTML = filteredSubscriptions.map((subscription, index) => {
-          const category = categories.find(cat => cat.id === subscription.category) || { name: 'Other', icon: '📌' };
-          
-          return `
-            <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${!subscription.active ? 'opacity-50' : ''}" data-subscription-id="${subscription.id}">
-              <td class="px-4 py-3 whitespace-nowrap">
-                <div class="flex items-center">
-                  <div class="text-xl mr-2">${subscription.logo}</div>
-                  <div>
-                    <div class="font-medium">${subscription.name}</div>
-                    <div class="text-xs text-gray-500">${subscription.notes || ''}</div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap text-sm">
-                <span class="inline-flex items-center">
-                  <span class="mr-1">${category.icon}</span>
-                  ${category.name}
-                </span>
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                ${formatCurrency(subscription.amount)}
-                <div class="text-xs text-gray-500">${subscription.billingCycle}</div>
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap text-sm">
-                ${subscription.billingCycle.charAt(0).toUpperCase() + subscription.billingCycle.slice(1)}
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap text-sm">
-                ${formatDate(subscription.nextBillingDate)}
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap text-sm">
-                <span class="px-2 py-1 text-xs rounded-full ${
-                  subscription.usage === 'high' ? 'bg-green-100 text-green-800' : 
-                  subscription.usage === 'medium' ? 'bg-blue-100 text-blue-800' : 
-                  'bg-yellow-100 text-yellow-800'
-                }">
-                  ${subscription.usage.charAt(0).toUpperCase() + subscription.usage.slice(1)}
-                </span>
-                ${subscription.essential ? '<span class="ml-1 px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">Essential</span>' : ''}
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap text-sm">
-                <button class="edit-subscription-btn text-blue-600 hover:text-blue-800 mr-2">
-                  Edit
-                </button>
-                <button class="toggle-subscription-btn ${subscription.active ? 'text-yellow-600 hover:text-yellow-800' : 'text-green-600 hover:text-green-800'} mr-2">
-                  ${subscription.active ? 'Pause' : 'Activate'}
-                </button>
-                <button class="delete-subscription-btn text-red-600 hover:text-red-800">
-                  Delete
-                </button>
-              </td>
-            </tr>
-          `;
-        }).join('');
-        
-        // Re-attach event listeners
-        const newEditButtons = tableBody.querySelectorAll('.edit-subscription-btn');
-        newEditButtons.forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const row = e.target.closest('tr');
-            const subscriptionId = parseInt(row.dataset.subscriptionId);
-            
-            // Find the subscription
-            const subscription = subscriptions.find(s => s.id === subscriptionId);
-            if (!subscription) return;
-            
-            // Populate the form
-            document.getElementById('subscription-id').value = subscription.id;
-            document.getElementById('subscription-name').value = subscription.name;
-            document.getElementById('subscription-logo').value = subscription.logo;
-            document.getElementById('subscription-amount').value = subscription.amount;
-            document.getElementById('subscription-billing-cycle').value = subscription.billingCycle;
-            document.getElementById('subscription-category').value = subscription.category;
-            document.getElementById('subscription-date').value = new Date(subscription.nextBillingDate).toISOString().split('T')[0];
-            document.getElementById('subscription-usage').value = subscription.usage;
-            document.getElementById('subscription-essential').checked = subscription.essential;
-            document.getElementById('subscription-active').checked = subscription.active;
-            document.getElementById('subscription-notes').value = subscription.notes || '';
-            
-            // Update modal title
-            document.getElementById('modal-title').textContent = 'Edit Subscription';
-            
-            // Show modal
-            document.getElementById('subscription-modal').classList.remove('hidden');
-          });
-        });
-        
-        const newToggleButtons = tableBody.querySelectorAll('.toggle-subscription-btn');
-        newToggleButtons.forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const row = e.target.closest('tr');
-            const subscriptionId = parseInt(row.dataset.subscriptionId);
-            
-            // Find the subscription
-            const subscription = subscriptions.find(s => s.id === subscriptionId);
-            if (!subscription) return;
-            
-            // Toggle active status
-            subscription.active = !subscription.active;
-            
-            // Save the updated subscription
-            saveSubscription(subscription);
-            
-            // Refresh the page
-            window.location.reload();
-          });
-        });
-        
-        const newDeleteButtons = tableBody.querySelectorAll('.delete-subscription-btn');
-        newDeleteButtons.forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            if (confirm('Are you sure you want to delete this subscription?')) {
-              const row = e.target.closest('tr');
-              const subscriptionId = parseInt(row.dataset.subscriptionId);
-              
-              // Delete the subscription
-              if (deleteSubscription(subscriptionId)) {
-                // Refresh the page
-                window.location.reload();
-              }
-            }
-          });
+        activeSubscriptions.forEach(subscription => {
+          const row = createSubscriptionRow(subscription);
+          subscriptionsList.appendChild(row);
         });
       }
-    }
+    });
     
-    if (subscriptionFilter) {
-      subscriptionFilter.addEventListener('change', applyFiltersAndSort);
-    }
-    
-    if (subscriptionSort) {
-      subscriptionSort.addEventListener('change', applyFiltersAndSort);
-    }
-    
-    // Render charts
-    try {
-      // Check if charting library is available
-      if (typeof Chart !== 'undefined') {
-        // Calculate category totals
-        const categoryTotals = {};
-        categories.forEach(category => {
-          categoryTotals[category.id] = 0;
-        });
-        
-        subscriptions.forEach(sub => {
-          if (!sub.active) return;
-          
-          // Convert to monthly amount
-          const monthlyAmount = sub.billingCycle === 'monthly' ? sub.amount : 
-                              sub.billingCycle === 'annual' ? sub.amount / 12 :
-                              sub.billingCycle === 'quarterly' ? sub.amount / 3 :
-                              sub.billingCycle === 'biannual' ? sub.amount / 6 :
-                              sub.amount * 4.33; // weekly
-          
-          if (categoryTotals[sub.category] !== undefined) {
-            categoryTotals[sub.category] += monthlyAmount;
-          } else {
-            categoryTotals[sub.category] = monthlyAmount;
-          }
-        });
-        
-        // Filter out categories with zero amount
-        const categoryData = categories
-          .filter(category => categoryTotals[category.id] > 0)
-          .map(category => ({
-            id: category.id,
-            name: category.name,
-            icon: category.icon,
-            amount: categoryTotals[category.id]
-          }))
-          .sort((a, b) => b.amount - a.amount);
-        
-        // Category chart
-        const categoryCtx = document.getElementById('categoryChart');
-        if (categoryCtx && categoryData.length > 0) {
-          new Chart(categoryCtx, {
-            type: 'doughnut',
-            data: {
-              labels: categoryData.map(cat => cat.name),
-              datasets: [{
-                data: categoryData.map(cat => cat.amount),
-                backgroundColor: [
-                  'rgba(52, 168, 83, 0.8)',
-                  'rgba(66, 133, 244, 0.8)',
-                  'rgba(251, 188, 5, 0.8)',
-                  'rgba(234, 67, 53, 0.8)',
-                  'rgba(128, 0, 128, 0.8)',
-                  'rgba(0, 128, 128, 0.8)',
-                  'rgba(128, 128, 0, 0.8)',
-                  'rgba(0, 0, 128, 0.8)',
-                  'rgba(128, 0, 0, 0.8)',
-                  'rgba(0, 128, 0, 0.8)'
-                ]
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  position: 'right'
-                },
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      const label = context.label || '';
-                      const value = context.raw || 0;
-                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                      const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-                      return `${label}: ${formatCurrency(value)} (${percentage}%)`;
-                    }
-                  }
-                }
-              }
-            }
-          });
-        }
-        
-        // Essential chart
-        const essentialCtx = document.getElementById('essentialChart');
-        if (essentialCtx) {
-          new Chart(essentialCtx, {
-            type: 'pie',
-            data: {
-              labels: ['Essential', 'Non-Essential'],
-              datasets: [{
-                data: [essentialTotal, nonEssentialTotal],
-                backgroundColor: [
-                  'rgba(66, 133, 244, 0.8)',
-                  'rgba(251, 188, 5, 0.8)'
-                ]
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      const label = context.label || '';
-                      const value = context.raw || 0;
-                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                      const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-                      return `${label}: ${formatCurrency(value)} (${percentage}%)`;
-                    }
-                  }
-                }
-              }
-            }
-          });
-        }
+    cancelledTab.addEventListener('click', () => {
+      cancelledTab.style.fontWeight = 'bold';
+      cancelledTab.style.borderBottom = '2px solid var(--color-primary)';
+      cancelledTab.style.color = 'var(--color-primary)';
+      
+      activeTab.style.fontWeight = 'normal';
+      activeTab.style.borderBottom = 'none';
+      activeTab.style.color = 'var(--color-text-secondary)';
+      
+      // Clear and rebuild list with cancelled subscriptions
+      subscriptionsList.innerHTML = '';
+      const cancelledSubscriptions = subscriptions.filter(sub => isSubscriptionCancelled(sub.id));
+      
+      if (cancelledSubscriptions.length === 0) {
+        const emptyMessage = document.createElement('div');
+        emptyMessage.style.padding = '24px';
+        emptyMessage.style.textAlign = 'center';
+        emptyMessage.style.color = 'var(--color-text-secondary)';
+        emptyMessage.textContent = 'No cancelled subscriptions.';
+        subscriptionsList.appendChild(emptyMessage);
       } else {
-        console.warn('Chart.js not available, skipping chart rendering');
-        // Add a note about charts not being available
-        const chartContainers = sniperContainer.querySelectorAll('.chart-container');
-        chartContainers.forEach(container => {
-          container.innerHTML = `
-            <div class="flex items-center justify-center h-full">
-              <div class="text-center text-gray-500">
-                <p>Charts visualization requires Chart.js</p>
-                <p class="text-sm mt-2">Data is still being tracked</p>
-              </div>
-            </div>
-          `;
+        cancelledSubscriptions.forEach(subscription => {
+          const row = createSubscriptionRow(subscription);
+          // Add visual indicator that it's cancelled
+          row.style.opacity = '0.6';
+          
+          const cancelledBadge = document.createElement('div');
+          cancelledBadge.style.padding = '4px 8px';
+          cancelledBadge.style.backgroundColor = '#e0e0e0';
+          cancelledBadge.style.color = '#666';
+          cancelledBadge.style.borderRadius = '4px';
+          cancelledBadge.style.fontSize = '12px';
+          cancelledBadge.style.fontWeight = 'bold';
+          cancelledBadge.style.marginLeft = '8px';
+          cancelledBadge.textContent = 'CANCELLED';
+          
+          // Add badge to the row
+          const rowContent = row.querySelector('.subscription-row > div:nth-child(2)');
+          if (rowContent) {
+            rowContent.appendChild(cancelledBadge);
+          }
+          
+          subscriptionsList.appendChild(row);
         });
       }
-    } catch (error) {
-      console.error('Error rendering charts:', error);
-    }
+    });
     
-    // View all upcoming button
-    const viewAllUpcomingBtn = sniperContainer.querySelector('#view-all-upcoming');
-    if (viewAllUpcomingBtn) {
-      viewAllUpcomingBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        
-        // Create modal to show all upcoming billings
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-        modal.style.backdropFilter = 'blur(3px)';
-        
-        modal.innerHTML = `
-          <div class="bg-white rounded-lg w-full max-w-2xl p-6 relative">
-            <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-            <h3 class="text-xl font-bold mb-4">Upcoming Billings (Next 30 Days)</h3>
-            
-            <div class="overflow-y-auto max-h-96">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subscription</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Billing Date</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Days Left</th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  ${upcomingBillings.map((sub, index) => {
-                    const daysLeft = Math.ceil((new Date(sub.nextBillingDate) - new Date()) / (1000 * 60 * 60 * 24));
-                    
-                    return `
-                      <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">
-                        <td class="px-4 py-3 whitespace-nowrap">
-                          <div class="flex items-center">
-                            <div class="text-xl mr-2">${sub.logo}</div>
-                            <div class="font-medium">${sub.name}</div>
-                          </div>
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                          ${formatCurrency(sub.amount)}
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-sm">
-                          ${formatDate(sub.nextBillingDate)}
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-sm">
-                          <span class="px-2 py-1 text-xs rounded-full ${
-                            daysLeft <= 3 ? 'bg-red-100 text-red-800' : 
-                            daysLeft <= 7 ? 'bg-yellow-100 text-yellow-800' : 
-                            'bg-green-100 text-green-800'
-                          }">
-                            ${daysLeft} day${daysLeft !== 1 ? 's' : ''}
-                          </span>
-                        </td>
-                      </tr>
-                    `;
-                  }).join('')}
-                </tbody>
-              </table>
-            </div>
-            
-            <div class="flex justify-end mt-4">
-              <button class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark">
-                Close
-              </button>
-            </div>
-          </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        // Add event listeners to close modal
-        const closeButton = modal.querySelector('button');
-        closeButton.addEventListener('click', () => {
-          document.body.removeChild(modal);
-        });
-        
-        const closeButtonFooter = modal.querySelector('.flex button');
-        closeButtonFooter.addEventListener('click', () => {
-          document.body.removeChild(modal);
-        });
-      });
-    }
-  }, 100);
-  
-  return sniperContainer;
+    subscriptionsContainer.appendChild(tabsContainer);
+    subscriptionsContainer.appendChild(subscriptionsList);
+    container.appendChild(subscriptionsContainer);
+    
+    return container;
+  } catch (error) {
+    console.error('Error rendering subscription sniper page:', error);
+    
+    // Create error state
+    const errorState = document.createElement('div');
+    errorState.style.textAlign = 'center';
+    errorState.style.padding = '40px 20px';
+    errorState.style.backgroundColor = 'var(--color-card)';
+    errorState.style.borderRadius = '12px';
+    
+    const errorIcon = document.createElement('div');
+    errorIcon.innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#e53e3e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+    errorIcon.style.marginBottom = '16px';
+    
+    const errorTitle = document.createElement('h3');
+    errorTitle.style.fontSize = '18px';
+    errorTitle.style.fontWeight = 'bold';
+    errorTitle.style.marginBottom = '8px';
+    errorTitle.textContent = 'Something went wrong';
+    
+    const errorDescription = document.createElement('p');
+    errorDescription.style.color = 'var(--color-text-secondary)';
+    errorDescription.style.marginBottom = '16px';
+    errorDescription.textContent = 'We had trouble analyzing your transactions. Please try again later.';
+    
+    const retryButton = document.createElement('button');
+    retryButton.classList.add('btn', 'btn-primary');
+    retryButton.textContent = 'Try Again';
+    retryButton.style.padding = '10px 16px';
+    retryButton.style.backgroundColor = 'var(--color-primary)';
+    retryButton.style.color = 'white';
+    retryButton.style.border = 'none';
+    retryButton.style.borderRadius = '8px';
+    retryButton.style.fontWeight = 'bold';
+    retryButton.style.cursor = 'pointer';
+    
+    retryButton.addEventListener('click', () => {
+      window.location.reload();
+    });
+    
+    errorState.appendChild(errorIcon);
+    errorState.appendChild(errorTitle);
+    errorState.appendChild(errorDescription);
+    errorState.appendChild(retryButton);
+    
+    return errorState;
+  }
 }

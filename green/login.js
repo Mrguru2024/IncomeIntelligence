@@ -3,8 +3,6 @@
  * This file handles user authentication UI and logic
  */
 
-import { appState } from './src/main.js';
-
 // Google OAuth function
 async function handleGoogleLogin() {
   try {
@@ -123,12 +121,8 @@ async function handleLogin(usernameOrEmail, password, rememberMe = false) {
       onboardingStep: userData.onboardingStep || 'welcome'
     });
     
-    // Use the rememberMe value from the server response if available
-    // This ensures consistency between client and server preferences
-    const serverRememberMe = userData.rememberMe !== undefined ? userData.rememberMe : rememberMe;
-    
     // Store auth data based on "Remember Me" selection
-    if (serverRememberMe) {
+    if (rememberMe) {
       // Use localStorage for persistent login (stays after browser is closed)
       localStorage.setItem('stackrToken', userData.token);
       localStorage.setItem('stackrUser', userDataToStore);
@@ -218,32 +212,14 @@ async function handleRegister(username, email, password) {
       onboardingStep: userData.onboardingStep || 'welcome'
     });
     
-    // For new registrations, we use the server response rememberMe value
-    // which defaults to true for better UX (set in server/auth.ts)
-    const serverRememberMe = userData.rememberMe !== undefined ? userData.rememberMe : true;
+    // For registration, we default to storing in localStorage for convenience
+    // Clear sessionStorage to avoid conflicts
+    sessionStorage.removeItem('stackrToken');
+    sessionStorage.removeItem('stackrUser');
     
-    // Store auth data based on the server rememberMe value
-    if (serverRememberMe) {
-      // Use localStorage for persistent login (stays after browser is closed)
-      localStorage.setItem('stackrToken', userData.token);
-      localStorage.setItem('stackrUser', userDataToStore);
-      
-      // Clear sessionStorage to avoid conflicts
-      sessionStorage.removeItem('stackrToken');
-      sessionStorage.removeItem('stackrUser');
-      
-      console.log('New user credentials saved to localStorage (persistent)');
-    } else {
-      // Use sessionStorage for temporary login (cleared when browser is closed)
-      sessionStorage.setItem('stackrToken', userData.token);
-      sessionStorage.setItem('stackrUser', userDataToStore);
-      
-      // Clear localStorage to avoid conflicts
-      localStorage.removeItem('stackrToken');
-      localStorage.removeItem('stackrUser');
-      
-      console.log('New user credentials saved to sessionStorage (session only)');
-    }
+    // Store auth data in localStorage
+    localStorage.setItem('stackrToken', userData.token);
+    localStorage.setItem('stackrUser', userDataToStore);
     
     // Redirect to onboarding
     window.location.href = '#onboarding';
@@ -265,49 +241,6 @@ async function handleRegister(username, email, password) {
       submitButton.textContent = 'Create Account';
     }
   }
-}
-
-// Function to render the entire login page
-export function renderLoginPage() {
-  console.log("Login module loaded");
-  
-  // Create the main container
-  const container = document.createElement('div');
-  container.className = 'login-page-container';
-  container.style.minHeight = '100vh';
-  container.style.backgroundColor = '#f7f9fc';
-  container.style.display = 'flex';
-  container.style.flexDirection = 'column';
-  container.style.justifyContent = 'center';
-  container.style.alignItems = 'center';
-  container.style.padding = '24px';
-  
-  // Create the logo/branding section
-  const brandSection = document.createElement('div');
-  brandSection.className = 'login-brand-section';
-  brandSection.style.textAlign = 'center';
-  brandSection.style.marginBottom = '32px';
-  
-  const brandLogo = document.createElement('h1');
-  brandLogo.textContent = 'Stackr Finance';
-  brandLogo.style.fontSize = '32px';
-  brandLogo.style.fontWeight = 'bold';
-  brandLogo.style.color = '#34A853';
-  brandLogo.style.marginBottom = '8px';
-  
-  const brandTagline = document.createElement('p');
-  brandTagline.textContent = 'Smart income allocation with the 40/30/30 rule';
-  brandTagline.style.fontSize = '16px';
-  brandTagline.style.color = '#666';
-  
-  brandSection.appendChild(brandLogo);
-  brandSection.appendChild(brandTagline);
-  container.appendChild(brandSection);
-  
-  // Add the actual login form
-  container.appendChild(renderLoginForm());
-  
-  return container;
 }
 
 // Function to render the login form
@@ -429,7 +362,7 @@ function renderLoginForm() {
     const password = e.target.elements.password.value;
     const rememberMe = e.target.elements.rememberMe?.checked || false;
     
-    // For mobile devices, use an improved approach to keep keyboard open while processing
+    // For mobile devices, use a different approach to keep keyboard open while processing
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       // Prevent multiple submissions
       if (formEl.getAttribute('data-submitting') === 'true') {
@@ -439,24 +372,11 @@ function renderLoginForm() {
       // Mark form as currently submitting
       formEl.setAttribute('data-submitting', 'true');
       
-      // Create a hidden dummy input field to maintain keyboard focus
-      const dummyInput = document.createElement('input');
-      dummyInput.type = 'text';
-      dummyInput.style.position = 'absolute';
-      dummyInput.style.opacity = '0';
-      dummyInput.style.height = '0';
-      dummyInput.style.fontSize = '16px'; // iOS requires 16px to prevent auto-zoom
-      
-      // Add the dummy field temporarily
-      formEl.appendChild(dummyInput);
-      dummyInput.focus();
-      
-      // Process the login without blurring keyboard
+      // Process the login without blurring first
       handleLogin(usernameOrEmail, password, rememberMe);
       
-      // Remove dummy input and reset submission state after a delay
+      // Reset submission state after a delay
       setTimeout(() => {
-        formEl.removeChild(dummyInput);
         formEl.setAttribute('data-submitting', 'false');
       }, 500);
     } else {
@@ -597,43 +517,6 @@ function renderLoginForm() {
   
   passwordGroup.appendChild(passwordLabel);
   passwordGroup.appendChild(passwordInput);
-  
-  // Forgot Password link
-  const forgotPasswordLink = document.createElement('a');
-  forgotPasswordLink.href = '#forgot-password';
-  forgotPasswordLink.textContent = 'Forgot Password?';
-  forgotPasswordLink.style.display = 'block';
-  forgotPasswordLink.style.textAlign = 'right';
-  forgotPasswordLink.style.fontSize = '13px';
-  forgotPasswordLink.style.marginTop = '8px';
-  forgotPasswordLink.style.color = 'var(--color-primary)';
-  forgotPasswordLink.style.textDecoration = 'none';
-  
-  forgotPasswordLink.onclick = (e) => {
-    e.preventDefault();
-    
-    // Import the forgot password module and render it
-    import('./forgot-password.js').then(module => {
-      const authContainer = document.querySelector('.auth-page');
-      if (authContainer) {
-        // Clear the current content
-        const layoutContainer = authContainer.querySelector('.auth-layout');
-        if (layoutContainer) {
-          layoutContainer.innerHTML = '';
-          // Render the forgot password form
-          layoutContainer.appendChild(module.renderForgotPasswordPage());
-        }
-      }
-    }).catch(error => {
-      console.error('Error loading forgot password module:', error);
-      // Import the UI utils for showing toast
-      import('./utils/ui-utils.js').then(utils => {
-        utils.showToast('Error', 'Failed to load the forgot password form. Please try again.', 'error');
-      });
-    });
-  };
-  
-  passwordGroup.appendChild(forgotPasswordLink);
   formEl.appendChild(passwordGroup);
   
   // Remember Me checkbox
@@ -719,33 +602,14 @@ function renderLoginForm() {
     e.preventDefault();
     e.stopPropagation();
     
-    // For mobile: improved handling to maintain keyboard focus
+    // For mobile: don't blur immediately to prevent keyboard issues
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      // Create a hidden dummy input to maintain keyboard focus during transition
-      const dummyInput = document.createElement('input');
-      dummyInput.type = 'text';
-      dummyInput.style.position = 'absolute';
-      dummyInput.style.opacity = '0';
-      dummyInput.style.height = '0';
-      dummyInput.style.fontSize = '16px'; // iOS requires 16px to prevent auto-zoom
-      
-      // Add the dummy field temporarily to the body
-      document.body.appendChild(dummyInput);
-      dummyInput.focus();
-      
       setTimeout(() => {
         const authContainer = document.querySelector('.auth-container');
         if (authContainer) {
           const registerForm = renderRegisterForm();
           authContainer.innerHTML = '';
           authContainer.appendChild(registerForm);
-          
-          // Focus on the first input field in the new form
-          setTimeout(() => {
-            document.body.removeChild(dummyInput);
-            const firstInput = registerForm.querySelector('input');
-            if (firstInput) firstInput.focus();
-          }, 50);
         }
       }, 10);
     } else {
@@ -895,7 +759,7 @@ function renderRegisterForm() {
     const email = e.target.elements.email.value;
     const password = e.target.elements.password.value;
     
-    // For mobile devices, use an improved approach to keep keyboard open while processing
+    // For mobile devices, use a different approach to keep keyboard open while processing
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       // Prevent multiple submissions
       if (formEl.getAttribute('data-submitting') === 'true') {
@@ -905,24 +769,11 @@ function renderRegisterForm() {
       // Mark form as currently submitting
       formEl.setAttribute('data-submitting', 'true');
       
-      // Create a hidden dummy input field to maintain keyboard focus
-      const dummyInput = document.createElement('input');
-      dummyInput.type = 'text';
-      dummyInput.style.position = 'absolute';
-      dummyInput.style.opacity = '0';
-      dummyInput.style.height = '0';
-      dummyInput.style.fontSize = '16px'; // iOS requires 16px to prevent auto-zoom
-      
-      // Add the dummy field temporarily
-      formEl.appendChild(dummyInput);
-      dummyInput.focus();
-      
-      // Process the registration without blurring keyboard
+      // Process the registration without blurring first
       handleRegister(username, email, password);
       
-      // Remove dummy input and reset submission state after a delay
+      // Reset submission state after a delay
       setTimeout(() => {
-        formEl.removeChild(dummyInput);
         formEl.setAttribute('data-submitting', 'false');
       }, 500);
     } else {
@@ -1205,33 +1056,14 @@ function renderRegisterForm() {
     e.preventDefault();
     e.stopPropagation();
     
-    // For mobile: improved handling to maintain keyboard focus
+    // For mobile: don't blur immediately to prevent keyboard issues
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      // Create a hidden dummy input to maintain keyboard focus during transition
-      const dummyInput = document.createElement('input');
-      dummyInput.type = 'text';
-      dummyInput.style.position = 'absolute';
-      dummyInput.style.opacity = '0';
-      dummyInput.style.height = '0';
-      dummyInput.style.fontSize = '16px'; // iOS requires 16px to prevent auto-zoom
-      
-      // Add the dummy field temporarily to the body
-      document.body.appendChild(dummyInput);
-      dummyInput.focus();
-      
       setTimeout(() => {
         const authContainer = document.querySelector('.auth-container');
         if (authContainer) {
           const loginForm = renderLoginForm();
           authContainer.innerHTML = '';
           authContainer.appendChild(loginForm);
-          
-          // Focus on the first input field in the new form
-          setTimeout(() => {
-            document.body.removeChild(dummyInput);
-            const firstInput = loginForm.querySelector('input');
-            if (firstInput) firstInput.focus();
-          }, 50);
         }
       }, 10);
     } else {

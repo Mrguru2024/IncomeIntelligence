@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stackr Finance - The Smart Way to Manage Your Money</title>
+  <meta name="description" content="Stackr Finance helps you track income, plan budgets with 40/30/30 splits, set financial goals, and get AI-powered financial advice." />
+  <link rel="icon" type="image/svg+xml" href="/stackr-logo.svg" />
+  <meta name="theme-color" content="#4F46E5" />
+  
+  <!-- Prevent any auto-loading of Firebase -->
+  <script>
+    // Block any attempts to load Firebase
+    window.FIREBASE_DISABLED = true;
+    
+    // Add a debug logger for development
+    window.debugLog = function(message, isError = false) {
+      const method = isError ? 'error' : 'log';
+      console[method](`[Stackr Finance] ${message}`);
+    };
+    
+    // Define Firebase mocks
+    window.firebase = {
+      initializeApp: function() {
+        console.log("Firebase mock initialized");
+        return {};
+      },
+      auth: function() {
+        return {
+          onAuthStateChanged: function(callback) {
+            console.log("Firebase persistence set");
+            if (callback) callback(null);
+            return function() {};
+          },
+          setPersistence: function() {
+            return Promise.resolve();
+          },
+          signInWithEmailAndPassword: function() {
+            return Promise.reject(new Error("Firebase auth not available"));
+          },
+          createUserWithEmailAndPassword: function() {
+            return Promise.reject(new Error("Firebase auth not available"));
+          },
+          signOut: function() {
+            return Promise.resolve();
+          }
+        };
+      }
+    };
+    
+    window.debugLog('Clean application initialization starting');
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <!-- Load our clean React application entry point -->
+  <script type="module" src="/src/clean-main.tsx"></script>
+
+  <!-- Replit badge -->
+  <script
+    type="text/javascript"
+    src="https://replit.com/public/js/replit-badge-v3.js"
+  ></script>
+</body>
+</html>

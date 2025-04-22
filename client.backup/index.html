@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Primary Meta Tags -->
+  <title>Stackr Finance - Smart Money Management for Service Providers</title>
+  <meta name="description" content="Stackr Finance helps freelancers and service providers track income, plan budgets with customizable 40/30/30 splits, set financial goals, and get AI-powered financial advice." />
+  <meta name="keywords" content="financial management, 40/30/30 rule, freelancer finances, service provider money management, income tracking, budget planning, financial goals, AI financial advice" />
+  <meta name="author" content="Stackr Finance" />
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://stackr-finance.com" />
+  
+  <!-- Favicon and App Icons -->
+  <link rel="icon" type="image/svg+xml" href="/stackr-logo.svg" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#4F46E5" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://stackr-finance.com" />
+  <meta property="og:title" content="Stackr Finance - Smart Money Management for Service Providers" />
+  <meta property="og:description" content="Take control of your finances with intelligent income tracking, customizable 40/30/30 budgeting, and AI-powered financial guidance designed for freelancers and service providers." />
+  <meta property="og:image" content="https://stackr-finance.com/social-preview.jpg" />
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://stackr-finance.com" />
+  <meta property="twitter:title" content="Stackr Finance - Smart Money Management for Service Providers" />
+  <meta property="twitter:description" content="Take control of your finances with intelligent income tracking, customizable 40/30/30 budgeting, and AI-powered financial guidance designed for freelancers and service providers." />
+  <meta property="twitter:image" content="https://stackr-finance.com/social-preview.jpg" />
+  
+  <!-- Structured Data - Organization -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Stackr Finance",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "Financial management platform for freelancers and service providers with income tracking, 40/30/30 budget planning, and AI-powered advice",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "257"
+      }
+    }
+  </script>
+  
+  <script>
+    console.log('Loading Stackr Finance React application');
+    
+    // Add a debug logger for development
+    window.debugLog = function(message, isError = false) {
+      const method = isError ? 'error' : 'log';
+      console[method](`[Stackr Finance] ${message}`);
+    };
+    
+    window.debugLog('React application initialization starting');
+    
+    // Clean up any lingering Firebase storage
+    localStorage.removeItem('firebaseLocalStorage');
+    sessionStorage.removeItem('firebase:authUser');
+    
+    // Create Firebase mock directly on the window object
+    const firebaseAppMock = {
+      projectId: "stackr-finance-mock",
+      name: "stackr-finance",
+      options: {
+        apiKey: "mock-api-key",
+        authDomain: "stackr-finance-mock.firebaseapp.com",
+        projectId: "stackr-finance-mock",
+        storageBucket: "stackr-finance-mock.firebasestorage.app",
+        messagingSenderId: "000000000000",
+        appId: "1:000000000000:web:0000000000000000000000",
+        measurementId: "G-00000000"
+      }
+    };
+    
+    // Mock auth state
+    const authMock = {
+      currentUser: null,
+      onAuthStateChanged(callback) {
+        if (callback) {
+          callback(null);
+          return () => {};
+        }
+        return () => {};
+      },
+      signInWithEmailAndPassword() {
+        return Promise.reject(new Error("Firebase authentication not available"));
+      },
+      createUserWithEmailAndPassword() {
+        return Promise.reject(new Error("Firebase authentication not available"));
+      },
+      signOut() {
+        return Promise.resolve();
+      },
+      setPersistence() {
+        return Promise.resolve();
+      },
+      sendPasswordResetEmail() {
+        return Promise.resolve();
+      },
+      confirmPasswordReset() {
+        return Promise.resolve();
+      }
+    };
+    
+    // Main Firebase module mock directly on window
+    window.firebase = {
+      initializeApp() {
+        return firebaseAppMock;
+      },
+      auth() {
+        return authMock;
+      },
+      firestore() {
+        return {};
+      },
+      analytics() {
+        return {};
+      }
+    };
+    
+    // Named exports for ES modules
+    window.firebaseApp = firebaseAppMock;
+    window.firebaseAuth = authMock;
+    
+    window.debugLog('Firebase mock initialized directly in the page');
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <!-- Load our React application entry point -->
+  <script type="module" src="/src/main.tsx"></script>
+
+  <!-- Replit badge -->
+  <script
+    type="text/javascript"
+    src="https://replit.com/public/js/replit-badge-v3.js"
+  ></script>
+</body>
+</html>

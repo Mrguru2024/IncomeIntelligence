@@ -4,8 +4,6 @@
  * and provides educational tips throughout the application.
  */
 
-import * as subscriptionUtils from './utils/subscription-utils.js';
-
 // Collection of financial tips organized by category
 const financialTips = {
   budgeting: [
@@ -600,21 +598,6 @@ function createMascotSettings(mascot) {
   container.style.maxWidth = '500px';
   container.style.margin = '0 auto';
   
-  // Check if user has Pro access for mascot personality customization
-  // Get current user
-  const currentUser = window.appState?.user || JSON.parse(localStorage.getItem('user')) || null;
-  
-  // Check if feature is accessible
-  const canAccessMascot = subscriptionUtils.canAccessFeature(currentUser, 'financialmascot');
-  
-  if (!canAccessMascot) {
-    // Show upgrade prompt for non-Pro users
-    const upgradePrompt = subscriptionUtils.createUpgradePrompt('Financial Mascot Personalization');
-    container.innerHTML = '';
-    container.appendChild(upgradePrompt);
-    return;
-  }
-  
   // Title
   const title = document.createElement('h2');
   title.textContent = 'Financial Mascot Settings';
@@ -622,37 +605,24 @@ function createMascotSettings(mascot) {
   title.style.color = '#333';
   title.style.fontSize = '20px';
   container.appendChild(title);
-    
-    // PRO badge next to title
-    const proBadge = document.createElement('span');
-    proBadge.textContent = 'PRO';
-    proBadge.style.backgroundColor = 'var(--color-primary, #5844B3)';
-    proBadge.style.color = 'white';
-    proBadge.style.padding = '3px 8px';
-    proBadge.style.borderRadius = '4px';
-    proBadge.style.fontSize = '12px';
-    proBadge.style.fontWeight = 'bold';
-    proBadge.style.marginLeft = '10px';
-    proBadge.style.verticalAlign = 'middle';
-    title.appendChild(proBadge);
-    
-    // Personality selector
-    const personalityContainer = document.createElement('div');
-    personalityContainer.style.marginBottom = '20px';
-    
-    const personalityLabel = document.createElement('div');
-    personalityLabel.textContent = 'Choose Your Mascot Personality';
-    personalityLabel.style.marginBottom = '10px';
-    personalityLabel.style.fontWeight = '500';
-    personalityContainer.appendChild(personalityLabel);
   
-    const personalityOptions = document.createElement('div');
-    personalityOptions.style.display = 'grid';
-    personalityOptions.style.gridTemplateColumns = 'repeat(auto-fill, minmax(150px, 1fr))';
-    personalityOptions.style.gap = '10px';
-    
-    // Create a card for each personality
-    Object.entries(mascotPersonalities).forEach(([key, value]) => {
+  // Personality selector
+  const personalityContainer = document.createElement('div');
+  personalityContainer.style.marginBottom = '20px';
+  
+  const personalityLabel = document.createElement('div');
+  personalityLabel.textContent = 'Choose Your Mascot Personality';
+  personalityLabel.style.marginBottom = '10px';
+  personalityLabel.style.fontWeight = '500';
+  personalityContainer.appendChild(personalityLabel);
+  
+  const personalityOptions = document.createElement('div');
+  personalityOptions.style.display = 'grid';
+  personalityOptions.style.gridTemplateColumns = 'repeat(auto-fill, minmax(150px, 1fr))';
+  personalityOptions.style.gap = '10px';
+  
+  // Create a card for each personality
+  Object.entries(mascotPersonalities).forEach(([key, value]) => {
     const card = document.createElement('div');
     card.style.padding = '15px';
     card.style.borderRadius = '8px';

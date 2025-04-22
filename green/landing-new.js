@@ -1,42 +1,21 @@
 /**
  * Landing Page for Stackr Finance GREEN version
  * High-conversion landing page to drive signups and subscriptions
- * Optimized for SEO with semantic HTML structure and rich content
  */
 
 /**
- * Render the landing page with enhanced SEO elements
+ * Render the landing page
  * @returns {HTMLElement} The landing page element
  */
 export function renderLandingPage() {
-  // Create page container with appropriate ARIA roles
-  const container = document.createElement('main');
+  // Create page container
+  const container = document.createElement('div');
   container.classList.add('landing-page');
-  container.setAttribute('role', 'main');
-  container.setAttribute('itemscope', '');
-  container.setAttribute('itemtype', 'https://schema.org/WebPage');
   container.style.minHeight = '100vh';
   container.style.width = '100%';
   container.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   container.style.color = '#333';
   container.style.overflowX = 'hidden';
-  
-  // Add structured data for WebPage
-  const structuredData = document.createElement('script');
-  structuredData.type = 'application/ld+json';
-  structuredData.textContent = JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    'name': 'Stackr Finance - Smart Money Management for Service Providers',
-    'description': 'Financial management platform for freelancers and service providers featuring 40/30/30 budget splits, income tracking, and AI-powered advice',
-    'keywords': 'financial management, 40/30/30 rule, freelancer finances, service provider money management',
-    'url': 'https://stackr-finance.com',
-    'speakable': {
-      '@type': 'SpeakableSpecification',
-      'cssSelector': ['.hero-heading', '.hero-subheading', '.feature-heading']
-    }
-  });
-  container.appendChild(structuredData);
   
   // Add navigation
   const navbar = createNavbar();
@@ -291,15 +270,10 @@ function createNavbar() {
 
 /**
  * Create the hero section with compelling headline and call-to-action
- * Enhanced with semantic HTML and accessibility attributes
  * @returns {HTMLElement} The hero section element
  */
 function createHeroSection() {
   const heroSection = document.createElement('section');
-  heroSection.id = 'hero';
-  heroSection.setAttribute('aria-labelledby', 'hero-heading');
-  heroSection.setAttribute('itemscope', '');
-  heroSection.setAttribute('itemtype', 'https://schema.org/WPHeader');
   heroSection.style.display = 'flex';
   heroSection.style.flexDirection = window.innerWidth <= 960 ? 'column' : 'row';
   heroSection.style.justifyContent = 'space-between';
@@ -338,10 +312,8 @@ function createHeroSection() {
   contentContainer.style.paddingRight = window.innerWidth <= 960 ? '0' : '2rem';
   contentContainer.style.textAlign = window.innerWidth <= 960 ? 'center' : 'left';
   
-  // Headline with highlighting - using h1 for SEO
-  const headline = document.createElement('h1');
-  headline.id = 'hero-heading';
-  headline.setAttribute('itemprop', 'headline');
+  // Headline with highlighting
+  const headline = document.createElement('h2');
   headline.innerHTML = `Take Control of Your Income with the <span style="background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">40/30/30 Split</span>`;
   headline.style.fontSize = window.innerWidth <= 768 ? '2rem' : '2.8rem';
   headline.style.fontWeight = '700';
@@ -349,11 +321,9 @@ function createHeroSection() {
   headline.style.margin = '0 0 1.5rem 0';
   contentContainer.appendChild(headline);
   
-  // Subheadline with rich SEO content
+  // Subheadline
   const subheadline = document.createElement('p');
-  subheadline.className = 'hero-subheading';
-  subheadline.setAttribute('itemprop', 'description');
-  subheadline.textContent = 'The smart financial platform built for service providers and gig workers to track income, maximize earnings, and build wealth through the proven 40/30/30 method. Freelancers, independent contractors, and service professionals use Stackr to organize finances and achieve financial freedom.';
+  subheadline.textContent = 'The smart financial platform built for service providers and gig workers to track income, maximize earnings, and build wealth through the proven 40/30/30 method.';
   subheadline.style.fontSize = '1.1rem';
   subheadline.style.lineHeight = '1.6';
   subheadline.style.color = '#555';
@@ -714,15 +684,11 @@ function createSocialProofSection() {
 
 /**
  * Create features section with key product benefits
- * Enhanced with semantic markup and structured data for SEO
  * @returns {HTMLElement} The features section element
  */
 function createFeaturesSection() {
   const section = document.createElement('section');
   section.id = 'features';
-  section.setAttribute('aria-labelledby', 'features-heading');
-  section.setAttribute('itemscope', '');
-  section.setAttribute('itemtype', 'https://schema.org/ItemList');
   section.style.padding = '5rem 5%';
   section.style.backgroundColor = '#f9f9f9';
   
@@ -733,10 +699,7 @@ function createFeaturesSection() {
   header.style.margin = '0 auto 4rem auto';
   
   const heading = document.createElement('h2');
-  heading.id = 'features-heading';
-  heading.className = 'feature-heading';
-  heading.setAttribute('itemprop', 'name');
-  heading.textContent = 'Smart Financial Tools for Service Providers and Freelancers';
+  heading.textContent = 'Smart Financial Tools for Service Providers';
   heading.style.fontSize = '2.2rem';
   heading.style.fontWeight = '700';
   heading.style.marginBottom = '1rem';
@@ -793,22 +756,13 @@ function createFeaturesSection() {
     }
   ];
   
-  features.forEach((feature, index) => {
+  features.forEach(feature => {
     const featureCard = document.createElement('div');
-    featureCard.setAttribute('itemscope', '');
-    featureCard.setAttribute('itemprop', 'itemListElement');
-    featureCard.setAttribute('itemtype', 'https://schema.org/ListItem');
     featureCard.style.backgroundColor = 'white';
     featureCard.style.borderRadius = '8px';
     featureCard.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.05)';
     featureCard.style.padding = '2rem';
     featureCard.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
-    
-    // Add position metadata for structured data
-    const position = document.createElement('meta');
-    position.setAttribute('itemprop', 'position');
-    position.setAttribute('content', `${index + 1}`);
-    featureCard.appendChild(position);
     
     featureCard.addEventListener('mouseover', () => {
       featureCard.style.transform = 'translateY(-5px)';
@@ -826,8 +780,6 @@ function createFeaturesSection() {
     iconEl.style.marginBottom = '1rem';
     
     const titleEl = document.createElement('h3');
-    titleEl.className = 'feature-heading';
-    titleEl.setAttribute('itemprop', 'name');
     titleEl.textContent = feature.title;
     titleEl.style.fontSize = '1.3rem';
     titleEl.style.fontWeight = '600';
@@ -835,7 +787,6 @@ function createFeaturesSection() {
     titleEl.style.color = '#333';
     
     const descriptionEl = document.createElement('p');
-    descriptionEl.setAttribute('itemprop', 'description');
     descriptionEl.textContent = feature.description;
     descriptionEl.style.fontSize = '1rem';
     descriptionEl.style.lineHeight = '1.6';
@@ -853,16 +804,11 @@ function createFeaturesSection() {
 }
 
 /**
- * Create income split visualization section with 40/30/30 method explanation
- * Enhanced for SEO with semantic structure and rich content
+ * Create income split visualization section
  * @returns {HTMLElement} The income split section element
  */
 function createIncomeSplitSection() {
   const section = document.createElement('section');
-  section.id = 'income-split';
-  section.setAttribute('aria-labelledby', 'income-split-heading');
-  section.setAttribute('itemscope', '');
-  section.setAttribute('itemtype', 'https://schema.org/HowTo');
   section.style.padding = '5rem 5%';
   section.style.backgroundColor = 'white';
   section.style.display = 'flex';
@@ -994,18 +940,14 @@ function createIncomeSplitSection() {
   contentContainer.style.textAlign = window.innerWidth <= 960 ? 'center' : 'left';
   
   const heading = document.createElement('h2');
-  heading.id = 'income-split-heading';
-  heading.className = 'feature-heading';
-  heading.setAttribute('itemprop', 'name');
-  heading.textContent = 'The 40/30/30 Method: Your Financial Framework for Success';
+  heading.textContent = 'The 40/30/30 Method: Your Financial Framework';
   heading.style.fontSize = '2.2rem';
   heading.style.fontWeight = '700';
   heading.style.marginBottom = '1.5rem';
   heading.style.color = '#333';
   
   const description = document.createElement('p');
-  description.setAttribute('itemprop', 'description');
-  description.textContent = 'The 40/30/30 method is a proven approach to managing your income as a freelancer or service provider. It helps you allocate your earnings in a balanced way to cover essential needs (40%), build investments (30%), and grow savings (30%). This framework creates financial security while building long-term wealth.';
+  description.textContent = 'The 40/30/30 method is a simple but powerful approach to managing your income. It helps you allocate your earnings in a balanced way to cover your needs while building wealth through investments and savings.';
   description.style.fontSize = '1.1rem';
   description.style.lineHeight = '1.6';
   description.style.color = '#555';
@@ -1041,11 +983,8 @@ function createIncomeSplitSection() {
     }
   ];
   
-  splits.forEach((split, index) => {
+  splits.forEach(split => {
     const splitItem = document.createElement('div');
-    splitItem.setAttribute('itemprop', 'step');
-    splitItem.setAttribute('itemscope', '');
-    splitItem.setAttribute('itemtype', 'https://schema.org/HowToStep');
     splitItem.style.display = 'flex';
     splitItem.style.alignItems = window.innerWidth <= 960 ? 'center' : 'flex-start';
     splitItem.style.flexDirection = window.innerWidth <= 480 ? 'column' : 'row';
@@ -1056,12 +995,6 @@ function createIncomeSplitSection() {
     splitItem.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.05)';
     splitItem.style.border = `1px solid ${split.color}`;
     splitItem.style.transition = 'transform 0.2s ease';
-    
-    // Add position metadata for structured data
-    const position = document.createElement('meta');
-    position.setAttribute('itemprop', 'position');
-    position.setAttribute('content', `${index + 1}`);
-    splitItem.appendChild(position);
     
     splitItem.addEventListener('mouseover', () => {
       splitItem.style.transform = 'translateX(5px)';
@@ -1088,8 +1021,6 @@ function createIncomeSplitSection() {
     const textContainer = document.createElement('div');
     
     const titleEl = document.createElement('h3');
-    titleEl.setAttribute('itemprop', 'name');
-    titleEl.className = 'method-step-title';
     titleEl.textContent = split.title;
     titleEl.style.fontSize = '1.1rem';
     titleEl.style.fontWeight = '600';
@@ -1097,8 +1028,6 @@ function createIncomeSplitSection() {
     titleEl.style.marginBottom = '0.5rem';
     
     const descriptionEl = document.createElement('p');
-    descriptionEl.setAttribute('itemprop', 'text');
-    descriptionEl.className = 'method-step-description';
     descriptionEl.textContent = split.description;
     descriptionEl.style.fontSize = '0.95rem';
     descriptionEl.style.lineHeight = '1.5';
