@@ -440,6 +440,13 @@ class FinancialMascot {
    * Show a tip from the selected category
    */
   showNextTip() {
+    // Check if bubble exists first
+    if (!this.bubble) {
+      console.log('Financial mascot bubble not initialized yet, creating it now');
+      this.createBubble();
+      return;
+    }
+    
     const categoryTips = financialTips[this.currentTipCategory];
     
     // Get current index for this category
@@ -447,15 +454,19 @@ class FinancialMascot {
     
     // Update the message text
     const textElement = this.bubble.querySelector('.financial-mascot-text');
-    textElement.textContent = categoryTips[index];
-    
-    // Increment index for next time, wrapping around if necessary
-    index = (index + 1) % categoryTips.length;
-    this.tipIndex[this.currentTipCategory] = index;
-    
-    // If bubble was hidden, show it
-    if (this.bubble.style.display === 'none') {
-      this.showBubble();
+    if (textElement) {
+      textElement.textContent = categoryTips[index];
+      
+      // Increment index for next time, wrapping around if necessary
+      index = (index + 1) % categoryTips.length;
+      this.tipIndex[this.currentTipCategory] = index;
+      
+      // If bubble was hidden, show it
+      if (this.bubble.style.display === 'none') {
+        this.showBubble();
+      }
+    } else {
+      console.log('Financial mascot text element not found in bubble');
     }
   }
   
