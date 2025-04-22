@@ -215,24 +215,40 @@ app.use((req, res, next) => {
 // Create HTTP server
 const httpServer = createServer(app);
 
-// Set up Vite in development mode (this serves the React app)
-// NOTE: This needs to come after API routes to ensure correct order of middleware
-(async () => {
-  try {
-    await setupVite(app, httpServer);
-    
-    // Start server after Vite is set up
-    const PORT = process.env.PORT || 5000;
-    
-    httpServer.listen(PORT, '0.0.0.0', () => {
-      logger.info(`Server is running on port ${PORT} - Replit compatible`);
-      logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    });
-  } catch (error) {
-    console.error('Failed to set up Vite:', error);
-    process.exit(1);
+// Setup routes for SPA navigation
+app.get('/bank-connections', (req, res) => {
+  const indexPath = path.join(process.cwd(), 'client', 'index.html');
+  res.sendFile(indexPath);
+});
+
+// Fallback route for SPA navigation - needed for client-side routing
+app.get('*', (req, res, next) => {
+  // Skip API routes
+  if (req.path.indexOf('/api/') === 0) {
+    return next();
   }
-})();
+  
+  // Skip asset routes
+  if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg)$/)) {
+    return next();
+  }
+  
+  // Send the index.html for all non-API routes
+  const indexPath = path.join(process.cwd(), 'client', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    next();
+  }
+});
+
+// Start server
+const PORT = parseInt(process.env.PORT || "5000", 10);
+
+httpServer.listen(PORT, () => {
+  logger.info(`Server is running on port ${PORT} - Replit compatible`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});
 
 // Error handling
 process.on('unhandledRejection', (err) => {
