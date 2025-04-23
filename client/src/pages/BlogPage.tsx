@@ -16,7 +16,8 @@ const mockBlogPosts = [
     excerpt: 'Discover how allocating your income with the 40/30/30 rule can transform your financial future as a service provider.',
     category: 'budgeting',
     tags: ['budget', 'income allocation', 'financial freedom'],
-    imageUrl: '/assets/blog-40-30-30-rule.jpg',
+    // Using placeholder since we don't have these assets yet
+    imageUrl: 'https://placehold.co/600x400/3182ce/FFFFFF?text=40/30/30+Rule',
     date: '2025-04-10',
     readTime: '5 min read'
   },
@@ -26,7 +27,7 @@ const mockBlogPosts = [
     excerpt: 'Learn the best investment strategies tailored specifically for freelancers and service providers in the current market.',
     category: 'investing',
     tags: ['investing', 'freelancers', 'portfolio'],
-    imageUrl: '/assets/blog-investments.jpg',
+    imageUrl: 'https://placehold.co/600x400/4c51bf/FFFFFF?text=Freelancer+Investments',
     date: '2025-03-28',
     readTime: '7 min read'
   },
@@ -36,7 +37,7 @@ const mockBlogPosts = [
     excerpt: 'Don\'t miss out on these often-overlooked tax deductions that could save you thousands this tax season.',
     category: 'taxes',
     tags: ['taxes', 'deductions', 'self-employed'],
-    imageUrl: '/assets/blog-tax-deductions.jpg',
+    imageUrl: 'https://placehold.co/600x400/10b981/FFFFFF?text=Tax+Deductions',
     date: '2025-03-15',
     readTime: '6 min read'
   }
