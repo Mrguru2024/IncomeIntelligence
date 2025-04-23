@@ -54,14 +54,156 @@ export function renderBlogPage(isAuthenticated = false) {
   // Interactive content container with filters and posts
   const contentContainer = document.createElement('div');
   contentContainer.className = 'blog-content-container';
+  contentContainer.style.display = 'flex';
+  contentContainer.style.gap = '40px';
+  contentContainer.style.marginTop = '30px';
+  contentContainer.style.padding = '0 20px';
   
   // Create tabs for category filtering
   const categoryTabs = createCategoryTabs();
-  contentContainer.appendChild(categoryTabs);
+  
+  // Mobile category navigation dropdown (only shown on mobile)
+  const mobileNavContainer = document.createElement('div');
+  mobileNavContainer.className = 'mobile-category-nav';
+  mobileNavContainer.style.display = 'none';
+  mobileNavContainer.style.marginBottom = '20px';
+  mobileNavContainer.style.position = 'relative';
+  
+  const mobileNavButton = document.createElement('button');
+  mobileNavButton.className = 'mobile-nav-button';
+  mobileNavButton.innerHTML = 'Categories <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+  mobileNavButton.style.display = 'flex';
+  mobileNavButton.style.alignItems = 'center';
+  mobileNavButton.style.justifyContent = 'space-between';
+  mobileNavButton.style.width = '100%';
+  mobileNavButton.style.padding = '12px 16px';
+  mobileNavButton.style.backgroundColor = 'white';
+  mobileNavButton.style.border = '1px solid #E2E8F0';
+  mobileNavButton.style.borderRadius = '8px';
+  mobileNavButton.style.fontSize = '1rem';
+  mobileNavButton.style.fontWeight = '500';
+  mobileNavButton.style.color = '#4A5568';
+  mobileNavButton.style.cursor = 'pointer';
+  
+  const mobileNavDropdown = document.createElement('div');
+  mobileNavDropdown.className = 'mobile-nav-dropdown';
+  mobileNavDropdown.style.display = 'none';
+  mobileNavDropdown.style.position = 'absolute';
+  mobileNavDropdown.style.top = '100%';
+  mobileNavDropdown.style.left = '0';
+  mobileNavDropdown.style.right = '0';
+  mobileNavDropdown.style.backgroundColor = 'white';
+  mobileNavDropdown.style.border = '1px solid #E2E8F0';
+  mobileNavDropdown.style.borderRadius = '8px';
+  mobileNavDropdown.style.marginTop = '4px';
+  mobileNavDropdown.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.1)';
+  mobileNavDropdown.style.zIndex = '100';
+  
+  // Add dropdown functionality
+  mobileNavButton.addEventListener('click', () => {
+    const isOpen = mobileNavDropdown.style.display === 'block';
+    mobileNavDropdown.style.display = isOpen ? 'none' : 'block';
+    
+    // Rotate arrow icon on toggle
+    const arrow = mobileNavButton.querySelector('svg');
+    arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    arrow.style.transition = 'transform 0.3s ease';
+  });
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (event) => {
+    if (!mobileNavContainer.contains(event.target)) {
+      mobileNavDropdown.style.display = 'none';
+      const arrow = mobileNavButton.querySelector('svg');
+      arrow.style.transform = 'rotate(0deg)';
+    }
+  });
+  
+  // Add mobile styles
+  const mobileStyles = document.createElement('style');
+  mobileStyles.textContent = `
+    @media (max-width: 768px) {
+      .mobile-category-nav {
+        display: block !important;
+      }
+      .blog-category-tabs {
+        display: none !important;
+      }
+    }
+  `;
+  document.head.appendChild(mobileStyles);
+  
+  // Create mobile category options
+  const categoryOptions = document.createElement('ul');
+  categoryOptions.style.listStyle = 'none';
+  categoryOptions.style.padding = '8px 0';
+  categoryOptions.style.margin = '0';
+  
+  // All posts option
+  const allOption = document.createElement('li');
+  allOption.textContent = 'All Posts';
+  allOption.style.padding = '12px 16px';
+  allOption.style.cursor = 'pointer';
+  allOption.style.transition = 'background-color 0.2s ease';
+  
+  allOption.addEventListener('mouseover', () => {
+    allOption.style.backgroundColor = '#F7FAFC';
+  });
+  
+  allOption.addEventListener('mouseout', () => {
+    allOption.style.backgroundColor = 'transparent';
+  });
+  
+  allOption.addEventListener('click', () => {
+    renderPostsList(postsListContainer, blogPosts, true);
+    mobileNavDropdown.style.display = 'none';
+    mobileNavButton.textContent = 'Categories: All Posts';
+    mobileNavButton.innerHTML += ' <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+  });
+  
+  categoryOptions.appendChild(allOption);
+  
+  // Add category options
+  blogCategories.filter(cat => cat.id !== 'all').forEach(category => {
+    const option = document.createElement('li');
+    option.textContent = category.name;
+    option.style.padding = '12px 16px';
+    option.style.cursor = 'pointer';
+    option.style.transition = 'background-color 0.2s ease';
+    
+    option.addEventListener('mouseover', () => {
+      option.style.backgroundColor = '#F7FAFC';
+    });
+    
+    option.addEventListener('mouseout', () => {
+      option.style.backgroundColor = 'transparent';
+    });
+    
+    option.addEventListener('click', () => {
+      const filteredPosts = filterPostsByCategory(category.id);
+      renderPostsList(postsListContainer, filteredPosts, true);
+      mobileNavDropdown.style.display = 'none';
+      mobileNavButton.textContent = `Categories: ${category.name}`;
+      mobileNavButton.innerHTML += ' <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+    });
+    
+    categoryOptions.appendChild(option);
+  });
+  
+  mobileNavDropdown.appendChild(categoryOptions);
+  mobileNavContainer.appendChild(mobileNavButton);
+  mobileNavContainer.appendChild(mobileNavDropdown);
   
   // Posts container with masonry layout
   const postsContainer = document.createElement('div');
   postsContainer.className = 'blog-posts-container';
+  postsContainer.style.flex = '1';
+  
+  // Add mobile navigation to posts container (only visible on mobile)
+  postsContainer.appendChild(mobileNavContainer);
+  
+  // Add desktop category tabs (only visible on desktop/tablet)
+  postsContainer.appendChild(categoryTabs);
   
   // Blog posts list
   const postsListContainer = document.createElement('div');
@@ -70,6 +212,8 @@ export function renderBlogPage(isAuthenticated = false) {
   
   // Sidebar with categories, newsletter signup and filters
   const sidebar = createEnhancedSidebar();
+  sidebar.style.width = '350px';
+  sidebar.style.flexShrink = '0';
   
   // Add content to the layout
   contentContainer.appendChild(postsContainer);
@@ -348,6 +492,32 @@ export function renderBlogPage(isAuthenticated = false) {
         .bento-item-featured {
           grid-column: span 2 !important;
         }
+        .blog-content-container {
+          flex-direction: column;
+        }
+        .blog-sidebar {
+          margin-top: 40px;
+          position: static !important;
+        }
+        .hero-title {
+          font-size: 2.5rem !important;
+        }
+        .hero-subtitle {
+          font-size: 1.2rem !important;
+        }
+        .hero-stats-bar {
+          flex-wrap: wrap;
+        }
+        .hero-stat-separator {
+          display: none !important;
+        }
+        .hero-stat-item {
+          width: 50%;
+          margin: 10px 0 !important;
+        }
+        .blog-community-section > div {
+          flex-direction: column;
+        }
       }
       
       @media (max-width: 768px) {
@@ -357,6 +527,36 @@ export function renderBlogPage(isAuthenticated = false) {
         }
         .bento-item {
           grid-column: span 1 !important;
+        }
+        .blog-hero-section {
+          padding: 40px 15px !important;
+          margin: 0 10px 30px !important;
+        }
+        .hero-title {
+          font-size: 2rem !important;
+        }
+        .hero-subtitle {
+          font-size: 1rem !important;
+        }
+        .hero-search-container {
+          flex-direction: column !important;
+        }
+        .hero-search-input {
+          width: 100% !important;
+        }
+        .hero-search-button {
+          width: 100% !important;
+          margin-top: 10px !important;
+        }
+        .blog-category-tabs .tabs-list {
+          padding: 0 10px !important;
+        }
+        .category-tab {
+          padding: 8px 12px !important;
+          font-size: 0.8rem !important;
+        }
+        .blog-posts-container {
+          grid-template-columns: 1fr !important;
         }
       }
     `;
