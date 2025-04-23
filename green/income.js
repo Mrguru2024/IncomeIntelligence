@@ -441,39 +441,113 @@ export function renderIncomePage() {
     <div class="text-sm text-gray-600 mt-1">Current month</div>
   `;
   
-  // Split allocation card
+  // Split allocation card with enhanced visualization
   const splitCard = document.createElement('div');
   splitCard.className = 'card bg-white p-4 rounded-lg shadow-sm';
-  splitCard.innerHTML = `
-    <div class="card-header mb-2">
-      <h3 class="text-lg font-semibold">Split Allocation</h3>
+  
+  const cardHeader = document.createElement('div');
+  cardHeader.className = 'card-header mb-2 flex justify-between items-center';
+  cardHeader.innerHTML = `
+    <h3 class="text-lg font-semibold">Split Allocation</h3>
+    <div class="text-sm text-primary cursor-pointer hover:underline" id="customize-ratio-btn">Customize</div>
+  `;
+  splitCard.appendChild(cardHeader);
+  
+  // Create the bar visualization
+  const barContainer = document.createElement('div');
+  barContainer.className = 'flex mt-2 relative';
+  barContainer.innerHTML = `
+    <div style="width: ${splitRatio.needs}%; background-color: #34A853; height: 24px; border-radius: 4px 0 0 4px; position: relative; overflow: hidden;">
+      <div class="absolute inset-0 bg-white bg-opacity-10 scale-x-0 origin-left hover:scale-x-100 transition-transform duration-300"></div>
     </div>
-    <div class="flex mt-2">
-      <div style="width: ${splitRatio.needs}%; background-color: #34A853; height: 24px; border-radius: 4px 0 0 4px;"></div>
-      <div style="width: ${splitRatio.investments}%; background-color: #4285F4; height: 24px;"></div>
-      <div style="width: ${splitRatio.savings}%; background-color: #FBBC05; height: 24px; border-radius: 0 4px 4px 0;"></div>
+    <div style="width: ${splitRatio.investments}%; background-color: #4285F4; height: 24px; position: relative; overflow: hidden;">
+      <div class="absolute inset-0 bg-white bg-opacity-10 scale-x-0 origin-left hover:scale-x-100 transition-transform duration-300"></div>
     </div>
-    <div class="flex justify-between text-sm mt-2">
-      <div>
-        <div class="font-semibold">Needs</div>
-        <div>${splitRatio.needs}%</div>
-      </div>
-      <div>
-        <div class="font-semibold">Investments</div>
-        <div>${splitRatio.investments}%</div>
-      </div>
-      <div>
-        <div class="font-semibold">Savings</div>
-        <div>${splitRatio.savings}%</div>
-      </div>
+    <div style="width: ${splitRatio.savings}%; background-color: #FBBC05; height: 24px; border-radius: 0 4px 4px 0; position: relative; overflow: hidden;">
+      <div class="absolute inset-0 bg-white bg-opacity-10 scale-x-0 origin-left hover:scale-x-100 transition-transform duration-300"></div>
     </div>
   `;
+  splitCard.appendChild(barContainer);
+  
+  // Create allocation details with amounts based on monthly income
+  const monthlySplits = calculateSplits(monthlyIncome);
+  const detailsContainer = document.createElement('div');
+  detailsContainer.className = 'grid grid-cols-3 gap-2 mt-4';
+  detailsContainer.innerHTML = `
+    <div class="text-center px-2 py-3 bg-green-50 rounded-lg transition-all duration-300 hover:shadow-md hover:bg-green-100">
+      <div class="text-green-600 font-semibold text-xl">${formatCurrency(monthlySplits.needs)}</div>
+      <div class="font-semibold text-gray-700">Needs</div>
+      <div class="text-sm text-gray-600">${splitRatio.needs}%</div>
+      <div class="text-xs text-gray-500 mt-1">Bills, groceries, housing</div>
+    </div>
+    <div class="text-center px-2 py-3 bg-blue-50 rounded-lg transition-all duration-300 hover:shadow-md hover:bg-blue-100">
+      <div class="text-blue-600 font-semibold text-xl">${formatCurrency(monthlySplits.investments)}</div>
+      <div class="font-semibold text-gray-700">Investments</div>
+      <div class="text-sm text-gray-600">${splitRatio.investments}%</div>
+      <div class="text-xs text-gray-500 mt-1">Stocks, retirement, crypto</div>
+    </div>
+    <div class="text-center px-2 py-3 bg-yellow-50 rounded-lg transition-all duration-300 hover:shadow-md hover:bg-yellow-100">
+      <div class="text-yellow-600 font-semibold text-xl">${formatCurrency(monthlySplits.savings)}</div>
+      <div class="font-semibold text-gray-700">Savings</div>
+      <div class="text-sm text-gray-600">${splitRatio.savings}%</div>
+      <div class="text-xs text-gray-500 mt-1">Emergency fund, goals</div>
+    </div>
+  `;
+  splitCard.appendChild(detailsContainer);
+  
+  // Add a toggle button to switch between bar and pie visualization (to be implemented)
+  const toggleContainer = document.createElement('div');
+  toggleContainer.className = 'flex justify-end mt-2';
+  toggleContainer.innerHTML = `
+    <div class="flex text-xs bg-gray-100 rounded-md overflow-hidden">
+      <button id="view-bar" class="px-2 py-1 bg-primary text-white">Bar</button>
+      <button id="view-pie" class="px-2 py-1 text-gray-700 hover:bg-gray-200">Pie</button>
+    </div>
+  `;
+  splitCard.appendChild(toggleContainer);
+  
+  // Add event listeners after the card is appended to the DOM
+  setTimeout(() => {
+    // Customize ratio button
+    const customizeBtn = document.getElementById('customize-ratio-btn');
+    if (customizeBtn) {
+      customizeBtn.addEventListener('click', () => {
+        // Show ratio customization modal (to be implemented)
+        alert('Ratio customization coming soon! Current split: ' + 
+              `Needs: ${splitRatio.needs}%, Investments: ${splitRatio.investments}%, Savings: ${splitRatio.savings}%`);
+      });
+    }
+    
+    // View toggle buttons
+    const barBtn = document.getElementById('view-bar');
+    const pieBtn = document.getElementById('view-pie');
+    
+    if (barBtn && pieBtn) {
+      barBtn.addEventListener('click', () => {
+        barBtn.classList.add('bg-primary', 'text-white');
+        barBtn.classList.remove('text-gray-700', 'hover:bg-gray-200');
+        pieBtn.classList.remove('bg-primary', 'text-white');
+        pieBtn.classList.add('text-gray-700', 'hover:bg-gray-200');
+        // Show bar view (already visible by default)
+      });
+      
+      pieBtn.addEventListener('click', () => {
+        pieBtn.classList.add('bg-primary', 'text-white');
+        pieBtn.classList.remove('text-gray-700', 'hover:bg-gray-200');
+        barBtn.classList.remove('bg-primary', 'text-white');
+        barBtn.classList.add('text-gray-700', 'hover:bg-gray-200');
+        // Show pie chart visualization (to be implemented)
+        alert('Pie chart visualization coming soon!');
+      });
+    }
+  }, 100);
+  
   
   // This month's splits card
   const monthSplitCard = document.createElement('div');
   monthSplitCard.className = 'card bg-white p-4 rounded-lg shadow-sm';
   
-  const monthlySplits = calculateSplits(monthlyIncome);
+  // Monthly splits already calculated above
   
   monthSplitCard.innerHTML = `
     <div class="card-header mb-2">
