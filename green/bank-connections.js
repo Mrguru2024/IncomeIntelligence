@@ -394,10 +394,17 @@ export async function getBankConnectionStatusBadge(userId) {
   return statusBadge;
 }
 
+// Import responsive utilities
+import { responsive } from './sidebar.js';
+
 export async function renderBankConnectionsPage(userId) {
   // Create page container
   const container = document.createElement('div');
   container.classList.add('bank-connections-page');
+  container.style.padding = responsive.isMobile() ? '16px' : '24px';
+  container.style.width = '100%';
+  container.style.maxWidth = '1200px';
+  container.style.margin = '0 auto';
   
   // Page header
   const header = document.createElement('div');
