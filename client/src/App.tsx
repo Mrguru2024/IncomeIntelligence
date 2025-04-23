@@ -24,6 +24,7 @@ import IncomeHub from "@/pages/IncomeHub";
 import PricingPage from "@/pages/PricingPage";
 import StackrGigs from "@/pages/income/StackrGigs";
 import BlogEditorPage from "@/pages/BlogEditorPage";
+import BlogPage from "@/pages/BlogPage";
 import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import AppTutorial from "@/components/AppTutorial";
@@ -60,6 +61,7 @@ function Router() {
       <ProtectedRoute path="/income-hub" component={IncomeHub} />
       <ProtectedRoute path="/pricing" component={PricingPage} />
       <ProtectedRoute path="/income-hub/gigs" component={StackrGigs} />
+      <ProtectedRoute path="/blog" component={BlogPage} />
       <ProtectedRoute path="/blog/editor" component={BlogEditorPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />

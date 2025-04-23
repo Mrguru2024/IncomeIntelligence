@@ -17,7 +17,8 @@ import {
   Bell, 
   Mic, 
   User, 
-  Lock, 
+  Lock,
+  FileText, 
   Gift, 
   Settings, 
   Home, 
@@ -126,6 +127,12 @@ const navigationStructure = [
         icon: <Brain size={20} />,
         badge: "Pro",
         badgeColor: "bg-gradient-to-r from-indigo-500 to-purple-500",
+      },
+      {
+        name: "Financial Blog",
+        path: "/blog",
+        icon: <FileText size={20} />,
+        badge: "New",
       },
       {
         name: "Voice Commands",
