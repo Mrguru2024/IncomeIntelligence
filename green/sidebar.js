@@ -45,7 +45,10 @@ export const responsive = {
 };
 
 export function createSidebar(appState) {
-  const isMobile = responsive.isMobile();
+  // Make sure we have the responsive object or fallback to direct browser check
+  const isMobile = (typeof responsive !== 'undefined' && responsive.isMobile) 
+    ? responsive.isMobile() 
+    : (window.innerWidth < 768);
   
   // Create sidebar container
   const sidebar = document.createElement('aside');
@@ -659,8 +662,19 @@ export function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
   
   // Debug logging for mobile detection
-  console.log("Viewport:", responsive.isMobile() ? "mobile" : "desktop");
-  if (responsive.isFoldable()) {
+  // Add fallback for responsive.isMobile
+  const checkMobile = () => (typeof responsive !== 'undefined' && responsive.isMobile) 
+    ? responsive.isMobile() 
+    : (window.innerWidth < 768);
+  
+  console.log("Viewport:", checkMobile() ? "mobile" : "desktop");
+  
+  // Add fallback for responsive.isFoldable
+  const checkFoldable = () => (typeof responsive !== 'undefined' && responsive.isFoldable) 
+    ? responsive.isFoldable() 
+    : (/SM-F9/.test(navigator.userAgent) && window.innerWidth < 600);
+    
+  if (checkFoldable()) {
     console.log("Detected: Foldable device (closed)");
   }
   
@@ -673,8 +687,9 @@ export function toggleSidebar() {
     return;
   }
   
-  const isMobile = responsive.isMobile();
-  const isFoldable = responsive.isFoldable();
+  // Using the checkMobile and checkFoldable functions defined above
+  const isMobile = checkMobile();
+  const isFoldable = checkFoldable();
   
   // Adjust width specifically for foldable devices
   if (isFoldable) {
@@ -797,7 +812,12 @@ export function renderSidebar(appState) {
   document.body.appendChild(sidebar);
   
   // For mobile view, prepare for overlay but don't show it yet
-  if (responsive.isMobile()) {
+  // Create checkMobile function if it doesn't exist in this scope
+  const localCheckMobile = () => (typeof responsive !== 'undefined' && responsive.isMobile) 
+    ? responsive.isMobile() 
+    : (window.innerWidth < 768);
+    
+  if (localCheckMobile()) {
     const overlay = document.createElement('div');
     overlay.id = 'sidebar-overlay';
     overlay.style.position = 'fixed';
@@ -847,7 +867,19 @@ export function renderSidebar(appState) {
   }
   
   // Add resize listener to handle responsive layout changes
-  responsive.addResizeListener((isMobileView) => {
+  // Create safe wrapper for responsive.addResizeListener
+  const safeAddResizeListener = (callback) => {
+    if (typeof responsive !== 'undefined' && responsive.addResizeListener) {
+      responsive.addResizeListener(callback);
+    } else {
+      // Fallback implementation if responsive isn't available
+      window.addEventListener('resize', () => {
+        callback(window.innerWidth < 768);
+      });
+    }
+  };
+  
+  safeAddResizeListener((isMobileView) => {
     if (!isMobileView) {
       // Reset sidebar for desktop view
       sidebar.style.width = '280px';
