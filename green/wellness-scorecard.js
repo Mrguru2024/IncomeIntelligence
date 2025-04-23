@@ -1014,71 +1014,81 @@ export async function loadUserFinancialData(userId) {
     });
     
     if (!response.ok) {
-      throw new Error('Failed to load financial data');
+      console.log(`API returned status ${response.status} when fetching financial data`);
+      // Don't throw error - use demo data instead
+      return getDemoFinancialData();
     }
     
     return await response.json();
   } catch (error) {
     console.error('Error loading financial data:', error);
-    // Return default data structure for testing
-    return {
-      incomeData: {
-        sources: [{ name: 'Primary Job', amount: 4000, frequency: 'monthly' }],
-        allocation: {
-          needs: 45,
-          savings: 25,
-          investments: 30,
-          needsTarget: 40,
-          savingsTarget: 30,
-          investmentsTarget: 30
-        },
-        monthsWithIncome: 6
-      },
-      savingsData: {
-        rate: 15,
-        totalSavings: 8000,
-        monthlyIncome: 4000
-      },
-      debtData: {
-        totalDebt: 15000,
-        monthlyPayments: 500,
-        monthlyIncome: 4000,
-        debtTypes: [
-          { type: 'student', amount: 10000 },
-          { type: 'credit', amount: 5000 }
-        ]
-      },
-      emergencyFund: {
-        months: 2
-      },
-      investmentData: {
-        growthRate: 5,
-        diversification: 6,
-        monthlyContributions: 200,
-        totalInvestments: 12000
-      },
-      goals: [
-        {
-          id: 1,
-          name: 'Emergency Fund',
-          target: 12000,
-          current: 8000,
-          progress: 66.7,
-          targetDate: '2024-12-31',
-          plan: ['Monthly contribution of $500']
-        },
-        {
-          id: 2,
-          name: 'Pay off Credit Card',
-          target: 5000,
-          current: 1200,
-          progress: 24,
-          targetDate: '2024-06-30',
-          plan: ['Pay $800 monthly']
-        }
-      ]
-    };
+    // Return demo data when API fails
+    return getDemoFinancialData();
   }
+}
+
+/**
+ * Get demo financial data for development and testing
+ * @returns {Object} - Demo financial data
+ */
+function getDemoFinancialData() {
+  return {
+    incomeData: {
+      sources: [{ name: 'Primary Job', amount: 4000, frequency: 'monthly' }],
+      allocation: {
+        needs: 45,
+        savings: 25,
+        investments: 30,
+        needsTarget: 40,
+        savingsTarget: 30,
+        investmentsTarget: 30
+      },
+      monthsWithIncome: 6
+    },
+    savingsData: {
+      rate: 15,
+      totalSavings: 8000,
+      monthlyIncome: 4000
+    },
+    debtData: {
+      totalDebt: 15000,
+      monthlyPayments: 500,
+      monthlyIncome: 4000,
+      debtTypes: [
+        { type: 'student', amount: 10000 },
+        { type: 'credit', amount: 5000 }
+      ]
+    },
+    emergencyFund: {
+      months: 2
+    },
+    investmentData: {
+      growthRate: 5,
+      diversification: 6,
+      monthlyContributions: 200,
+      totalInvestments: 12000
+    },
+    goals: [
+      {
+        id: 1,
+        name: 'Emergency Fund',
+        target: 12000,
+        current: 8000,
+        progress: 66.7,
+        targetDate: '2024-12-31',
+        plan: ['Monthly contribution of $500']
+      },
+      {
+        id: 2,
+        name: 'Pay off Credit Card',
+        target: 5000,
+        current: 1200,
+        progress: 24,
+        targetDate: '2024-06-30',
+        plan: ['Pay $800 monthly']
+      }
+    ]
+  };
 }
 
 /**
