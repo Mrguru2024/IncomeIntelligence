@@ -2705,13 +2705,18 @@ function renderPageContent(container) {
         
       case 'moneymentor':
         // Import the Money Mentor page module
-        import('../money-mentor.js').then(module => {
+        import('../money-mentor.js').then(async module => {
           console.log('Money Mentor module loaded successfully:', Object.keys(module));
           try {
             console.log('User ID being passed:', appState.user.id);
-            const mentorPage = module.renderMoneyMentorPage(appState.user.id);
+            // Using await since renderMoneyMentorPage is an async function
+            const mentorPage = await module.renderMoneyMentorPage(appState.user.id);
             console.log('Mentor page created successfully');
-            container.appendChild(mentorPage);
+            if (mentorPage && mentorPage.nodeType) {
+              container.appendChild(mentorPage);
+            } else {
+              throw new Error('Invalid DOM element returned from Money Mentor module');
+            }
           } catch (error) {
             console.error('Error rendering Money Mentor page:', error);
             container.appendChild(createErrorMessage('Error rendering Money Mentor: ' + error.message));

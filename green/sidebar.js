@@ -122,7 +122,7 @@ export function createSidebar(appState) {
   avatar.style.color = 'var(--color-primary)';
   
   // Get user initial or name
-  const userName = appState.user.firstName || appState.user.name || 'User';
+  const userName = (appState?.user?.firstName || appState?.user?.name || 'User');
   avatar.textContent = userName.charAt(0).toUpperCase();
   
   profileSection.appendChild(avatar);
@@ -130,9 +130,9 @@ export function createSidebar(appState) {
   // User name
   const displayName = document.createElement('h3');
   displayName.classList.add('user-name');
-  displayName.textContent = appState.user.firstName ? 
-    `${appState.user.firstName} ${appState.user.lastName || ''}` : 
-    appState.user.name || 'User';
+  displayName.textContent = appState?.user?.firstName ? 
+    `${appState.user.firstName} ${appState?.user?.lastName || ''}` : 
+    appState?.user?.name || 'User';
   displayName.style.margin = '0 0 4px';
   displayName.style.fontSize = '18px';
   displayName.style.fontWeight = 'bold';
