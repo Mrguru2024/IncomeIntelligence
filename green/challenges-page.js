@@ -2512,7 +2512,12 @@ async function updateChallengeContribution(challengeId, amount, date, userId) {
  * @returns {string} - Formatted currency string
  */
 function formatCurrency(amount) {
-  return '$' + amount.toLocaleString('en-US', {
+  // Handle null, undefined, or non-numeric values
+  if (amount === null || amount === undefined || isNaN(amount)) {
+    return '$0';
+  }
+  
+  return '$' + Number(amount).toLocaleString('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2
   });
