@@ -1309,14 +1309,26 @@ function calculateIncomeStats() {
 }
 
 // Page Components
-function renderDashboardPage() {
+// Import the bank connection functions
+import { hasBankConnections, getBankConnectionStatusBadge } from '../bank-connections.js';
+
+async function renderDashboardPage() {
   const isMobile = window.innerWidth < 640;
   const container = document.createElement('div');
+  
+  // Header container with status indicators
+  const headerContainer = document.createElement('div');
+  headerContainer.style.display = 'flex';
+  headerContainer.style.flexDirection = isMobile ? 'column' : 'row';
+  headerContainer.style.justifyContent = 'space-between';
+  headerContainer.style.alignItems = isMobile ? 'flex-start' : 'center';
+  headerContainer.style.marginBottom = 'var(--space-6)';
+  headerContainer.style.animation = 'fadeIn 0.6s ease-out';
   
   // Animated welcome heading with gradient text
   const welcomeHeading = document.createElement('h2');
   welcomeHeading.textContent = `Welcome, ${appState.user.name}!`;
-  welcomeHeading.style.marginBottom = 'var(--space-6)';
+  welcomeHeading.style.marginBottom = isMobile ? 'var(--space-2)' : '0';
   welcomeHeading.style.fontSize = isMobile ? 'var(--font-size-xl)' : 'var(--font-size-3xl)';
   welcomeHeading.style.fontWeight = 'var(--font-bold)';
   welcomeHeading.style.background = 'linear-gradient(to right, var(--color-primary), var(--color-accent))';
@@ -1324,9 +1336,30 @@ function renderDashboardPage() {
   welcomeHeading.style.WebkitTextFillColor = 'transparent';
   welcomeHeading.style.backgroundClip = 'text';
   welcomeHeading.style.textFillColor = 'transparent';
-  welcomeHeading.style.animation = 'fadeIn 0.6s ease-out';
-  container.appendChild(welcomeHeading);
-
+  
+  // Status indicators container
+  const statusContainer = document.createElement('div');
+  statusContainer.style.display = 'flex';
+  statusContainer.style.gap = 'var(--space-2)';
+  statusContainer.style.marginTop = isMobile ? 'var(--space-2)' : '0';
+  
+  // Add bank connection status badge
+  const bankStatusBadgePlaceholder = document.createElement('div');
+  statusContainer.appendChild(bankStatusBadgePlaceholder);
+  
+  // Add status indicators to the header
+  headerContainer.appendChild(welcomeHeading);
+  headerContainer.appendChild(statusContainer);
+  container.appendChild(headerContainer);
+  
+  // Asynchronously load the bank connection status
+  try {
+    const bankStatusBadge = await getBankConnectionStatusBadge(appState.user.id);
+    // Replace the placeholder with the actual badge
+    statusContainer.replaceChild(bankStatusBadge, bankStatusBadgePlaceholder);
+  } catch (error) {
+    console.error('Error loading bank connection status:', error);
+  }
   // Dashboard summary - shows total income and quick stats
   const dashboardSummary = document.createElement('div');
   dashboardSummary.style.marginBottom = 'var(--space-8)';

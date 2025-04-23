@@ -338,7 +338,63 @@ function createConnectionCard(connection) {
  * @param {number} userId - Current user ID
  * @returns {HTMLElement} - Bank connections page element
  */
-export function renderBankConnectionsPage(userId) {
+/**
+ * Check if a user has any bank accounts connected
+ * @param {string|number} userId - User ID
+ * @returns {Promise<boolean>} - True if user has at least one bank account connected
+ */
+export async function hasBankConnections(userId) {
+  try {
+    const connections = await fetchUserConnections(userId);
+    return connections && connections.length > 0;
+  } catch (error) {
+    console.error('Error checking bank connections:', error);
+    return false;
+  }
+}
+
+/**
+ * Get bank connection status badge element
+ * @param {string|number} userId - User ID
+ * @returns {Promise<HTMLElement>} - Status badge element
+ */
+export async function getBankConnectionStatusBadge(userId) {
+  const statusBadge = document.createElement('div');
+  statusBadge.style.display = 'inline-flex';
+  statusBadge.style.alignItems = 'center';
+  statusBadge.style.gap = '6px';
+  statusBadge.style.padding = '4px 10px';
+  statusBadge.style.borderRadius = '20px';
+  statusBadge.style.fontSize = '13px';
+  statusBadge.style.fontWeight = '500';
+  
+  // Start with a loading status
+  statusBadge.style.backgroundColor = '#f9f9f9';
+  statusBadge.style.color = '#888888';
+  statusBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> <span>Checking...</span>';
+  
+  try {
+    const hasConnections = await hasBankConnections(userId);
+    
+    if (hasConnections) {
+      statusBadge.style.backgroundColor = '#E8F5E9';
+      statusBadge.style.color = '#2E7D32';
+      statusBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> <span>Bank Connected</span>';
+    } else {
+      statusBadge.style.backgroundColor = '#FFF8E1';
+      statusBadge.style.color = '#F57C00';
+      statusBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> <span>No Bank Connected</span>';
+    }
+  } catch (error) {
+    statusBadge.style.backgroundColor = '#FFEBEE';
+    statusBadge.style.color = '#C62828';
+    statusBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> <span>Connection Error</span>';
+  }
+  
+  return statusBadge;
+}
+
+export async function renderBankConnectionsPage(userId) {
   // Create page container
   const container = document.createElement('div');
   container.classList.add('bank-connections-page');
