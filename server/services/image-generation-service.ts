@@ -163,22 +163,39 @@ export async function generateBlogImage(
 }
 
 /**
- * Format a blog post title into an appropriate image generation prompt
+ * Format a blog post content into an appropriate image generation prompt
  */
-export function formatBlogImagePrompt(title: string, topic?: string): string {
+export function formatBlogImagePrompt(
+  blogTitle: string, 
+  blogContent: string,
+  style: string = "modern financial illustration",
+  financialTopic?: string
+): string {
   // Default styling for financial blog post images
   const basePrompt = "Create a professional, modern illustration for a financial blog post";
   
-  // If title is provided, use it to create a more specific prompt
-  if (title) {
-    return `${basePrompt} titled "${title}". The image should be clean, minimalist, and suitable for a financial management application. Use a blue and purple color scheme that matches the Stackr Finance brand. No text in the image.`;
+  // Extract key financial concepts from content - first 200 chars should be enough for context
+  const contentSummary = blogContent.substring(0, 200).trim();
+  
+  // Start with the base prompt and add specificity
+  let prompt = `${basePrompt} titled "${blogTitle}"`;
+  
+  // Add topic if provided
+  if (financialTopic) {
+    prompt += ` about ${financialTopic}`;
   }
   
-  // If only topic is provided
-  if (topic) {
-    return `${basePrompt} about ${topic}. The image should be clean, minimalist, and suitable for a financial management application. Use a blue and purple color scheme that matches the Stackr Finance brand. No text in the image.`;
-  }
+  // Add content summary for context
+  prompt += `. The content discusses: ${contentSummary}...`;
   
-  // Default generic prompt
-  return `${basePrompt}. The image should be clean, minimalist with abstract financial concepts. Use a blue and purple color scheme that matches the Stackr Finance brand. No text in the image.`;
+  // Add styling preferences
+  prompt += `. Create a ${style} style image that is clean, minimalist, and suitable for a financial management application.`;
+  
+  // Add brand styling
+  prompt += ` Use a blue and purple color scheme that matches the Stackr Finance brand. The image should be professional and sophisticated.`;
+  
+  // Important constraints
+  prompt += ` No text in the image. No numbers, percentages, or currency symbols. Create an abstract or conceptual representation rather than literal interpretation.`;
+  
+  return prompt;
 }

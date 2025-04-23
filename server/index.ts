@@ -18,6 +18,7 @@ import fs from 'fs';
 import { initializeAIClients } from './ai-service';
 import { initializeEmailClient } from './email-service';
 import { initializePerplexityService } from './services/perplexity-service';
+import { initializeImageGenerationService } from './services/image-generation-service';
 import { errorHandler } from './middleware/error-handler';
 import { initializeServices } from './services';
 import { logger } from './utils/logger';
@@ -38,6 +39,7 @@ try {
   initializeAIClients();
   initializeEmailClient();
   initializePerplexityService();
+  initializeImageGenerationService();
 } catch (error) {
   console.error('Error initializing services:', error);
   process.exit(1);
@@ -61,10 +63,10 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.openai.com", "https://*.plaid.com", "https://cdn.plaid.com"],
+      connectSrc: ["'self'", "https://api.openai.com", "https://api.perplexity.ai", "https://*.plaid.com", "https://cdn.plaid.com"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.plaid.com", "https://*.plaid.com"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "blob:", "https://*.plaid.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://*.plaid.com", "https://oaidalleapiprodscus.blob.core.windows.net"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       frameAncestors: ["'none'"],
       objectSrc: ["'none'"],
@@ -199,6 +201,13 @@ app.use((req, res, next) => {
 
 // Initialize services
 initializeServices();
+
+// Serve our public directory for static images and other assets
+app.use(express.static(path.join(process.cwd(), 'public'), {
+  maxAge: '1d', // Cache for 1 day
+  etag: true,
+  lastModified: true,
+}));
 
 // Setup routes
 registerRoutes(app);
