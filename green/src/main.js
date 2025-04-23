@@ -2843,10 +2843,14 @@ function renderPageContent(container) {
           });
         break;
       case 'income':
-        // Import the income page module with animation enablement
-        container.innerHTML = '<div class="loading-spinner">Loading income page...</div>';
+        // Use the futuristic income module with enhanced animations
+        container.innerHTML = '<div class="loading-spinner">Loading income dashboard...</div>';
         
-        import('../income.js').then(module => {
+        // Make appState available globally so the income module can access it
+        window.appState = appState;
+        
+        // Import our new futuristic income module
+        import('../futuristic-income.js').then(module => {
           try {
             // Reset container first for clean rendering
             container.innerHTML = '';
@@ -2856,57 +2860,65 @@ function renderPageContent(container) {
             animationContainer.className = 'fade-in-animation';
             animationContainer.style.opacity = '0';
             animationContainer.style.transform = 'translateY(20px)';
-            animationContainer.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            animationContainer.style.transition = 'opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
             
-            // Prepare user data with enough context
+            // Get current user ID for rendering
             const userId = appState.user.id;
-            const user = {
-              id: userId,
-              subscriptionStatus: appState.user.subscriptionStatus || 'free',
-              splitRatio: appState.user.splitRatio || { needs: 40, investments: 30, savings: 30 }
-            };
             
-            // Set global appState for access by income module
-            window.appState = appState;
-            
-            // Render income page with user context
+            // Render income page with futuristic UI
             const incomeElement = module.renderIncomePage(userId);
             
             if (incomeElement instanceof Node) {
               animationContainer.appendChild(incomeElement);
               container.appendChild(animationContainer);
               
-              // Trigger animation after a brief delay
+              // Create ambient background animation effect
+              const ambientBackground = document.createElement('div');
+              ambientBackground.className = 'ambient-background';
+              ambientBackground.style.position = 'absolute';
+              ambientBackground.style.top = '0';
+              ambientBackground.style.left = '0';
+              ambientBackground.style.right = '0';
+              ambientBackground.style.bottom = '0';
+              ambientBackground.style.zIndex = '-10';
+              ambientBackground.style.pointerEvents = 'none';
+              ambientBackground.style.background = 'radial-gradient(circle at 15% 50%, rgba(79, 70, 229, 0.15), transparent 25%), radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.1), transparent 25%)';
+              container.appendChild(ambientBackground);
+              
+              // Trigger entrance animation after a brief delay
               setTimeout(() => {
                 animationContainer.style.opacity = '1';
                 animationContainer.style.transform = 'translateY(0)';
                 
-                // Initialize CSS animations for interactive elements
-                const style = document.createElement('style');
-                style.textContent = `
-                  .split-bar-highlight {
-                    animation: pulsate 2s infinite alternate;
+                // Add ambient animation
+                const ambientStyle = document.createElement('style');
+                ambientStyle.textContent = `
+                  @keyframes ambientMove {
+                    0% { background-position: 0% 0%; }
+                    50% { background-position: 100% 100%; }
+                    100% { background-position: 0% 0%; }
                   }
-                  @keyframes pulsate {
-                    0% { opacity: 0.7; }
-                    100% { opacity: 1; }
+                  
+                  .ambient-background {
+                    animation: ambientMove 120s infinite ease-in-out;
+                    background-size: 200% 200%;
                   }
                 `;
-                document.head.appendChild(style);
+                document.head.appendChild(ambientStyle);
                 
-                console.log('Income page rendered with interactive animations');
+                console.log('Futuristic income dashboard rendered');
               }, 100);
             } else {
               console.error('Income element is not a DOM Node:', incomeElement);
-              container.appendChild(createErrorMessage('Error loading income tracking module'));
+              container.appendChild(createErrorMessage('Error loading futuristic income dashboard'));
             }
           } catch (err) {
             console.error('Error rendering income page:', err);
-            container.appendChild(createErrorMessage('Failed to load income tracking module'));
+            container.appendChild(createErrorMessage('Failed to load income dashboard'));
           }
         }).catch(error => {
-          console.error('Error loading income module:', error);
-          container.appendChild(createErrorMessage('Failed to load income tracking module'));
+          console.error('Error loading futuristic income module:', error);
+          container.appendChild(createErrorMessage('Failed to load income dashboard'));
         });
         break;
       case 'expenses':
