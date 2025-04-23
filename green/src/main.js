@@ -2697,7 +2697,15 @@ function renderPageContent(container) {
     // Render different pages based on the current page state
     switch(appState.currentPage) {
       case 'dashboard':
-        container.appendChild(renderDashboardPage());
+        // Dashboard is an async function, so we need to handle it with promises
+        renderDashboardPage()
+          .then(dashboardElement => {
+            container.appendChild(dashboardElement);
+          })
+          .catch(error => {
+            console.error('Error rendering dashboard:', error);
+            container.appendChild(createErrorMessage('Failed to load dashboard. Please try again.'));
+          });
         break;
       case 'income':
         container.appendChild(renderIncomePage());
@@ -2851,7 +2859,15 @@ function renderPageContent(container) {
         container.appendChild(renderSettingsPage());
         break;
       default:
-        container.appendChild(renderDashboardPage());
+        // Dashboard is an async function, so we need to handle it with promises
+        renderDashboardPage()
+          .then(dashboardElement => {
+            container.appendChild(dashboardElement);
+          })
+          .catch(error => {
+            console.error('Error rendering dashboard (default case):', error);
+            container.appendChild(createErrorMessage('Failed to load page. Please try again.'));
+          });
     }
   }
   
