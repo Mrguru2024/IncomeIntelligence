@@ -3,6 +3,7 @@
  * This file handles the sidebar navigation UI and functionality
  */
 
+// Import bank-related functions
 import { hasBankConnections } from './bank-connections.js';
 
 // Export navigateTo function so it can be used externally
@@ -300,61 +301,7 @@ export function createSidebar(appState) {
         {
           id: 'bankconnections',
           label: 'Bank Accounts',
-          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>',
-          customRender: (item, isActive) => {
-            const itemContainer = document.createElement('div');
-            itemContainer.style.display = 'flex';
-            itemContainer.style.justifyContent = 'space-between';
-            itemContainer.style.alignItems = 'center';
-            itemContainer.style.width = '100%';
-            
-            // Left side with icon and label (standard)
-            const leftSide = document.createElement('div');
-            leftSide.style.display = 'flex';
-            leftSide.style.alignItems = 'center';
-            leftSide.style.gap = '12px';
-            
-            const iconContainer = document.createElement('div');
-            iconContainer.classList.add('menu-icon');
-            iconContainer.innerHTML = item.icon;
-            iconContainer.style.color = isActive ? 'var(--color-primary)' : 'inherit';
-            
-            const label = document.createElement('span');
-            label.textContent = item.label;
-            
-            leftSide.appendChild(iconContainer);
-            leftSide.appendChild(label);
-            itemContainer.appendChild(leftSide);
-            
-            // Right side with connection status indicator (small dot)
-            const statusIndicator = document.createElement('div');
-            statusIndicator.style.width = '8px';
-            statusIndicator.style.height = '8px';
-            statusIndicator.style.borderRadius = '50%';
-            statusIndicator.style.marginRight = '8px';
-            
-            // Initially gray (loading state)
-            statusIndicator.style.backgroundColor = '#9e9e9e';
-            
-            // Check bank connection status and update the indicator
-            if (appState?.user?.id) {
-              hasBankConnections(appState.user.id)
-                .then(hasConnections => {
-                  if (hasConnections) {
-                    statusIndicator.style.backgroundColor = '#4CAF50'; // Green for connected
-                  } else {
-                    statusIndicator.style.backgroundColor = '#F57C00'; // Orange for not connected
-                  }
-                })
-                .catch(error => {
-                  statusIndicator.style.backgroundColor = '#E53935'; // Red for error
-                  console.error('Error checking bank status in menu:', error);
-                });
-            }
-            
-            itemContainer.appendChild(statusIndicator);
-            return itemContainer;
-          }
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>'
         }
       ]
     },
@@ -490,26 +437,41 @@ export function createSidebar(appState) {
         }
       });
       
-      // Check if this item has a custom render function
-      if (item.customRender) {
-        // Use custom render function for special items like bank connections
-        const customContent = item.customRender(item, appState?.currentPage === item.id);
-        link.appendChild(customContent);
-      } else {
-        // Standard render for normal menu items
-        // Icon
-        const icon = document.createElement('span');
-        icon.classList.add('menu-icon');
-        icon.innerHTML = item.icon;
-        icon.style.marginRight = '12px';
-        icon.style.display = 'flex';
-        icon.style.alignItems = 'center';
-        link.appendChild(icon);
+      // Standard render for all menu items (icon and label always rendered)
+      // Icon
+      const icon = document.createElement('span');
+      icon.classList.add('menu-icon');
+      icon.innerHTML = item.icon;
+      icon.style.marginRight = '12px';
+      icon.style.display = 'flex';
+      icon.style.alignItems = 'center';
+      link.appendChild(icon);
+      
+      // Label
+      const label = document.createElement('span');
+      label.textContent = item.label;
+      link.appendChild(label);
+      
+      // If there's a custom status indicator for items like bank connections
+      if (item.id === 'bankconnections' && appState?.user?.id) {
+        // Add a simple status indicator dot
+        const statusDot = document.createElement('span');
+        statusDot.style.display = 'inline-block';
+        statusDot.style.width = '8px';
+        statusDot.style.height = '8px';
+        statusDot.style.borderRadius = '50%';
+        statusDot.style.backgroundColor = '#9e9e9e'; // Default gray
+        statusDot.style.marginLeft = '8px';
+        link.appendChild(statusDot);
         
-        // Label
-        const label = document.createElement('span');
-        label.textContent = item.label;
-        link.appendChild(label);
+        // Update the status dot color based on connection status
+        hasBankConnections(appState.user.id)
+          .then(hasConnections => {
+            statusDot.style.backgroundColor = hasConnections ? '#4CAF50' : '#F57C00';
+          })
+          .catch(() => {
+            statusDot.style.backgroundColor = '#E53935'; // Red for error
+          });
       }
 
       // Badge (if present)
