@@ -48,6 +48,7 @@ import {
   AIProvider,
   type FinancialAdviceRequest 
 } from "./ai-service";
+import { generateBlogImage, formatBlogImagePrompt } from "./services/image-generation-service";
 import { notificationService } from "./notification-service";
 import { requireAuth, checkUserMatch } from "./middleware/authMiddleware";
 import { requireAdmin } from "./middleware/adminMiddleware";

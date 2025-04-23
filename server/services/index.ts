@@ -15,8 +15,8 @@ export const initializeServices = () => {
     try {
       initializeImageGenerationService();
       console.log('Image generation service initialized successfully');
-    } catch (error) {
-      console.warn('Image generation service could not be initialized:', error.message);
+    } catch (error: any) {
+      console.warn('Image generation service could not be initialized:', error?.message || 'Unknown error');
       console.warn('Blog image generation will not be available');
     }
   } catch (error) {
