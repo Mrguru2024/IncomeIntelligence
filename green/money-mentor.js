@@ -60,41 +60,117 @@ function createMessageElement(message) {
   const isUser = message.role === 'user';
   const messageContainer = document.createElement('div');
   messageContainer.className = `flex w-full mb-4 ${isUser ? 'justify-end' : 'justify-start'}`;
+  messageContainer.style.opacity = '0';
+  messageContainer.style.transform = 'translateY(10px)';
+  messageContainer.style.transition = 'all 0.3s ease-out';
+  
+  // Add animation delay
+  setTimeout(() => {
+    messageContainer.style.opacity = '1';
+    messageContainer.style.transform = 'translateY(0)';
+  }, 100);
   
   const messageBubble = document.createElement('div');
-  messageBubble.className = `max-w-[80%] rounded-lg p-4 ${
-    isUser ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800'
-  }`;
+  
+  if (isUser) {
+    // User message bubble with gradient
+    messageBubble.style.background = 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)';
+    messageBubble.style.color = 'white';
+    messageBubble.style.borderRadius = '18px 18px 4px 18px';
+    messageBubble.style.boxShadow = '0 4px 15px rgba(99, 102, 241, 0.2)';
+  } else {
+    // Assistant message bubble
+    messageBubble.style.background = '#f8f9fa';
+    messageBubble.style.borderRadius = '18px 18px 18px 4px';
+    messageBubble.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+    messageBubble.style.border = '1px solid rgba(0, 0, 0, 0.08)';
+  }
+  
+  messageBubble.style.padding = '16px';
+  messageBubble.style.maxWidth = '80%';
   
   if (message.isLoading) {
-    // Loading message
+    // Enhanced loading message
     const loadingDiv = document.createElement('div');
-    loadingDiv.className = 'flex items-center space-x-2';
+    loadingDiv.style.display = 'flex';
+    loadingDiv.style.alignItems = 'center';
+    loadingDiv.style.gap = '12px';
     
-    const spinner = document.createElement('div');
-    spinner.className = 'h-4 w-4 animate-spin border-2 border-t-transparent border-primary rounded-full';
+    // Improved loading animation
+    const loadingDots = document.createElement('div');
+    loadingDots.style.display = 'flex';
+    loadingDots.style.gap = '4px';
+    
+    for (let i = 0; i < 3; i++) {
+      const dot = document.createElement('div');
+      dot.style.width = '8px';
+      dot.style.height = '8px';
+      dot.style.borderRadius = '50%';
+      dot.style.background = '#6366F1';
+      dot.style.animation = `dotPulse 1.5s infinite ease-in-out ${i * 0.2}s`;
+      
+      // Add keyframe animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes dotPulse {
+          0%, 100% { transform: scale(0.8); opacity: 0.5; }
+          50% { transform: scale(1.2); opacity: 1; }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      loadingDots.appendChild(dot);
+    }
     
     const text = document.createElement('span');
     text.textContent = 'Your Money Mentor is thinking...';
+    text.style.fontStyle = 'italic';
     
-    loadingDiv.appendChild(spinner);
+    loadingDiv.appendChild(loadingDots);
     loadingDiv.appendChild(text);
     messageBubble.appendChild(loadingDiv);
   } else {
-    // Regular message
+    // Enhanced regular message
     if (message.category && !isUser) {
       const categoryTag = document.createElement('div');
-      categoryTag.className = 'text-xs font-medium mb-1 text-primary';
-      categoryTag.textContent = `${getCategoryLabel(message.category)} Advice`;
+      categoryTag.style.fontSize = '12px';
+      categoryTag.style.fontWeight = '600';
+      categoryTag.style.marginBottom = '8px';
+      categoryTag.style.color = '#6366F1';
+      categoryTag.style.display = 'flex';
+      categoryTag.style.alignItems = 'center';
+      categoryTag.style.gap = '4px';
+      
+      // Add category icon
+      const categoryIcon = document.createElement('span');
+      categoryIcon.innerHTML = getCategoryIcon(message.category);
+      categoryIcon.style.display = 'inline-flex';
+      
+      const categoryText = document.createElement('span');
+      categoryText.textContent = `${getCategoryLabel(message.category)} Advice`;
+      
+      categoryTag.appendChild(categoryIcon);
+      categoryTag.appendChild(categoryText);
       messageBubble.appendChild(categoryTag);
     }
     
     const content = document.createElement('div');
-    content.className = 'whitespace-pre-wrap';
-    content.textContent = message.content;
+    content.style.whiteSpace = 'pre-wrap';
+    content.style.lineHeight = '1.5';
+    
+    // For assistant messages only, add typwriter effect to the first message
+    if (!isUser && message.content.includes("Hello! I'm your Money Mentor")) {
+      content.textContent = '';
+      typeWriter(content, message.content, 0, 20);
+    } else {
+      content.textContent = message.content;
+    }
     
     const timestamp = document.createElement('div');
-    timestamp.className = 'text-xs mt-2 opacity-70';
+    timestamp.style.fontSize = '11px';
+    timestamp.style.marginTop = '8px';
+    timestamp.style.opacity = '0.7';
+    timestamp.style.textAlign = isUser ? 'right' : 'left';
     timestamp.textContent = formatTime(message.timestamp);
     
     messageBubble.appendChild(content);
@@ -106,20 +182,120 @@ function createMessageElement(message) {
 }
 
 /**
+ * Typewriter effect for welcome message
+ */
+function typeWriter(element, text, i, speed) {
+  if (i < text.length) {
+    element.textContent += text.charAt(i);
+    i++;
+    setTimeout(() => typeWriter(element, text, i, speed), speed);
+  }
+}
+
+/**
+ * Get icon for financial category
+ */
+function getCategoryIcon(category) {
+  const icons = {
+    [FinancialTopicCategory.BUDGETING]: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>',
+    [FinancialTopicCategory.INVESTING]: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>',
+    [FinancialTopicCategory.SAVING]: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2h0V5z"></path><path d="M2 9v1c0 1.1.9 2 2 2h1"></path><path d="M16 11h0"></path></svg>',
+    [FinancialTopicCategory.DEBT]: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>',
+    [FinancialTopicCategory.RETIREMENT]: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+    [FinancialTopicCategory.TAXES]: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4z"></path><path d="m16 8-8 8"></path><path d="M16 16h.01"></path><path d="M8 8h.01"></path></svg>',
+    [FinancialTopicCategory.INCOME]: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
+    [FinancialTopicCategory.GENERAL]: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+  };
+  
+  return icons[category] || icons[FinancialTopicCategory.GENERAL];
+}
+
+/**
  * Create suggestion button element
  * @param {string} text - Suggestion text
  * @param {Function} onClick - Click handler
  * @returns {HTMLElement} - Suggestion button element
  */
 function createSuggestionButton(text, onClick) {
+  const item = document.createElement('li');
+  item.style.marginBottom = '10px';
+  item.style.opacity = '0';
+  item.style.transform = 'translateY(5px)';
+  item.style.transition = 'all 0.4s ease-out';
+  
+  // Random delay for staggered animation
+  const delay = Math.random() * 0.5 + 0.1;
+  setTimeout(() => {
+    item.style.opacity = '1';
+    item.style.transform = 'translateY(0)';
+  }, delay * 1000);
+  
   const button = document.createElement('button');
-  button.className = 'text-primary hover:underline text-left w-full';
-  button.textContent = text;
+  button.style.textAlign = 'left';
+  button.style.width = '100%';
+  button.style.padding = '12px 14px';
+  button.style.borderRadius = '10px';
+  button.style.border = '1px solid rgba(99, 102, 241, 0.2)';
+  button.style.background = 'white';
+  button.style.color = '#6366F1';
+  button.style.fontSize = '14px';
+  button.style.fontWeight = '500';
+  button.style.cursor = 'pointer';
+  button.style.transition = 'all 0.2s ease';
+  button.style.display = 'flex';
+  button.style.alignItems = 'center';
+  button.style.gap = '8px';
+  button.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.05)';
+  
+  // Add icon
+  const icon = document.createElement('span');
+  icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="m12 17 .01.01"></path></svg>';
+  
+  const textSpan = document.createElement('span');
+  textSpan.textContent = text;
+  textSpan.style.flex = '1';
+  
+  button.appendChild(icon);
+  button.appendChild(textSpan);
+  
+  // Add arrow icon
+  const arrowIcon = document.createElement('span');
+  arrowIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>';
+  arrowIcon.style.opacity = '0';
+  arrowIcon.style.transition = 'opacity 0.2s ease';
+  button.appendChild(arrowIcon);
+  
+  // Hover effects
+  button.addEventListener('mouseover', () => {
+    button.style.background = 'rgba(99, 102, 241, 0.05)';
+    button.style.borderColor = 'rgba(99, 102, 241, 0.5)';
+    button.style.transform = 'translateY(-1px)';
+    button.style.boxShadow = '0 4px 10px rgba(99, 102, 241, 0.1)';
+    arrowIcon.style.opacity = '1';
+  });
+  
+  button.addEventListener('mouseout', () => {
+    button.style.background = 'white';
+    button.style.borderColor = 'rgba(99, 102, 241, 0.2)';
+    button.style.transform = 'translateY(0)';
+    button.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.05)';
+    arrowIcon.style.opacity = '0';
+  });
+  
+  // Click effects
+  button.addEventListener('mousedown', () => {
+    button.style.transform = 'translateY(1px)';
+    button.style.boxShadow = '0 2px 3px rgba(99, 102, 241, 0.1)';
+  });
+  
+  button.addEventListener('mouseup', () => {
+    button.style.transform = 'translateY(-1px)';
+    button.style.boxShadow = '0 4px 10px rgba(99, 102, 241, 0.1)';
+  });
+  
   button.onclick = () => onClick(text);
   
-  const item = document.createElement('li');
   item.appendChild(button);
-  
   return item;
 }
 
@@ -178,16 +354,33 @@ export async function renderMoneyMentorPage(userId) {
   const container = document.createElement('div');
   container.className = 'container py-8 space-y-8';
   
-  // Create header
+  // Create header with gradient
   const header = document.createElement('div');
   header.className = 'text-center max-w-2xl mx-auto mb-8';
+  header.style.opacity = '0';
+  header.style.transform = 'translateY(-10px)';
+  header.style.transition = 'all 0.5s ease-out';
+  
+  // Fade in animation
+  setTimeout(() => {
+    header.style.opacity = '1';
+    header.style.transform = 'translateY(0)';
+  }, 100);
   
   const title = document.createElement('h1');
   title.className = 'text-4xl font-extrabold tracking-tight';
+  title.style.background = 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)';
+  title.style.webkitBackgroundClip = 'text';
+  title.style.backgroundClip = 'text';
+  title.style.color = 'transparent';
+  title.style.marginBottom = '12px';
   title.textContent = 'Money Mentor';
   
   const subtitle = document.createElement('p');
   subtitle.className = 'text-xl text-muted-foreground mt-2';
+  subtitle.style.maxWidth = '80%';
+  subtitle.style.margin = '0 auto';
+  subtitle.style.color = '#666';
   subtitle.textContent = 'Get personalized financial advice powered by Perplexity AI';
   
   header.appendChild(title);
@@ -249,29 +442,80 @@ export async function renderMoneyMentorPage(userId) {
   const form = document.createElement('form');
   form.className = 'w-full space-y-2';
   
-  // Create category selection
+  // Create category selection with enhanced styling
   const categoryContainer = document.createElement('div');
-  categoryContainer.className = 'flex gap-2';
+  categoryContainer.style.display = 'flex';
+  categoryContainer.style.alignItems = 'center';
+  categoryContainer.style.gap = '8px';
+  categoryContainer.style.marginBottom = '10px';
   
   const categoryLabel = document.createElement('label');
   categoryLabel.htmlFor = 'advice-category';
-  categoryLabel.className = 'text-sm font-medium';
-  categoryLabel.textContent = 'Advice category:';
+  categoryLabel.style.fontSize = '14px';
+  categoryLabel.style.fontWeight = '500';
+  categoryLabel.style.color = '#555';
+  categoryLabel.style.display = 'flex';
+  categoryLabel.style.alignItems = 'center';
+  categoryLabel.style.gap = '6px';
   
+  // Add icon to label
+  const labelIcon = document.createElement('span');
+  labelIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3h16a2 2 0 0 1 2 2v6a10 10 0 0 1-10 10A10 10 0 0 1 2 11V5a2 2 0 0 1 2-2z"></path><path d="M8 10v.01"></path><path d="M12 10v.01"></path><path d="M16 10v.01"></path></svg>';
+  labelIcon.style.display = 'inline-flex';
+  
+  const labelText = document.createElement('span');
+  labelText.textContent = 'Advice category:';
+  
+  categoryLabel.appendChild(labelIcon);
+  categoryLabel.appendChild(labelText);
+  
+  // Enhanced select dropdown
   const categorySelect = document.createElement('select');
   categorySelect.id = 'advice-category';
-  categorySelect.className = 'border rounded p-1.5 text-sm bg-white dark:bg-gray-800 dark:border-gray-700';
+  categorySelect.style.padding = '8px 12px';
+  categorySelect.style.border = '1px solid rgba(99, 102, 241, 0.3)';
+  categorySelect.style.borderRadius = '8px';
+  categorySelect.style.backgroundColor = 'white';
+  categorySelect.style.fontSize = '14px';
+  categorySelect.style.color = '#333';
+  categorySelect.style.outline = 'none';
+  categorySelect.style.cursor = 'pointer';
+  categorySelect.style.transition = 'all 0.2s ease';
+  categorySelect.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.05)';
   
-  // Add options
+  // Add hover and focus effects
+  categorySelect.addEventListener('mouseover', () => {
+    categorySelect.style.borderColor = 'rgba(99, 102, 241, 0.5)';
+    categorySelect.style.boxShadow = '0 2px 8px rgba(99, 102, 241, 0.1)';
+  });
+  
+  categorySelect.addEventListener('mouseout', () => {
+    if (document.activeElement !== categorySelect) {
+      categorySelect.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+      categorySelect.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.05)';
+    }
+  });
+  
+  categorySelect.addEventListener('focus', () => {
+    categorySelect.style.borderColor = 'rgba(99, 102, 241, 0.8)';
+    categorySelect.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.2)';
+  });
+  
+  categorySelect.addEventListener('blur', () => {
+    categorySelect.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+    categorySelect.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.05)';
+  });
+  
+  // Add options with category-specific icons
   const categories = [
-    { value: FinancialTopicCategory.GENERAL, label: 'General Advice' },
-    { value: FinancialTopicCategory.BUDGETING, label: 'Budgeting' },
-    { value: FinancialTopicCategory.INVESTING, label: 'Investing' },
-    { value: FinancialTopicCategory.SAVING, label: 'Saving' },
-    { value: FinancialTopicCategory.DEBT, label: 'Debt Management' },
-    { value: FinancialTopicCategory.RETIREMENT, label: 'Retirement' },
-    { value: FinancialTopicCategory.TAXES, label: 'Taxes' },
-    { value: FinancialTopicCategory.INCOME, label: 'Income Generation' }
+    { value: FinancialTopicCategory.GENERAL, label: 'General Advice', icon: getCategoryIcon(FinancialTopicCategory.GENERAL) },
+    { value: FinancialTopicCategory.BUDGETING, label: 'Budgeting', icon: getCategoryIcon(FinancialTopicCategory.BUDGETING) },
+    { value: FinancialTopicCategory.INVESTING, label: 'Investing', icon: getCategoryIcon(FinancialTopicCategory.INVESTING) },
+    { value: FinancialTopicCategory.SAVING, label: 'Saving', icon: getCategoryIcon(FinancialTopicCategory.SAVING) },
+    { value: FinancialTopicCategory.DEBT, label: 'Debt Management', icon: getCategoryIcon(FinancialTopicCategory.DEBT) },
+    { value: FinancialTopicCategory.RETIREMENT, label: 'Retirement', icon: getCategoryIcon(FinancialTopicCategory.RETIREMENT) },
+    { value: FinancialTopicCategory.TAXES, label: 'Taxes', icon: getCategoryIcon(FinancialTopicCategory.TAXES) },
+    { value: FinancialTopicCategory.INCOME, label: 'Income Generation', icon: getCategoryIcon(FinancialTopicCategory.INCOME) }
   ];
   
   categories.forEach(category => {
@@ -284,26 +528,120 @@ export async function renderMoneyMentorPage(userId) {
   categoryContainer.appendChild(categoryLabel);
   categoryContainer.appendChild(categorySelect);
   
-  // Create input area
+  // Create enhanced textarea input area
   const inputContainer = document.createElement('div');
-  inputContainer.className = 'flex gap-2';
+  inputContainer.style.position = 'relative';
+  inputContainer.style.display = 'flex';
+  inputContainer.style.gap = '12px';
+  inputContainer.style.alignItems = 'flex-end';
+  
+  const textareaWrapper = document.createElement('div');
+  textareaWrapper.style.position = 'relative';
+  textareaWrapper.style.flexGrow = '1';
   
   const textarea = document.createElement('textarea');
-  textarea.className = 'flex-grow resize-none border rounded p-2 min-h-[80px] bg-white dark:bg-gray-800 dark:border-gray-700';
+  textarea.style.width = '100%';
+  textarea.style.resize = 'none';
+  textarea.style.minHeight = '80px';
+  textarea.style.padding = '12px 16px';
+  textarea.style.borderRadius = '12px';
+  textarea.style.border = '1px solid rgba(99, 102, 241, 0.3)';
+  textarea.style.backgroundColor = 'white';
+  textarea.style.fontSize = '15px';
+  textarea.style.lineHeight = '1.5';
+  textarea.style.color = '#333';
+  textarea.style.transition = 'all 0.2s ease';
+  textarea.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.05)';
+  textarea.style.outline = 'none';
   textarea.placeholder = 'Ask for financial advice...';
   
+  // Add effects
+  textarea.addEventListener('focus', () => {
+    textarea.style.borderColor = 'rgba(99, 102, 241, 0.8)';
+    textarea.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.2)';
+  });
+  
+  textarea.addEventListener('blur', () => {
+    textarea.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+    textarea.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.05)';
+  });
+  
+  textareaWrapper.appendChild(textarea);
+  
+  // Create character counter
+  const charCounter = document.createElement('div');
+  charCounter.style.position = 'absolute';
+  charCounter.style.right = '10px';
+  charCounter.style.bottom = '10px';
+  charCounter.style.fontSize = '12px';
+  charCounter.style.color = '#aaa';
+  charCounter.style.pointerEvents = 'none';
+  charCounter.textContent = '0/250';
+  
+  // Update character counter
+  textarea.addEventListener('input', () => {
+    const count = textarea.value.length;
+    charCounter.textContent = `${count}/250`;
+    
+    // Change color if getting close to limit
+    if (count > 200) {
+      charCounter.style.color = '#f97316';
+    } else if (count > 150) {
+      charCounter.style.color = '#eab308';
+    } else {
+      charCounter.style.color = '#aaa';
+    }
+  });
+  
+  textareaWrapper.appendChild(charCounter);
+  
+  // Create enhanced send button with hover effects
   const sendButton = document.createElement('button');
   sendButton.type = 'submit';
-  sendButton.className = 'bg-primary text-white h-10 w-10 rounded-md flex items-center justify-center self-end';
+  sendButton.style.width = '50px';
+  sendButton.style.height = '50px';
+  sendButton.style.display = 'flex';
+  sendButton.style.alignItems = 'center';
+  sendButton.style.justifyContent = 'center';
+  sendButton.style.background = 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)';
+  sendButton.style.color = 'white';
+  sendButton.style.border = 'none';
+  sendButton.style.borderRadius = '12px';
+  sendButton.style.boxShadow = '0 4px 10px rgba(99, 102, 241, 0.3)';
+  sendButton.style.transition = 'all 0.2s ease';
+  sendButton.style.cursor = 'pointer';
+  sendButton.style.alignSelf = 'flex-end';
+  sendButton.style.marginBottom = '2px';
+  
+  // Add hover effects
+  sendButton.addEventListener('mouseover', () => {
+    sendButton.style.transform = 'translateY(-2px)';
+    sendButton.style.boxShadow = '0 6px 15px rgba(99, 102, 241, 0.4)';
+  });
+  
+  sendButton.addEventListener('mouseout', () => {
+    sendButton.style.transform = 'translateY(0)';
+    sendButton.style.boxShadow = '0 4px 10px rgba(99, 102, 241, 0.3)';
+  });
+  
+  // Add active effect
+  sendButton.addEventListener('mousedown', () => {
+    sendButton.style.transform = 'translateY(1px)';
+  });
+  
+  sendButton.addEventListener('mouseup', () => {
+    sendButton.style.transform = 'translateY(-2px)';
+  });
+  
   sendButton.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" 
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" 
       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="22" y1="2" x2="11" y2="13"></line>
       <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
     </svg>
   `;
   
-  inputContainer.appendChild(textarea);
+  inputContainer.appendChild(textareaWrapper);
   inputContainer.appendChild(sendButton);
   
   form.appendChild(categoryContainer);
@@ -319,16 +657,45 @@ export async function renderMoneyMentorPage(userId) {
   const sidebar = document.createElement('div');
   sidebar.className = 'md:col-span-3 space-y-6';
   
-  // Suggested topics
+  // Suggested topics with animation
   const topicsCard = document.createElement('div');
-  topicsCard.className = 'bg-gray-100 dark:bg-gray-800 p-6 rounded-lg';
+  topicsCard.style.background = 'white';
+  topicsCard.style.padding = '20px';
+  topicsCard.style.borderRadius = '12px';
+  topicsCard.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.05)';
+  topicsCard.style.border = '1px solid rgba(0, 0, 0, 0.05)';
+  topicsCard.style.opacity = '0';
+  topicsCard.style.transform = 'translateY(10px)';
+  topicsCard.style.transition = 'all 0.5s ease-out';
+  
+  // Fade in animation with delay
+  setTimeout(() => {
+    topicsCard.style.opacity = '1';
+    topicsCard.style.transform = 'translateY(0)';
+  }, 300);
   
   const topicsTitle = document.createElement('h3');
-  topicsTitle.className = 'text-lg font-medium mb-3';
-  topicsTitle.textContent = 'Suggested Topics';
+  topicsTitle.style.fontSize = '18px';
+  topicsTitle.style.fontWeight = '600';
+  topicsTitle.style.marginBottom = '16px';
+  topicsTitle.style.display = 'flex';
+  topicsTitle.style.alignItems = 'center';
+  topicsTitle.style.gap = '8px';
+  
+  // Add icon to title
+  const topicIcon = document.createElement('span');
+  topicIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="m12 17 .01.01"></path></svg>';
+  
+  const topicTextSpan = document.createElement('span');
+  topicTextSpan.textContent = 'Suggested Topics';
+  
+  topicsTitle.appendChild(topicIcon);
+  topicsTitle.appendChild(topicTextSpan);
   
   const topicsList = document.createElement('ul');
-  topicsList.className = 'space-y-2';
+  topicsList.style.listStyle = 'none';
+  topicsList.style.padding = '0';
+  topicsList.style.margin = '0';
   
   const suggestedTopics = [
     'How can I start investing with only $500?',
@@ -341,20 +708,73 @@ export async function renderMoneyMentorPage(userId) {
   topicsCard.appendChild(topicsTitle);
   topicsCard.appendChild(topicsList);
   
-  // Pro features
+  // Pro features card
   const proCard = document.createElement('div');
-  proCard.className = 'bg-gray-100 dark:bg-gray-800 p-6 rounded-lg';
+  proCard.style.background = 'linear-gradient(145deg, #EEF2FF 0%, #F5F3FF 100%)';
+  proCard.style.padding = '20px';
+  proCard.style.borderRadius = '12px';
+  proCard.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.05)';
+  proCard.style.border = '1px solid rgba(99, 102, 241, 0.1)';
+  proCard.style.marginTop = '20px';
+  proCard.style.opacity = '0';
+  proCard.style.transform = 'translateY(10px)';
+  proCard.style.transition = 'all 0.5s ease-out';
+  
+  // Fade in animation with delay
+  setTimeout(() => {
+    proCard.style.opacity = '1';
+    proCard.style.transform = 'translateY(0)';
+  }, 500);
+  
+  // Add pro badge
+  const proBadgeContainer = document.createElement('div');
+  proBadgeContainer.style.display = 'flex';
+  proBadgeContainer.style.alignItems = 'center';
+  proBadgeContainer.style.justifyContent = 'space-between';
+  proBadgeContainer.style.marginBottom = '12px';
   
   const proTitle = document.createElement('h3');
-  proTitle.className = 'text-lg font-medium mb-3';
-  proTitle.textContent = 'Pro Features';
+  proTitle.style.fontSize = '18px';
+  proTitle.style.fontWeight = '600';
+  proTitle.style.margin = '0';
+  proTitle.style.display = 'flex';
+  proTitle.style.alignItems = 'center';
+  proTitle.style.gap = '8px';
+  
+  // Add icon to pro title
+  const proIcon = document.createElement('span');
+  proIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>';
+  
+  const proTextSpan = document.createElement('span');
+  proTextSpan.textContent = 'Pro Features';
+  
+  proTitle.appendChild(proIcon);
+  proTitle.appendChild(proTextSpan);
+  
+  const proBadge = document.createElement('span');
+  proBadge.style.background = 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)';
+  proBadge.style.color = 'white';
+  proBadge.style.padding = '4px 10px';
+  proBadge.style.borderRadius = '20px';
+  proBadge.style.fontSize = '12px';
+  proBadge.style.fontWeight = 'bold';
+  proBadge.style.boxShadow = '0 2px 6px rgba(99, 102, 241, 0.3)';
+  proBadge.textContent = 'PRO';
+  
+  proBadgeContainer.appendChild(proTitle);
+  proBadgeContainer.appendChild(proBadge);
   
   const proDescription = document.createElement('p');
-  proDescription.className = 'text-sm text-muted-foreground mb-4';
+  proDescription.style.fontSize = '14px';
+  proDescription.style.color = '#666';
+  proDescription.style.marginBottom = '16px';
+  proDescription.style.lineHeight = '1.5';
   proDescription.textContent = 'Upgrade to Stackr Pro to unlock enhanced Money Mentor capabilities:';
   
   const proFeaturesList = document.createElement('ul');
-  proFeaturesList.className = 'space-y-2 text-sm';
+  proFeaturesList.style.listStyle = 'none';
+  proFeaturesList.style.padding = '0';
+  proFeaturesList.style.margin = '0 0 16px 0';
   
   const proFeatures = [
     'Unlimited AI-powered financial advice',
@@ -364,13 +784,26 @@ export async function renderMoneyMentorPage(userId) {
     'Chat history & saved advice'
   ];
   
-  proFeatures.forEach(feature => {
+  proFeatures.forEach((feature, index) => {
     const item = document.createElement('li');
-    item.className = 'flex items-start';
+    item.style.display = 'flex';
+    item.style.alignItems = 'flex-start';
+    item.style.marginBottom = '10px';
+    item.style.fontSize = '14px';
+    item.style.opacity = '0';
+    item.style.transform = 'translateX(10px)';
+    item.style.transition = 'all 0.4s ease-out';
+    
+    // Staggered animation
+    setTimeout(() => {
+      item.style.opacity = '1';
+      item.style.transform = 'translateX(0)';
+    }, 600 + (index * 100));
     
     const checkmark = document.createElement('span');
-    checkmark.className = 'text-primary mr-2';
-    checkmark.textContent = '✓';
+    checkmark.style.color = '#6366F1';
+    checkmark.style.marginRight = '8px';
+    checkmark.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
     
     const text = document.createElement('span');
     text.textContent = feature;
@@ -382,15 +815,38 @@ export async function renderMoneyMentorPage(userId) {
   
   const upgradeButton = document.createElement('a');
   upgradeButton.href = '/subscription.html';
-  upgradeButton.className = 'block mt-4';
+  upgradeButton.style.display = 'block';
+  upgradeButton.style.width = '100%';
+  upgradeButton.style.textDecoration = 'none';
   
   const upgradeButtonInner = document.createElement('button');
-  upgradeButtonInner.className = 'w-full bg-primary text-white py-2 rounded-md font-medium';
+  upgradeButtonInner.style.width = '100%';
+  upgradeButtonInner.style.padding = '10px 0';
+  upgradeButtonInner.style.background = 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)';
+  upgradeButtonInner.style.color = 'white';
+  upgradeButtonInner.style.border = 'none';
+  upgradeButtonInner.style.borderRadius = '8px';
+  upgradeButtonInner.style.fontSize = '15px';
+  upgradeButtonInner.style.fontWeight = '600';
+  upgradeButtonInner.style.cursor = 'pointer';
+  upgradeButtonInner.style.boxShadow = '0 4px 10px rgba(99, 102, 241, 0.3)';
+  upgradeButtonInner.style.transition = 'all 0.2s ease';
   upgradeButtonInner.textContent = 'Upgrade to Pro';
+  
+  // Button hover effect
+  upgradeButtonInner.addEventListener('mouseover', () => {
+    upgradeButtonInner.style.transform = 'translateY(-2px)';
+    upgradeButtonInner.style.boxShadow = '0 6px 15px rgba(99, 102, 241, 0.4)';
+  });
+  
+  upgradeButtonInner.addEventListener('mouseout', () => {
+    upgradeButtonInner.style.transform = 'translateY(0)';
+    upgradeButtonInner.style.boxShadow = '0 4px 10px rgba(99, 102, 241, 0.3)';
+  });
   
   upgradeButton.appendChild(upgradeButtonInner);
   
-  proCard.appendChild(proTitle);
+  proCard.appendChild(proBadgeContainer);
   proCard.appendChild(proDescription);
   proCard.appendChild(proFeaturesList);
   proCard.appendChild(upgradeButton);
