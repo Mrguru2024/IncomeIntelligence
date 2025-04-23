@@ -12,6 +12,22 @@ import cookieParser from "cookie-parser";
 import csrf from "csurf";
 import { preventApiAbuse, sanitizeQueryParams, setSecurityHeaders } from "./middleware/apiProtection";
 import { optionalAuth } from "./middleware/authMiddleware";
+
+// Module script handling middleware
+const moduleScriptHandler = (req: Request, res: Response, next: NextFunction) => {
+  if (
+    req.path.endsWith('.tsx') || 
+    req.path.endsWith('.ts') || 
+    req.path.endsWith('.jsx') || 
+    req.path.endsWith('.js') || 
+    req.path.endsWith('.mjs')
+  ) {
+    // Allow the browser to handle modules correctly
+    res.setHeader('Content-Type', 'application/javascript');
+    res.removeHeader('X-Content-Type-Options');
+  }
+  next();
+};
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -176,6 +192,9 @@ app.use(setSecurityHeaders);
 
 // Add optional authentication middleware to populate req.user when a valid token is present
 app.use(optionalAuth);
+
+// Apply module script handling middleware
+app.use(moduleScriptHandler);
 
 // Logging middleware for API endpoints
 app.use((req, res, next) => {

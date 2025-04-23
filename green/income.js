@@ -202,7 +202,196 @@ function getIncomeCategories() {
   ];
 }
 
-// Render the income management page
+// Function to filter income entries based on time period
+function filterIncomeEntries(filterValue) {
+  const incomeEntries = appState.incomeEntries || [];
+  const incomeEntriesContainer = document.getElementById('income-entries');
+  if (!incomeEntriesContainer) return;
+  
+  let filteredEntries = [...incomeEntries];
+  
+  // Filter based on selected time period
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  
+  if (filterValue === 'month') {
+    filteredEntries = incomeEntries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
+    });
+  } else if (filterValue === 'year') {
+    filteredEntries = incomeEntries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate.getFullYear() === currentYear;
+    });
+  }
+  
+  // Get income categories
+  const incomeCategories = getIncomeCategories();
+  
+  // Sort entries by date (newest first)
+  filteredEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  // Update table with filtered entries
+  incomeEntriesContainer.innerHTML = filteredEntries.map((entry, index) => {
+    const category = incomeCategories.find(cat => cat.id === entry.category) || { name: 'Other', icon: '🔹' };
+    
+    return `
+      <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}" data-entry-id="${entry.id}">
+        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+          ${formatDate(entry.date)}
+        </td>
+        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+          ${entry.source}
+        </td>
+        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+          <span class="inline-flex items-center">
+            <span class="mr-1">${category.icon}</span>
+            ${category.name}
+          </span>
+        </td>
+        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+          ${formatCurrency(entry.amount)}
+        </td>
+        <td class="px-4 py-3 text-sm text-gray-900">
+          <div class="flex flex-col">
+            <div class="text-xs flex justify-between">
+              <span>Needs:</span>
+              <span>${formatCurrency(entry.splits.needs)}</span>
+            </div>
+            <div class="text-xs flex justify-between">
+              <span>Investments:</span>
+              <span>${formatCurrency(entry.splits.investments)}</span>
+            </div>
+            <div class="text-xs flex justify-between">
+              <span>Savings:</span>
+              <span>${formatCurrency(entry.splits.savings)}</span>
+            </div>
+          </div>
+        </td>
+        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+          <button class="edit-income-btn text-blue-600 hover:text-blue-800 mr-3">
+            Edit
+          </button>
+          <button class="delete-income-btn text-red-600 hover:text-red-800">
+            Delete
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  
+  // No entries message
+  if (filteredEntries.length === 0) {
+    const tableContainer = incomeEntriesContainer.closest('.overflow-x-auto');
+    const noEntriesContainer = document.createElement('div');
+    noEntriesContainer.className = 'text-center py-8 text-gray-500';
+    noEntriesContainer.innerHTML = `
+      <p>No income entries found for the selected period</p>
+      <button id="add-first-income-btn" class="mt-2 text-primary hover:underline">Add your first income</button>
+    `;
+    
+    // Replace table with no entries message
+    tableContainer.innerHTML = '';
+    tableContainer.appendChild(noEntriesContainer);
+  }
+  
+  // Reattach event listeners to buttons
+  const newEditButtons = document.querySelectorAll('.edit-income-btn');
+  newEditButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const row = this.closest('tr');
+      const entryId = parseInt(row.dataset.entryId, 10);
+      const entry = incomeEntries.find(e => e.id === entryId);
+      
+      if (entry) {
+        editIncomeEntry(entry);
+      }
+    });
+  });
+  
+  const newDeleteButtons = document.querySelectorAll('.delete-income-btn');
+  newDeleteButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const row = this.closest('tr');
+      const entryId = parseInt(row.dataset.entryId, 10);
+      
+      if (confirm('Are you sure you want to delete this income entry?')) {
+        const success = deleteIncomeEntry(entryId);
+        if (success) {
+          filterIncomeEntries(filterValue); // Refresh the list
+        }
+      }
+    });
+  });
+  
+  return filteredEntries;
+}
+
+// Helper function to edit an income entry
+function editIncomeEntry(entry) {
+  const modal = document.getElementById('income-modal');
+  const modalTitle = document.getElementById('modal-title');
+  const form = document.getElementById('income-form');
+  const idInput = document.getElementById('income-id');
+  const dateInput = document.getElementById('income-date');
+  const amountInput = document.getElementById('income-amount');
+  const sourceInput = document.getElementById('income-source');
+  const descriptionInput = document.getElementById('income-description');
+  const categoryInput = document.getElementById('income-category');
+  
+  // Set form values
+  idInput.value = entry.id;
+  dateInput.valueAsDate = new Date(entry.date);
+  amountInput.value = entry.amount;
+  sourceInput.value = entry.source;
+  descriptionInput.value = entry.description || '';
+  categoryInput.value = entry.category;
+  
+  // Update split preview
+  updateSplitPreview(entry.amount);
+  
+  // Update modal title
+  modalTitle.textContent = 'Edit Income';
+  
+  // Show modal
+  modal.classList.remove('hidden');
+}
+
+// Helper function to update split preview
+function updateSplitPreview(amount) {
+  const splits = calculateSplits(parseFloat(amount) || 0);
+  
+  document.getElementById('preview-needs').textContent = formatCurrency(splits.needs);
+  document.getElementById('preview-investments').textContent = formatCurrency(splits.investments);
+  document.getElementById('preview-savings').textContent = formatCurrency(splits.savings);
+}
+
+// Function to handle edit income button clicks
+function handleEditIncome(event) {
+  const entryId = event.target.dataset.id || event.target.closest('tr').dataset.entryId;
+  const entry = appState.incomeEntries.find(e => e.id == entryId);
+  
+  if (entry) {
+    editIncomeEntry(entry);
+  }
+}
+
+// Function to handle delete income button clicks
+function handleDeleteIncome(event) {
+  const entryId = event.target.dataset.id || event.target.closest('tr').dataset.entryId;
+  
+  if (confirm('Are you sure you want to delete this income entry?')) {
+    const success = deleteIncomeEntry(parseInt(entryId, 10));
+    if (success) {
+      // Refresh the view based on current view type
+      const currentFilter = document.getElementById('income-filter').value;
+      filterIncomeEntries(currentFilter);
+    }
+  }
+}
+
 export function renderIncomePage() {
   // Main container
   const incomeContainer = document.createElement('div');
