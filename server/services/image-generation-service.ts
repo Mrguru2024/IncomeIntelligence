@@ -94,10 +94,18 @@ export async function generateBlogImage(
     quality?: "standard" | "hd";
     style?: "vivid" | "natural";
   } = {}
-): Promise<string> {
+): Promise<{ url: string, error?: boolean, message?: string }> {
   // Ensure OpenAI client is initialized
   if (!openai) {
-    initializeImageGenerationService();
+    try {
+      initializeImageGenerationService();
+    } catch (error) {
+      return { 
+        url: '', 
+        error: true, 
+        message: error instanceof Error ? error.message : 'Failed to initialize image generation service' 
+      };
+    }
   }
 
   const size = options.size || IMAGE_GENERATION_SETTINGS.DEFAULT_SIZE;
@@ -112,7 +120,7 @@ export async function generateBlogImage(
     const cachedImagePath = await checkImageCache(cacheKey);
     if (cachedImagePath) {
       console.log('Using cached image for prompt:', prompt.substring(0, 30) + '...');
-      return cachedImagePath;
+      return { url: cachedImagePath };
     }
   }
 
@@ -133,7 +141,7 @@ export async function generateBlogImage(
     const imageUrl = response.data[0].url;
     
     if (!imageUrl) {
-      throw new Error('No image URL returned from OpenAI');
+      return { url: '', error: true, message: 'No image URL returned from OpenAI' };
     }
 
     // Download the image
@@ -143,10 +151,14 @@ export async function generateBlogImage(
     // Save the image to cache
     const savedImagePath = await saveImageToCache(cacheKey, imageBuffer);
     
-    return savedImagePath;
+    return { url: savedImagePath };
   } catch (error) {
     console.error('Error generating image:', error);
-    throw error;
+    return { 
+      url: '', 
+      error: true, 
+      message: error instanceof Error ? error.message : 'Unknown error during image generation' 
+    };
   }
 }
 

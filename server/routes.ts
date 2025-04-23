@@ -2732,6 +2732,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update AI settings" });
     }
   });
+  
+  // BLOG IMAGE GENERATION ENDPOINT
+  
+  // Generate an AI image for a blog post
+  app.post("/api/blog/generate-image", requireAuth, async (req, res) => {
+    try {
+      const schema = z.object({
+        blogTitle: z.string().min(5, "Blog title must be at least 5 characters"),
+        blogContent: z.string().min(20, "Blog content must be at least 20 characters for proper image generation"),
+        style: z.string().optional(),
+        financialTopic: z.string().optional(),
+      });
+      
+      const validatedData = schema.parse(req.body);
+      
+      // Format prompt based on the blog content
+      const prompt = formatBlogImagePrompt(
+        validatedData.blogTitle,
+        validatedData.blogContent,
+        validatedData.style || "modern financial illustration",
+        validatedData.financialTopic
+      );
+      
+      // Generate the image using OpenAI DALL-E
+      const imageResult = await generateBlogImage(prompt);
+      
+      if (imageResult.error) {
+        return res.status(500).json({ 
+          message: imageResult.message || "Failed to generate blog image",
+          error: true
+        });
+      }
+      
+      res.json({
+        imageUrl: imageResult.url,
+        prompt: prompt,
+        message: "Blog image generated successfully"
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      console.error('Error generating blog image:', error);
+      
+      // Check for specific error types
+      if (error instanceof Error) {
+        if (error.message.includes("quota exceeded") || error.message.includes("billing")) {
+          return res.status(429).json({ 
+            message: "AI API quota exceeded. Please update the API key or billing plan.",
+            error: true
+          });
+        } else if (error.message.includes("rate limit")) {
+          return res.status(429).json({ 
+            message: "Too many requests to AI service. Please try again in a few minutes.",
+            error: true
+          });
+        }
+      }
+      
+      res.status(500).json({ 
+        message: "Failed to generate blog image", 
+        error: true
+      });
+    }
+  });
 
   // SPENDING PERSONALITY QUIZ ENDPOINTS
   
