@@ -75,10 +75,17 @@ import {
   format,
   startOfMonth,
   endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  addWeeks,
+  subWeeks,
   parseISO,
   addMonths,
   subMonths,
   isSameMonth,
+  isSameWeek,
+  addDays,
+  getWeek,
 } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -143,7 +150,7 @@ const incomeFormSchema = z.object({
 
 type IncomeFormValues = z.infer<typeof incomeFormSchema>;
 
-type GroupByOption = "none" | "month" | "category" | "source";
+type GroupByOption = "none" | "month" | "week" | "category" | "source";
 type ChartType = "bar" | "pie" | "line";
 
 export default function IncomeHistory() {
@@ -153,6 +160,7 @@ export default function IncomeHistory() {
   const [sortOrder, setSortOrder] = useState("newest");
   const [groupBy, setGroupBy] = useState<GroupByOption>("none");
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
   const [chartType, setChartType] = useState<ChartType>("bar");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
@@ -298,9 +306,18 @@ export default function IncomeHistory() {
         const matchesMonth =
           groupBy !== "month" ||
           isSameMonth(new Date(income.date), selectedMonth);
+          
+        // Filter by selected week if grouping by week
+        const matchesWeek =
+          groupBy !== "week" ||
+          isSameWeek(new Date(income.date), selectedWeek, { weekStartsOn: 1 });
 
         return (
-          matchesSearch && matchesSource && matchesCategory && matchesMonth
+          matchesSearch && 
+          matchesSource && 
+          matchesCategory && 
+          matchesMonth &&
+          matchesWeek
         );
       })
       .sort((a, b) => {
@@ -318,6 +335,7 @@ export default function IncomeHistory() {
     sortOrder,
     groupBy,
     selectedMonth,
+    selectedWeek,
   ]);
 
   // Calculate totals
@@ -425,6 +443,54 @@ export default function IncomeHistory() {
 
     return Object.values(grouped);
   }, [filteredIncomes]);
+  
+  // Group incomes by week
+  const incomesByWeek = useMemo(() => {
+    const grouped = filteredIncomes.reduce(
+      (acc, income) => {
+        const date = new Date(income.date);
+        // Use start of week to group all income for the same week
+        const startOfWeekDate = startOfWeek(date, { weekStartsOn: 1 }); // Start week on Monday
+        const endOfWeekDate = endOfWeek(date, { weekStartsOn: 1 });
+        
+        // Format as "Apr 22-28, 2025"
+        const weekKey = `${format(startOfWeekDate, "MMM d")}-${format(endOfWeekDate, "d, yyyy")}`;
+        
+        if (!acc[weekKey]) {
+          acc[weekKey] = {
+            name: weekKey,
+            total: 0,
+            count: 0,
+            week: getWeek(date),
+            startDate: startOfWeekDate,
+          };
+        }
+
+        acc[weekKey].total +=
+          typeof income.amount === "string"
+            ? parseFloat(income.amount)
+            : income.amount;
+        acc[weekKey].count += 1;
+
+        return acc;
+      },
+      {} as Record<
+        string, 
+        { 
+          name: string; 
+          total: number; 
+          count: number; 
+          week: number;
+          startDate: Date;
+        }
+      >,
+    );
+
+    return Object.values(grouped).sort((a, b) => {
+      // Sort weeks chronologically
+      return a.startDate.getTime() - b.startDate.getTime();
+    });
+  }, [filteredIncomes]);
 
   // Navigation to previous/next month
   const navigateMonth = (direction: "prev" | "next") => {
@@ -436,12 +502,25 @@ export default function IncomeHistory() {
       }
     });
   };
+  
+  // Navigation to previous/next week
+  const navigateWeek = (direction: "prev" | "next") => {
+    setSelectedWeek((prevWeek) => {
+      if (direction === "prev") {
+        return subWeeks(prevWeek, 1);
+      } else {
+        return addWeeks(prevWeek, 1);
+      }
+    });
+  };
 
   // Get chart data based on grouping
   const chartData = useMemo(() => {
     switch (groupBy) {
       case "month":
         return incomesByMonth;
+      case "week":
+        return incomesByWeek;
       case "category":
         return incomesByCategory;
       case "source":
@@ -449,7 +528,7 @@ export default function IncomeHistory() {
       default:
         return [];
     }
-  }, [groupBy, incomesByMonth, incomesByCategory, incomesBySource]);
+  }, [groupBy, incomesByMonth, incomesByWeek, incomesByCategory, incomesBySource]);
 
   return (
     <main className="w-full px-3 sm:px-4 py-4 sm:py-6 mx-auto max-w-[100vw] sm:max-w-7xl overflow-x-hidden">
@@ -478,6 +557,14 @@ export default function IncomeHistory() {
             className={`whitespace-nowrap text-xs sm:text-sm ${groupBy === "month" ? "bg-primary text-white" : ""}`}
           >
             By Month
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setGroupBy("week")}
+            className={`whitespace-nowrap text-xs sm:text-sm ${groupBy === "week" ? "bg-primary text-white" : ""}`}
+          >
+            By Week
           </Button>
           <Button
             variant="outline"
@@ -634,6 +721,44 @@ export default function IncomeHistory() {
                     variant="outline"
                     size="icon"
                     onClick={() => navigateMonth("next")}
+                  >
+                    <ChevronRightIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              
+              {groupBy === "week" && (
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => navigateWeek("prev")}
+                  >
+                    <ChevronLeftIcon className="h-4 w-4" />
+                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="min-w-[160px]">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {format(startOfWeek(selectedWeek, { weekStartsOn: 1 }), "MMM d")} - 
+                        {format(endOfWeek(selectedWeek, { weekStartsOn: 1 }), " MMM d, yyyy")}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={selectedWeek}
+                        onSelect={(date: Date | undefined) =>
+                          date && setSelectedWeek(date)
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => navigateWeek("next")}
                   >
                     <ChevronRightIcon className="h-4 w-4" />
                   </Button>
