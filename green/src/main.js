@@ -2843,12 +2843,59 @@ function renderPageContent(container) {
           });
         break;
       case 'income':
-        // Import the income page module instead of using internal function
+        // Import the income page module with animation enablement
+        container.innerHTML = '<div class="loading-spinner">Loading income page...</div>';
+        
         import('../income.js').then(module => {
           try {
-            const incomeElement = module.renderIncomePage(appState.user.id);
+            // Reset container first for clean rendering
+            container.innerHTML = '';
+            
+            // Create animation container for smoother transition
+            const animationContainer = document.createElement('div');
+            animationContainer.className = 'fade-in-animation';
+            animationContainer.style.opacity = '0';
+            animationContainer.style.transform = 'translateY(20px)';
+            animationContainer.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            
+            // Prepare user data with enough context
+            const userId = appState.user.id;
+            const user = {
+              id: userId,
+              subscriptionStatus: appState.user.subscriptionStatus || 'free',
+              splitRatio: appState.user.splitRatio || { needs: 40, investments: 30, savings: 30 }
+            };
+            
+            // Set global appState for access by income module
+            window.appState = appState;
+            
+            // Render income page with user context
+            const incomeElement = module.renderIncomePage(userId);
+            
             if (incomeElement instanceof Node) {
-              container.appendChild(incomeElement);
+              animationContainer.appendChild(incomeElement);
+              container.appendChild(animationContainer);
+              
+              // Trigger animation after a brief delay
+              setTimeout(() => {
+                animationContainer.style.opacity = '1';
+                animationContainer.style.transform = 'translateY(0)';
+                
+                // Initialize CSS animations for interactive elements
+                const style = document.createElement('style');
+                style.textContent = `
+                  .split-bar-highlight {
+                    animation: pulsate 2s infinite alternate;
+                  }
+                  @keyframes pulsate {
+                    0% { opacity: 0.7; }
+                    100% { opacity: 1; }
+                  }
+                `;
+                document.head.appendChild(style);
+                
+                console.log('Income page rendered with interactive animations');
+              }, 100);
             } else {
               console.error('Income element is not a DOM Node:', incomeElement);
               container.appendChild(createErrorMessage('Error loading income tracking module'));
