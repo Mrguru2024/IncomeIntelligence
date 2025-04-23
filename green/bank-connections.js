@@ -91,6 +91,8 @@ export function formatDate(dateString) {
  * @returns {HTMLElement} - Connection card element
  */
 function createConnectionCard(connection) {
+  const isMobile = responsive.isMobile();
+  
   // Create card container
   const card = document.createElement('div');
   card.classList.add('bank-connection-card');
@@ -98,16 +100,31 @@ function createConnectionCard(connection) {
   card.style.borderRadius = 'var(--radius-lg)';
   card.style.background = 'var(--color-card)';
   card.style.overflow = 'hidden';
-  card.style.marginBottom = '16px';
+  card.style.marginBottom = isMobile ? '12px' : '16px';
   card.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+  card.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+  
+  // Add hover effect for desktop
+  if (!isMobile) {
+    card.addEventListener('mouseenter', () => {
+      card.style.transform = 'translateY(-2px)';
+      card.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = 'translateY(0)';
+      card.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+    });
+  }
   
   // Card header
   const header = document.createElement('div');
   header.classList.add('card-header');
-  header.style.padding = '16px';
+  header.style.padding = isMobile ? '12px' : '16px';
   header.style.borderBottom = '1px solid var(--color-border)';
   header.style.display = 'flex';
-  header.style.alignItems = 'center';
+  header.style.flexDirection = isMobile ? 'column' : 'row';
+  header.style.alignItems = isMobile ? 'flex-start' : 'center';
   header.style.justifyContent = 'space-between';
   header.style.background = 'var(--color-card)';
   
@@ -147,15 +164,21 @@ function createConnectionCard(connection) {
   statusBadge.style.borderRadius = '12px';
   statusBadge.style.fontSize = '12px';
   statusBadge.style.fontWeight = 'medium';
+  statusBadge.style.marginTop = isMobile ? '8px' : '0';
+  statusBadge.style.alignSelf = isMobile ? 'flex-start' : 'center';
+  statusBadge.style.display = 'flex';
+  statusBadge.style.alignItems = 'center';
+  statusBadge.style.gap = '4px';
+  statusBadge.style.transition = 'all 0.2s ease';
   
   if (connection.status === 'active') {
     statusBadge.style.background = '#e6f7e6';
     statusBadge.style.color = '#2e7d32';
-    statusBadge.textContent = 'Active';
+    statusBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> <span>Active</span>';
   } else {
     statusBadge.style.background = '#ffebee';
     statusBadge.style.color = '#c62828';
-    statusBadge.textContent = connection.status.charAt(0).toUpperCase() + connection.status.slice(1);
+    statusBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> <span>' + connection.status.charAt(0).toUpperCase() + connection.status.slice(1) + '</span>';
   }
   
   header.appendChild(institutionInfo);
@@ -200,22 +223,51 @@ function createConnectionCard(connection) {
   actions.classList.add('card-actions');
   actions.style.display = 'flex';
   actions.style.gap = '8px';
+  actions.style.flexWrap = isMobile ? 'wrap' : 'nowrap';
+  actions.style.justifyContent = isMobile ? 'center' : 'flex-start';
   
   // Sync button
   const syncBtn = document.createElement('button');
   syncBtn.classList.add('btn', 'btn-secondary');
   syncBtn.style.display = 'flex';
   syncBtn.style.alignItems = 'center';
+  syncBtn.style.justifyContent = 'center';
   syncBtn.style.gap = '4px';
+  syncBtn.style.minWidth = isMobile ? '100%' : 'auto';
+  syncBtn.style.marginBottom = isMobile ? '8px' : '0';
+  syncBtn.style.padding = isMobile ? '10px 16px' : '8px 12px';
+  syncBtn.style.borderRadius = '6px';
+  syncBtn.style.border = '1px solid var(--color-border)';
+  syncBtn.style.backgroundColor = 'white';
+  syncBtn.style.color = 'var(--color-text)';
+  syncBtn.style.fontWeight = '500';
+  syncBtn.style.cursor = 'pointer';
+  syncBtn.style.transition = 'all 0.2s ease';
+  
   syncBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg> Sync';
+  
+  syncBtn.addEventListener('mouseenter', () => {
+    syncBtn.style.backgroundColor = 'var(--color-border)';
+  });
+  
+  syncBtn.addEventListener('mouseleave', () => {
+    syncBtn.style.backgroundColor = 'white';
+  });
   
   syncBtn.addEventListener('click', async () => {
     try {
+      syncBtn.disabled = true;
+      syncBtn.style.opacity = '0.7';
+      syncBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg> Syncing...';
+      
       await syncTransactions(connection.id);
       // Refresh the page after successful sync
       window.location.reload();
     } catch (error) {
       console.error('Error syncing transactions:', error);
+      syncBtn.disabled = false;
+      syncBtn.style.opacity = '1';
+      syncBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg> Sync';
     }
   });
   
@@ -224,21 +276,57 @@ function createConnectionCard(connection) {
   importBtn.classList.add('btn', 'btn-secondary');
   importBtn.style.display = 'flex';
   importBtn.style.alignItems = 'center';
+  importBtn.style.justifyContent = 'center';
   importBtn.style.gap = '4px';
+  importBtn.style.minWidth = isMobile ? '100%' : 'auto';
+  importBtn.style.marginBottom = '0';
+  importBtn.style.padding = isMobile ? '10px 16px' : '8px 12px';
+  importBtn.style.borderRadius = '6px';
+  importBtn.style.border = '1px solid var(--color-border)';
+  importBtn.style.backgroundColor = 'white';
+  importBtn.style.color = 'var(--color-text)';
+  importBtn.style.fontWeight = '500';
+  importBtn.style.cursor = 'pointer';
+  importBtn.style.transition = 'all 0.2s ease';
+  
   importBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M5 15l7 7 7-7"/></svg> Import';
+  
+  importBtn.addEventListener('mouseenter', () => {
+    importBtn.style.backgroundColor = 'var(--color-border)';
+  });
+  
+  importBtn.addEventListener('mouseleave', () => {
+    importBtn.style.backgroundColor = 'white';
+  });
   
   importBtn.addEventListener('click', async () => {
     try {
+      importBtn.disabled = true;
+      importBtn.style.opacity = '0.7';
+      importBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg> Importing...';
+      
       await importTransactionsAsIncome(connection.id);
       // Refresh the page after successful import
       window.location.reload();
     } catch (error) {
       console.error('Error importing transactions:', error);
+      importBtn.disabled = false;
+      importBtn.style.opacity = '1';
+      importBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M5 15l7 7 7-7"/></svg> Import';
     }
   });
   
-  actions.appendChild(syncBtn);
-  actions.appendChild(importBtn);
+  if (isMobile) {
+    // On mobile, use a full-width container
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.width = '100%';
+    buttonContainer.appendChild(syncBtn);
+    buttonContainer.appendChild(importBtn);
+    actions.appendChild(buttonContainer);
+  } else {
+    actions.appendChild(syncBtn);
+    actions.appendChild(importBtn);
+  }
   
   content.appendChild(actions);
   
@@ -262,21 +350,44 @@ function createConnectionCard(connection) {
       return;
     }
     
-    // Create accounts table
+    // Create accounts table - responsive design
     const table = document.createElement('table');
     table.style.width = '100%';
     table.style.borderCollapse = 'collapse';
     table.style.fontSize = '14px';
     
-    // Table header
+    // Add responsive styles for tables
+    if (isMobile) {
+      table.style.display = 'block';
+      table.style.overflowX = 'auto';
+      table.style.WebkitOverflowScrolling = 'touch';
+      table.style.scrollbarWidth = 'none'; // Firefox
+      table.style.msOverflowStyle = 'none'; // IE/Edge
+      
+      // Hide scrollbar for Chrome/Safari
+      table.style.cssText += '::-webkit-scrollbar { display: none; }';
+    }
+    
+    // Table header with responsive styling
     const thead = document.createElement('thead');
-    thead.innerHTML = `
-      <tr>
-        <th style="text-align: left; padding: 8px 4px; border-bottom: 1px solid var(--color-border);">Account</th>
-        <th style="text-align: right; padding: 8px 4px; border-bottom: 1px solid var(--color-border);">Available</th>
-        <th style="text-align: right; padding: 8px 4px; border-bottom: 1px solid var(--color-border);">Current</th>
-      </tr>
-    `;
+    
+    if (isMobile) {
+      thead.innerHTML = `
+        <tr>
+          <th style="text-align: left; padding: 8px 4px; border-bottom: 1px solid var(--color-border); white-space: nowrap; min-width: 140px;">Account</th>
+          <th style="text-align: right; padding: 8px 4px; border-bottom: 1px solid var(--color-border); white-space: nowrap;">Available</th>
+          <th style="text-align: right; padding: 8px 4px; border-bottom: 1px solid var(--color-border); white-space: nowrap;">Current</th>
+        </tr>
+      `;
+    } else {
+      thead.innerHTML = `
+        <tr>
+          <th style="text-align: left; padding: 8px 4px; border-bottom: 1px solid var(--color-border);">Account</th>
+          <th style="text-align: right; padding: 8px 4px; border-bottom: 1px solid var(--color-border);">Available</th>
+          <th style="text-align: right; padding: 8px 4px; border-bottom: 1px solid var(--color-border);">Current</th>
+        </tr>
+      `;
+    }
     
     // Table body
     const tbody = document.createElement('tbody');
@@ -289,6 +400,11 @@ function createConnectionCard(connection) {
       accountCell.style.padding = '8px 4px';
       accountCell.style.borderBottom = '1px solid var(--color-border)';
       
+      if (isMobile) {
+        accountCell.style.whiteSpace = 'nowrap';
+        accountCell.style.minWidth = '140px';
+      }
+      
       const accountInfo = document.createElement('div');
       
       const accountName = document.createElement('div');
@@ -298,7 +414,17 @@ function createConnectionCard(connection) {
       const accountType = document.createElement('div');
       accountType.style.fontSize = '12px';
       accountType.style.color = 'var(--color-text-secondary)';
-      accountType.textContent = `${account.accountType}${account.accountSubtype ? ` · ${account.accountSubtype}` : ''}${account.mask ? ` · ••••${account.mask}` : ''}`;
+      
+      // On mobile, abbreviate the account type info to save space
+      if (isMobile) {
+        const type = account.accountType || '';
+        const subtype = account.accountSubtype ? `· ${account.accountSubtype.substring(0, 3)}` : '';
+        const mask = account.mask ? ` · ••${account.mask.substring(account.mask.length - 2)}` : '';
+        accountType.textContent = `${type} ${subtype}${mask}`;
+        accountType.title = `${account.accountType}${account.accountSubtype ? ` · ${account.accountSubtype}` : ''}${account.mask ? ` · ••••${account.mask}` : ''}`;
+      } else {
+        accountType.textContent = `${account.accountType}${account.accountSubtype ? ` · ${account.accountSubtype}` : ''}${account.mask ? ` · ••••${account.mask}` : ''}`;
+      }
       
       accountInfo.appendChild(accountName);
       accountInfo.appendChild(accountType);
@@ -311,12 +437,20 @@ function createConnectionCard(connection) {
       availableCell.style.borderBottom = '1px solid var(--color-border)';
       availableCell.textContent = formatCurrency(account.balanceAvailable);
       
+      if (isMobile) {
+        availableCell.style.whiteSpace = 'nowrap';
+      }
+      
       // Current balance cell
       const currentCell = document.createElement('td');
       currentCell.style.padding = '8px 4px';
       currentCell.style.textAlign = 'right';
       currentCell.style.borderBottom = '1px solid var(--color-border)';
       currentCell.textContent = formatCurrency(account.balanceCurrent);
+      
+      if (isMobile) {
+        currentCell.style.whiteSpace = 'nowrap';
+      }
       
       tr.appendChild(accountCell);
       tr.appendChild(availableCell);
