@@ -20,7 +20,7 @@ app.get('/api/green/status', (req, res) => {
     status: 'active',
     version: 'green',
     firebaseFree: true,
-    message: 'The GREEN version is running successfully!'
+    message: 'Stackr server is running successfully!'
   });
 });
 
@@ -32,5 +32,5 @@ app.get('*', (req, res) => {
 
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🟢 GREEN Server running on port ${PORT}`);
+  console.log(`🟢 Stackr Server running on port ${PORT}`);
 });

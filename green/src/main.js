@@ -3127,7 +3127,7 @@ function createErrorMessage(message) {
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('GREEN Firebase-free version initializing...');
+  console.log('Stackr Finance initializing...');
   
   // Load saved data
   loadStateFromStorage();
@@ -3151,7 +3151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFinancialMascot();
   }
   
-  console.log('GREEN Firebase-free version loaded successfully!');
+  console.log('Stackr Finance loaded successfully!');
 });
 
 // Initialize the financial education mascot

@@ -1,5 +1,5 @@
 /**
- * Plaid Link integration for the GREEN version
+ * Plaid Link integration for Stackr Finance
  * This file provides the functionality to connect to bank accounts via Plaid
  */
 

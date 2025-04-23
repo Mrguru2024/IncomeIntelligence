@@ -1,5 +1,5 @@
 /**
- * Money Mentor Module for Stackr Finance GREEN Edition
+ * Money Mentor Module for Stackr Finance
  * This module provides an AI-powered financial advice chatbot interface
  * Powered by Perplexity API for intelligent responses
  */

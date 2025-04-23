@@ -1,5 +1,5 @@
 /**
- * Authentication Utilities for Stackr Finance GREEN Edition
+ * Authentication Utilities for Stackr Finance
  * This module provides functions to check authentication status and retrieve user data
  */
 

@@ -1,5 +1,5 @@
 /**
- * Onboarding Page Component for GREEN version
+ * Onboarding Page Component for Stackr Finance
  * This file handles user onboarding experience
  */
 
@@ -113,7 +113,7 @@ export function renderOnboardingPage(appState) {
   logo.innerHTML = `
     <div style="display: flex; align-items: center; justify-content: center;">
       <span style="font-size: 42px; font-weight: 800; background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">STACKR</span>
-      <span style="font-size: 14px; font-weight: 600; background-color: #4CAF50; color: white; padding: 3px 6px; border-radius: 4px; margin-left: 8px; margin-top: 8px;">GREEN</span>
+      <!-- Removed GREEN label as requested -->
     </div>
   `;
   logo.style.filter = 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))';

@@ -1,4 +1,4 @@
-// Stackr Gigs Data for GREEN Edition
+// Stackr Gigs Data for Stackr Finance
 
 // Available gig categories with example platforms
 export const gigCategories = [

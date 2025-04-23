@@ -1,5 +1,5 @@
 /**
- * Subscriptions Page for Stackr Finance GREEN version
+ * Subscriptions Page for Stackr Finance
  * This page handles the display and management of subscription plans
  */
 

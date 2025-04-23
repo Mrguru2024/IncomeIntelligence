@@ -562,7 +562,7 @@ export function createSidebar(appState) {
   versionInfo.style.color = 'rgba(255, 255, 255, 0.5)';
   versionInfo.style.textAlign = 'center';
   versionInfo.style.borderTop = '1px solid rgba(255, 255, 255, 0.1)';
-  versionInfo.textContent = 'Stackr GREEN v1.0.0';
+  versionInfo.textContent = 'Stackr v1.0.0';
   sidebar.appendChild(versionInfo);
   
   return sidebar;
