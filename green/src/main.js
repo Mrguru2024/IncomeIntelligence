@@ -2843,7 +2843,24 @@ function renderPageContent(container) {
           });
         break;
       case 'income':
-        container.appendChild(renderIncomePage());
+        // Import the income page module instead of using internal function
+        import('../income.js').then(module => {
+          try {
+            const incomeElement = module.renderIncomePage(appState.user.id);
+            if (incomeElement instanceof Node) {
+              container.appendChild(incomeElement);
+            } else {
+              console.error('Income element is not a DOM Node:', incomeElement);
+              container.appendChild(createErrorMessage('Error loading income tracking module'));
+            }
+          } catch (err) {
+            console.error('Error rendering income page:', err);
+            container.appendChild(createErrorMessage('Failed to load income tracking module'));
+          }
+        }).catch(error => {
+          console.error('Error loading income module:', error);
+          container.appendChild(createErrorMessage('Failed to load income tracking module'));
+        });
         break;
       case 'expenses':
         container.appendChild(renderExpensesPage());

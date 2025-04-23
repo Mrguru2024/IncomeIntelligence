@@ -392,7 +392,7 @@ function handleDeleteIncome(event) {
   }
 }
 
-export function renderIncomePage() {
+export function renderIncomePage(userId) {
   // Main container
   const incomeContainer = document.createElement('div');
   incomeContainer.className = 'income-container';
@@ -400,6 +400,9 @@ export function renderIncomePage() {
   // Get income data and categories
   const incomeEntries = getIncomeData();
   const incomeCategories = getIncomeCategories();
+  
+  // Get appState from window if available
+  const appState = window.appState || { income: { monthly: 0 } };
   
   // Calculate total and monthly income
   const totalIncome = incomeEntries.reduce((sum, entry) => sum + entry.amount, 0);
