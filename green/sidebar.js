@@ -498,6 +498,44 @@ export function createSidebar(appState) {
             statusDot.style.backgroundColor = '#E53935'; // Red for error
           });
       }
+      
+      // Special styling for the Onboarding Setup Wizard
+      if (item.id === 'onboarding') {
+        // Add pulsing animation for the setup wizard
+        link.style.backgroundColor = 'rgba(255, 193, 7, 0.15)';
+        link.style.border = '1px solid rgba(255, 193, 7, 0.3)';
+        link.style.borderRadius = '6px';
+        link.style.margin = '0 12px';
+        link.style.width = 'calc(100% - 24px)';
+        link.style.padding = '12px';
+        link.style.color = 'white';
+        
+        // Create animation for the background
+        const keyframes = document.createElement('style');
+        keyframes.textContent = `
+          @keyframes pulseBackground {
+            0% { background-color: rgba(255, 193, 7, 0.15); }
+            50% { background-color: rgba(255, 193, 7, 0.3); }
+            100% { background-color: rgba(255, 193, 7, 0.15); }
+          }
+        `;
+        document.head.appendChild(keyframes);
+        
+        // Apply the animation
+        link.style.animation = 'pulseBackground 2s infinite ease-in-out';
+        
+        // Add a "Setup" badge
+        const setupBadge = document.createElement('span');
+        setupBadge.textContent = 'Setup';
+        setupBadge.style.fontSize = '9px';
+        setupBadge.style.padding = '2px 6px';
+        setupBadge.style.borderRadius = '10px';
+        setupBadge.style.marginLeft = '8px';
+        setupBadge.style.fontWeight = 'bold';
+        setupBadge.style.backgroundColor = '#FFC107';
+        setupBadge.style.color = '#000';
+        link.appendChild(setupBadge);
+      }
 
       // Badge (if present)
       if (item.badge) {
