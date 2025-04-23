@@ -487,13 +487,13 @@ function createHeader() {
   logoContainer.style.cursor = 'pointer';
   logoContainer.addEventListener('click', () => navigateTo('dashboard'));
   
-  // Create logo using SVG from public folder
+  // Create logo using SVG from public folder with standard size
   const logoImg = document.createElement('img');
   logoImg.src = 'public/stackr-logo.svg'; // Path relative to green folder
   logoImg.alt = 'Stackr';
-  logoImg.style.height = '30px';
+  logoImg.style.height = '48px'; // Increased to standard size
   logoImg.style.width = 'auto';
-  logoImg.style.marginRight = '8px';
+  logoImg.style.marginRight = '10px';
   
   logoContainer.appendChild(logoImg);
   
@@ -501,18 +501,11 @@ function createHeader() {
   if (!isMobile) {
     const logoText = document.createElement('span');
     logoText.textContent = 'Finance';
-    logoText.style.fontSize = '22px';
+    logoText.style.fontSize = '26px'; // Increased for better proportions
     logoText.style.fontWeight = 'bold';
     logoText.style.color = 'white';
     logoContainer.appendChild(logoText);
   }
-  
-  const subtitle = document.createElement('p');
-  subtitle.textContent = 'GREEN Edition';
-  subtitle.style.margin = '4px 0 0 0';
-  subtitle.style.fontSize = 'var(--font-size-xs)';
-  subtitle.style.opacity = '0.9';
-  logoContainer.appendChild(subtitle);
   
   topSection.appendChild(logoContainer);
   
@@ -793,18 +786,18 @@ function createFooter() {
   logoContainer.style.justifyContent = 'center';
   logoContainer.style.marginBottom = 'var(--space-2)';
   
-  // Create logo using SVG from public folder
+  // Create logo using SVG from public folder with standard size
   const logoImg = document.createElement('img');
   logoImg.src = 'public/stackr-logo.svg'; // Path relative to green folder
   logoImg.alt = 'Stackr';
-  logoImg.style.height = '40px';
+  logoImg.style.height = '48px'; // Standard size
   logoImg.style.width = 'auto';
   logoImg.style.marginRight = '10px';
   
   // Add the "Finance" text
   const logoText = document.createElement('span');
   logoText.textContent = 'Finance';
-  logoText.style.fontSize = '22px';
+  logoText.style.fontSize = '26px'; // Increased for better proportions
   logoText.style.fontWeight = 'bold';
   logoText.style.color = 'var(--color-text)';
   
@@ -911,7 +904,7 @@ function createFooter() {
   copyright.style.fontSize = 'var(--font-size-xs)';
   
   const copyrightText = document.createElement('p');
-  copyrightText.textContent = '© ' + new Date().getFullYear() + ' Stackr Finance - GREEN Edition. All rights reserved.';
+  copyrightText.textContent = '© ' + new Date().getFullYear() + ' Stackr Finance. All rights reserved.';
   copyrightText.style.margin = '0';
   
   copyright.appendChild(copyrightText);

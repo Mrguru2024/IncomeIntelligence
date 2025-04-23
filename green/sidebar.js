@@ -80,22 +80,12 @@ export function createSidebar(appState) {
   const logoImg = document.createElement('img');
   logoImg.src = 'public/stackr-logo.svg'; // Updated path to be relative to green folder
   logoImg.alt = 'Stackr';
-  logoImg.style.height = '30px';
+  logoImg.style.height = '48px'; // Increased to standard size
   logoImg.style.width = 'auto';
-  logoImg.style.marginRight = '8px';
+  logoImg.style.marginRight = '10px';
   logoContainer.appendChild(logoImg);
   
-  // Green edition badge
-  const badge = document.createElement('span');
-  badge.textContent = 'GREEN';
-  badge.style.fontSize = '10px';
-  badge.style.fontWeight = 'bold';
-  badge.style.padding = '3px 6px';
-  badge.style.marginLeft = '8px';
-  badge.style.background = 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)';
-  badge.style.borderRadius = '4px';
-  badge.style.color = 'white';
-  logoContainer.appendChild(badge);
+  // Removed GREEN badge as requested
   
   sidebarHeader.appendChild(logoContainer);
   
