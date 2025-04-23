@@ -433,43 +433,111 @@ export function renderIncomePage(userId) {
   const summarySection = document.createElement('section');
   summarySection.className = 'summary-cards grid grid-cols-1 md:grid-cols-3 gap-4 mb-8';
   
-  // Monthly income card
+  // Monthly income card with futuristic design
   const monthlyCard = document.createElement('div');
-  monthlyCard.className = 'card bg-white p-4 rounded-lg shadow-sm';
-  monthlyCard.innerHTML = `
-    <div class="card-header mb-2">
-      <h3 class="text-lg font-semibold">Monthly Income</h3>
-    </div>
-    <div class="card-value text-2xl font-bold">${formatCurrency(monthlyIncome)}</div>
-    <div class="text-sm text-gray-600 mt-1">Current month</div>
-  `;
+  monthlyCard.className = 'card bg-gradient-to-br from-indigo-900 to-purple-900 p-5 rounded-lg shadow-lg border border-indigo-500/20 relative overflow-hidden';
   
-  // Split allocation card with enhanced visualization
+  // Add subtle animated background pattern
+  const patternOverlay = document.createElement('div');
+  patternOverlay.className = 'absolute inset-0 opacity-10';
+  patternOverlay.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg width=\'30\' height=\'30\' viewBox=\'0 0 30 30\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M15 0C6.716 0 0 6.716 0 15c0 8.284 6.716 15 15 15 8.284 0 15-6.716 15-15 0-8.284-6.716-15-15-15zm0 5c5.514 0 10 4.486 10 10s-4.486 10-10 10S5 20.514 5 15 9.486 5 15 5z\' fill=\'%23FFF\' fill-opacity=\'.5\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")';
+  monthlyCard.appendChild(patternOverlay);
+  
+  // Create card content
+  const cardContent = document.createElement('div');
+  cardContent.className = 'relative z-10';
+  cardContent.innerHTML = `
+    <div class="card-header mb-3">
+      <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        Monthly Income
+      </h3>
+    </div>
+    <div class="card-value text-3xl font-bold text-white bg-white/10 rounded-lg px-4 py-3 inline-block">
+      ${formatCurrency(monthlyIncome)}
+    </div>
+    <div class="text-sm text-indigo-200 mt-2 flex items-center gap-1">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      Current month
+    </div>
+  `;
+  monthlyCard.appendChild(cardContent);
+  
+  // Add pulsing animation
+  const pulseEffect = document.createElement('div');
+  pulseEffect.className = 'absolute inset-0 pulse-effect opacity-0';
+  pulseEffect.style.background = 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)';
+  monthlyCard.appendChild(pulseEffect);
+  
+  // Add animation style
+  const pulseAnimation = document.createElement('style');
+  pulseAnimation.textContent = `
+    @keyframes pulse {
+      0% { opacity: 0; transform: scale(0.95); }
+      50% { opacity: 0.2; }
+      100% { opacity: 0; transform: scale(1.05); }
+    }
+    .pulse-effect {
+      animation: pulse 3s infinite;
+    }
+  `;
+  document.head.appendChild(pulseAnimation);
+  
+  // Split allocation card with enhanced visualization - futuristic design
   const splitCard = document.createElement('div');
-  splitCard.className = 'card bg-white p-4 rounded-lg shadow-sm';
+  splitCard.className = 'card bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-lg shadow-lg border border-slate-700';
   
   const cardHeader = document.createElement('div');
-  cardHeader.className = 'card-header mb-2 flex justify-between items-center';
+  cardHeader.className = 'card-header mb-4 flex justify-between items-center';
   cardHeader.innerHTML = `
-    <h3 class="text-lg font-semibold">Split Allocation</h3>
-    <div class="text-sm text-primary cursor-pointer hover:underline" id="customize-ratio-btn">Customize</div>
+    <h3 class="text-lg font-semibold text-white">Split Allocation</h3>
+    <div class="px-3 py-1 text-sm bg-indigo-600 text-white cursor-pointer rounded-full transform hover:scale-105 transition-all duration-300 flex items-center gap-1" id="customize-ratio-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> 
+      Customize
+    </div>
   `;
   splitCard.appendChild(cardHeader);
   
-  // Create the bar visualization
+  // Create an animated futuristic bar visualization
   const barContainer = document.createElement('div');
-  barContainer.className = 'flex mt-2 relative';
+  barContainer.className = 'flex mt-4 relative h-12 rounded-lg overflow-hidden shadow-xl';
   barContainer.innerHTML = `
-    <div style="width: ${splitRatio.needs}%; background-color: #34A853; height: 24px; border-radius: 4px 0 0 4px; position: relative; overflow: hidden;">
-      <div class="absolute inset-0 bg-white bg-opacity-10 scale-x-0 origin-left hover:scale-x-100 transition-transform duration-300"></div>
+    <div class="split-bar needs-bar" style="width: ${splitRatio.needs}%; background: linear-gradient(135deg, #34A853 0%, #2E7D32 100%); position: relative; overflow: hidden;">
+      <div class="absolute inset-0 bg-white bg-opacity-10 glow-effect"></div>
+      <div class="absolute inset-0 flex items-center justify-center text-white text-sm font-medium">${splitRatio.needs}%</div>
     </div>
-    <div style="width: ${splitRatio.investments}%; background-color: #4285F4; height: 24px; position: relative; overflow: hidden;">
-      <div class="absolute inset-0 bg-white bg-opacity-10 scale-x-0 origin-left hover:scale-x-100 transition-transform duration-300"></div>
+    <div class="split-bar investments-bar" style="width: ${splitRatio.investments}%; background: linear-gradient(135deg, #4285F4 0%, #1A73E8 100%); position: relative; overflow: hidden;">
+      <div class="absolute inset-0 bg-white bg-opacity-10 glow-effect"></div>
+      <div class="absolute inset-0 flex items-center justify-center text-white text-sm font-medium">${splitRatio.investments}%</div>
     </div>
-    <div style="width: ${splitRatio.savings}%; background-color: #FBBC05; height: 24px; border-radius: 0 4px 4px 0; position: relative; overflow: hidden;">
-      <div class="absolute inset-0 bg-white bg-opacity-10 scale-x-0 origin-left hover:scale-x-100 transition-transform duration-300"></div>
+    <div class="split-bar savings-bar" style="width: ${splitRatio.savings}%; background: linear-gradient(135deg, #FBBC05 0%, #F57C00 100%); position: relative; overflow: hidden;">
+      <div class="absolute inset-0 bg-white bg-opacity-10 glow-effect"></div>
+      <div class="absolute inset-0 flex items-center justify-center text-white text-sm font-medium">${splitRatio.savings}%</div>
     </div>
   `;
+  
+  // Add flowing animation styles
+  const animationStyle = document.createElement('style');
+  animationStyle.textContent = `
+    @keyframes flow {
+      0% { transform: translateX(-100%) skewX(15deg); }
+      100% { transform: translateX(200%) skewX(15deg); }
+    }
+    .glow-effect {
+      width: 30%;
+      height: 100%;
+      transform: skewX(15deg);
+      animation: flow 3s infinite;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    }
+    .split-bar:hover {
+      filter: brightness(1.2);
+      transform: translateY(-2px);
+      transition: all 0.3s ease;
+    }
+  `;
+  document.head.appendChild(animationStyle);
+  
   splitCard.appendChild(barContainer);
   
   // Create allocation details with amounts based on monthly income
@@ -546,31 +614,67 @@ export function renderIncomePage(userId) {
   }, 100);
   
   
-  // This month's splits card
+  // This month's splits card - futuristic theme
   const monthSplitCard = document.createElement('div');
-  monthSplitCard.className = 'card bg-white p-4 rounded-lg shadow-sm';
+  monthSplitCard.className = 'card bg-gradient-to-r from-slate-800 to-slate-900 p-5 rounded-lg shadow-lg border border-indigo-900/30';
   
   // Monthly splits were already calculated above, reuse that variable
   
-  monthSplitCard.innerHTML = `
-    <div class="card-header mb-2">
-      <h3 class="text-lg font-semibold">This Month's Splits</h3>
-    </div>
-    <div class="grid grid-cols-3 gap-2 text-center">
-      <div>
-        <div class="text-sm font-medium">Needs</div>
-        <div class="text-xl font-semibold text-green-600">${formatCurrency(monthlySplits.needs)}</div>
-      </div>
-      <div>
-        <div class="text-sm font-medium">Investments</div>
-        <div class="text-xl font-semibold text-blue-600">${formatCurrency(monthlySplits.investments)}</div>
-      </div>
-      <div>
-        <div class="text-sm font-medium">Savings</div>
-        <div class="text-xl font-semibold text-yellow-600">${formatCurrency(monthlySplits.savings)}</div>
-      </div>
+  // Create card contents
+  const splitCardHeader = document.createElement('div');
+  splitCardHeader.className = 'card-header mb-3';
+  splitCardHeader.innerHTML = `
+    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+      This Month's Splits
+    </h3>
+  `;
+  monthSplitCard.appendChild(splitCardHeader);
+  
+  // Create animated cards for each category
+  const splitCardsContainer = document.createElement('div');
+  splitCardsContainer.className = 'grid grid-cols-3 gap-3';
+  
+  // Needs Card
+  const needsCard = document.createElement('div');
+  needsCard.className = 'relative rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:z-10';
+  needsCard.innerHTML = `
+    <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-green-700 opacity-90"></div>
+    <div class="relative p-3 text-center">
+      <div class="text-sm font-medium text-white">Needs</div>
+      <div class="text-xl font-bold text-white mt-1">${formatCurrency(monthlySplits.needs)}</div>
+      <div class="text-xs text-white/80 mt-1">${splitRatio.needs}% of income</div>
     </div>
   `;
+  splitCardsContainer.appendChild(needsCard);
+  
+  // Investments Card
+  const investmentsCard = document.createElement('div');
+  investmentsCard.className = 'relative rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:z-10';
+  investmentsCard.innerHTML = `
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-700 opacity-90"></div>
+    <div class="relative p-3 text-center">
+      <div class="text-sm font-medium text-white">Investments</div>
+      <div class="text-xl font-bold text-white mt-1">${formatCurrency(monthlySplits.investments)}</div>
+      <div class="text-xs text-white/80 mt-1">${splitRatio.investments}% of income</div>
+    </div>
+  `;
+  splitCardsContainer.appendChild(investmentsCard);
+  
+  // Savings Card
+  const savingsCard = document.createElement('div');
+  savingsCard.className = 'relative rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:z-10';
+  savingsCard.innerHTML = `
+    <div class="absolute inset-0 bg-gradient-to-br from-yellow-500 to-yellow-700 opacity-90"></div>
+    <div class="relative p-3 text-center">
+      <div class="text-sm font-medium text-white">Savings</div>
+      <div class="text-xl font-bold text-white mt-1">${formatCurrency(monthlySplits.savings)}</div>
+      <div class="text-xs text-white/80 mt-1">${splitRatio.savings}% of income</div>
+    </div>
+  `;
+  splitCardsContainer.appendChild(savingsCard);
+  
+  monthSplitCard.appendChild(splitCardsContainer);
   
   summarySection.appendChild(monthlyCard);
   summarySection.appendChild(splitCard);
