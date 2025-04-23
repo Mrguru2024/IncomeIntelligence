@@ -15,9 +15,26 @@ export function navigateTo(page) {
 }
 
 // Create sidebar navigation element
+// Helper function to detect mobile view
+function isMobileView() {
+  return window.innerWidth < 768;
+}
+
+// Export for use in other components
+export const responsive = {
+  isMobile: isMobileView,
+  addResizeListener: (callback) => {
+    window.addEventListener('resize', () => {
+      callback(isMobileView());
+    });
+  },
+  removeResizeListener: (callback) => {
+    window.removeEventListener('resize', callback);
+  }
+};
+
 export function createSidebar(appState) {
-  const width = window.innerWidth;
-  const isMobile = width < 768;
+  const isMobile = responsive.isMobile();
   
   // Create sidebar container
   const sidebar = document.createElement('aside');
@@ -568,20 +585,25 @@ export function toggleSidebar() {
   
   if (!sidebar) return;
   
-  const isMobile = window.innerWidth < 768;
+  const isMobile = responsive.isMobile();
   
   if (isMobile) {
-    const isVisible = sidebar.style.transform === 'translateX(0)';
+    const isVisible = sidebar.style.transform === 'translateX(0px)' || sidebar.style.transform === 'translateX(0)';
     
     if (isVisible) {
       // Hide sidebar
       sidebar.style.transform = 'translateX(-100%)';
-      document.getElementById('sidebar-overlay')?.remove();
+      const overlay = document.getElementById('sidebar-overlay');
+      if (overlay) {
+        overlay.style.opacity = '0';
+        // Remove overlay after fade animation
+        setTimeout(() => overlay.remove(), 300);
+      }
     } else {
       // Show sidebar
       sidebar.style.transform = 'translateX(0)';
       
-      // Create overlay
+      // Create overlay with fade-in effect
       const overlay = document.createElement('div');
       overlay.id = 'sidebar-overlay';
       overlay.style.position = 'fixed';
@@ -594,18 +616,39 @@ export function toggleSidebar() {
       overlay.style.opacity = '0';
       overlay.style.transition = 'opacity 0.3s ease';
       
-      // Click on overlay closes sidebar
+      // Close sidebar when clicking overlay
       overlay.addEventListener('click', () => {
         sidebar.style.transform = 'translateX(-100%)';
-        overlay.remove();
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 300);
       });
+      
+      // Add swipe gesture to close sidebar
+      overlay.addEventListener('touchstart', (e) => {
+        const touchStartX = e.changedTouches[0].screenX;
+        
+        const handleTouchEnd = (e) => {
+          const touchEndX = e.changedTouches[0].screenX;
+          const SWIPE_THRESHOLD = 70;
+          
+          // Left swipe to close
+          if (touchStartX - touchEndX > SWIPE_THRESHOLD) {
+            sidebar.style.transform = 'translateX(-100%)';
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 300);
+          }
+          
+          // Remove listeners after use
+          overlay.removeEventListener('touchend', handleTouchEnd);
+        };
+        
+        overlay.addEventListener('touchend', handleTouchEnd);
+      }, { passive: true });
       
       document.body.appendChild(overlay);
       
-      // Trigger transition
-      setTimeout(() => {
-        overlay.style.opacity = '1';
-      }, 10);
+      // Force reflow then set opacity to trigger transition
+      setTimeout(() => overlay.style.opacity = '1', 10);
     }
   }
 }
