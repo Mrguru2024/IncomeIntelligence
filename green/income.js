@@ -884,6 +884,413 @@ export function renderIncomePage() {
       });
     }
     
+    // Function to render weekly view of income entries
+    function renderWeeklyView() {
+      const filterValue = incomeFilter ? incomeFilter.value : 'month';
+      
+      // Filter entries based on selected time period
+      let filteredEntries = [...incomeEntries];
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      
+      if (filterValue === 'month') {
+        filteredEntries = incomeEntries.filter(entry => {
+          const entryDate = new Date(entry.date);
+          return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
+        });
+      } else if (filterValue === 'year') {
+        filteredEntries = incomeEntries.filter(entry => {
+          const entryDate = new Date(entry.date);
+          return entryDate.getFullYear() === currentYear;
+        });
+      }
+      
+      // Group entries by week
+      const weeks = {};
+      
+      filteredEntries.forEach(entry => {
+        const entryDate = new Date(entry.date);
+        const weekStart = new Date(entryDate);
+        // Set to Sunday of the week
+        weekStart.setDate(entryDate.getDate() - entryDate.getDay());
+        weekStart.setHours(0, 0, 0, 0);
+        
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999);
+        
+        const weekKey = weekStart.toISOString().split('T')[0];
+        
+        if (!weeks[weekKey]) {
+          weeks[weekKey] = {
+            start: weekStart,
+            end: weekEnd,
+            entries: [],
+            total: 0,
+            splits: { needs: 0, investments: 0, savings: 0 }
+          };
+        }
+        
+        weeks[weekKey].entries.push(entry);
+        weeks[weekKey].total += parseFloat(entry.amount);
+        
+        // Add to splits
+        if (entry.splits) {
+          weeks[weekKey].splits.needs += parseFloat(entry.splits.needs);
+          weeks[weekKey].splits.investments += parseFloat(entry.splits.investments);
+          weeks[weekKey].splits.savings += parseFloat(entry.splits.savings);
+        }
+      });
+      
+      // Convert to array and sort by start date (most recent first)
+      const weeklyGroups = Object.values(weeks).sort((a, b) => b.start - a.start);
+      
+      // Replace income history container with weekly view
+      const historyContainer = incomeContainer.querySelector('.income-history');
+      if (!historyContainer) return;
+      
+      const weeklyViewContainer = document.createElement('div');
+      weeklyViewContainer.className = 'bg-white p-4 rounded-lg shadow-sm';
+      
+      if (weeklyGroups.length === 0) {
+        weeklyViewContainer.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Income History - Weekly View</h3>
+            <div class="flex mt-2 sm:mt-0">
+              <div class="mr-3 horizontal-scroll scrollbar-none flex gap-2">
+                <button id="filter-none" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+                  All Entries
+                </button>
+                <button id="filter-month" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+                  By Month
+                </button>
+                <button id="filter-week" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-primary text-white hover:bg-primary-dark">
+                  By Week
+                </button>
+                <button id="filter-category" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+                  By Category
+                </button>
+              </div>
+              <select id="income-filter" class="p-2 border rounded-md text-sm">
+                <option value="all">All Time</option>
+                <option value="month" selected>This Month</option>
+                <option value="year">This Year</option>
+              </select>
+            </div>
+          </div>
+          <div class="text-center py-8 text-gray-500">
+            <p>No income entries found for the selected period</p>
+            <button id="add-first-income-btn" class="mt-2 text-primary hover:underline">Add your first income</button>
+          </div>
+        `;
+      } else {
+        const currentWeek = weeklyGroups[0];
+        
+        weeklyViewContainer.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Income History - Weekly View</h3>
+            <div class="flex mt-2 sm:mt-0">
+              <div class="mr-3 horizontal-scroll scrollbar-none flex gap-2">
+                <button id="filter-none" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+                  All Entries
+                </button>
+                <button id="filter-month" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+                  By Month
+                </button>
+                <button id="filter-week" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-primary text-white hover:bg-primary-dark">
+                  By Week
+                </button>
+                <button id="filter-category" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+                  By Category
+                </button>
+              </div>
+              <select id="income-filter" class="p-2 border rounded-md text-sm">
+                <option value="all">All Time</option>
+                <option value="month" selected>This Month</option>
+                <option value="year">This Year</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="mb-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-semibold">Weekly Income Summary</h3>
+              <div class="flex items-center">
+                <button id="prev-week-btn" class="p-1 rounded-md hover:bg-gray-100 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+                <span id="current-week-label" class="text-sm">
+                  ${formatDate(currentWeek.start)} - ${formatDate(currentWeek.end)}
+                </span>
+                <button id="next-week-btn" class="p-1 rounded-md hover:bg-gray-100 ml-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500 mb-1">Week Total</h4>
+                <div class="text-2xl font-bold">${formatCurrency(currentWeek.total)}</div>
+                <div class="mt-3">
+                  <div class="h-1 bg-gray-200 rounded-full">
+                    <div class="h-1 bg-primary rounded-full" style="width: 100%"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500 mb-1">Weekly Breakdown</h4>
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    <div class="text-xs font-medium">Needs</div>
+                    <div class="text-lg font-semibold text-green-600">${formatCurrency(currentWeek.splits.needs)}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs font-medium">Investments</div>
+                    <div class="text-lg font-semibold text-blue-600">${formatCurrency(currentWeek.splits.investments)}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs font-medium">Savings</div>
+                    <div class="text-lg font-semibold text-yellow-600">${formatCurrency(currentWeek.splits.savings)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <h4 class="text-md font-medium mb-3">Week Entries</h4>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  ${currentWeek.entries.map((entry, index) => {
+                    const category = incomeCategories.find(cat => cat.id === entry.category) || { name: 'Other', icon: '🔹' };
+                    
+                    return `
+                      <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}" data-entry-id="${entry.id}">
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          ${formatDate(entry.date)}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          ${entry.source}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          <span class="inline-flex items-center">
+                            <span class="mr-1">${category.icon}</span>
+                            ${category.name}
+                          </span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                          ${formatCurrency(entry.amount)}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                          <button class="edit-income-btn text-blue-600 hover:text-blue-800 mr-3" data-id="${entry.id}">
+                            Edit
+                          </button>
+                          <button class="delete-income-btn text-red-600 hover:text-red-800" data-id="${entry.id}">
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+      
+      // Replace existing view with weekly view
+      const existingView = historyContainer.querySelector('.income-history > div');
+      if (existingView) {
+        historyContainer.replaceChild(weeklyViewContainer, existingView);
+      } else {
+        historyContainer.appendChild(weeklyViewContainer);
+      }
+      
+      // Add event listeners for week navigation
+      if (weeklyGroups.length > 0) {
+        let currentWeekIndex = 0;
+        
+        const updateWeekDisplay = () => {
+          const weekGroup = weeklyGroups[currentWeekIndex];
+          const weekLabel = weeklyViewContainer.querySelector('#current-week-label');
+          const weekTotal = weeklyViewContainer.querySelector('.text-2xl.font-bold');
+          const needsAmount = weeklyViewContainer.querySelectorAll('.text-lg.font-semibold')[0];
+          const investmentsAmount = weeklyViewContainer.querySelectorAll('.text-lg.font-semibold')[1];
+          const savingsAmount = weeklyViewContainer.querySelectorAll('.text-lg.font-semibold')[2];
+          
+          if (weekLabel) weekLabel.textContent = `${formatDate(weekGroup.start)} - ${formatDate(weekGroup.end)}`;
+          if (weekTotal) weekTotal.textContent = formatCurrency(weekGroup.total);
+          
+          if (needsAmount) needsAmount.textContent = formatCurrency(weekGroup.splits.needs);
+          if (investmentsAmount) investmentsAmount.textContent = formatCurrency(weekGroup.splits.investments);
+          if (savingsAmount) savingsAmount.textContent = formatCurrency(weekGroup.splits.savings);
+          
+          // Replace table body with new entries
+          const tableBody = weeklyViewContainer.querySelector('tbody');
+          if (tableBody) {
+            tableBody.innerHTML = weekGroup.entries.map((entry, index) => {
+              const category = incomeCategories.find(cat => cat.id === entry.category) || { name: 'Other', icon: '🔹' };
+              
+              return `
+                <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}" data-entry-id="${entry.id}">
+                  <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                    ${formatDate(entry.date)}
+                  </td>
+                  <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                    ${entry.source}
+                  </td>
+                  <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                    <span class="inline-flex items-center">
+                      <span class="mr-1">${category.icon}</span>
+                      ${category.name}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                    ${formatCurrency(entry.amount)}
+                  </td>
+                  <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                    <button class="edit-income-btn text-blue-600 hover:text-blue-800 mr-3" data-id="${entry.id}">
+                      Edit
+                    </button>
+                    <button class="delete-income-btn text-red-600 hover:text-red-800" data-id="${entry.id}">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+            
+            // Reattach event listeners to edit/delete buttons
+            weeklyViewContainer.querySelectorAll('.edit-income-btn').forEach(btn => {
+              btn.addEventListener('click', function() {
+                const entryId = this.dataset.id;
+                const entry = incomeEntries.find(e => e.id == entryId);
+                if (entry) {
+                  showIncomeModal(entry);
+                }
+              });
+            });
+            
+            weeklyViewContainer.querySelectorAll('.delete-income-btn').forEach(btn => {
+              btn.addEventListener('click', function() {
+                const entryId = this.dataset.id;
+                if (confirm('Are you sure you want to delete this income entry?')) {
+                  deleteIncomeEntry(parseInt(entryId, 10));
+                  renderWeeklyView(); // Refresh the view
+                }
+              });
+            });
+          }
+        };
+        
+        // Previous week button
+        const prevWeekBtn = weeklyViewContainer.querySelector('#prev-week-btn');
+        if (prevWeekBtn) {
+          prevWeekBtn.addEventListener('click', () => {
+            if (currentWeekIndex < weeklyGroups.length - 1) {
+              currentWeekIndex++;
+              updateWeekDisplay();
+            }
+          });
+        }
+        
+        // Next week button
+        const nextWeekBtn = weeklyViewContainer.querySelector('#next-week-btn');
+        if (nextWeekBtn) {
+          nextWeekBtn.addEventListener('click', () => {
+            if (currentWeekIndex > 0) {
+              currentWeekIndex--;
+              updateWeekDisplay();
+            }
+          });
+        }
+        
+        // Initial setup of edit/delete event listeners
+        weeklyViewContainer.querySelectorAll('.edit-income-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const entryId = this.dataset.id;
+            const entry = incomeEntries.find(e => e.id == entryId);
+            if (entry) {
+              showIncomeModal(entry);
+            }
+          });
+        });
+        
+        weeklyViewContainer.querySelectorAll('.delete-income-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const entryId = this.dataset.id;
+            if (confirm('Are you sure you want to delete this income entry?')) {
+              deleteIncomeEntry(parseInt(entryId, 10));
+              renderWeeklyView(); // Refresh the view
+            }
+          });
+        });
+      }
+      
+      // Reattach filter change event
+      const newIncomeFilter = weeklyViewContainer.querySelector('#income-filter');
+      if (newIncomeFilter && incomeFilter) {
+        newIncomeFilter.value = incomeFilter.value;
+        newIncomeFilter.addEventListener('change', () => {
+          incomeFilter.value = newIncomeFilter.value;
+          renderWeeklyView();
+        });
+      }
+      
+      // Reattach view buttons event listeners
+      const viewButtons = {
+        none: weeklyViewContainer.querySelector('#filter-none'),
+        month: weeklyViewContainer.querySelector('#filter-month'),
+        week: weeklyViewContainer.querySelector('#filter-week'),
+        category: weeklyViewContainer.querySelector('#filter-category')
+      };
+      
+      if (viewButtons.none) {
+        viewButtons.none.addEventListener('click', () => {
+          const filterBtn = incomeContainer.querySelector('#filter-none');
+          if (filterBtn) filterBtn.click();
+        });
+      }
+      
+      if (viewButtons.month) {
+        viewButtons.month.addEventListener('click', () => {
+          const filterBtn = incomeContainer.querySelector('#filter-month');
+          if (filterBtn) filterBtn.click();
+        });
+      }
+      
+      if (viewButtons.category) {
+        viewButtons.category.addEventListener('click', () => {
+          const filterBtn = incomeContainer.querySelector('#filter-category');
+          if (filterBtn) filterBtn.click();
+        });
+      }
+      
+      // Add first income button
+      const addFirstIncomeBtn = weeklyViewContainer.querySelector('#add-first-income-btn');
+      if (addFirstIncomeBtn) {
+        addFirstIncomeBtn.addEventListener('click', () => {
+          showIncomeModal();
+        });
+      }
+    }
+    
     // Income filter
     const incomeFilter = incomeContainer.querySelector('#income-filter');
     if (incomeFilter) {
