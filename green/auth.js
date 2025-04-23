@@ -456,7 +456,13 @@ export function getUserSubscriptionTier() {
   if (!user) {
     return 'free';
   }
-  return user.subscriptionTier || 'free';
+  // Check both the direct property and the nested subscription object
+  if (user.subscriptionTier) {
+    return user.subscriptionTier;
+  } else if (user.subscription && user.subscription.tier) {
+    return user.subscription.tier;
+  }
+  return 'free';
 }
 
 /**

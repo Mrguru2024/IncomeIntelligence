@@ -1,0 +1,33 @@
+User ID being passed: google-1745455928833
+Mentor page created successfully
+Viewport: tablet
+Page rendered: bankconnections
+Viewport: tablet
+Page rendered: subscriptionsniper
+Viewport: tablet
+No bank connections found for user: google-1745455928833
+Viewport: tablet
+Page rendered: challenges
+Viewport: tablet
+Error loading challenges data: 
+ReferenceError {}
+
+at t.value (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Viewport: tablet
+Page rendered: wellness
+Viewport: tablet
+Error loading financial data: 
+Error {}
+
+at t.value (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Container element with ID 'wellness-scorecard-container' not found
+at t.value (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
