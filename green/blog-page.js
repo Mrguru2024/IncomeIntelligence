@@ -1143,22 +1143,22 @@ export function renderBlogPage(isAuthenticated = false) {
     
     const comments = [
       {
-        author: 'Sarah Johnson',
-        text: 'The 40/30/30 rule completely changed how I handle my freelance income. I've been debt-free for 3 months now!',
-        timestamp: '2 hours ago',
-        avatar: 'SJ'
+        author: "Sarah Johnson",
+        text: "The 40/30/30 rule completely changed how I handle my freelance income. I've been debt-free for 3 months now!",
+        timestamp: "2 hours ago",
+        avatar: "SJ"
       },
       {
-        author: 'Michael Chen',
-        text: 'Has anyone tried the Subscription Sniper tool? I'm curious about how much it actually saved people.',
-        timestamp: '5 hours ago',
-        avatar: 'MC'
+        author: "Michael Chen",
+        text: "Has anyone tried the Subscription Sniper tool? I'm curious about how much it actually saved people.",
+        timestamp: "5 hours ago",
+        avatar: "MC"
       },
       {
-        author: 'Alicia Rodriguez',
-        text: 'The emergency fund guide was exactly what I needed. Starting small with $500 and building from there.',
-        timestamp: '1 day ago',
-        avatar: 'AR'
+        author: "Alicia Rodriguez",
+        text: "The emergency fund guide was exactly what I needed. Starting small with $500 and building from there.",
+        timestamp: "1 day ago",
+        avatar: "AR"
       }
     ];
     
