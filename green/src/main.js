@@ -2768,7 +2768,15 @@ function renderPageContent(container) {
       case 'subscriptionsniper':
         // Import the subscription sniper page module
         import('../subscription-sniper.js').then(module => {
-          container.appendChild(module.renderSubscriptionSniperPage(appState.user.id));
+          // Need to await the async function first
+          module.renderSubscriptionSniperPage(appState.user.id)
+            .then(pageElement => {
+              container.appendChild(pageElement);
+            })
+            .catch(err => {
+              console.error('Error rendering subscription sniper page:', err);
+              container.appendChild(createErrorMessage('Failed to render subscription data'));
+            });
         }).catch(error => {
           console.error('Error loading subscription sniper module:', error);
           container.appendChild(createErrorMessage('Failed to load subscription sniper module'));
@@ -2777,7 +2785,21 @@ function renderPageContent(container) {
       case 'bankconnections':
         // Import the bank connections page module if needed
         import('../bank-connections.js').then(module => {
-          container.appendChild(module.renderBankConnectionsPage(appState.user.id));
+          // Check if the function is async (returns a promise)
+          const result = module.renderBankConnectionsPage(appState.user.id);
+          if (result instanceof Promise) {
+            result
+              .then(pageElement => {
+                container.appendChild(pageElement);
+              })
+              .catch(err => {
+                console.error('Error rendering bank connections page:', err);
+                container.appendChild(createErrorMessage('Failed to load bank account connections'));
+              });
+          } else {
+            // Handle synchronous return (directly append to container)
+            container.appendChild(result);
+          }
         }).catch(error => {
           console.error('Error loading bank connections module:', error);
           container.appendChild(createErrorMessage('Failed to load bank connections module'));
