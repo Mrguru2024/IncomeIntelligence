@@ -577,8 +577,39 @@ export function createSidebar(appState) {
           }).catch(error => {
             console.error('Failed to logout:', error);
           });
+        } else if (item.id === 'onboarding') {
+          // Special handling for onboarding - ensure we reset onboarding state to the beginning
+          // so the user sees the first step when clicking the menu item
+          console.log('User clicked onboarding menu item - starting onboarding flow');
+          
+          // Reset onboarding step in local storage to ensure fresh start
+          try {
+            localStorage.setItem('stackrOnboardingStep', 'welcome');
+            // Update the user object in localStorage if it exists
+            const userData = localStorage.getItem('stackrUser');
+            if (userData) {
+              const user = JSON.parse(userData);
+              user.onboardingStep = 'welcome';
+              localStorage.setItem('stackrUser', JSON.stringify(user));
+            }
+            // Update app state
+            if (window.appState && window.appState.user) {
+              window.appState.user.onboardingStep = 'welcome';
+            }
+          } catch (e) {
+            console.error('Failed to reset onboarding state:', e);
+          }
+          
+          // Navigate to onboarding page
+          navigateTo('onboarding');
+          
+          // If mobile, close sidebar
+          if (isMobile) {
+            sidebar.style.transform = 'translateX(-100%)';
+            document.getElementById('sidebar-overlay')?.remove();
+          }
         } else {
-          // Handle navigation
+          // Handle navigation for other items
           navigateTo(item.id);
           
           // If mobile, close sidebar
