@@ -47,6 +47,205 @@ export function navigateTo(page) {
   }
 }
 
+// Function to show the onboarding modal on the dashboard
+export function showOnboardingModal() {
+  // Check if onboarding has been completed
+  const onboardingCompleted = localStorage.getItem('stackrOnboardingCompleted') === 'true';
+  
+  if (onboardingCompleted) {
+    return null; // Don't show modal if onboarding is completed
+  }
+  
+  // Create modal container
+  const modalContainer = document.createElement('div');
+  modalContainer.id = 'onboarding-modal';
+  modalContainer.style.position = 'fixed';
+  modalContainer.style.top = '0';
+  modalContainer.style.left = '0';
+  modalContainer.style.width = '100vw';
+  modalContainer.style.height = '100vh';
+  modalContainer.style.background = 'rgba(0, 0, 0, 0.5)';
+  modalContainer.style.display = 'flex';
+  modalContainer.style.justifyContent = 'center';
+  modalContainer.style.alignItems = 'center';
+  modalContainer.style.zIndex = '9999';
+  
+  // Create modal content
+  const modalContent = document.createElement('div');
+  modalContent.style.background = '#fff';
+  modalContent.style.borderRadius = '8px';
+  modalContent.style.maxWidth = '600px';
+  modalContent.style.width = '90%';
+  modalContent.style.maxHeight = '90vh';
+  modalContent.style.overflow = 'auto';
+  modalContent.style.padding = '24px';
+  modalContent.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.2)';
+  modalContent.style.animation = 'modalFadeIn 0.3s ease-out forwards';
+  
+  // Create modal header
+  const modalHeader = document.createElement('div');
+  modalHeader.style.borderBottom = '1px solid #e5e7eb';
+  modalHeader.style.paddingBottom = '16px';
+  modalHeader.style.marginBottom = '16px';
+  
+  const modalTitle = document.createElement('h2');
+  modalTitle.textContent = 'Welcome to Stackr Finance';
+  modalTitle.style.fontSize = '1.5rem';
+  modalTitle.style.fontWeight = '700';
+  modalTitle.style.margin = '0';
+  modalTitle.style.background = 'linear-gradient(to right, var(--color-primary), var(--color-accent))';
+  modalTitle.style.WebkitBackgroundClip = 'text';
+  modalTitle.style.WebkitTextFillColor = 'transparent';
+  
+  modalHeader.appendChild(modalTitle);
+  
+  // Create modal body
+  const modalBody = document.createElement('div');
+  modalBody.innerHTML = `
+    <div style="margin-bottom: 20px;">
+      <p style="margin-bottom: 16px;">
+        Let's set up your financial dashboard with a few quick steps to get you started.
+      </p>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0;">
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; transition: transform 0.2s;">
+          <h3 style="margin-top: 0; color: var(--color-primary);">Track Income</h3>
+          <p style="margin-bottom: 0; color: var(--color-text-secondary);">
+            Record and categorize all your income sources in one place.
+          </p>
+        </div>
+        
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; transition: transform 0.2s;">
+          <h3 style="margin-top: 0; color: var(--color-primary);">Smart Allocation</h3>
+          <p style="margin-bottom: 0; color: var(--color-text-secondary);">
+            Use the 40/30/30 principle for needs, wants, and savings.
+          </p>
+        </div>
+      </div>
+      
+      <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 16px; margin-top: 20px;">
+        <p style="margin: 0; color: #0369a1;">
+          <strong>Tip:</strong> Setting up your profile now will help personalize your financial recommendations.
+        </p>
+      </div>
+    </div>
+  `;
+  
+  // Create modal footer
+  const modalFooter = document.createElement('div');
+  modalFooter.style.borderTop = '1px solid #e5e7eb';
+  modalFooter.style.paddingTop = '16px';
+  modalFooter.style.marginTop = '16px';
+  modalFooter.style.display = 'flex';
+  modalFooter.style.justifyContent = 'space-between';
+  
+  const skipButton = document.createElement('button');
+  skipButton.textContent = 'Skip for Now';
+  skipButton.style.background = 'transparent';
+  skipButton.style.border = '1px solid #e5e7eb';
+  skipButton.style.borderRadius = '6px';
+  skipButton.style.padding = '8px 16px';
+  skipButton.style.cursor = 'pointer';
+  skipButton.style.color = 'var(--color-text-secondary)';
+  skipButton.style.transition = 'all 0.2s';
+  
+  skipButton.addEventListener('mouseover', () => {
+    skipButton.style.backgroundColor = '#f9fafb';
+  });
+  
+  skipButton.addEventListener('mouseout', () => {
+    skipButton.style.backgroundColor = 'transparent';
+  });
+  
+  skipButton.addEventListener('click', () => {
+    // Mark onboarding as completed
+    localStorage.setItem('stackrOnboardingCompleted', 'true');
+    
+    // Update the user's onboarding step
+    updateOnboardingStep(getUserId(), 'complete')
+      .then(() => {
+        // Close the modal
+        modalContainer.remove();
+      })
+      .catch(error => {
+        console.error('Failed to update onboarding step:', error);
+        // Close the modal anyway
+        modalContainer.remove();
+      });
+  });
+  
+  const setupButton = document.createElement('button');
+  setupButton.textContent = 'Setup Now';
+  setupButton.style.background = 'linear-gradient(to right, var(--color-primary), var(--color-primary-dark))';
+  setupButton.style.color = 'white';
+  setupButton.style.border = 'none';
+  setupButton.style.borderRadius = '6px';
+  setupButton.style.padding = '10px 20px';
+  setupButton.style.cursor = 'pointer';
+  setupButton.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+  setupButton.style.transition = 'all 0.2s';
+  
+  setupButton.addEventListener('mouseover', () => {
+    setupButton.style.transform = 'translateY(-2px)';
+    setupButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
+  });
+  
+  setupButton.addEventListener('mouseout', () => {
+    setupButton.style.transform = 'translateY(0)';
+    setupButton.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+  });
+  
+  setupButton.addEventListener('click', () => {
+    // Navigate to the onboarding page
+    navigateTo('onboarding');
+    
+    // Close the modal
+    modalContainer.remove();
+  });
+  
+  modalFooter.appendChild(skipButton);
+  modalFooter.appendChild(setupButton);
+  
+  // Add animation keyframes
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Assemble modal
+  modalContent.appendChild(modalHeader);
+  modalContent.appendChild(modalBody);
+  modalContent.appendChild(modalFooter);
+  modalContainer.appendChild(modalContent);
+  
+  // Add click event to close modal when clicking outside
+  modalContainer.addEventListener('click', (event) => {
+    if (event.target === modalContainer) {
+      modalContainer.remove();
+    }
+  });
+  
+  return modalContainer;
+}
+
+// Helper function to get user ID
+function getUserId() {
+  try {
+    const userData = localStorage.getItem('stackrUser');
+    if (userData) {
+      const user = JSON.parse(userData);
+      return user.id || 1;
+    }
+  } catch (error) {
+    console.error('Error getting user ID:', error);
+  }
+  return 1;
+}
+
 // The onboarding steps
 const ONBOARDING_STEPS = [
   'welcome',
