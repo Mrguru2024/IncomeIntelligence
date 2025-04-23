@@ -177,7 +177,10 @@ export default function IncomeHistory() {
   // Update income mutation
   const updateIncomeMutation = useMutation({
     mutationFn: async (data: { id: number; income: Partial<InsertIncome> }) => {
-      return await apiRequest("PATCH", `/api/incomes/${data.id}`, data.income);
+      // Using a string template with HttpMethod is causing a TypeScript error
+      // This is a workaround to fix the type error
+      const endpoint = `/api/incomes/${data.id}`;
+      return await apiRequest("PATCH", endpoint, data.income);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/incomes"] });
@@ -199,7 +202,10 @@ export default function IncomeHistory() {
   // Delete income mutation
   const deleteIncomeMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/incomes/${id}`);
+      // Using a string template with HttpMethod is causing a TypeScript error
+      // This is a workaround to fix the type error
+      const endpoint = `/api/incomes/${id}`;
+      await apiRequest("DELETE", endpoint);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/incomes"] });

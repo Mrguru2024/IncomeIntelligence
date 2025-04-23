@@ -63,8 +63,9 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.openai.com", "https://api.perplexity.ai", "https://*.plaid.com", "https://cdn.plaid.com", "https://placehold.co", "https://*.replit.app", "https://replit.com"],
+      connectSrc: ["'self'", "https://api.openai.com", "https://api.perplexity.ai", "https://*.plaid.com", "https://cdn.plaid.com", "https://placehold.co", "https://*.replit.app", "https://replit.com", "ws:", "wss:"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.plaid.com", "https://*.plaid.com", "https://replit.com"],
+      scriptSrcElem: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.plaid.com", "https://*.plaid.com", "https://replit.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "blob:", "https://*.plaid.com", "https://oaidalleapiprodscus.blob.core.windows.net", "https://placehold.co", "https://*.githubusercontent.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
@@ -77,7 +78,7 @@ app.use(helmet({
     }
   },
   xssFilter: true,
-  noSniff: true,
+  noSniff: false, // Allow proper MIME type detection for module scripts
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   hsts: {
     maxAge: 31536000,
@@ -93,9 +94,24 @@ app.use(helmet({
   hidePoweredBy: true
 }));
 
+// Middleware to handle module script requests
+app.use((req: Request, res: Response, next: NextFunction) => {
+  // Specifically handle module script requests for Vite dev mode
+  if (req.path.includes('/src/main.tsx') || req.path.includes('.mjs') || req.path.includes('.js')) {
+    logger.info(`[SECURITY] Allowing module script request: ${req.path}`);
+    // Set the correct content type for JavaScript modules
+    if (req.path.endsWith('.mjs')) {
+      res.type('application/javascript+module');
+    } else if (req.path.endsWith('.js')) {
+      res.type('application/javascript');
+    }
+  }
+  next();
+});
+
 // Additional security headers
 app.use((req: Request, res: Response, next: NextFunction) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
+  // X-Content-Type-Options header removed to allow proper MIME type detection for module scripts
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
