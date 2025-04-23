@@ -342,6 +342,15 @@ app.get('*', (req, res, next) => {
 // Start server
 const PORT = parseInt(process.env.PORT || "5000", 10);
 
+// Handle EADDRINUSE error with more graceful exit
+httpServer.on('error', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    logger.error(`Port ${PORT} is already in use. Please stop any existing servers or try a different port.`);
+    process.exit(1);
+  }
+});
+
+// Start the server
 httpServer.listen(PORT, () => {
   logger.info(`Server is running on port ${PORT} - Replit compatible`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);

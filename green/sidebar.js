@@ -647,7 +647,13 @@ export function createSidebar(appState) {
 export function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
   
-  if (!sidebar) return;
+  if (!sidebar) {
+    console.error("Sidebar element not found. Creating new sidebar.");
+    const appState = window.appState || { user: { subscriptionStatus: 'pro' } };
+    const newSidebar = createSidebar(appState);
+    document.body.appendChild(newSidebar);
+    return toggleSidebar(); // Call again with new sidebar
+  }
   
   const isMobile = responsive.isMobile();
   
@@ -661,55 +667,75 @@ export function toggleSidebar() {
       if (overlay) {
         overlay.style.opacity = '0';
         // Remove overlay after fade animation
-        setTimeout(() => overlay.remove(), 300);
+        setTimeout(() => {
+          if (overlay.parentNode) {
+            overlay.parentNode.removeChild(overlay);
+          }
+        }, 300);
       }
     } else {
       // Show sidebar
       sidebar.style.transform = 'translateX(0)';
       
       // Create overlay with fade-in effect
-      const overlay = document.createElement('div');
-      overlay.id = 'sidebar-overlay';
-      overlay.style.position = 'fixed';
-      overlay.style.top = '0';
-      overlay.style.left = '0';
-      overlay.style.width = '100%';
-      overlay.style.height = '100%';
-      overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-      overlay.style.zIndex = '999';
-      overlay.style.opacity = '0';
-      overlay.style.transition = 'opacity 0.3s ease';
+      let overlay = document.getElementById('sidebar-overlay');
       
-      // Close sidebar when clicking overlay
-      overlay.addEventListener('click', () => {
-        sidebar.style.transform = 'translateX(-100%)';
+      // Only create a new overlay if one doesn't exist
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'sidebar-overlay';
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        overlay.style.zIndex = '999';
         overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 300);
-      });
-      
-      // Add swipe gesture to close sidebar
-      overlay.addEventListener('touchstart', (e) => {
-        const touchStartX = e.changedTouches[0].screenX;
+        overlay.style.transition = 'opacity 0.3s ease';
         
-        const handleTouchEnd = (e) => {
-          const touchEndX = e.changedTouches[0].screenX;
-          const SWIPE_THRESHOLD = 70;
-          
-          // Left swipe to close
-          if (touchStartX - touchEndX > SWIPE_THRESHOLD) {
-            sidebar.style.transform = 'translateX(-100%)';
-            overlay.style.opacity = '0';
-            setTimeout(() => overlay.remove(), 300);
-          }
-          
-          // Remove listeners after use
-          overlay.removeEventListener('touchend', handleTouchEnd);
-        };
+        // Close sidebar when clicking overlay
+        overlay.addEventListener('click', () => {
+          sidebar.style.transform = 'translateX(-100%)';
+          overlay.style.opacity = '0';
+          setTimeout(() => {
+            if (overlay.parentNode) {
+              overlay.parentNode.removeChild(overlay);
+            }
+          }, 300);
+        });
         
-        overlay.addEventListener('touchend', handleTouchEnd);
-      }, { passive: true });
-      
-      document.body.appendChild(overlay);
+        // Add swipe gesture to close sidebar
+        overlay.addEventListener('touchstart', (e) => {
+          const touchStartX = e.changedTouches[0].screenX;
+          
+          const handleTouchEnd = (e) => {
+            const touchEndX = e.changedTouches[0].screenX;
+            const SWIPE_THRESHOLD = 70;
+            
+            // Left swipe to close
+            if (touchStartX - touchEndX > SWIPE_THRESHOLD) {
+              sidebar.style.transform = 'translateX(-100%)';
+              overlay.style.opacity = '0';
+              setTimeout(() => {
+                if (overlay.parentNode) {
+                  overlay.parentNode.removeChild(overlay);
+                }
+              }, 300);
+            }
+            
+            // Remove listeners after use
+            overlay.removeEventListener('touchend', handleTouchEnd);
+          };
+          
+          overlay.addEventListener('touchend', handleTouchEnd);
+        }, { passive: true });
+        
+        document.body.appendChild(overlay);
+      } else {
+        // If overlay exists but is hidden, show it again
+        overlay.style.display = 'block';
+      }
       
       // Force reflow then set opacity to trigger transition
       setTimeout(() => overlay.style.opacity = '1', 10);
@@ -718,10 +744,23 @@ export function toggleSidebar() {
 }
 
 export function renderSidebar(appState) {
+  // Remove existing sidebar if it exists
+  const existingSidebar = document.querySelector('.sidebar');
+  if (existingSidebar) {
+    existingSidebar.remove();
+  }
+  
+  // Remove existing overlay if it exists
+  const existingOverlay = document.getElementById('sidebar-overlay');
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
+  
+  // Create and append new sidebar
   const sidebar = createSidebar(appState);
   document.body.appendChild(sidebar);
   
-  // Add overlay for mobile
+  // For mobile view, prepare for overlay but don't show it yet
   if (responsive.isMobile()) {
     const overlay = document.createElement('div');
     overlay.id = 'sidebar-overlay';
@@ -743,6 +782,30 @@ export function renderSidebar(appState) {
         overlay.style.display = 'none';
       }, 300);
     });
+    
+    // Add swipe gesture handling
+    overlay.addEventListener('touchstart', (e) => {
+      const touchStartX = e.changedTouches[0].screenX;
+      
+      const handleTouchEnd = (e) => {
+        const touchEndX = e.changedTouches[0].screenX;
+        const SWIPE_THRESHOLD = 70;
+        
+        // Left swipe to close
+        if (touchStartX - touchEndX > SWIPE_THRESHOLD) {
+          sidebar.style.transform = 'translateX(-100%)';
+          overlay.style.opacity = '0';
+          setTimeout(() => {
+            overlay.style.display = 'none';
+          }, 300);
+        }
+        
+        // Remove listeners after use
+        overlay.removeEventListener('touchend', handleTouchEnd);
+      };
+      
+      overlay.addEventListener('touchend', handleTouchEnd);
+    }, { passive: true });
     
     document.body.appendChild(overlay);
   }
