@@ -393,9 +393,266 @@ function handleDeleteIncome(event) {
 }
 
 export function renderIncomePage(userId) {
-  // Main container
+  // Create ultra-modern container with dark theme
   const incomeContainer = document.createElement('div');
   incomeContainer.className = 'income-container';
+  incomeContainer.style.fontFamily = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+  
+  // Add cyberpunk/futuristic theme to the page
+  const pageTheme = document.createElement('style');
+  pageTheme.textContent = `
+    .income-container {
+      --theme-primary: #4F46E5;
+      --theme-primary-dark: #4338CA;
+      --theme-secondary: #10B981;
+      --theme-accent: #F59E0B;
+      --theme-dark: #111827;
+      --theme-dark-mid: #1F2937;
+      --theme-dark-light: #374151;
+      --glow-blue: 0 0 15px rgba(79, 70, 229, 0.5);
+      --glow-green: 0 0 15px rgba(16, 185, 129, 0.5);
+      --glow-yellow: 0 0 15px rgba(245, 158, 11, 0.5);
+      color-scheme: dark;
+      background-color: var(--theme-dark);
+      color: white;
+      position: relative;
+      z-index: 0;
+      overflow: hidden;
+      padding-bottom: 2rem;
+    }
+    
+    /* Futuristic header gradient */
+    .income-header {
+      background: linear-gradient(120deg, var(--theme-dark-mid), var(--theme-dark-light));
+      border-radius: 12px;
+      border-left: 2px solid var(--theme-primary);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .income-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.7), transparent);
+    }
+    
+    .income-card {
+      background-color: var(--theme-dark-mid);
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .income-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right bottom, rgba(255,255,255,0.03), transparent 40%);
+      z-index: 1;
+      pointer-events: none;
+    }
+    
+    .income-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    /* Futuristic neon borders and glows */
+    .neon-border-blue {
+      box-shadow: var(--glow-blue);
+      border: 1px solid rgba(79, 70, 229, 0.5);
+    }
+    
+    .neon-border-green {
+      box-shadow: var(--glow-green);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+    }
+    
+    .neon-border-yellow {
+      box-shadow: var(--glow-yellow);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+    }
+    
+    /* Digital circuit background */
+    .circuit-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,0.05)' fill-rule='evenodd'/%3E%3C/svg%3E");
+      z-index: -1;
+      opacity: 0.3;
+    }
+    
+    /* Glowing button */
+    .glow-button {
+      background-color: var(--theme-primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      z-index: 1;
+      text-transform: uppercase;
+      font-size: 0.875rem;
+    }
+    
+    .glow-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: all 0.6s;
+      z-index: -1;
+    }
+    
+    .glow-button:hover::before {
+      left: 100%;
+    }
+    
+    .glow-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(79, 70, 229, 0.4);
+    }
+    
+    /* Animations */
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    @keyframes circuit-flow {
+      0% { opacity: 0.1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 0.1; }
+    }
+    
+    .circuit-overlay {
+      animation: circuit-flow 10s infinite;
+    }
+    
+    .pulse-soft {
+      animation: pulse 3s infinite ease-in-out;
+    }
+    
+    .float-animation {
+      animation: float 6s infinite ease-in-out;
+    }
+    
+    /* Responsive data grid */
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .hoverable-card {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .hoverable-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    .income-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 1rem;
+    }
+    
+    .income-table th {
+      background-color: rgba(31, 41, 55, 0.8);
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      padding: 1rem;
+      text-align: left;
+    }
+    
+    .income-table td {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .income-table tr:hover td {
+      background-color: rgba(79, 70, 229, 0.1);
+    }
+    
+    .income-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    /* Progress bars */
+    .progress-bar {
+      height: 8px;
+      border-radius: 4px;
+      background-color: rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .progress-value {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--theme-primary), var(--theme-primary-dark));
+      position: relative;
+      transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .progress-value::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.15) 50%, 
+        transparent 100%);
+      animation: progress-shine 2s infinite;
+    }
+    
+    @keyframes progress-shine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+  `;
+  document.head.appendChild(pageTheme);
+  
+  // Add circuit overlay
+  const circuitOverlay = document.createElement('div');
+  circuitOverlay.className = 'circuit-overlay';
+  incomeContainer.appendChild(circuitOverlay);
   
   // Get income data and categories
   const incomeEntries = getIncomeData();
@@ -411,22 +668,65 @@ export function renderIncomePage(userId) {
   // Split ratio
   const splitRatio = getSplitRatio();
   
-  // Header section
+  // Futuristic header section
   const header = document.createElement('header');
   header.className = 'income-header mb-6';
-  header.innerHTML = `
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-      <div>
-        <h1 class="text-2xl font-bold mb-1">Income Management</h1>
-        <p class="text-gray-600">Track and categorize your income with the 40/30/30 split</p>
+  
+  // Add glowing border animation
+  const headerGlow = document.createElement('div');
+  headerGlow.className = 'absolute bottom-0 left-0 w-full h-[2px]';
+  headerGlow.style.background = 'linear-gradient(90deg, transparent, var(--theme-primary), transparent)';
+  headerGlow.style.animation = 'pulse 4s infinite ease-in-out';
+  header.appendChild(headerGlow);
+  
+  // Header content
+  const headerContent = document.createElement('div');
+  headerContent.className = 'flex flex-col md:flex-row md:items-center md:justify-between relative z-10';
+  
+  // Title section with futuristic styling
+  const titleSection = document.createElement('div');
+  titleSection.innerHTML = `
+    <div class="flex items-center">
+      <div class="mr-3 bg-indigo-600 p-2 rounded-lg" style="box-shadow: var(--glow-blue);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
       </div>
-      <div class="mt-4 md:mt-0">
-        <button id="add-income-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark">
-          + Add Income
-        </button>
+      <div>
+        <h1 class="text-2xl font-bold text-white" style="text-shadow: 0 0 10px rgba(79, 70, 229, 0.3);">
+          Income Command Center
+        </h1>
+        <div class="flex items-center">
+          <div class="h-1 w-1 bg-green-500 rounded-full mr-2 pulse-soft"></div>
+          <p class="text-indigo-200">40/30/30 Split Management System</p>
+        </div>
       </div>
     </div>
   `;
+  
+  // Button section
+  const buttonSection = document.createElement('div'); 
+  buttonSection.className = 'mt-4 md:mt-0';
+  
+  // Create glowing add button
+  const addButton = document.createElement('button');
+  addButton.id = 'add-income-btn';
+  addButton.className = 'glow-button';
+  addButton.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+    Record Income
+  `;
+  
+  buttonSection.appendChild(addButton);
+  
+  // Assemble header
+  headerContent.appendChild(titleSection);
+  headerContent.appendChild(buttonSection);
+  header.appendChild(headerContent);
   incomeContainer.appendChild(header);
   
   // Summary cards
@@ -498,23 +798,197 @@ export function renderIncomePage(userId) {
   `;
   splitCard.appendChild(cardHeader);
   
-  // Create an animated futuristic bar visualization
+  // Create a highly interactive advanced split visualization with holographic style
+  const visualizationContainer = document.createElement('div');
+  visualizationContainer.className = 'mt-4 mb-6 relative';
+  
+  // Add holographic effect overlay
+  const holoEffect = document.createElement('div');
+  holoEffect.className = 'absolute inset-0 pointer-events-none';
+  holoEffect.style.background = 'repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 10px)';
+  holoEffect.style.backgroundSize = '10px 100%';
+  holoEffect.style.zIndex = '5';
+  visualizationContainer.appendChild(holoEffect);
+  
+  // Add stacked visualization elements
+  const barBackground = document.createElement('div');
+  barBackground.className = 'bg-gray-800/50 rounded-lg p-4';
+  barBackground.style.boxShadow = 'inset 0 2px 10px rgba(0,0,0,0.5)';
+  
+  // Create the animated split bar
   const barContainer = document.createElement('div');
-  barContainer.className = 'flex mt-4 relative h-12 rounded-lg overflow-hidden shadow-xl';
-  barContainer.innerHTML = `
-    <div class="split-bar needs-bar" style="width: ${splitRatio.needs}%; background: linear-gradient(135deg, #34A853 0%, #2E7D32 100%); position: relative; overflow: hidden;">
-      <div class="absolute inset-0 bg-white bg-opacity-10 glow-effect"></div>
-      <div class="absolute inset-0 flex items-center justify-center text-white text-sm font-medium">${splitRatio.needs}%</div>
-    </div>
-    <div class="split-bar investments-bar" style="width: ${splitRatio.investments}%; background: linear-gradient(135deg, #4285F4 0%, #1A73E8 100%); position: relative; overflow: hidden;">
-      <div class="absolute inset-0 bg-white bg-opacity-10 glow-effect"></div>
-      <div class="absolute inset-0 flex items-center justify-center text-white text-sm font-medium">${splitRatio.investments}%</div>
-    </div>
-    <div class="split-bar savings-bar" style="width: ${splitRatio.savings}%; background: linear-gradient(135deg, #FBBC05 0%, #F57C00 100%); position: relative; overflow: hidden;">
-      <div class="absolute inset-0 bg-white bg-opacity-10 glow-effect"></div>
-      <div class="absolute inset-0 flex items-center justify-center text-white text-sm font-medium">${splitRatio.savings}%</div>
+  barContainer.className = 'flex mt-1 relative h-16 rounded-lg overflow-hidden shadow-xl';
+  
+  // Create advanced connector lines
+  const connectorLines = document.createElement('div');
+  connectorLines.className = 'absolute inset-0 pointer-events-none';
+  connectorLines.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg width=\'100%25\' height=\'100%25\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cdefs%3E%3Cpattern id=\'connectPattern\' patternUnits=\'userSpaceOnUse\' width=\'40\' height=\'40\' patternTransform=\'rotate(45)\'%3E%3Cline x1=\'0\' y1=\'0\' x2=\'40\' y2=\'0\' stroke=\'%23ffffff10\' stroke-width=\'1\'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23connectPattern)\'/%3E%3C/svg%3E")';
+  barContainer.appendChild(connectorLines);
+  
+  // Needs bar section 
+  const needsBar = document.createElement('div');
+  needsBar.className = 'interactive-bar needs-bar';
+  needsBar.style.width = `${splitRatio.needs}%`;
+  needsBar.style.background = 'linear-gradient(135deg, #00E676 0%, #00796B 100%)';
+  needsBar.style.position = 'relative';
+  needsBar.style.overflow = 'hidden';
+  needsBar.style.height = '100%';
+  needsBar.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+  needsBar.style.borderRight = '1px solid rgba(255,255,255,0.2)';
+  needsBar.style.boxShadow = '0 0 15px rgba(0, 230, 118, 0.3)';
+  
+  // Holographic label
+  const needsLabel = document.createElement('div');
+  needsLabel.className = 'absolute inset-0 flex items-center justify-center z-10';
+  needsLabel.innerHTML = `
+    <div class="text-center">
+      <div class="text-white text-sm font-bold" style="text-shadow: 0 0 5px rgba(0, 230, 118, 0.8);">${splitRatio.needs}%</div>
+      <div class="text-white/75 text-xs">NEEDS</div>
     </div>
   `;
+  needsBar.appendChild(needsLabel);
+  
+  // Animated flow effect
+  const needsFlow = document.createElement('div');
+  needsFlow.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent';
+  needsFlow.style.animation = 'flow 3s infinite';
+  needsFlow.style.width = '50%';
+  needsFlow.style.transform = 'skewX(45deg)';
+  needsBar.appendChild(needsFlow);
+  
+  // Digital particles
+  const needsParticles = document.createElement('div');
+  needsParticles.className = 'absolute inset-0';
+  needsParticles.style.backgroundImage = 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)';
+  needsParticles.style.backgroundSize = '10px 10px';
+  needsParticles.style.opacity = '0.5';
+  needsBar.appendChild(needsParticles);
+  
+  // Investments bar section with similar effects 
+  const investmentsBar = document.createElement('div');
+  investmentsBar.className = 'interactive-bar investments-bar';
+  investmentsBar.style.width = `${splitRatio.investments}%`;
+  investmentsBar.style.background = 'linear-gradient(135deg, #2196F3 0%, #303F9F 100%)';
+  investmentsBar.style.position = 'relative';
+  investmentsBar.style.overflow = 'hidden';
+  investmentsBar.style.height = '100%';
+  investmentsBar.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+  investmentsBar.style.borderRight = '1px solid rgba(255,255,255,0.2)';
+  investmentsBar.style.boxShadow = '0 0 15px rgba(33, 150, 243, 0.3)';
+  
+  // Holographic label
+  const investmentsLabel = document.createElement('div');
+  investmentsLabel.className = 'absolute inset-0 flex items-center justify-center z-10';
+  investmentsLabel.innerHTML = `
+    <div class="text-center">
+      <div class="text-white text-sm font-bold" style="text-shadow: 0 0 5px rgba(33, 150, 243, 0.8);">${splitRatio.investments}%</div>
+      <div class="text-white/75 text-xs">INVEST</div>
+    </div>
+  `;
+  investmentsBar.appendChild(investmentsLabel);
+  
+  // Animated flow effect
+  const investmentsFlow = document.createElement('div');
+  investmentsFlow.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent';
+  investmentsFlow.style.animation = 'flow 3s infinite';
+  investmentsFlow.style.animationDelay = '0.5s';
+  investmentsFlow.style.width = '50%';
+  investmentsFlow.style.transform = 'skewX(45deg)';
+  investmentsBar.appendChild(investmentsFlow);
+  
+  // Digital particles
+  const investmentsParticles = document.createElement('div');
+  investmentsParticles.className = 'absolute inset-0';
+  investmentsParticles.style.backgroundImage = 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)';
+  investmentsParticles.style.backgroundSize = '10px 10px';
+  investmentsParticles.style.opacity = '0.5';
+  investmentsBar.appendChild(investmentsParticles);
+  
+  // Savings bar section with similar effects
+  const savingsBar = document.createElement('div');
+  savingsBar.className = 'interactive-bar savings-bar';
+  savingsBar.style.width = `${splitRatio.savings}%`;
+  savingsBar.style.background = 'linear-gradient(135deg, #FFC107 0%, #E65100 100%)';
+  savingsBar.style.position = 'relative';
+  savingsBar.style.overflow = 'hidden';
+  savingsBar.style.height = '100%';
+  savingsBar.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+  savingsBar.style.boxShadow = '0 0 15px rgba(255, 193, 7, 0.3)';
+  
+  // Holographic label
+  const savingsLabel = document.createElement('div');
+  savingsLabel.className = 'absolute inset-0 flex items-center justify-center z-10';
+  savingsLabel.innerHTML = `
+    <div class="text-center">
+      <div class="text-white text-sm font-bold" style="text-shadow: 0 0 5px rgba(255, 193, 7, 0.8);">${splitRatio.savings}%</div>
+      <div class="text-white/75 text-xs">SAVE</div>
+    </div>
+  `;
+  savingsBar.appendChild(savingsLabel);
+  
+  // Animated flow effect
+  const savingsFlow = document.createElement('div');
+  savingsFlow.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent';
+  savingsFlow.style.animation = 'flow 3s infinite';
+  savingsFlow.style.animationDelay = '1s';
+  savingsFlow.style.width = '50%';
+  savingsFlow.style.transform = 'skewX(45deg)';
+  savingsBar.appendChild(savingsFlow);
+  
+  // Digital particles
+  const savingsParticles = document.createElement('div');
+  savingsParticles.className = 'absolute inset-0';
+  savingsParticles.style.backgroundImage = 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)';
+  savingsParticles.style.backgroundSize = '10px 10px';
+  savingsParticles.style.opacity = '0.5';
+  savingsBar.appendChild(savingsParticles);
+  
+  // Add the bar sections to the container
+  barContainer.appendChild(needsBar);
+  barContainer.appendChild(investmentsBar);
+  barContainer.appendChild(savingsBar);
+  
+  // Add interactive hover effects
+  const interactiveBarStyles = document.createElement('style');
+  interactiveBarStyles.textContent = `
+    .interactive-bar {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .interactive-bar:hover {
+      transform: translateY(-5px);
+      filter: brightness(1.3);
+      z-index: 10;
+    }
+    .interactive-bar:active {
+      transform: translateY(-2px);
+    }
+    @keyframes pulse-border {
+      0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+    }
+  `;
+  document.head.appendChild(interactiveBarStyles);
+  
+  // Add scale markers below the bar
+  const scaleMarkers = document.createElement('div');
+  scaleMarkers.className = 'flex justify-between mt-1 px-2';
+  scaleMarkers.innerHTML = `
+    <div class="text-xs text-indigo-300">0%</div>
+    <div class="text-xs text-indigo-300">25%</div>
+    <div class="text-xs text-indigo-300">50%</div>
+    <div class="text-xs text-indigo-300">75%</div>
+    <div class="text-xs text-indigo-300">100%</div>
+  `;
+  
+  // Assemble the visualization
+  barBackground.appendChild(barContainer);
+  barBackground.appendChild(scaleMarkers);
+  visualizationContainer.appendChild(barBackground);
+  
+  // Add the container to the split card
+  splitCard.appendChild(visualizationContainer);
   
   // Add flowing animation styles
   const animationStyle = document.createElement('style');
@@ -540,30 +1014,155 @@ export function renderIncomePage(userId) {
   
   splitCard.appendChild(barContainer);
   
-  // Create allocation details with amounts based on monthly income
+  // Create futuristic 3D-style allocation cards
   const monthlySplits = calculateSplits(monthlyIncome);
+  
+  // Container with 3D effect
   const detailsContainer = document.createElement('div');
-  detailsContainer.className = 'grid grid-cols-3 gap-2 mt-4';
-  detailsContainer.innerHTML = `
-    <div class="text-center px-2 py-3 bg-green-50 rounded-lg transition-all duration-300 hover:shadow-md hover:bg-green-100">
-      <div class="text-green-600 font-semibold text-xl">${formatCurrency(monthlySplits.needs)}</div>
-      <div class="font-semibold text-gray-700">Needs</div>
-      <div class="text-sm text-gray-600">${splitRatio.needs}%</div>
-      <div class="text-xs text-gray-500 mt-1">Bills, groceries, housing</div>
+  detailsContainer.className = 'grid grid-cols-3 gap-4 mt-8 pb-4';
+  
+  // Needs Category Card - Holographic style
+  const needsCard = document.createElement('div');
+  needsCard.className = 'hoverable-card relative income-card overflow-hidden';
+  needsCard.style.background = 'linear-gradient(135deg, rgba(0, 230, 118, 0.1), rgba(0, 121, 107, 0.3))';
+  needsCard.style.borderRadius = '12px';
+  needsCard.style.border = '1px solid rgba(0, 230, 118, 0.3)';
+  needsCard.style.boxShadow = 'var(--glow-green)';
+  
+  // Add pattern background
+  const needsPattern = document.createElement('div');
+  needsPattern.className = 'absolute inset-0 z-0 opacity-10';
+  needsPattern.style.backgroundImage = 'radial-gradient(rgba(0, 230, 118, 0.4) 1px, transparent 1px)';
+  needsPattern.style.backgroundSize = '20px 20px';
+  needsCard.appendChild(needsPattern);
+  
+  // Add top glowing border
+  const needsGlowBorder = document.createElement('div');
+  needsGlowBorder.className = 'absolute top-0 left-0 right-0 h-[1px]';
+  needsGlowBorder.style.background = 'linear-gradient(90deg, transparent, #00E676, transparent)';
+  needsCard.appendChild(needsGlowBorder);
+  
+  // Card content
+  const needsContent = document.createElement('div');
+  needsContent.className = 'relative z-10 p-4 text-center';
+  needsContent.innerHTML = `
+    <div class="flex justify-between items-center mb-3">
+      <div class="flex items-center">
+        <div class="h-2 w-2 rounded-full bg-green-400 mr-2 pulse-soft"></div>
+        <h3 class="text-white text-md uppercase tracking-wider font-medium">Needs</h3>
+      </div>
+      <div class="text-green-400 text-sm font-medium">${splitRatio.needs}%</div>
     </div>
-    <div class="text-center px-2 py-3 bg-blue-50 rounded-lg transition-all duration-300 hover:shadow-md hover:bg-blue-100">
-      <div class="text-blue-600 font-semibold text-xl">${formatCurrency(monthlySplits.investments)}</div>
-      <div class="font-semibold text-gray-700">Investments</div>
-      <div class="text-sm text-gray-600">${splitRatio.investments}%</div>
-      <div class="text-xs text-gray-500 mt-1">Stocks, retirement, crypto</div>
+    <div class="text-2xl font-bold text-white mb-1" style="text-shadow: 0 0 10px rgba(0, 230, 118, 0.5)">
+      ${formatCurrency(monthlySplits.needs)}
     </div>
-    <div class="text-center px-2 py-3 bg-yellow-50 rounded-lg transition-all duration-300 hover:shadow-md hover:bg-yellow-100">
-      <div class="text-yellow-600 font-semibold text-xl">${formatCurrency(monthlySplits.savings)}</div>
-      <div class="font-semibold text-gray-700">Savings</div>
-      <div class="text-sm text-gray-600">${splitRatio.savings}%</div>
-      <div class="text-xs text-gray-500 mt-1">Emergency fund, goals</div>
+    <div class="text-xs text-green-300 mb-3">Monthly allocation</div>
+    <div class="progress-bar mb-3">
+      <div class="progress-value" style="width: ${splitRatio.needs}%; background: linear-gradient(90deg, #00E676, #00C853);"></div>
+    </div>
+    <div class="flex justify-between text-xs text-gray-400">
+      <div>Essential expenses</div>
+      <div>Bills, housing, food</div>
     </div>
   `;
+  needsCard.appendChild(needsContent);
+  
+  // Investments Category Card - with similar style
+  const investmentsCard = document.createElement('div');
+  investmentsCard.className = 'hoverable-card relative income-card overflow-hidden';
+  investmentsCard.style.background = 'linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(48, 63, 159, 0.3))';
+  investmentsCard.style.borderRadius = '12px';
+  investmentsCard.style.border = '1px solid rgba(33, 150, 243, 0.3)';
+  investmentsCard.style.boxShadow = 'var(--glow-blue)';
+  
+  // Add pattern background
+  const investmentsPattern = document.createElement('div');
+  investmentsPattern.className = 'absolute inset-0 z-0 opacity-10';
+  investmentsPattern.style.backgroundImage = 'radial-gradient(rgba(33, 150, 243, 0.4) 1px, transparent 1px)';
+  investmentsPattern.style.backgroundSize = '20px 20px';
+  investmentsCard.appendChild(investmentsPattern);
+  
+  // Add top glowing border
+  const investmentsGlowBorder = document.createElement('div');
+  investmentsGlowBorder.className = 'absolute top-0 left-0 right-0 h-[1px]';
+  investmentsGlowBorder.style.background = 'linear-gradient(90deg, transparent, #2196F3, transparent)';
+  investmentsCard.appendChild(investmentsGlowBorder);
+  
+  // Card content
+  const investmentsContent = document.createElement('div');
+  investmentsContent.className = 'relative z-10 p-4 text-center';
+  investmentsContent.innerHTML = `
+    <div class="flex justify-between items-center mb-3">
+      <div class="flex items-center">
+        <div class="h-2 w-2 rounded-full bg-blue-400 mr-2 pulse-soft"></div>
+        <h3 class="text-white text-md uppercase tracking-wider font-medium">Investments</h3>
+      </div>
+      <div class="text-blue-400 text-sm font-medium">${splitRatio.investments}%</div>
+    </div>
+    <div class="text-2xl font-bold text-white mb-1" style="text-shadow: 0 0 10px rgba(33, 150, 243, 0.5)">
+      ${formatCurrency(monthlySplits.investments)}
+    </div>
+    <div class="text-xs text-blue-300 mb-3">Monthly allocation</div>
+    <div class="progress-bar mb-3">
+      <div class="progress-value" style="width: ${splitRatio.investments}%; background: linear-gradient(90deg, #2196F3, #1565C0);"></div>
+    </div>
+    <div class="flex justify-between text-xs text-gray-400">
+      <div>Growth capital</div>
+      <div>Stocks, crypto, funds</div>
+    </div>
+  `;
+  investmentsCard.appendChild(investmentsContent);
+  
+  // Savings Category Card - with similar style
+  const savingsCard = document.createElement('div');
+  savingsCard.className = 'hoverable-card relative income-card overflow-hidden';
+  savingsCard.style.background = 'linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(230, 81, 0, 0.3))';
+  savingsCard.style.borderRadius = '12px';
+  savingsCard.style.border = '1px solid rgba(255, 193, 7, 0.3)';
+  savingsCard.style.boxShadow = 'var(--glow-yellow)';
+  
+  // Add pattern background
+  const savingsPattern = document.createElement('div');
+  savingsPattern.className = 'absolute inset-0 z-0 opacity-10';
+  savingsPattern.style.backgroundImage = 'radial-gradient(rgba(255, 193, 7, 0.4) 1px, transparent 1px)';
+  savingsPattern.style.backgroundSize = '20px 20px';
+  savingsCard.appendChild(savingsPattern);
+  
+  // Add top glowing border
+  const savingsGlowBorder = document.createElement('div');
+  savingsGlowBorder.className = 'absolute top-0 left-0 right-0 h-[1px]';
+  savingsGlowBorder.style.background = 'linear-gradient(90deg, transparent, #FFC107, transparent)';
+  savingsCard.appendChild(savingsGlowBorder);
+  
+  // Card content
+  const savingsContent = document.createElement('div');
+  savingsContent.className = 'relative z-10 p-4 text-center';
+  savingsContent.innerHTML = `
+    <div class="flex justify-between items-center mb-3">
+      <div class="flex items-center">
+        <div class="h-2 w-2 rounded-full bg-yellow-400 mr-2 pulse-soft"></div>
+        <h3 class="text-white text-md uppercase tracking-wider font-medium">Savings</h3>
+      </div>
+      <div class="text-yellow-400 text-sm font-medium">${splitRatio.savings}%</div>
+    </div>
+    <div class="text-2xl font-bold text-white mb-1" style="text-shadow: 0 0 10px rgba(255, 193, 7, 0.5)">
+      ${formatCurrency(monthlySplits.savings)}
+    </div>
+    <div class="text-xs text-yellow-300 mb-3">Monthly allocation</div>
+    <div class="progress-bar mb-3">
+      <div class="progress-value" style="width: ${splitRatio.savings}%; background: linear-gradient(90deg, #FFC107, #FF8F00);"></div>
+    </div>
+    <div class="flex justify-between text-xs text-gray-400">
+      <div>Financial security</div>
+      <div>Emergency, goals</div>
+    </div>
+  `;
+  savingsCard.appendChild(savingsContent);
+  
+  // Add cards to the container
+  detailsContainer.appendChild(needsCard);
+  detailsContainer.appendChild(investmentsCard);
+  detailsContainer.appendChild(savingsCard);
   splitCard.appendChild(detailsContainer);
   
   // Add a toggle button to switch between bar and pie visualization (to be implemented)
@@ -681,108 +1280,362 @@ export function renderIncomePage(userId) {
   summarySection.appendChild(monthSplitCard);
   incomeContainer.appendChild(summarySection);
   
-  // Income history section
+  // Futuristic Income history section
   const historySection = document.createElement('section');
   historySection.className = 'income-history mb-8';
-  historySection.innerHTML = `
-    <div class="bg-white p-4 rounded-lg shadow-sm">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold">Income History</h3>
-        <div class="flex mt-2 sm:mt-0">
-          <div class="mr-3 horizontal-scroll scrollbar-none flex gap-2">
-            <button id="filter-none" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">
-              All Entries
-            </button>
-            <button id="filter-month" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-primary text-white hover:bg-primary-dark">
-              By Month
-            </button>
-            <button id="filter-week" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">
-              By Week
-            </button>
-            <button id="filter-category" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">
-              By Category
-            </button>
-          </div>
-          <select id="income-filter" class="p-2 border rounded-md text-sm">
-            <option value="all">All Time</option>
-            <option value="month" selected>This Month</option>
-            <option value="year">This Year</option>
-          </select>
+  
+  // Create container with cyberpunk styling
+  const historyContainer = document.createElement('div');
+  historyContainer.className = 'mt-12 relative';
+  
+  // Add cyberpunk container styling
+  historyContainer.style.background = 'linear-gradient(to bottom, rgba(17, 24, 39, 0.8), rgba(17, 24, 39, 0.95))';
+  historyContainer.style.borderRadius = '16px';
+  historyContainer.style.overflow = 'hidden';
+  historyContainer.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(79, 70, 229, 0.2)';
+  historyContainer.style.border = '1px solid rgba(79, 70, 229, 0.2)';
+  historyContainer.style.padding = '1.5rem';
+  
+  // Add digital circuits background
+  const circuitBg = document.createElement('div');
+  circuitBg.className = 'absolute inset-0 z-0 opacity-5';
+  circuitBg.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M54.627 0l.83.828-1.415 1.415L51.8 0h2.827zM5.373 0l-.83.828L5.96 2.243 8.2 0H5.374zM48.97 0l3.657 3.657-1.414 1.414L46.143 0h2.828zM11.03 0L7.372 3.657 8.787 5.07 13.857 0H11.03zm32.284 0L49.8 6.485 48.384 7.9l-7.9-7.9h2.83zM16.686 0L10.2 6.485 11.616 7.9l7.9-7.9h-2.83zm20.97 0l9.315 9.314-1.414 1.414L34.828 0h2.83zM22.344 0L13.03 9.314l1.414 1.414L25.172 0h-2.83zM32 0l12.142 12.142-1.414 1.414L30 .828 17.272 13.556l-1.414-1.414L28 0h4zM.284 0l28 28-1.414 1.414L0 2.544V0h.284zM0 5.373l25.456 25.455-1.414 1.415L0 8.2V5.374zm0 5.656l22.627 22.627-1.414 1.414L0 13.86v-2.83zm0 5.656l19.8 19.8-1.415 1.413L0 19.514v-2.83zm0 5.657l16.97 16.97-1.414 1.415L0 25.172v-2.83zM0 28l14.142 14.142-1.414 1.414L0 30.828V28zm0 5.657L11.314 44.97l-1.414 1.414L0 36.485v-2.83zm0 5.657L8.485 47.8l-1.414 1.414L0 42.143v-2.83zm0 5.657l5.657 5.657-1.414 1.415L0 47.8v-2.83zm0 5.657l2.828 2.83-1.414 1.413L0 53.456v-2.83zM54.627 60L30 35.373 5.373 60H8.2L30 38.2 51.8 60h2.827zm-5.656 0L30 41.03 11.03 60h2.828L30 43.858 46.142 60h2.83zm-5.656 0L30 46.686 16.686 60h2.83L30 49.515 40.485 60h2.83zm-5.657 0L30 52.343 22.344 60h2.83L30 55.172 34.828 60h2.83zM32 60l-2-2-2 2h4zM59.716 0l-28 28 1.414 1.414L60 2.544V0h-.284zM60 5.373L34.544 30.828l1.414 1.415L60 8.2V5.374zm0 5.656L37.373 33.656l1.414 1.414L60 13.86v-2.83zm0 5.656l-19.8 19.8 1.415 1.413L60 19.514v-2.83zm0 5.657l-16.97 16.97 1.414 1.415L60 25.172v-2.83zM60 28L45.858 42.142l1.414 1.414L60 30.828V28zm0 5.657L48.686 44.97l1.414 1.414L60 36.485v-2.83zm0 5.657L51.515 47.8l1.414 1.414L60 42.143v-2.83zm0 5.657l-5.657 5.657 1.414 1.415L60 47.8v-2.83zm0 5.657l-2.828 2.83 1.414 1.413L60 53.456v-2.83zM39.9 16.385l1.414-1.414L30 3.658 18.686 14.97l1.415 1.415 9.9-9.9 9.9 9.9zm-2.83 2.828l1.415-1.414L30 9.313 21.515 17.8l1.414 1.413L30 11.9l7.07 7.07z\' fill=\'%23ffffff\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")';
+  historyContainer.appendChild(circuitBg);
+  
+  // Add glowing edges
+  const topGlow = document.createElement('div');
+  topGlow.className = 'absolute top-0 left-0 right-0 h-[1px]';
+  topGlow.style.background = 'linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.7), transparent)';
+  historyContainer.appendChild(topGlow);
+  
+  const leftGlow = document.createElement('div');
+  leftGlow.className = 'absolute top-0 bottom-0 left-0 w-[1px]';
+  leftGlow.style.background = 'linear-gradient(180deg, transparent, rgba(79, 70, 229, 0.7), transparent)';
+  historyContainer.appendChild(leftGlow);
+  
+  // Table header with holographic effect
+  const tableHeader = document.createElement('div');
+  tableHeader.className = 'flex justify-between items-center mb-6 relative z-10';
+  
+  // Title with holographic effect
+  const tableTitle = document.createElement('div');
+  tableTitle.className = 'flex items-center';
+  tableTitle.innerHTML = `
+    <div class="flex items-center gap-3">
+      <div class="bg-indigo-600 p-2 rounded-lg" style="box-shadow: var(--glow-blue);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/><circle cx="12" cy="10" r="3"/><circle cx="12" cy="12" r="10"/></svg>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white" style="text-shadow: 0 0 5px rgba(79, 70, 229, 0.5);">Income History</h2>
+        <div class="flex items-center text-xs text-indigo-300">
+          <div class="h-1 w-1 bg-indigo-400 rounded-full mr-2 pulse-soft"></div>
+          <span>Secure Transaction Records</span>
         </div>
       </div>
-      
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead>
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Split Details</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200" id="income-entries">
-            ${incomeEntries.map((entry, index) => {
-              const category = incomeCategories.find(cat => cat.id === entry.category) || { name: 'Other', icon: '🔹' };
-              
-              return `
-                <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}" data-entry-id="${entry.id}">
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                    ${formatDate(entry.date)}
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                    ${entry.source}
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                    <span class="inline-flex items-center">
-                      <span class="mr-1">${category.icon}</span>
-                      ${category.name}
-                    </span>
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ${formatCurrency(entry.amount)}
-                  </td>
-                  <td class="px-4 py-3 text-sm text-gray-900">
-                    <div class="flex flex-col">
-                      <div class="text-xs flex justify-between">
-                        <span>Needs:</span>
-                        <span>${formatCurrency(entry.splits.needs)}</span>
-                      </div>
-                      <div class="text-xs flex justify-between">
-                        <span>Investments:</span>
-                        <span>${formatCurrency(entry.splits.investments)}</span>
-                      </div>
-                      <div class="text-xs flex justify-between">
-                        <span>Savings:</span>
-                        <span>${formatCurrency(entry.splits.savings)}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                    <button class="edit-income-btn text-blue-600 hover:text-blue-800 mr-3">
-                      Edit
-                    </button>
-                    <button class="delete-income-btn text-red-600 hover:text-red-800">
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-      
-      ${incomeEntries.length === 0 ? `
-        <div class="text-center py-8 text-gray-500">
-          <p>No income entries found</p>
-          <button id="add-first-income-btn" class="mt-2 text-primary hover:underline">Add your first income</button>
-        </div>
-      ` : ''}
     </div>
   `;
+  
+  // Filter options with futuristic style
+  const filterOptions = document.createElement('div');
+  filterOptions.className = 'filter-options relative flex items-center space-x-2';
+  filterOptions.innerHTML = `
+    <div class="flex gap-2">
+      <button id="filter-none" class="px-3 py-1 text-sm rounded-lg bg-indigo-600/80 text-white hover:bg-indigo-600 transition-colors border border-indigo-500/50">
+        All Entries
+      </button>
+      <button id="filter-month" class="px-3 py-1 text-sm rounded-lg bg-gray-800 text-indigo-300 hover:bg-gray-700 transition-colors border border-indigo-500/20">
+        By Month
+      </button>
+      <button id="filter-week" class="px-3 py-1 text-sm rounded-lg bg-gray-800 text-indigo-300 hover:bg-gray-700 transition-colors border border-indigo-500/20">
+        By Week
+      </button>
+    </div>
+    <button id="export-income" class="text-indigo-400 hover:text-indigo-300 text-sm p-1 flex items-center gap-1 bg-gray-800 py-1 px-3 rounded-lg border border-indigo-500/20 hover:border-indigo-500/50 transition-all">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      Export
+    </button>
+  `;
+  
+  // Assemble the header
+  tableHeader.appendChild(tableTitle);
+  tableHeader.appendChild(filterOptions);
+  historyContainer.appendChild(tableHeader);
+  
+  // Create the table content container
+  const tableContent = document.createElement('div');
+  tableContent.className = 'relative z-10';
+  
+  if (incomeEntries.length === 0) {
+    // Create beautiful empty state with holographic effect
+    const emptyState = document.createElement('div');
+    emptyState.className = 'p-10 rounded-lg border border-dashed border-indigo-500/30 relative overflow-hidden';
+    emptyState.style.background = 'linear-gradient(135deg, rgba(67, 56, 202, 0.05), rgba(79, 70, 229, 0.05))';
+    
+    // Add animated pulse glow
+    const emptyGlow = document.createElement('div');
+    emptyGlow.className = 'absolute inset-0 z-0';
+    emptyGlow.style.background = 'radial-gradient(circle at center, rgba(79, 70, 229, 0.2) 0%, transparent 70%)';
+    emptyGlow.style.animation = 'pulse 4s infinite ease-in-out';
+    emptyState.appendChild(emptyGlow);
+    
+    // Empty state content
+    emptyState.innerHTML += `
+      <div class="text-center relative z-10">
+        <div class="bg-indigo-500/10 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M12 5v14M5 12h14"></path></svg>
+        </div>
+        <h3 class="text-lg font-semibold text-white mb-2">No Income Entries Yet</h3>
+        <p class="text-indigo-300 mb-6 max-w-md mx-auto">Start tracking your income to see your progress and optimize your 40/30/30 split strategy.</p>
+        <button id="add-first-income" class="glow-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Record Your First Income
+        </button>
+      </div>
+    `;
+    tableContent.appendChild(emptyState);
+  } else {
+    // Create futuristic table with income entries
+    const tableWrapper = document.createElement('div');
+    tableWrapper.className = 'overflow-hidden rounded-lg border border-gray-800';
+    tableWrapper.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+    
+    const table = document.createElement('table');
+    table.className = 'min-w-full income-table';
+    
+    // Create cyberpunk style table header
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+      <tr>
+        <th class="w-28">Date</th>
+        <th>Description</th>
+        <th>Source</th>
+        <th class="text-right">Amount</th>
+        <th class="text-center">Actions</th>
+      </tr>
+    `;
+    table.appendChild(thead);
+    
+    const tbody = document.createElement('tbody');
+    
+    // Sort incomeEntries by date (most recent first)
+    const sortedEntries = [...incomeEntries].sort((a, b) => {
+      return new Date(b.date) - new Date(a.date);
+    });
+    
+    // Display latest 10 entries or all if less than 10
+    const displayEntries = sortedEntries.slice(0, 10);
+    
+    displayEntries.forEach((entry, index) => {
+      const row = document.createElement('tr');
+      row.className = 'hoverable-row';
+      
+      // Create a glowing row effect on hover
+      const glowStyle = document.createElement('style');
+      glowStyle.textContent = `
+        .hoverable-row {
+          position: relative;
+          transition: all 0.3s ease;
+        }
+        .hoverable-row:hover {
+          background: rgba(79, 70, 229, 0.1);
+        }
+        .hoverable-row:hover td:first-child::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 100%;
+          width: 4px;
+          background: linear-gradient(to bottom, var(--theme-primary), var(--theme-primary-dark));
+        }
+      `;
+      document.head.appendChild(glowStyle);
+      
+      row.innerHTML = `
+        <td>${formatDate(entry.date)}</td>
+        <td>
+          <div class="font-medium">${entry.description || 'N/A'}</div>
+        </td>
+        <td>
+          <span class="px-2 py-1 rounded-full text-xs bg-gray-800 text-gray-300">${entry.source}</span>
+        </td>
+        <td class="text-right font-mono font-semibold text-green-400">${formatCurrency(entry.amount)}</td>
+        <td class="text-center">
+          <div class="flex justify-center space-x-2">
+            <button data-id="${entry.id}" class="edit-entry p-1 rounded-md hover:bg-gray-700 text-blue-400 hover:text-blue-300 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+            </button>
+            <button data-id="${entry.id}" class="delete-entry p-1 rounded-md hover:bg-gray-700 text-red-400 hover:text-red-300 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+    
+    table.appendChild(tbody);
+    tableWrapper.appendChild(table);
+    tableContent.appendChild(tableWrapper);
+    
+    // If there are more entries, show a "View All" button
+    if (incomeEntries.length > 10) {
+      const viewAllContainer = document.createElement('div');
+      viewAllContainer.className = 'mt-4 text-center';
+      
+      // Create neon button effect
+      const viewAllBtn = document.createElement('button');
+      viewAllBtn.id = 'view-all-income';
+      viewAllBtn.className = 'relative inline-flex items-center px-4 py-2 bg-indigo-900/50 text-indigo-300 hover:text-white rounded-md overflow-hidden transition-all hover:bg-indigo-800/50';
+      viewAllBtn.style.border = '1px solid rgba(79, 70, 229, 0.3)';
+      viewAllBtn.style.boxShadow = '0 0 10px rgba(79, 70, 229, 0.2)';
+      
+      viewAllBtn.innerHTML = `
+        <span class="relative z-10 flex items-center">
+          <span>View All ${incomeEntries.length} Entries</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </span>
+      `;
+      
+      // Add flowing line animation
+      const flowLine = document.createElement('div');
+      flowLine.className = 'absolute inset-0 overflow-hidden';
+      flowLine.innerHTML = `
+        <div class="absolute inset-0 bg-indigo-800/30"></div>
+        <div class="absolute top-0 left-0 w-full h-full transform -translate-x-full" style="
+          background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.3), transparent);
+          animation: flow-button 2s infinite;
+        "></div>
+      `;
+      
+      // Add animation keyframes
+      const flowAnimation = document.createElement('style');
+      flowAnimation.textContent = `
+        @keyframes flow-button {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `;
+      document.head.appendChild(flowAnimation);
+      
+      viewAllBtn.appendChild(flowLine);
+      viewAllContainer.appendChild(viewAllBtn);
+      tableContent.appendChild(viewAllContainer);
+    }
+  }
+  
+  // Add the table content to the container
+  historyContainer.appendChild(tableContent);
+  
+  // Add container to the section
+  historySection.appendChild(historyContainer);
+  incomeContainer.appendChild(historySection);
+  
+  // Add event listeners
+  setTimeout(() => {
+    // Add button event
+    const addIncomeBtn = document.getElementById('add-income-btn');
+    if (addIncomeBtn) {
+      addIncomeBtn.addEventListener('click', showIncomeForm);
+    }
+    
+    // Add first income button (for empty state)
+    const addFirstIncomeBtn = document.getElementById('add-first-income');
+    if (addFirstIncomeBtn) {
+      addFirstIncomeBtn.addEventListener('click', showIncomeForm);
+    }
+    
+    // Filter buttons
+    const filterNoneBtn = document.getElementById('filter-none');
+    const filterMonthBtn = document.getElementById('filter-month');
+    const filterWeekBtn = document.getElementById('filter-week');
+    
+    if (filterNoneBtn && filterMonthBtn && filterWeekBtn) {
+      // Filter by time period
+      filterNoneBtn.addEventListener('click', () => {
+        filterIncomeEntries('all');
+        
+        // Update active state
+        filterNoneBtn.classList.add('bg-indigo-600/80', 'text-white');
+        filterNoneBtn.classList.remove('bg-gray-800', 'text-indigo-300');
+        
+        filterMonthBtn.classList.remove('bg-indigo-600/80', 'text-white');
+        filterMonthBtn.classList.add('bg-gray-800', 'text-indigo-300');
+        
+        filterWeekBtn.classList.remove('bg-indigo-600/80', 'text-white');
+        filterWeekBtn.classList.add('bg-gray-800', 'text-indigo-300');
+      });
+      
+      filterMonthBtn.addEventListener('click', () => {
+        filterIncomeEntries('month');
+        
+        // Update active state
+        filterMonthBtn.classList.add('bg-indigo-600/80', 'text-white');
+        filterMonthBtn.classList.remove('bg-gray-800', 'text-indigo-300');
+        
+        filterNoneBtn.classList.remove('bg-indigo-600/80', 'text-white');
+        filterNoneBtn.classList.add('bg-gray-800', 'text-indigo-300');
+        
+        filterWeekBtn.classList.remove('bg-indigo-600/80', 'text-white');
+        filterWeekBtn.classList.add('bg-gray-800', 'text-indigo-300');
+      });
+      
+      filterWeekBtn.addEventListener('click', () => {
+        filterIncomeEntries('week');
+        
+        // Update active state
+        filterWeekBtn.classList.add('bg-indigo-600/80', 'text-white');
+        filterWeekBtn.classList.remove('bg-gray-800', 'text-indigo-300');
+        
+        filterNoneBtn.classList.remove('bg-indigo-600/80', 'text-white');
+        filterNoneBtn.classList.add('bg-gray-800', 'text-indigo-300');
+        
+        filterMonthBtn.classList.remove('bg-indigo-600/80', 'text-white');
+        filterMonthBtn.classList.add('bg-gray-800', 'text-indigo-300');
+      });
+    }
+    
+    // Edit and delete buttons
+    const editButtons = document.querySelectorAll('.edit-entry');
+    const deleteButtons = document.querySelectorAll('.delete-entry');
+    
+    editButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const entryId = button.getAttribute('data-id');
+        const entry = incomeEntries.find(entry => entry.id === parseInt(entryId) || entry.id === entryId);
+        if (entry) {
+          editIncomeEntry(entry);
+        }
+      });
+    });
+    
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const entryId = button.getAttribute('data-id');
+        showDeleteConfirmation(entryId);
+      });
+    });
+    
+    // View all button
+    const viewAllBtn = document.getElementById('view-all-income');
+    if (viewAllBtn) {
+      viewAllBtn.addEventListener('click', () => {
+        // To be implemented
+        alert('Full income history view coming soon!');
+      });
+    }
+    
+    // Export button
+    const exportBtn = document.getElementById('export-income');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        alert('Export functionality coming soon!');
+      });
+    }
+  }, 0);
   incomeContainer.appendChild(historySection);
   
   // Income form modal
