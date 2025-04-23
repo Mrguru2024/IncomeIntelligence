@@ -16,13 +16,19 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // For development/testing - reset onboarding on each refresh (remove this in production)
+    console.log("Initializing onboarding experience...");
+    localStorage.removeItem('onboardingComplete');
+    
     // Check if onboarding has been completed before
     const onboardingStatus = localStorage.getItem('onboardingComplete');
     if (onboardingStatus === 'true') {
       setIsOnboardingComplete(true);
     } else {
       // If this is the first visit, show onboarding after a slight delay
+      console.log("Preparing to show onboarding modal...");
       const timer = setTimeout(() => {
+        console.log("Setting showOnboarding to true");
         setShowOnboarding(true);
       }, 1000);
       return () => clearTimeout(timer);
