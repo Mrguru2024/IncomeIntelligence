@@ -78,7 +78,7 @@ export function createSidebar(appState) {
   
   // Create logo using SVG from public folder
   const logoImg = document.createElement('img');
-  logoImg.src = '/green/public/stackr-logo.svg';
+  logoImg.src = 'public/stackr-logo.svg'; // Updated path to be relative to green folder
   logoImg.alt = 'Stackr';
   logoImg.style.height = '30px';
   logoImg.style.width = 'auto';

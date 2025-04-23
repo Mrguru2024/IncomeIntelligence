@@ -480,17 +480,32 @@ function createHeader() {
   topSection.style.alignItems = 'center';
   topSection.style.marginBottom = isMobile ? 'var(--space-3)' : 'var(--space-4)';
   
-  // Logo container with gradient effect
+  // Logo container with SVG logo
   const logoContainer = document.createElement('div');
+  logoContainer.style.display = 'flex';
+  logoContainer.style.alignItems = 'center';
   logoContainer.style.cursor = 'pointer';
   logoContainer.addEventListener('click', () => navigateTo('dashboard'));
   
-  const logo = document.createElement('h1');
-  logo.textContent = isMobile ? 'Stackr' : 'Stackr Finance';
-  logo.style.margin = '0';
-  logo.style.fontSize = isMobile ? 'var(--font-size-xl)' : 'var(--font-size-2xl)';
-  logo.style.fontWeight = 'var(--font-bold)';
-  logoContainer.appendChild(logo);
+  // Create logo using SVG from public folder
+  const logoImg = document.createElement('img');
+  logoImg.src = 'public/stackr-logo.svg'; // Path relative to green folder
+  logoImg.alt = 'Stackr';
+  logoImg.style.height = '30px';
+  logoImg.style.width = 'auto';
+  logoImg.style.marginRight = '8px';
+  
+  logoContainer.appendChild(logoImg);
+  
+  // Only add text on desktop
+  if (!isMobile) {
+    const logoText = document.createElement('span');
+    logoText.textContent = 'Finance';
+    logoText.style.fontSize = '22px';
+    logoText.style.fontWeight = 'bold';
+    logoText.style.color = 'white';
+    logoContainer.appendChild(logoText);
+  }
   
   const subtitle = document.createElement('p');
   subtitle.textContent = 'GREEN Edition';
@@ -771,19 +786,38 @@ function createFooter() {
   const logoSection = document.createElement('div');
   logoSection.style.marginBottom = 'var(--space-6)';
   
-  const footerLogo = document.createElement('h3');
-  footerLogo.textContent = 'Stackr Finance';
-  footerLogo.style.fontSize = 'var(--font-size-lg)';
-  footerLogo.style.fontWeight = 'var(--font-bold)';
-  footerLogo.style.margin = '0 0 var(--space-2) 0';
+  // Create container for logo and text 
+  const logoContainer = document.createElement('div');
+  logoContainer.style.display = 'flex';
+  logoContainer.style.alignItems = 'center';
+  logoContainer.style.justifyContent = 'center';
+  logoContainer.style.marginBottom = 'var(--space-2)';
+  
+  // Create logo using SVG from public folder
+  const logoImg = document.createElement('img');
+  logoImg.src = 'public/stackr-logo.svg'; // Path relative to green folder
+  logoImg.alt = 'Stackr';
+  logoImg.style.height = '40px';
+  logoImg.style.width = 'auto';
+  logoImg.style.marginRight = '10px';
+  
+  // Add the "Finance" text
+  const logoText = document.createElement('span');
+  logoText.textContent = 'Finance';
+  logoText.style.fontSize = '22px';
+  logoText.style.fontWeight = 'bold';
+  logoText.style.color = 'var(--color-text)';
+  
+  logoContainer.appendChild(logoImg);
+  logoContainer.appendChild(logoText);
   
   const footerTagline = document.createElement('p');
   footerTagline.textContent = 'Helping service providers manage their finances better';
   footerTagline.style.color = 'var(--color-text-secondary)';
   footerTagline.style.fontSize = 'var(--font-size-sm)';
-  footerTagline.style.margin = '0';
+  footerTagline.style.margin = '10px 0 0 0';
   
-  logoSection.appendChild(footerLogo);
+  logoSection.appendChild(logoContainer);
   logoSection.appendChild(footerTagline);
   footerContent.appendChild(logoSection);
   
