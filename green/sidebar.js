@@ -3,6 +3,8 @@
  * This file handles the sidebar navigation UI and functionality
  */
 
+import { hasBankConnections } from './bank-connections.js';
+
 // Export navigateTo function so it can be used externally
 export function navigateTo(page) {
   // If window is available, this will be imported and used by the src/main.js
@@ -176,6 +178,51 @@ export function createSidebar(appState) {
   
   profileSection.appendChild(subscriptionBadge);
   
+  // Bank connection status badge (initially hidden, will be updated later)
+  const bankStatusBadge = document.createElement('div');
+  bankStatusBadge.classList.add('bank-status-badge');
+  bankStatusBadge.style.display = 'inline-block';
+  bankStatusBadge.style.padding = '4px 8px 4px 6px';
+  bankStatusBadge.style.fontSize = '12px';
+  bankStatusBadge.style.fontWeight = 'medium';
+  bankStatusBadge.style.borderRadius = '12px';
+  bankStatusBadge.style.marginTop = '10px';
+  bankStatusBadge.style.marginLeft = '4px';
+  bankStatusBadge.style.marginRight = '4px';
+  bankStatusBadge.style.display = 'flex';
+  bankStatusBadge.style.alignItems = 'center';
+  bankStatusBadge.style.justifyContent = 'center';
+  bankStatusBadge.style.gap = '4px';
+  
+  // Initially set to loading state
+  bankStatusBadge.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+  bankStatusBadge.style.color = 'rgba(255, 255, 255, 0.7)';
+  bankStatusBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> <span>Checking Bank Status...</span>';
+  
+  profileSection.appendChild(bankStatusBadge);
+  
+  // Check bank connection status and update badge
+  if (appState?.user?.id) {
+    hasBankConnections(appState.user.id)
+      .then(hasConnections => {
+        if (hasConnections) {
+          bankStatusBadge.style.backgroundColor = 'rgba(46, 125, 50, 0.2)';
+          bankStatusBadge.style.color = '#4CAF50';
+          bankStatusBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> <span>Bank Connected</span>';
+        } else {
+          bankStatusBadge.style.backgroundColor = 'rgba(245, 124, 0, 0.2)';
+          bankStatusBadge.style.color = '#F57C00';
+          bankStatusBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> <span>No Bank Connected</span>';
+        }
+      })
+      .catch(error => {
+        bankStatusBadge.style.backgroundColor = 'rgba(198, 40, 40, 0.2)';
+        bankStatusBadge.style.color = '#E53935';
+        bankStatusBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> <span>Connection Error</span>';
+        console.error('Error checking bank status:', error);
+      });
+  }
+  
   // Profile edit button
   const editProfileButton = document.createElement('button');
   editProfileButton.classList.add('edit-profile-button');
@@ -253,7 +300,61 @@ export function createSidebar(appState) {
         {
           id: 'bankconnections',
           label: 'Bank Accounts',
-          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>'
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>',
+          customRender: (item, isActive) => {
+            const itemContainer = document.createElement('div');
+            itemContainer.style.display = 'flex';
+            itemContainer.style.justifyContent = 'space-between';
+            itemContainer.style.alignItems = 'center';
+            itemContainer.style.width = '100%';
+            
+            // Left side with icon and label (standard)
+            const leftSide = document.createElement('div');
+            leftSide.style.display = 'flex';
+            leftSide.style.alignItems = 'center';
+            leftSide.style.gap = '12px';
+            
+            const iconContainer = document.createElement('div');
+            iconContainer.classList.add('menu-icon');
+            iconContainer.innerHTML = item.icon;
+            iconContainer.style.color = isActive ? 'var(--color-primary)' : 'inherit';
+            
+            const label = document.createElement('span');
+            label.textContent = item.label;
+            
+            leftSide.appendChild(iconContainer);
+            leftSide.appendChild(label);
+            itemContainer.appendChild(leftSide);
+            
+            // Right side with connection status indicator (small dot)
+            const statusIndicator = document.createElement('div');
+            statusIndicator.style.width = '8px';
+            statusIndicator.style.height = '8px';
+            statusIndicator.style.borderRadius = '50%';
+            statusIndicator.style.marginRight = '8px';
+            
+            // Initially gray (loading state)
+            statusIndicator.style.backgroundColor = '#9e9e9e';
+            
+            // Check bank connection status and update the indicator
+            if (appState?.user?.id) {
+              hasBankConnections(appState.user.id)
+                .then(hasConnections => {
+                  if (hasConnections) {
+                    statusIndicator.style.backgroundColor = '#4CAF50'; // Green for connected
+                  } else {
+                    statusIndicator.style.backgroundColor = '#F57C00'; // Orange for not connected
+                  }
+                })
+                .catch(error => {
+                  statusIndicator.style.backgroundColor = '#E53935'; // Red for error
+                  console.error('Error checking bank status in menu:', error);
+                });
+            }
+            
+            itemContainer.appendChild(statusIndicator);
+            return itemContainer;
+          }
         }
       ]
     },
@@ -389,19 +490,27 @@ export function createSidebar(appState) {
         }
       });
       
-      // Icon
-      const icon = document.createElement('span');
-      icon.classList.add('menu-icon');
-      icon.innerHTML = item.icon;
-      icon.style.marginRight = '12px';
-      icon.style.display = 'flex';
-      icon.style.alignItems = 'center';
-      link.appendChild(icon);
-      
-      // Label
-      const label = document.createElement('span');
-      label.textContent = item.label;
-      link.appendChild(label);
+      // Check if this item has a custom render function
+      if (item.customRender) {
+        // Use custom render function for special items like bank connections
+        const customContent = item.customRender(item, appState?.currentPage === item.id);
+        link.appendChild(customContent);
+      } else {
+        // Standard render for normal menu items
+        // Icon
+        const icon = document.createElement('span');
+        icon.classList.add('menu-icon');
+        icon.innerHTML = item.icon;
+        icon.style.marginRight = '12px';
+        icon.style.display = 'flex';
+        icon.style.alignItems = 'center';
+        link.appendChild(icon);
+        
+        // Label
+        const label = document.createElement('span');
+        label.textContent = item.label;
+        link.appendChild(label);
+      }
 
       // Badge (if present)
       if (item.badge) {
