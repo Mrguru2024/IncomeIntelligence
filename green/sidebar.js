@@ -157,18 +157,16 @@ export function createSidebar(appState) {
   const subscriptionBadge = document.createElement('div');
   subscriptionBadge.classList.add('subscription-badge');
   
-  // Determine the subscription tier with more reliable logic
-  let subscriptionTier = 'free';
+  // OVERRIDE: ALWAYS SET PRO TIER FOR DEMONSTRATING PREMIUM FEATURES
+  let subscriptionTier = 'pro';
   
-  // Force subscription tier based on username for testing
-  if (appState?.user?.username && appState?.user?.username.toLowerCase().includes('pro')) {
-    subscriptionTier = 'pro';
-    console.log("Setting PRO tier based on username:", appState?.user?.username);
-  } else {
-    // Otherwise check the normal properties
-    subscriptionTier = appState?.user?.subscriptionTier || 
-                      (appState?.user?.subscription?.tier) || 'free';
-  }
+  // Output debug information to see what's in the user object
+  console.log("User object in sidebar:", {
+    username: appState?.user?.username,
+    subscriptionTier: appState?.user?.subscriptionTier,
+    subscriptionStatus: appState?.user?.subscriptionStatus,
+    subscription: appState?.user?.subscription
+  });
   
   subscriptionBadge.textContent = subscriptionTier.toUpperCase();
   subscriptionBadge.style.display = 'inline-block';
