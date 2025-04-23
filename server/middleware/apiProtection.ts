@@ -130,6 +130,12 @@ export const preventApiAbuse = (req: Request, res: Response, next: NextFunction)
     console.log(`[SECURITY] Allowing request to blog image generation endpoint: ${req.path}`);
     return next();
   }
+  
+  // Always allow the main module scripts
+  if (req.path.includes('/src/main.tsx') || req.path.includes('/src/index.css') || req.path.match(/\.[tj]sx?$/)) {
+    console.log(`[SECURITY] Allowing module script request: ${req.path}`);
+    return next();
+  }
 
   // Check for suspicious user agent
   const userAgent = req.headers['user-agent'] || '';
