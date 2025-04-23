@@ -547,7 +547,7 @@ export function renderIncomePage() {
   const monthSplitCard = document.createElement('div');
   monthSplitCard.className = 'card bg-white p-4 rounded-lg shadow-sm';
   
-  // Monthly splits already calculated above
+  // Monthly splits were already calculated above, reuse that variable
   
   monthSplitCard.innerHTML = `
     <div class="card-header mb-2">
