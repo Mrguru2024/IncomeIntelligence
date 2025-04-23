@@ -2349,6 +2349,94 @@ function renderSettingsPage() {
   const accountInfo = document.createElement('div');
   accountInfo.style.marginBottom = '20px';
   
+  // Onboarding Reset Section
+  const onboardingSection = document.createElement('div');
+  onboardingSection.style.marginBottom = '20px';
+  onboardingSection.style.padding = '15px';
+  onboardingSection.style.border = '1px solid #e0e0e0';
+  onboardingSection.style.borderRadius = '6px';
+  onboardingSection.style.backgroundColor = '#fafafa';
+  
+  const onboardingTitle = document.createElement('h4');
+  onboardingTitle.textContent = 'Onboarding Settings';
+  onboardingTitle.style.marginTop = '0';
+  onboardingTitle.style.marginBottom = '10px';
+  onboardingSection.appendChild(onboardingTitle);
+  
+  const onboardingDescription = document.createElement('p');
+  onboardingDescription.textContent = 'Reset your onboarding progress to go through the setup process again.';
+  onboardingDescription.style.marginBottom = '15px';
+  onboardingDescription.style.fontSize = '14px';
+  onboardingSection.appendChild(onboardingDescription);
+  
+  const onboardingStatus = document.createElement('div');
+  onboardingStatus.style.marginBottom = '15px';
+  onboardingStatus.style.fontSize = '14px';
+  
+  // Get current onboarding status
+  const onboardingComplete = localStorage.getItem('stackrOnboardingCompleted') === 'true';
+  const currentStep = appState.user.onboardingStep || 'welcome';
+  
+  onboardingStatus.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <span style="font-weight: 500;">Current Status:</span>
+      <span style="
+        padding: 4px 8px; 
+        border-radius: 4px; 
+        background-color: ${onboardingComplete ? '#e6f7ed' : '#fff3e0'}; 
+        color: ${onboardingComplete ? '#0d904f' : '#e65100'};
+        font-weight: 500;
+      ">
+        ${onboardingComplete ? 'Completed' : 'In Progress'}
+      </span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-weight: 500;">Current Step:</span>
+      <span style="font-family: monospace; color: #444;">${currentStep}</span>
+    </div>
+  `;
+  
+  onboardingSection.appendChild(onboardingStatus);
+  
+  const resetOnboardingBtn = createButton('Reset Onboarding', async () => {
+    if (confirm('Are you sure you want to reset your onboarding progress? You will need to go through the setup process again.')) {
+      // Clear local storage flag
+      localStorage.removeItem('stackrOnboardingCompleted');
+      
+      try {
+        // Reset onboarding step in API
+        await import('../onboarding.js').then(module => {
+          // Update the user's onboarding step
+          module.updateOnboardingStep(appState.user.id, 'welcome')
+            .then(() => {
+              // Update local app state
+              appState.user.onboardingStep = 'welcome';
+              saveStateToStorage();
+              
+              // Show success message
+              alert('Onboarding has been reset successfully. Navigate to the Dashboard to start the onboarding process again.');
+              
+              // Refresh the page
+              renderApp();
+            })
+            .catch(error => {
+              console.error('Failed to reset onboarding step:', error);
+              alert('Failed to reset onboarding. Please try again.');
+            });
+        });
+      } catch (error) {
+        console.error('Error importing onboarding module:', error);
+        alert('Failed to reset onboarding. Please try again.');
+      }
+    }
+  }, '#4285F4', true);
+  
+  resetOnboardingBtn.style.width = '100%';
+  resetOnboardingBtn.style.marginTop = '10px';
+  
+  onboardingSection.appendChild(resetOnboardingBtn);
+  accountCard.appendChild(onboardingSection);
+  
   // Import login module to use the logout function
   import('../login.js').then(loginModule => {
     // Create logout button
@@ -2714,6 +2802,23 @@ function renderPageContent(container) {
         renderDashboardPage()
           .then(dashboardElement => {
             container.appendChild(dashboardElement);
+            
+            // Check if onboarding should be shown
+            import('../onboarding.js').then(module => {
+              // Check if user is new and needs onboarding
+              if (appState.user && (!appState.user.onboardingStep || appState.user.onboardingStep !== 'complete')) {
+                // Show the onboarding modal
+                const onboardingModal = module.showOnboardingModal();
+                if (onboardingModal) {
+                  document.body.appendChild(onboardingModal);
+                  console.log('Onboarding modal shown');
+                }
+              } else {
+                console.log('User has completed onboarding or has onboarding step:', appState.user?.onboardingStep);
+              }
+            }).catch(error => {
+              console.error('Error loading onboarding module:', error);
+            });
           })
           .catch(error => {
             console.error('Error rendering dashboard:', error);

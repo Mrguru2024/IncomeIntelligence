@@ -2749,8 +2749,8 @@ function createTutorialSection(title, description, icon, features) {
 
 // API calls
 
-// Update onboarding step
-async function updateOnboardingStep(userId, step, retryCount = 0) {
+// Update onboarding step - export to make it available to other modules
+export async function updateOnboardingStep(userId, step, retryCount = 0) {
   try {
     // Get all possible auth tokens
     const token = getToken();
