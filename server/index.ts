@@ -210,15 +210,55 @@ app.use(express.static(path.join(process.cwd(), 'public'), {
   lastModified: true,
 }));
 
-// Directly serve the blog page
-app.get('/blog', (req, res) => {
-  const blogHtmlPath = path.join(process.cwd(), 'public', 'blog.html');
-  if (fs.existsSync(blogHtmlPath)) {
-    console.log('Serving static blog HTML page');
-    res.sendFile(blogHtmlPath);
+// Directly serve the blog page as a fallback if the Accept header indicates the client wants HTML directly
+// This will not trigger for normal SPA navigation
+app.get('/blog', (req, res, next) => {
+  // Check if this is likely a direct browser request (not an AJAX/SPA navigation)
+  const acceptHeader = req.headers.accept || '';
+  const userAgent = req.headers['user-agent'] || '';
+  const referer = req.headers.referer || '';
+  
+  // Redirect editor access to the React-based editor
+  if (req.path === '/blog/editor' || req.path === '/blog/new') {
+    // Let the SPA router handle this
+    return next();
+  }
+  
+  // If this appears to be a direct browser request for HTML
+  // or if the ?standalone=true parameter is present
+  if (
+    (acceptHeader.includes('text/html') && !referer.includes('/blog')) || 
+    req.query.standalone === 'true'
+  ) {
+    const blogHtmlPath = path.join(process.cwd(), 'public', 'blog.html');
+    if (fs.existsSync(blogHtmlPath)) {
+      console.log('Serving static blog HTML page as fallback');
+      return res.sendFile(blogHtmlPath);
+    } else {
+      console.error('Blog HTML not found:', blogHtmlPath);
+    }
+  }
+  
+  // Otherwise, let the normal SPA routing handle it
+  next();
+});
+
+// Serve the standalone blog editor page, but require authentication
+app.get('/blog/editor/static', (req, res, next) => {
+  // This would check for authentication in a real app
+  // For demo, we'll check for a simple query parameter indicating logged in state
+  if (req.query.auth === 'true' || req.headers.cookie?.includes('authenticated')) {
+    const blogEditorPath = path.join(process.cwd(), 'public', 'blog-editor.html');
+    if (fs.existsSync(blogEditorPath)) {
+      console.log('Serving static blog editor HTML page');
+      return res.sendFile(blogEditorPath);
+    } else {
+      console.error('Blog editor HTML not found:', blogEditorPath);
+      return res.status(404).send('Blog editor not found');
+    }
   } else {
-    console.error('Blog HTML not found:', blogHtmlPath);
-    res.status(404).send('Blog page not available');
+    // Redirect to login if not authenticated
+    res.redirect('/auth?returnTo=/blog/editor/static');
   }
 });
 

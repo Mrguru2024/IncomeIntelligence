@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stackr Finance - Blog Editor</title>
+  <style>
+    :root {
+      --primary: #3182ce;
+      --primary-light: #4299e1;
+      --primary-dark: #2c5282;
+      --secondary: #805ad5;
+      --gray-100: #f7fafc;
+      --gray-200: #edf2f7;
+      --gray-300: #e2e8f0;
+      --gray-400: #cbd5e0;
+      --gray-500: #a0aec0;
+      --gray-600: #718096;
+      --gray-700: #4a5568;
+      --gray-800: #2d3748;
+      --gray-900: #1a202c;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      line-height: 1.6;
+      color: var(--gray-800);
+      background-color: var(--gray-100);
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+    
+    .divider {
+      height: 1px;
+      background-color: var(--gray-300);
+      margin: 2rem 0;
+    }
+    
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .logo {
+      font-weight: 700;
+      font-size: 1.5rem;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-decoration: none;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    
+    .nav-link {
+      color: var(--gray-700);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    .nav-link:hover {
+      color: var(--primary);
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.75rem 1.5rem;
+      font-weight: 500;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      border: none;
+      font-size: 1rem;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: linear-gradient(to right, var(--primary-dark), var(--secondary));
+    }
+    
+    .btn-outline {
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      background: transparent;
+    }
+    
+    .btn-outline:hover {
+      background-color: rgba(49, 130, 206, 0.1);
+    }
+    
+    .btn-sm {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+    }
+    
+    .editor-container {
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--gray-700);
+    }
+    
+    input, textarea, select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 0.375rem;
+      background-color: white;
+      color: var(--gray-800);
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    }
+    
+    textarea {
+      min-height: 200px;
+      resize: vertical;
+    }
+    
+    .image-preview {
+      margin-top: 1rem;
+      border: 1px dashed var(--gray-300);
+      border-radius: 0.375rem;
+      padding: 1rem;
+      text-align: center;
+    }
+    
+    .image-preview img {
+      max-width: 100%;
+      max-height: 300px;
+      display: none;
+    }
+    
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    
+    .tag {
+      background-color: var(--gray-200);
+      color: var(--gray-700);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    .tag button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--gray-500);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      width: 16px;
+      height: 16px;
+    }
+    
+    .tag button:hover {
+      color: var(--gray-800);
+    }
+    
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    
+    .preview-container {
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .preview-title {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--gray-900);
+    }
+    
+    .preview-meta {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      color: var(--gray-600);
+    }
+    
+    .preview-category {
+      background-color: var(--gray-200);
+      color: var(--gray-700);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      margin-right: 1rem;
+    }
+    
+    .preview-image {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      border-radius: 0.375rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .preview-content {
+      color: var(--gray-800);
+      line-height: this;
+    }
+    
+    .preview-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    .preview-tag {
+      background-color: var(--gray-200);
+      color: var(--gray-700);
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+    }
+    
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-bar">
+    <a href="/" class="logo">Stackr</a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Dashboard</a>
+      <a href="/blog" class="nav-link">Blog</a>
+      <a href="#" class="btn btn-primary btn-sm">Publish</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header>
+      <h1>Create Blog Post</h1>
+    </header>
+    
+    <div class="editor-container">
+      <form id="blogForm">
+        <div class="form-group">
+          <label for="title">Title</label>
+          <input type="text" id="title" name="title" placeholder="Enter blog post title" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="excerpt">Excerpt</label>
+          <textarea id="excerpt" name="excerpt" placeholder="Brief summary of your post" required></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" name="category" required>
+            <option value="">Select a category</option>
+            <option value="budgeting">Budgeting</option>
+            <option value="investing">Investing</option>
+            <option value="taxes">Taxes</option>
+            <option value="saving">Saving</option>
+            <option value="income">Income</option>
+            <option value="retirement">Retirement</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="tags">Tags (comma separated)</label>
+          <input type="text" id="tags" name="tags" placeholder="budget, saving, money tips">
+          <div class="tags-container" id="tagsContainer"></div>
+        </div>
+        
+        <div class="form-group">
+          <label for="imageUrl">Image URL</label>
+          <input type="url" id="imageUrl" name="imageUrl" placeholder="https://example.com/image.jpg">
+          <div class="image-preview">
+            <img id="imagePreview" src="" alt="Preview">
+            <p id="previewPlaceholder">Image preview will appear here</p>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="content">Content</label>
+          <textarea id="content" name="content" placeholder="Write your blog post content here..." required></textarea>
+        </div>
+        
+        <div class="actions">
+          <button type="button" id="previewButton" class="btn btn-outline">Preview</button>
+          <button type="submit" class="btn btn-primary">Save Draft</button>
+        </div>
+      </form>
+    </div>
+    
+    <div class="preview-container hidden" id="previewContainer">
+      <h2 class="preview-title" id="previewTitle"></h2>
+      
+      <div class="preview-meta">
+        <span class="preview-category" id="previewCategory"></span>
+        <span id="previewDate"></span>
+      </div>
+      
+      <img class="preview-image" id="previewImage" src="" alt="">
+      
+      <div class="preview-content" id="previewContent"></div>
+      
+      <div class="preview-tags" id="previewTags"></div>
+      
+      <div class="actions">
+        <button type="button" id="editButton" class="btn btn-outline">Edit</button>
+        <button type="button" class="btn btn-primary">Publish</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Date formatting utility
+    function formatDate(date) {
+      return new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+    
+    // Get current date
+    document.addEventListener('DOMContentLoaded', function() {
+      // Handle image preview
+      const imageUrlInput = document.getElementById('imageUrl');
+      const imagePreview = document.getElementById('imagePreview');
+      const previewPlaceholder = document.getElementById('previewPlaceholder');
+      
+      imageUrlInput.addEventListener('input', function() {
+        const url = this.value.trim();
+        if (url) {
+          imagePreview.src = url;
+          imagePreview.style.display = 'block';
+          previewPlaceholder.style.display = 'none';
+          
+          // Handle image load error
+          imagePreview.onerror = function() {
+            imagePreview.style.display = 'none';
+            previewPlaceholder.style.display = 'block';
+            previewPlaceholder.textContent = 'Invalid image URL';
+          };
+          
+          imagePreview.onload = function() {
+            previewPlaceholder.style.display = 'none';
+          };
+        } else {
+          imagePreview.style.display = 'none';
+          previewPlaceholder.style.display = 'block';
+          previewPlaceholder.textContent = 'Image preview will appear here';
+        }
+      });
+      
+      // Handle tags
+      const tagsInput = document.getElementById('tags');
+      const tagsContainer = document.getElementById('tagsContainer');
+      const tagsList = [];
+      
+      function renderTags() {
+        tagsContainer.innerHTML = '';
+        tagsList.forEach((tag, index) => {
+          const tagElement = document.createElement('div');
+          tagElement.className = 'tag';
+          tagElement.innerHTML = `
+            ${tag}
+            <button type="button" data-index="${index}">×</button>
+          `;
+          tagsContainer.appendChild(tagElement);
+        });
+        
+        // Add event listeners to remove buttons
+        tagsContainer.querySelectorAll('button').forEach(button => {
+          button.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            tagsList.splice(index, 1);
+            renderTags();
+          });
+        });
+      }
+      
+      tagsInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+          e.preventDefault();
+          const value = this.value.trim();
+          if (value && !tagsList.includes(value)) {
+            tagsList.push(value);
+            this.value = '';
+            renderTags();
+          }
+        }
+      });
+      
+      tagsInput.addEventListener('blur', function() {
+        const value = this.value.trim();
+        if (value && !tagsList.includes(value)) {
+          tagsList.push(value);
+          this.value = '';
+          renderTags();
+        }
+      });
+      
+      // Preview functionality
+      const previewButton = document.getElementById('previewButton');
+      const editButton = document.getElementById('editButton');
+      const editorContainer = document.querySelector('.editor-container');
+      const previewContainer = document.getElementById('previewContainer');
+      
+      previewButton.addEventListener('click', function() {
+        // Get form values
+        const title = document.getElementById('title').value;
+        const excerpt = document.getElementById('excerpt').value;
+        const category = document.getElementById('category').value;
+        const categoryText = document.getElementById('category').options[document.getElementById('category').selectedIndex].text;
+        const imageUrl = document.getElementById('imageUrl').value;
+        const content = document.getElementById('content').value;
+        
+        // Fill in preview
+        document.getElementById('previewTitle').textContent = title;
+        document.getElementById('previewCategory').textContent = categoryText;
+        document.getElementById('previewDate').textContent = formatDate(new Date());
+        document.getElementById('previewImage').src = imageUrl || 'https://placehold.co/600x400/3182ce/FFFFFF?text=Blog+Post';
+        document.getElementById('previewContent').innerHTML = content.replace(/\n/g, '<br>');
+        
+        // Render tags
+        const previewTags = document.getElementById('previewTags');
+        previewTags.innerHTML = '';
+        tagsList.forEach(tag => {
+          const tagElement = document.createElement('span');
+          tagElement.className = 'preview-tag';
+          tagElement.textContent = '#' + tag;
+          previewTags.appendChild(tagElement);
+        });
+        
+        // Show preview, hide editor
+        editorContainer.classList.add('hidden');
+        previewContainer.classList.remove('hidden');
+      });
+      
+      editButton.addEventListener('click', function() {
+        editorContainer.classList.remove('hidden');
+        previewContainer.classList.add('hidden');
+      });
+      
+      // Form submission
+      document.getElementById('blogForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Normally this would save to the database
+        alert('Post saved as draft!');
+        
+        // For demo purposes, we'll just reset the form
+        this.reset();
+        tagsContainer.innerHTML = '';
+        imagePreview.style.display = 'none';
+        previewPlaceholder.style.display = 'block';
+        previewPlaceholder.textContent = 'Image preview will appear here';
+        tagsList.length = 0;
+      });
+    });
+  </script>
+</body>
+</html>
