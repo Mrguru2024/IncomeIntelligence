@@ -156,8 +156,12 @@ export function createSidebar(appState) {
   // Subscription badge
   const subscriptionBadge = document.createElement('div');
   subscriptionBadge.classList.add('subscription-badge');
-  subscriptionBadge.textContent = appState?.user?.subscriptionTier ? 
-    appState.user.subscriptionTier.toUpperCase() : 'FREE';
+  
+  // Get the subscription tier from either property
+  const subscriptionTier = appState?.user?.subscriptionTier || 
+                          (appState?.user?.subscription?.tier) || 'free';
+  
+  subscriptionBadge.textContent = subscriptionTier.toUpperCase();
   subscriptionBadge.style.display = 'inline-block';
   subscriptionBadge.style.padding = '4px 10px';
   subscriptionBadge.style.fontSize = '12px';
@@ -166,10 +170,10 @@ export function createSidebar(appState) {
   subscriptionBadge.style.textTransform = 'uppercase';
   
   // Change color based on subscription tier
-  if (appState?.user?.subscriptionTier === 'pro') {
+  if (subscriptionTier === 'pro') {
     subscriptionBadge.style.backgroundColor = '#FFD700';
     subscriptionBadge.style.color = '#333';
-  } else if (appState?.user?.subscriptionTier === 'lifetime') {
+  } else if (subscriptionTier === 'lifetime') {
     subscriptionBadge.style.background = 'linear-gradient(135deg, #9C27B0 0%, #673AB7 100%)';
     subscriptionBadge.style.color = 'white';
   } else {
