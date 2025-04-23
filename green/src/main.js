@@ -310,8 +310,10 @@ function createLayout() {
         </svg>
       `;
       
-      menuButton.addEventListener('click', () => {
-        sidebarModule.toggleSidebar();
+      menuButton.addEventListener('click', (event) => {
+        event.stopPropagation(); // Prevent event bubbling
+        console.log("Hamburger menu clicked - toggling sidebar");
+        setTimeout(() => sidebarModule.toggleSidebar(), 50); // Small delay to ensure proper rendering
       });
       
       mobileHeader.appendChild(menuButton);
@@ -563,7 +565,22 @@ function createHeader() {
     });
     
     // Toggle mobile menu
-    menuButton.addEventListener('click', () => {
+    menuButton.addEventListener('click', (event) => {
+      event.stopPropagation(); // Prevent event bubbling
+      
+      // First try to toggle the sidebar if it exists
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) {
+        console.log("Hamburger menu clicked in fallback header - toggling sidebar");
+        setTimeout(() => {
+          if (typeof sidebarModule !== 'undefined' && sidebarModule.toggleSidebar) {
+            sidebarModule.toggleSidebar();
+            return;
+          }
+        }, 50);
+      }
+      
+      // Fallback to the mobile menu toggle if sidebar isn't available
       const mobileMenu = document.getElementById('mobile-nav');
       if (mobileMenu) {
         const isVisible = mobileMenu.style.height !== '0px';

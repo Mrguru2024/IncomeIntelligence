@@ -17,12 +17,23 @@ export function navigateTo(page) {
 // Create sidebar navigation element
 // Helper function to detect mobile view
 function isMobileView() {
-  return window.innerWidth < 768;
+  // Special detection for Z Fold 4 and similar foldable devices
+  const isFoldableDevice = /SM-F9/.test(navigator.userAgent) || 
+                          window.innerWidth < 600;
+  
+  // Standard mobile detection with improved foldable support
+  return window.innerWidth < 768 || isFoldableDevice;
+}
+
+// Detect if we're on a foldable device like Z Fold (in folded state)
+function isFoldableDeviceFolded() {
+  return /SM-F9/.test(navigator.userAgent) && window.innerWidth < 600;
 }
 
 // Export for use in other components
 export const responsive = {
   isMobile: isMobileView,
+  isFoldable: isFoldableDeviceFolded,
   addResizeListener: (callback) => {
     window.addEventListener('resize', () => {
       callback(isMobileView());
@@ -647,22 +658,43 @@ export function createSidebar(appState) {
 export function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
   
+  // Debug logging for mobile detection
+  console.log("Viewport:", responsive.isMobile() ? "mobile" : "desktop");
+  if (responsive.isFoldable()) {
+    console.log("Detected: Foldable device (closed)");
+  }
+  
   if (!sidebar) {
     console.error("Sidebar element not found. Creating new sidebar.");
     const appState = window.appState || { user: { subscriptionStatus: 'pro' } };
     const newSidebar = createSidebar(appState);
     document.body.appendChild(newSidebar);
-    return toggleSidebar(); // Call again with new sidebar
+    setTimeout(() => toggleSidebar(), 50); // Call again with new sidebar after a small delay
+    return;
   }
   
   const isMobile = responsive.isMobile();
+  const isFoldable = responsive.isFoldable();
+  
+  // Adjust width specifically for foldable devices
+  if (isFoldable) {
+    sidebar.style.width = '250px'; // Slightly narrower for foldable devices
+  } else if (isMobile) {
+    sidebar.style.width = '280px';
+  }
   
   if (isMobile) {
-    const isVisible = sidebar.style.transform === 'translateX(0px)' || sidebar.style.transform === 'translateX(0)';
+    // Check if sidebar is currently visible
+    const isVisible = sidebar.style.transform === 'translateX(0px)' || 
+                     sidebar.style.transform === 'translateX(0)' || 
+                     sidebar.style.transform === '';
     
     if (isVisible) {
       // Hide sidebar
       sidebar.style.transform = 'translateX(-100%)';
+      // Ensure sidebar remains in the DOM but hidden
+      sidebar.style.visibility = 'hidden';
+      
       const overlay = document.getElementById('sidebar-overlay');
       if (overlay) {
         overlay.style.opacity = '0';
@@ -674,8 +706,12 @@ export function toggleSidebar() {
         }, 300);
       }
     } else {
-      // Show sidebar
+      // Show sidebar - make sure it's visible before transforming
+      sidebar.style.visibility = 'visible';
       sidebar.style.transform = 'translateX(0)';
+      
+      // Ensure sidebar is in front on Z Fold devices
+      sidebar.style.zIndex = '1000';
       
       // Create overlay with fade-in effect
       let overlay = document.getElementById('sidebar-overlay');
