@@ -124,6 +124,12 @@ export const preventApiAbuse = (req: Request, res: Response, next: NextFunction)
   if (req.path === '/minimal') {
     return next();
   }
+  
+  // Always allow blog image generation endpoint in any environment
+  if (req.path === '/api/blog/generate-image') {
+    console.log(`[SECURITY] Allowing request to blog image generation endpoint: ${req.path}`);
+    return next();
+  }
 
   // Check for suspicious user agent
   const userAgent = req.headers['user-agent'] || '';
@@ -148,7 +154,7 @@ export const preventApiAbuse = (req: Request, res: Response, next: NextFunction)
     (isEmptyReferer || req.path.includes('/api/auth/'))
   ) {
     // Allow debugging from the local environment
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
       console.log(`[SECURITY] Allowing potentially suspicious request to: ${req.path}`);
       return next();
     }
