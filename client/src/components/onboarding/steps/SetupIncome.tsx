@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { IncomeSource, DollarSign } from "lucide-react";
+import { DollarSign } from "lucide-react";
 
 interface SetupIncomeProps {
   formData: {
