@@ -73,18 +73,17 @@ export function createSidebar(appState) {
   logoContainer.style.display = 'flex';
   logoContainer.style.alignItems = 'center';
   logoContainer.style.cursor = 'pointer';
+  logoContainer.style.marginRight = '8px';
   logoContainer.addEventListener('click', () => navigateTo('dashboard'));
   
-  const logo = document.createElement('h1');
-  logo.textContent = 'Stackr';
-  logo.style.margin = '0';
-  logo.style.fontSize = '22px';
-  logo.style.fontWeight = 'bold';
-  logo.style.background = 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)';
-  logo.style.WebkitBackgroundClip = 'text';
-  logo.style.WebkitTextFillColor = 'transparent';
-  logo.style.backgroundClip = 'text';
-  logoContainer.appendChild(logo);
+  // Create logo using SVG from public folder
+  const logoImg = document.createElement('img');
+  logoImg.src = '/green/public/stackr-logo.svg';
+  logoImg.alt = 'Stackr';
+  logoImg.style.height = '30px';
+  logoImg.style.width = 'auto';
+  logoImg.style.marginRight = '8px';
+  logoContainer.appendChild(logoImg);
   
   // Green edition badge
   const badge = document.createElement('span');
