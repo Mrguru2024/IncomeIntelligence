@@ -595,11 +595,15 @@ function createChartData(scoreData) {
  * @returns {HTMLElement} - The rendered scorecard element
  */
 export function renderWellnessScorecard(userData, containerId) {
-  // Get container element
+  // Get container element - with fallback mechanism
   const container = document.getElementById(containerId);
   if (!container) {
-    console.error(`Container element with ID '${containerId}' not found`);
-    return null;
+    console.error(`Container element with ID '${containerId}' not found, creating fallback container`);
+    // Instead of failing, create a container with the expected ID
+    const fallbackContainer = document.createElement('div');
+    fallbackContainer.id = containerId;
+    document.body.appendChild(fallbackContainer);
+    return renderWellnessScorecard(userData, containerId); // Retry with the new container
   }
   
   // Calculate score

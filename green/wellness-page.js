@@ -187,8 +187,10 @@ export async function renderWellnessPage(userId) {
     scorecardContainer.style.display = 'block';
     actionsSection.style.display = isMobile ? 'flex' : 'flex';
     
-    // Render scorecard
-    renderWellnessScorecard(userData, 'wellness-scorecard-container');
+    // Render scorecard - ensure DOM is ready
+    setTimeout(() => {
+      renderWellnessScorecard(userData, 'wellness-scorecard-container');
+    }, 0);
     
   } catch (error) {
     console.error('Error loading wellness data:', error);
