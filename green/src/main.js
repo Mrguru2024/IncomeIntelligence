@@ -1,4 +1,4 @@
-// GREEN Edition - No dependencies on any external libraries - completely self-contained
+// Stackr Finance - No dependencies on any external libraries - completely self-contained
 // Simple single-page application with route handling
 
 // Setup modern design system with CSS variables
@@ -283,16 +283,7 @@ function createLayout() {
       logo.style.fontWeight = 'bold';
       logoContainer.appendChild(logo);
       
-      const badge = document.createElement('span');
-      badge.textContent = 'GREEN';
-      badge.style.fontSize = '10px';
-      badge.style.fontWeight = 'bold';
-      badge.style.padding = '3px 6px';
-      badge.style.marginLeft = '8px';
-      badge.style.background = 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)';
-      badge.style.borderRadius = '4px';
-      badge.style.color = 'white';
-      logoContainer.appendChild(badge);
+      // Removed GREEN badge as requested
       
       mobileHeader.appendChild(logoContainer);
       
@@ -427,12 +418,7 @@ function createFallbackHeader() {
   logo.style.fontWeight = 'bold';
   logoContainer.appendChild(logo);
   
-  const subtitle = document.createElement('p');
-  subtitle.textContent = 'GREEN Edition';
-  subtitle.style.margin = '4px 0 0 0';
-  subtitle.style.fontSize = '12px';
-  subtitle.style.opacity = '0.9';
-  logoContainer.appendChild(subtitle);
+  // Removed GREEN Edition subtitle as requested
   
   topSection.appendChild(logoContainer);
   
@@ -844,7 +830,7 @@ function createFooter() {
     {
       title: 'About',
       links: [
-        { name: 'GREEN Edition', url: '#' },
+        { name: 'About Stackr', url: '#' },
         { name: 'Firebase-free', url: '#' }
       ]
     }
