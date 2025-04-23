@@ -1,10 +1,11 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { PenLine, Calendar, Tags, Clock, ArrowRight, BookOpen, PlusCircle } from 'lucide-react';
+import { PenLine, Calendar, Tags, Clock, ArrowRight, BookOpen, PlusCircle, LockIcon } from 'lucide-react';
 import { Link } from 'wouter';
 
 // Mock data for blog posts - in a real implementation this would come from an API
@@ -60,6 +61,8 @@ const formatDate = (dateString: string) => {
 
 const BlogPage: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   
   // In a real implementation, this would fetch data from an API
   const { data: blogPosts, isLoading, error } = useQuery<BlogPost[]>({
@@ -97,12 +100,21 @@ const BlogPage: React.FC = () => {
         <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           Financial Insights Blog
         </h1>
-        <Link href="/blog/editor">
-          <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Create New Post
-          </Button>
-        </Link>
+        {isAuthenticated ? (
+          <Link href="/blog/editor">
+            <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Create New Post
+            </Button>
+          </Link>
+        ) : (
+          <Link href="/auth">
+            <Button variant="outline" className="border-blue-500 text-blue-600">
+              <LockIcon className="mr-2 h-4 w-4" />
+              Sign in to Write
+            </Button>
+          </Link>
+        )}
       </div>
       
       <p className="text-lg text-muted-foreground mb-8 max-w-3xl">
@@ -175,12 +187,21 @@ const BlogPage: React.FC = () => {
             Create your own blog posts and help others learn from your financial experiences.
           </p>
         </div>
-        <Link href="/blog/editor">
-          <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
-            <PenLine className="mr-2 h-5 w-5" />
-            Start Writing
-          </Button>
-        </Link>
+        {isAuthenticated ? (
+          <Link href="/blog/editor">
+            <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+              <PenLine className="mr-2 h-5 w-5" />
+              Start Writing
+            </Button>
+          </Link>
+        ) : (
+          <Link href="/auth">
+            <Button size="lg" variant="outline" className="border-blue-500 text-blue-600">
+              <LockIcon className="mr-2 h-5 w-5" />
+              Sign in to Write
+            </Button>
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -61,8 +61,8 @@ function Router() {
       <ProtectedRoute path="/income-hub" component={IncomeHub} />
       <ProtectedRoute path="/pricing" component={PricingPage} />
       <ProtectedRoute path="/income-hub/gigs" component={StackrGigs} />
-      <ProtectedRoute path="/blog" component={BlogPage} />
       <ProtectedRoute path="/blog/editor" component={BlogEditorPage} />
+      <Route path="/blog" component={BlogPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
@@ -106,6 +106,8 @@ function App() {
   const [location] = useLocation();
   const isAuthPage = location === "/auth";
   const isOnboardingPage = location === "/onboarding";
+  const isBlogPage = location === "/blog";
+  // Only Auth and Onboarding are full-screen pages without sidebar
   const isFullScreenPage = isAuthPage || isOnboardingPage;
 
   // Function to navigate to GREEN version
