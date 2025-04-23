@@ -316,9 +316,23 @@ export function renderIncomePage() {
   historySection.className = 'income-history mb-8';
   historySection.innerHTML = `
     <div class="bg-white p-4 rounded-lg shadow-sm">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">Income History</h3>
-        <div>
+        <div class="flex mt-2 sm:mt-0">
+          <div class="mr-3 horizontal-scroll scrollbar-none flex gap-2">
+            <button id="filter-none" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+              All Entries
+            </button>
+            <button id="filter-month" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-primary text-white hover:bg-primary-dark">
+              By Month
+            </button>
+            <button id="filter-week" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+              By Week
+            </button>
+            <button id="filter-category" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+              By Category
+            </button>
+          </div>
           <select id="income-filter" class="p-2 border rounded-md text-sm">
             <option value="all">All Time</option>
             <option value="month" selected>This Month</option>
