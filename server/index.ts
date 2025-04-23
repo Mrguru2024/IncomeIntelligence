@@ -63,17 +63,17 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.openai.com", "https://api.perplexity.ai", "https://*.plaid.com", "https://cdn.plaid.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.plaid.com", "https://*.plaid.com"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "blob:", "https://*.plaid.com", "https://oaidalleapiprodscus.blob.core.windows.net"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      frameAncestors: ["'none'"],
+      connectSrc: ["'self'", "https://api.openai.com", "https://api.perplexity.ai", "https://*.plaid.com", "https://cdn.plaid.com", "https://placehold.co", "https://*.replit.app", "https://replit.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.plaid.com", "https://*.plaid.com", "https://replit.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://*.plaid.com", "https://oaidalleapiprodscus.blob.core.windows.net", "https://placehold.co", "https://*.githubusercontent.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      frameAncestors: ["'self'", "https://*.replit.com"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
-      workerSrc: ["'self'", "blob:"],
-      frameSrc: ["'self'", "https://*.plaid.com"]
+      workerSrc: ["'self'", "blob:", "'unsafe-inline'"],
+      frameSrc: ["'self'", "https://*.plaid.com", "https://replit.com"]
     }
   },
   xssFilter: true,
@@ -85,7 +85,7 @@ app.use(helmet({
     preload: true
   },
   frameguard: {
-    action: 'deny'
+    action: 'sameorigin'
   },
   dnsPrefetchControl: {
     allow: false
@@ -96,13 +96,14 @@ app.use(helmet({
 // Additional security headers
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
-  res.setHeader('X-Content-Security-Policy', "default-src 'self'");
+  // Removed since this can conflict with Helmet's CSP implementation
+  // res.setHeader('X-Content-Security-Policy', "default-src 'self'");
   res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
   res.setHeader('X-Download-Options', 'noopen');
   res.setHeader('X-DNS-Prefetch-Control', 'off');
