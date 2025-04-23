@@ -177,10 +177,7 @@ export default function IncomeHistory() {
   // Update income mutation
   const updateIncomeMutation = useMutation({
     mutationFn: async (data: { id: number; income: Partial<InsertIncome> }) => {
-      return await apiRequest(`/api/incomes/${data.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data.income),
-      });
+      return await apiRequest("PATCH", `/api/incomes/${data.id}`, data.income);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/incomes"] });
@@ -202,9 +199,7 @@ export default function IncomeHistory() {
   // Delete income mutation
   const deleteIncomeMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest(`/api/incomes/${id}`, {
-        method: "DELETE",
-      });
+      await apiRequest("DELETE", `/api/incomes/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/incomes"] });
@@ -676,17 +671,21 @@ export default function IncomeHistory() {
                   Income{" "}
                   {groupBy === "month"
                     ? "Monthly"
-                    : groupBy === "category"
-                      ? "by Category"
-                      : "by Source"}{" "}
+                    : groupBy === "week"
+                      ? "Weekly"
+                      : groupBy === "category"
+                        ? "by Category"
+                        : "by Source"}{" "}
                   Breakdown
                 </CardTitle>
                 <CardDescription>
                   {groupBy === "month"
-                    ? "View your income trends over time"
-                    : groupBy === "category"
-                      ? "Analyze your income sources by category"
-                      : "See how your income is distributed by source"}
+                    ? "View your income trends by month"
+                    : groupBy === "week"
+                      ? "View your income trends by week"
+                      : groupBy === "category"
+                        ? "Analyze your income sources by category"
+                        : "See how your income is distributed by source"}
                 </CardDescription>
               </div>
 
