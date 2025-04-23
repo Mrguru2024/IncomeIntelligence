@@ -569,10 +569,17 @@ class FinancialMascot {
       return;
     }
     
+    // Make sure we have a valid category
+    if (!this.currentTipCategory || this.currentTipCategory === 'undefined') {
+      this.currentTipCategory = 'budgeting'; // Default to budgeting if category is undefined
+      console.log(`Resetting category to default: ${this.currentTipCategory}`);
+    }
+    
     const categoryTips = financialTips[this.currentTipCategory];
     if (!categoryTips) {
       console.error(`Category "${this.currentTipCategory}" not found in tips`);
-      return;
+      this.currentTipCategory = 'budgeting';
+      return this.showNextTip(); // Retry with default category
     }
     
     // Get current index for this category
