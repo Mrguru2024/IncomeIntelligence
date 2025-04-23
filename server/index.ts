@@ -210,6 +210,18 @@ app.use(express.static(path.join(process.cwd(), 'public'), {
   lastModified: true,
 }));
 
+// Directly serve the blog page
+app.get('/blog', (req, res) => {
+  const blogHtmlPath = path.join(process.cwd(), 'public', 'blog.html');
+  if (fs.existsSync(blogHtmlPath)) {
+    console.log('Serving static blog HTML page');
+    res.sendFile(blogHtmlPath);
+  } else {
+    console.error('Blog HTML not found:', blogHtmlPath);
+    res.status(404).send('Blog page not available');
+  }
+});
+
 // Setup routes
 registerRoutes(app);
 
