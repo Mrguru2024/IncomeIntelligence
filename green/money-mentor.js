@@ -367,14 +367,33 @@ export async function renderMoneyMentorPage(userId) {
     header.style.transform = 'translateY(0)';
   }, 100);
   
+  // Create header with logo and title
+  const titleContainer = document.createElement('div');
+  titleContainer.style.display = 'flex';
+  titleContainer.style.alignItems = 'center';
+  titleContainer.style.justifyContent = 'center';
+  titleContainer.style.marginBottom = '12px';
+  
+  // Add Stackr logo
+  const logoImg = document.createElement('img');
+  logoImg.src = 'public/stackr-logo.svg';
+  logoImg.alt = 'Stackr';
+  logoImg.style.height = '40px';
+  logoImg.style.width = 'auto';
+  logoImg.style.marginRight = '12px';
+  
+  // Add Money Mentor text
   const title = document.createElement('h1');
   title.className = 'text-4xl font-extrabold tracking-tight';
   title.style.background = 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)';
   title.style.webkitBackgroundClip = 'text';
   title.style.backgroundClip = 'text';
   title.style.color = 'transparent';
-  title.style.marginBottom = '12px';
+  title.style.marginBottom = '0';
   title.textContent = 'Money Mentor';
+  
+  titleContainer.appendChild(logoImg);
+  titleContainer.appendChild(title);
   
   const subtitle = document.createElement('p');
   subtitle.className = 'text-xl text-muted-foreground mt-2';
@@ -383,7 +402,7 @@ export async function renderMoneyMentorPage(userId) {
   subtitle.style.color = '#666';
   subtitle.textContent = 'Get personalized financial advice powered by Perplexity AI';
   
-  header.appendChild(title);
+  header.appendChild(titleContainer);
   header.appendChild(subtitle);
   container.appendChild(header);
   
@@ -401,17 +420,27 @@ export async function renderMoneyMentorPage(userId) {
   
   // Create card header
   const cardHeader = document.createElement('div');
-  cardHeader.className = 'border-b p-4 flex items-center space-x-2';
+  cardHeader.className = 'border-b p-4 flex items-center';
   
   const iconContainer = document.createElement('div');
-  iconContainer.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-      <circle cx="12" cy="12" r="10"></circle>
-      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-      <line x1="12" y1="17" x2="12.01" y2="17"></line>
-    </svg>
-  `;
+  iconContainer.style.display = 'flex';
+  iconContainer.style.alignItems = 'center';
+  iconContainer.style.justifyContent = 'center';
+  iconContainer.style.background = '#f8f9fe';
+  iconContainer.style.borderRadius = '8px';
+  iconContainer.style.width = '32px';
+  iconContainer.style.height = '32px';
+  iconContainer.style.padding = '4px';
+  iconContainer.style.marginRight = '10px';
+  
+  // Use Stackr logo for the icon
+  const logoIcon = document.createElement('img');
+  logoIcon.src = 'public/stackr-logo.svg';
+  logoIcon.alt = 'Stackr';
+  logoIcon.style.height = '24px';
+  logoIcon.style.width = 'auto';
+  
+  iconContainer.appendChild(logoIcon);
   
   const headerTitle = document.createElement('h2');
   headerTitle.className = 'font-semibold text-lg';
