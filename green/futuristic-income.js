@@ -935,13 +935,13 @@ export function renderIncomePage(userId) {
   statusDot.style.marginRight = '8px';
   statusDot.className = 'pulse-animation';
   
-  const statusText = document.createElement('span');
-  statusText.textContent = 'Split Management System';
-  statusText.style.color = 'rgba(255, 255, 255, 0.7)';
-  statusText.style.fontSize = '0.875rem';
+  const headerStatusText = document.createElement('span');
+  headerStatusText.textContent = 'Split Management System';
+  headerStatusText.style.color = 'rgba(255, 255, 255, 0.7)';
+  headerStatusText.style.fontSize = '0.875rem';
   
   subtitle.appendChild(statusDot);
-  subtitle.appendChild(statusText);
+  subtitle.appendChild(headerStatusText);
   
   titleBlock.appendChild(title);
   titleBlock.appendChild(subtitle);
@@ -1575,13 +1575,13 @@ export function renderIncomePage(userId) {
   statusIndicator.style.marginRight = '6px';
   statusIndicator.className = 'pulse-animation';
   
-  const statusText = document.createElement('span');
-  statusText.textContent = 'Secure Records';
-  statusText.style.fontSize = '0.75rem';
-  statusText.style.color = 'rgba(255, 255, 255, 0.7)';
+  const historyStatusText = document.createElement('span');
+  historyStatusText.textContent = 'Secure Records';
+  historyStatusText.style.fontSize = '0.75rem';
+  historyStatusText.style.color = 'rgba(255, 255, 255, 0.7)';
   
   historySubtitle.appendChild(statusIndicator);
-  historySubtitle.appendChild(statusText);
+  historySubtitle.appendChild(historyStatusText);
   
   historyTitleContainer.appendChild(historyTitle);
   historyTitleContainer.appendChild(historySubtitle);
