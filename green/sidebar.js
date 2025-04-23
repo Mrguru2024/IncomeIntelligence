@@ -140,7 +140,7 @@ export function createSidebar(appState) {
   profileSection.appendChild(displayName);
   
   // User email if available
-  if (appState.user.email) {
+  if (appState?.user?.email) {
     const email = document.createElement('p');
     email.classList.add('user-email');
     email.textContent = appState.user.email;
@@ -153,7 +153,7 @@ export function createSidebar(appState) {
   // Subscription badge
   const subscriptionBadge = document.createElement('div');
   subscriptionBadge.classList.add('subscription-badge');
-  subscriptionBadge.textContent = appState.user.subscriptionTier ? 
+  subscriptionBadge.textContent = appState?.user?.subscriptionTier ? 
     appState.user.subscriptionTier.toUpperCase() : 'FREE';
   subscriptionBadge.style.display = 'inline-block';
   subscriptionBadge.style.padding = '4px 10px';
@@ -163,10 +163,10 @@ export function createSidebar(appState) {
   subscriptionBadge.style.textTransform = 'uppercase';
   
   // Change color based on subscription tier
-  if (appState.user.subscriptionTier === 'pro') {
+  if (appState?.user?.subscriptionTier === 'pro') {
     subscriptionBadge.style.backgroundColor = '#FFD700';
     subscriptionBadge.style.color = '#333';
-  } else if (appState.user.subscriptionTier === 'lifetime') {
+  } else if (appState?.user?.subscriptionTier === 'lifetime') {
     subscriptionBadge.style.background = 'linear-gradient(135deg, #9C27B0 0%, #673AB7 100%)';
     subscriptionBadge.style.color = 'white';
   } else {
@@ -356,7 +356,7 @@ export function createSidebar(appState) {
       link.style.position = 'relative';
       
       // Active state
-      if (appState.currentPage === item.id) {
+      if (appState?.currentPage === item.id) {
         link.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
         link.style.color = 'white';
         link.style.fontWeight = 'bold';
@@ -376,14 +376,14 @@ export function createSidebar(appState) {
       
       // Hover effects
       link.addEventListener('mouseover', () => {
-        if (appState.currentPage !== item.id) {
+        if (appState?.currentPage !== item.id) {
           link.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
           link.style.color = 'white';
         }
       });
       
       link.addEventListener('mouseout', () => {
-        if (appState.currentPage !== item.id) {
+        if (appState?.currentPage !== item.id) {
           link.style.backgroundColor = 'transparent';
           link.style.color = 'rgba(255, 255, 255, 0.8)';
         }
