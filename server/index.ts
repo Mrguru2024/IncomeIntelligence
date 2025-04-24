@@ -313,15 +313,19 @@ app.use((req, res, next) => {
 const httpServer = createServer(app);
 
 // Setup routes for SPA navigation
-app.get('/bank-connections', (req, res) => {
-  const indexPath = path.join(process.cwd(), 'client', 'index.html');
-  res.sendFile(indexPath);
-});
+// Bank connections route moved to combined route handler below
 
-// Add explicit route for guardrails
-app.get('/guardrails', (req, res) => {
-  const indexPath = path.join(process.cwd(), 'client', 'index.html');
-  res.sendFile(indexPath);
+// Add explicit route for guardrails and other SPA routes
+app.get(['/guardrails', '/income-hub', '/income-history', '/expenses', '/bank-connections', '/profile', '/settings', '/goals'], (req, res) => {
+  logger.info(`Serving SPA route for: ${req.path}`);
+  // Use path.resolve to ensure proper path joining
+  const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    logger.error(`Index file not found at: ${indexPath}`);
+    res.status(404).send('Application entry point not found');
+  }
 });
 
 // Fallback route for SPA navigation - needed for client-side routing
