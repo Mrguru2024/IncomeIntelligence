@@ -315,21 +315,27 @@ const httpServer = createServer(app);
 // Setup routes for SPA navigation
 // Bank connections route moved to combined route handler below
 
-// Add explicit route for guardrails with a dedicated HTML file
-app.get('/guardrails', (req, res) => {
-  logger.info(`Serving dedicated Guardrails route`);
-  const guardrailsPath = path.resolve(process.cwd(), 'client', 'guardrails.html');
-  if (fs.existsSync(guardrailsPath)) {
-    res.sendFile(guardrailsPath);
+// Add route for the guardrails test page
+app.get('/guard-test', (req, res) => {
+  logger.info(`Serving Guardrails test page`);
+  const testPath = path.resolve(process.cwd(), 'client', 'guard-test.html');
+  if (fs.existsSync(testPath)) {
+    res.sendFile(testPath);
   } else {
-    logger.error(`Guardrails HTML not found at: ${guardrailsPath}`);
-    // Fallback to index.html
-    const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      res.status(404).send('Application entry point not found');
-    }
+    logger.error(`Guardrails test page not found at: ${testPath}`);
+    res.status(404).send('Test page not found');
+  }
+});
+
+// Add route for the guardrails feature - always serve the main index.html
+app.get('/guardrails', (req, res) => {
+  logger.info(`Serving Guardrails SPA route`);
+  const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    logger.error(`Index file not found at: ${indexPath}`);
+    res.status(404).send('Application entry point not found');
   }
 });
 

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stackr Finance - Guardrails Test</title>
+  <meta name="description" content="Stackr Finance test page" />
+  <link rel="icon" type="image/svg+xml" href="/stackr-logo.svg" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+    h1 { color: #4F46E5; }
+    .card {
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .button {
+      background: #4F46E5;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .button:hover {
+      background: #4338CA;
+    }
+  </style>
+</head>
+<body>
+  <h1>Stackr Guardrails Test Page</h1>
+  
+  <div class="card">
+    <h2>Test API Endpoints</h2>
+    <p>This page tests the Guardrails API endpoints to ensure they're working correctly.</p>
+    
+    <button id="testLimitsButton" class="button">Test Limits API</button>
+    <button id="testSummaryButton" class="button">Test Summary API</button>
+    <button id="testAlertsButton" class="button">Test Alerts API</button>
+    
+    <div id="results" style="margin-top: 1rem; white-space: pre-wrap; font-family: monospace;"></div>
+  </div>
+  
+  <div class="card">
+    <h2>Navigation</h2>
+    <p>Try these navigation links:</p>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/guardrails">Guardrails Page</a></li>
+      <li><a href="/income-hub">Income Hub</a></li>
+    </ul>
+  </div>
+  
+  <script>
+    // Reference to results div
+    const results = document.getElementById('results');
+    
+    // Function to log results
+    function log(message) {
+      results.textContent += message + '\n';
+    }
+    
+    // Function to make API requests
+    async function makeRequest(endpoint) {
+      try {
+        log(`Requesting ${endpoint}...`);
+        const response = await fetch(endpoint);
+        const data = await response.json();
+        log(`Status: ${response.status}`);
+        log(`Response: ${JSON.stringify(data, null, 2).substring(0, 300)}...`);
+        return { success: true, data };
+      } catch (error) {
+        log(`Error: ${error.message}`);
+        return { success: false, error };
+      }
+    }
+    
+    // Event listeners for test buttons
+    document.getElementById('testLimitsButton').addEventListener('click', async () => {
+      results.textContent = ''; // Clear previous results
+      await makeRequest('/api/guardrails/limits');
+    });
+    
+    document.getElementById('testSummaryButton').addEventListener('click', async () => {
+      results.textContent = ''; // Clear previous results
+      await makeRequest('/api/guardrails/summary');
+    });
+    
+    document.getElementById('testAlertsButton').addEventListener('click', async () => {
+      results.textContent = ''; // Clear previous results
+      await makeRequest('/api/guardrails/alerts');
+    });
+    
+    // Log that the page loaded successfully
+    log('Test page loaded successfully');
+  </script>
+</body>
+</html>
