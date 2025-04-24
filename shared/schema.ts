@@ -1598,3 +1598,70 @@ export const insertProfessionalServiceSchema = createInsertSchema(professionalSe
 
 export type ProfessionalService = typeof professionalServices.$inferSelect;
 export type InsertProfessionalService = z.infer<typeof insertProfessionalServiceSchema>;
+
+// Stackr Guardrails Feature - Spending Discipline Tool
+// ----------------------------------------------------
+
+// Spending limits table to track budget limits per category
+export const spendingLimits = pgTable("spending_limits", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  category: text("category", { length: 100 }).notNull(),
+  limitAmount: numeric("limit_amount").notNull(),
+  cycle: text("cycle", { length: 20 }).notNull(), // 'weekly', 'monthly'
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  isActive: boolean("is_active").default(true),
+});
+
+// Create insert schema for spending limits
+export const insertSpendingLimitSchema = createInsertSchema(spendingLimits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type SpendingLimit = typeof spendingLimits.$inferSelect;
+export type InsertSpendingLimit = z.infer<typeof insertSpendingLimitSchema>;
+
+// Spending logs table to track actual spending
+export const spendingLogs = pgTable("spending_logs", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  category: text("category", { length: 100 }).notNull(),
+  amountSpent: numeric("amount_spent").notNull(),
+  description: text("description"),
+  source: text("source"), // 'manual', 'plaid', etc.
+  timestamp: timestamp("timestamp").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Create insert schema for spending logs
+export const insertSpendingLogSchema = createInsertSchema(spendingLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type SpendingLog = typeof spendingLogs.$inferSelect;
+export type InsertSpendingLog = z.infer<typeof insertSpendingLogSchema>;
+
+// Weekly spending reflections for AI insights
+export const spendingReflections = pgTable("spending_reflections", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  weekStartDate: date("week_start_date").notNull(),
+  weekEndDate: date("week_end_date").notNull(),
+  overallStatus: text("overall_status"), // 'good', 'warning', 'over_budget'
+  categorySummary: jsonb("category_summary"), // JSON summary of each category status
+  aiSuggestion: text("ai_suggestion"), // Generated advice from AI
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Create insert schema for spending reflections
+export const insertSpendingReflectionSchema = createInsertSchema(spendingReflections).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type SpendingReflection = typeof spendingReflections.$inferSelect;
+export type InsertSpendingReflection = z.infer<typeof insertSpendingReflectionSchema>;
