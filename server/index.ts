@@ -342,12 +342,22 @@ app.get('/guardrails-minimal', (req, res) => {
 // Add route for the guardrails feature - always serve the main index.html
 app.get('/guardrails', (req, res) => {
   logger.info(`Serving Guardrails SPA route`);
-  const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
+  
+  // Check if accept header includes text/html (browser request) vs application/javascript (module request)
+  const acceptsHtml = req.headers.accept && req.headers.accept.includes('text/html');
+  
+  if (acceptsHtml) {
+    // Browser requesting the page - send the index.html file
+    const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      logger.error(`Index file not found at: ${indexPath}`);
+      res.status(404).send('Application entry point not found');
+    }
   } else {
-    logger.error(`Index file not found at: ${indexPath}`);
-    res.status(404).send('Application entry point not found');
+    // This is likely a JavaScript module request, redirect to the module
+    res.redirect('/src/main.tsx');
   }
 });
 
@@ -386,7 +396,7 @@ app.get('*', (req, res, next) => {
 });
 
 // Start server
-const PORT = parseInt(process.env.PORT || "5000", 10);
+const PORT = parseInt(process.env.PORT || "5001", 10);
 
 // Handle EADDRINUSE error with more graceful exit
 httpServer.on('error', (err: any) => {
