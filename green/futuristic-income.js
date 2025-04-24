@@ -2274,7 +2274,8 @@ export function renderIncomePage(userId) {
   
   // Add click event to export button
   exportButton.addEventListener('click', () => {
-    alert('Export functionality coming soon!');
+    console.log('Export button clicked - direct handler');
+    exportIncomeData();
   });
   
   filterSection.appendChild(filterButtons);
