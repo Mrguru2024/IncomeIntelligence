@@ -25,7 +25,7 @@ import PricingPage from "@/pages/PricingPage";
 import StackrGigs from "@/pages/income/StackrGigs";
 import BlogEditorPage from "@/pages/BlogEditorPage";
 import BlogPage from "@/pages/BlogPage";
-import SpendingGuardrails from "@/pages/SpendingGuardrails";
+import SpendingGuardrails from "@/pages/SpendingGuardrails-new";
 import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import AppTutorial from "@/components/AppTutorial";

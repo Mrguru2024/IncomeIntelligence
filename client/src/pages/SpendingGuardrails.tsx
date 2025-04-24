@@ -1,249 +1,32 @@
-import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
-import { apiRequest } from "@/lib/queryClient";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle, AlertTriangle, CheckCircle, PlusCircle, Sparkles, Trash2 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+// ULTRA SIMPLIFIED VERSION
+import { useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Define expense categories
-const expenseCategories = [
-  "Food & Dining",
-  "Entertainment", 
-  "Shopping",
-  "Housing",
-  "Transportation",
-  "Travel",
-  "Health & Fitness",
-  "Personal Care",
-  "Education",
-  "Gifts & Donations", 
-  "Utilities",
-  "Subscriptions",
-  "Other"
-];
-
-// Form schema for creating/updating spending limits
-const limitFormSchema = z.object({
-  category: z.string({
-    required_error: "Please select a category",
-  }),
-  limitAmount: z.coerce.number().min(1, "Limit must be at least 1"),
-  cycle: z.enum(["weekly", "monthly"], {
-    required_error: "Please select a cycle",
-  }),
-  isActive: z.boolean().default(true),
-});
-
-// Form schema for logging expenses
-const logFormSchema = z.object({
-  category: z.string({
-    required_error: "Please select a category",
-  }),
-  amountSpent: z.coerce.number().min(0.01, "Amount must be greater than 0"),
-  description: z.string().optional(),
-  source: z.string().default("manual"),
-});
-
-// Helper function to format currency
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2
-  }).format(amount);
-};
-
-// Helper function to format date
-const formatDate = (date: string) => {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  }).format(new Date(date));
-};
-
-// Main component
+// Ultra simplified component for debugging
 export default function SpendingGuardrails() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("dashboard");
-  
-  // Add a debug log when this component renders
+  // Debug log when component renders
   useEffect(() => {
-    console.log("SpendingGuardrails component rendered", { activeTab });
-  }, [activeTab]);
-
-  // Forms
-  const limitForm = useForm<z.infer<typeof limitFormSchema>>({
-    resolver: zodResolver(limitFormSchema),
-    defaultValues: {
-      cycle: "monthly",
-      isActive: true,
-    },
-  });
-
-  const logForm = useForm<z.infer<typeof logFormSchema>>({
-    resolver: zodResolver(logFormSchema),
-    defaultValues: {
-      source: "manual",
-    },
-  });
-
-  // Get spending limits
-  const { 
-    data: spendingLimits, 
-    isLoading: isLoadingLimits,
-    error: limitsError
-  } = useQuery({
-    queryKey: ['/api/guardrails/limits'],
-    refetchInterval: 300000, // 5 minutes
-  });
-  
-  // Debug logging for API calls
-  useEffect(() => {
-    console.log("Guardrails API status:", { 
-      spendingLimits, 
-      isLoadingLimits,
-      error: limitsError ? (limitsError as Error).message : null
-    });
-  }, [spendingLimits, isLoadingLimits, limitsError]);
-
-  // Get spending summary
-  const { 
-    data: spendingSummary, 
-    isLoading: isLoadingSummary 
-  } = useQuery({
-    queryKey: ['/api/guardrails/summary'],
-    refetchInterval: 300000, // 5 minutes
-  });
-
-  // Get alerts
-  const { 
-    data: spendingAlerts, 
-    isLoading: isLoadingAlerts 
-  } = useQuery({
-    queryKey: ['/api/guardrails/alerts'],
-    refetchInterval: 300000, // 5 minutes
-  });
-
-  // Get weekly reflection with AI suggestions
-  const { 
-    data: weeklyReflection, 
-    isLoading: isLoadingReflection 
-  } = useQuery({
-    queryKey: ['/api/guardrails/reflection'],
-    refetchInterval: 600000, // 10 minutes
-  });
-
-  // Get reflection history
-  const { 
-    data: reflectionHistory, 
-    isLoading: isLoadingHistory 
-  } = useQuery({
-    queryKey: ['/api/guardrails/reflections/history'],
-  });
-
-  // Create or update spending limit mutation
-  const limitMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof limitFormSchema>) => {
-      const response = await apiRequest('POST', '/api/guardrails/limits', data);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Spending limit set",
-        description: "Your spending limit has been successfully updated",
-      });
-      limitForm.reset({
-        category: "",
-        limitAmount: undefined,
-        cycle: "monthly",
-        isActive: true,
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/guardrails/limits'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/guardrails/summary'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/guardrails/alerts'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to set limit",
-        description: error.message || "Something went wrong",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Log spending mutation
-  const logMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof logFormSchema>) => {
-      const response = await apiRequest('POST', '/api/guardrails/logs', data);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Expense logged",
-        description: "Your expense has been successfully logged",
-      });
-      logForm.reset({
-        category: "",
-        amountSpent: undefined,
-        description: "",
-        source: "manual",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/guardrails/summary'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/guardrails/alerts'] });
-      // Switch to dashboard to see updated results
-      setActiveTab("dashboard");
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to log expense",
-        description: error.message || "Something went wrong",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Handle spending limit form submission
-  const onSubmitLimitForm = (data: z.infer<typeof limitFormSchema>) => {
-    limitMutation.mutate(data);
-  };
-
-  // Handle expense logging form submission
-  const onSubmitLogForm = (data: z.infer<typeof logFormSchema>) => {
-    logMutation.mutate(data);
-  };
+    console.log("⚠️⚠️⚠️ SpendingGuardrails TEST component rendered!");
+  }, []);
 
   return (
     <div className="container py-8 max-w-7xl">
-      <div className="flex flex-col gap-6 relative">
-        {/* Debug banner to show this is the Guardrails component */}
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-purple-800 via-blue-600 to-purple-800 text-white text-center py-1 font-bold text-sm">
-          GUARDRAILS PAGE ACTIVE
-        </div>
-        
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mt-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-blue-500 text-transparent bg-clip-text">Stackr Guardrails</h1>
-            <p className="text-muted-foreground">
-              Set spending limits, track expenses, and stay within budget
-            </p>
-          </div>
-          
+      <div className="bg-purple-600 text-white p-10 rounded-lg text-center my-10">
+        <h1 className="text-4xl font-bold mb-4">Spending Guardrails</h1>
+        <p className="text-xl">TEST COMPONENT ACTIVE</p>
+      </div>
+            
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle>Guardrails Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>This is a test implementation of the Guardrails feature.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
           {spendingAlerts && (
             <div className="flex gap-2 flex-wrap justify-end">
               {spendingAlerts.hasOverages && (
