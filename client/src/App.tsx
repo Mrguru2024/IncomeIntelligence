@@ -25,7 +25,6 @@ import PricingPage from "@/pages/PricingPage";
 import StackrGigs from "@/pages/income/StackrGigs";
 import BlogEditorPage from "@/pages/BlogEditorPage";
 import BlogPage from "@/pages/BlogPage";
-import SpendingGuardrails from "@/pages/SpendingGuardrails-new";
 import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import AppTutorial from "@/components/AppTutorial";
@@ -44,33 +43,10 @@ function Router() {
   // Add a hook to log when router component renders
   useEffect(() => {
     console.log("🧭 Router component rendered");
-    
-    // Handle direct Guardrails navigation
-    const path = window.location.pathname;
-    if (path === '/guardrails' || path === '/spending-guardrails') {
-      console.log("📌 Direct navigation to Guardrails detected");
-    }
   }, []);
   
   return (
     <Switch>
-      {/* Create multiple routes for Guardrails to ensure it's caught */}
-      <Route path="/spending-guardrails">
-        {() => {
-          console.log("⚡ Rendering Guardrails from direct route");
-          return (
-            <div className="guardrails-container">
-              <div className="sticky top-0 z-50 bg-purple-600 text-white text-center py-2 mb-4">
-                DIRECT GUARDRAILS ROUTE ACTIVE
-              </div>
-              <SpendingGuardrails />
-            </div>
-          );
-        }}
-      </Route>
-      
-      {/* Guardrails route - moved to the top to avoid routing conflicts */}
-      <ProtectedRoute path="/guardrails" component={SpendingGuardrails} />
       
       {/* Regular routes */}
       <ProtectedRoute path="/" component={DashboardWithOnboarding} />
@@ -143,17 +119,6 @@ function App() {
   const isBlogPage = location === "/blog";
   // Debug the current location
   console.log("Current location:", location);
-  
-  // Debug check for Guardrails page
-  useEffect(() => {
-    if (location === "/guardrails") {
-      console.log("⚠️ GUARDRAILS PAGE DETECTED - Current location is /guardrails");
-      // Try to force update here
-      setTimeout(() => {
-        console.log("🔄 Forcing UI update for Guardrails page");
-      }, 100);
-    }
-  }, [location]);
   
   // Only Auth and Onboarding are full-screen pages without sidebar
   const isFullScreenPage = isAuthPage || isOnboardingPage;
