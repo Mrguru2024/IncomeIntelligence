@@ -339,73 +339,14 @@ app.get('/guardrails-minimal', (req, res) => {
   }
 });
 
-// Specific handler for guardrails to ensure the SPA loads correctly
-app.get('/guardrails', (req, res) => {
-  logger.info(`[SECURITY] Allowing potentially suspicious request to: /guardrails`);
-  logger.info(`Serving dedicated Guardrails SPA route`);
-  
-  const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    logger.error(`Index file not found at: ${indexPath}`);
-    res.status(404).send('Application entry point not found');
-  }
-});
+// Note: We're not using a specific handler for guardrails anymore
+// as this was causing conflicts with the Vite middleware.
+// Instead, we'll rely on the Vite middleware to handle SPA routes,
+// which is set up in server/vite.ts
 
-// SPA route handler for all client-side routes
-// Note: Guardrails has its own dedicated route handler above
-const clientRoutes = [
-  '/income-hub',
-  '/income-history',
-  '/expenses',
-  '/bank-connections',
-  '/profile',
-  '/settings',
-  '/goals',
-  '/budget-planner',
-  '/reminders',
-  '/financial-advice',
-  '/voice-commands',
-  '/money-mentor'
-];
-
-// Remove individual route handlers and use a single handler for all client routes
-app.get(clientRoutes, (req, res) => {
-  logger.info(`Serving SPA route: ${req.path}`);
-  
-  const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    logger.error(`Index file not found at: ${indexPath}`);
-    res.status(404).send('Application entry point not found');
-  }
-});
-
-// No need for this route handler anymore as we've consolidated it above
-// in the unified client routes handler
-
-// Fallback route for SPA navigation - needed for client-side routing
-app.get('*', (req, res, next) => {
-  // Skip API routes
-  if (req.path.indexOf('/api/') === 0) {
-    return next();
-  }
-  
-  // Skip asset routes
-  if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg)$/)) {
-    return next();
-  }
-  
-  // Send the index.html for all non-API routes
-  const indexPath = path.join(process.cwd(), 'client', 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    next();
-  }
-});
+// Note: We've removed all specific SPA route handlers
+// and rely on the Vite middleware for development mode which is configured in server/vite.ts
+// For production mode, a fallback handler would be used, but not needed in development
 
 // Start server
 const PORT = parseInt(process.env.PORT || "5001", 10);

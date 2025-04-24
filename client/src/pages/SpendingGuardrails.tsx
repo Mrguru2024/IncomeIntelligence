@@ -81,6 +81,11 @@ export default function SpendingGuardrails() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("dashboard");
+  
+  // Add a debug log when this component renders
+  useEffect(() => {
+    console.log("SpendingGuardrails component rendered", { activeTab });
+  }, [activeTab]);
 
   // Forms
   const limitForm = useForm<z.infer<typeof limitFormSchema>>({
@@ -101,11 +106,21 @@ export default function SpendingGuardrails() {
   // Get spending limits
   const { 
     data: spendingLimits, 
-    isLoading: isLoadingLimits 
+    isLoading: isLoadingLimits,
+    error: limitsError
   } = useQuery({
     queryKey: ['/api/guardrails/limits'],
     refetchInterval: 300000, // 5 minutes
   });
+  
+  // Debug logging for API calls
+  useEffect(() => {
+    console.log("Guardrails API status:", { 
+      spendingLimits, 
+      isLoadingLimits,
+      error: limitsError ? (limitsError as Error).message : null
+    });
+  }, [spendingLimits, isLoadingLimits, limitsError]);
 
   // Get spending summary
   const { 
@@ -218,7 +233,7 @@ export default function SpendingGuardrails() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Stackr Guardrails</h1>
+            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-blue-500 text-transparent bg-clip-text">Stackr Guardrails</h1>
             <p className="text-muted-foreground">
               Set spending limits, track expenses, and stay within budget
             </p>
