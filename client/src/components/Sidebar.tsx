@@ -594,11 +594,7 @@ export default function Sidebar({
                           e.preventDefault(); // Prevent default link behavior temporarily
                           closeMobileMenu(); // Close the menu first
 
-                          // Special handling for guardrails
-                          if (item.path === '/spending-guardrails') {
-                            console.log("🛡️ Guardrails clicked in mobile menu");
-                            item.onClick?.(e);
-                          }
+                          // Guardrails handling removed
 
                           // Navigate to the link after the menu animation completes
                           const href = item.path;

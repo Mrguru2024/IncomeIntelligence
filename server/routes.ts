@@ -55,7 +55,7 @@ import { requireAdmin } from "./middleware/adminMiddleware";
 import { requireProSubscription } from "./middleware/proSubscriptionMiddleware";
 import { spendingPersonalityService } from "./spending-personality-service";
 import { registerPerplexityRoutes } from "./routes/perplexity-routes";
-import guardrailsRoutes from "./routes/guardrails-routes";
+// Guardrails removed as requested
 import Stripe from "stripe";
 // Express already imported at top
 import dotenv from "dotenv";
@@ -4354,10 +4354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Perplexity AI routes
   registerPerplexityRoutes(app);
   
-  // Register Stackr Guardrails routes
-  console.log('Registering Guardrails routes at /api/guardrails');
-  app.use('/api/guardrails', guardrailsRoutes);
-  console.log('Guardrails routes registered successfully');
+  // Guardrails routes have been removed as requested
 
   // Special route for minimal HTML page that doesn't use Firebase or Sanity
   app.get('/minimal', (req, res) => {
