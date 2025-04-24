@@ -31,8 +31,23 @@ export function ProtectedRoute({ path, component: Component }: ProtectedRoutePro
         if (!user.onboardingCompleted && path !== '/onboarding') {
           return <Redirect to="/onboarding" />;
         }
+        
+        // Debug log for guardrails route
+        if (path === '/guardrails') {
+          console.log("🛡️ RENDERING GUARDRAILS COMPONENT", { path });
+        }
 
-        return <Component />;
+        // Return the component with a debug wrapper for guardrails
+        return path === '/guardrails' ? (
+          <div className="relative">
+            <div className="sticky top-0 left-0 right-0 z-50 py-2 px-4 bg-purple-600 text-white text-center font-bold">
+              GUARDRAILS PROTECTED ROUTE ACTIVE
+            </div>
+            <Component />
+          </div>
+        ) : (
+          <Component />
+        );
       }}
     </Route>
   );

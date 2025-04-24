@@ -41,8 +41,17 @@ import { Icons } from "@/components/ui/icons";
 
 // Firebase-free router component
 function Router() {
+  // Add a hook to log when router component renders
+  useEffect(() => {
+    console.log("🧭 Router component rendered");
+  }, []);
+  
   return (
     <Switch>
+      {/* Guardrails route - moved to the top to avoid routing conflicts */}
+      <ProtectedRoute path="/guardrails" component={SpendingGuardrails} />
+      
+      {/* Regular routes */}
       <ProtectedRoute path="/" component={DashboardWithOnboarding} />
       <ProtectedRoute path="/income-history" component={IncomeHistory} />
       <ProtectedRoute path="/expenses" component={Expenses} />
@@ -65,7 +74,6 @@ function Router() {
       <ProtectedRoute path="/income-hub" component={IncomeHub} />
       <ProtectedRoute path="/pricing" component={PricingPage} />
       <ProtectedRoute path="/income-hub/gigs" component={StackrGigs} />
-      <ProtectedRoute path="/guardrails" component={SpendingGuardrails} />
       <ProtectedRoute path="/blog/editor" component={BlogEditorPage} />
       <Route path="/blog" component={BlogPage} />
       <Route path="/auth" component={AuthPage} />
@@ -114,6 +122,18 @@ function App() {
   const isBlogPage = location === "/blog";
   // Debug the current location
   console.log("Current location:", location);
+  
+  // Debug check for Guardrails page
+  useEffect(() => {
+    if (location === "/guardrails") {
+      console.log("⚠️ GUARDRAILS PAGE DETECTED - Current location is /guardrails");
+      // Try to force update here
+      setTimeout(() => {
+        console.log("🔄 Forcing UI update for Guardrails page");
+      }, 100);
+    }
+  }, [location]);
+  
   // Only Auth and Onboarding are full-screen pages without sidebar
   const isFullScreenPage = isAuthPage || isOnboardingPage;
 

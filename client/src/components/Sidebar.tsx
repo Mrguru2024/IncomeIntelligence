@@ -84,7 +84,16 @@ const navigationStructure = [
         name: "Spending Guardrails",
         path: "/guardrails",
         icon: <Shield size={20} />,
-        badge: "New"
+        badge: "New",
+        onClick: (e) => {
+          // Add debug logging when this item is clicked
+          console.log("🛡️ Guardrails sidebar link clicked");
+          // Force route path
+          window.history.pushState({}, "", "/guardrails");
+          // Force reload window with the route
+          // e.preventDefault();
+          // window.location.href = "/guardrails";
+        }
       },
       {
         name: "Reminders",
@@ -376,6 +385,14 @@ export default function Sidebar({
                           <TooltipTrigger asChild>
                             <Link
                               href={item.path}
+                              onClick={(e) => {
+                                // Special routing logic for guardrails
+                                if (item.path === '/guardrails') {
+                                  console.log("🛡️ Guardrails link clicked from sidebar");
+                                  // Use the item's onClick if available
+                                  item.onClick?.(e);
+                                }
+                              }}
                               className={cn(
                                 "flex items-center rounded-lg font-medium transition-colors",
                                 isActive 
@@ -598,9 +615,16 @@ export default function Sidebar({
                           e.preventDefault(); // Prevent default link behavior temporarily
                           closeMobileMenu(); // Close the menu first
 
+                          // Special handling for guardrails
+                          if (item.path === '/guardrails') {
+                            console.log("🛡️ Guardrails clicked in mobile menu");
+                            item.onClick?.(e);
+                          }
+
                           // Navigate to the link after the menu animation completes
                           const href = item.path;
                           setTimeout(() => {
+                            console.log(`Navigating to ${href} after menu close`);
                             window.history.pushState({}, "", href);
                             const navEvent = new PopStateEvent("popstate");
                             window.dispatchEvent(navEvent);
