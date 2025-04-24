@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stackr Finance - Spending Guardrails</title>
+  <meta name="description" content="Set spending limits, track expenses, and stay within budget with Stackr Guardrails." />
+  <link rel="icon" type="image/svg+xml" href="/stackr-logo.svg" />
+  <meta name="theme-color" content="#4F46E5" />
+  
+  <script>
+    console.log('[STACKR] Loading Guardrails feature');
+    
+    // Add a debug logger for development
+    window.debugLog = function(message, isError = false) {
+      const method = isError ? 'error' : 'log';
+      console[method](`[Stackr Finance] ${message}`);
+    };
+    
+    window.debugLog('Guardrails initialization starting');
+    
+    // Redirect to the main app with the guardrails route
+    window.location.href = '/#/guardrails';
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f9fafb;
+      color: #1f2937;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid rgba(79, 70, 229, 0.2);
+      border-top-color: #4f46e5;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .message {
+      font-size: 16px;
+      color: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <div class="loader">
+    <div class="spinner"></div>
+    <div class="message">Loading Stackr Guardrails...</div>
+  </div>
+</body>
+</html>

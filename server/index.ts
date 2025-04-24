@@ -315,8 +315,26 @@ const httpServer = createServer(app);
 // Setup routes for SPA navigation
 // Bank connections route moved to combined route handler below
 
-// Add explicit route for guardrails and other SPA routes
-app.get(['/guardrails', '/income-hub', '/income-history', '/expenses', '/bank-connections', '/profile', '/settings', '/goals'], (req, res) => {
+// Add explicit route for guardrails with a dedicated HTML file
+app.get('/guardrails', (req, res) => {
+  logger.info(`Serving dedicated Guardrails route`);
+  const guardrailsPath = path.resolve(process.cwd(), 'client', 'guardrails.html');
+  if (fs.existsSync(guardrailsPath)) {
+    res.sendFile(guardrailsPath);
+  } else {
+    logger.error(`Guardrails HTML not found at: ${guardrailsPath}`);
+    // Fallback to index.html
+    const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Application entry point not found');
+    }
+  }
+});
+
+// Add routes for other SPA pages
+app.get(['/income-hub', '/income-history', '/expenses', '/bank-connections', '/profile', '/settings', '/goals'], (req, res) => {
   logger.info(`Serving SPA route for: ${req.path}`);
   // Use path.resolve to ensure proper path joining
   const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
