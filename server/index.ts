@@ -339,9 +339,23 @@ app.get('/guardrails-minimal', (req, res) => {
   }
 });
 
-// SPA route handler for all client-side routes including guardrails
+// Specific handler for guardrails to ensure the SPA loads correctly
+app.get('/guardrails', (req, res) => {
+  logger.info(`[SECURITY] Allowing potentially suspicious request to: /guardrails`);
+  logger.info(`Serving dedicated Guardrails SPA route`);
+  
+  const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    logger.error(`Index file not found at: ${indexPath}`);
+    res.status(404).send('Application entry point not found');
+  }
+});
+
+// SPA route handler for all client-side routes
+// Note: Guardrails has its own dedicated route handler above
 const clientRoutes = [
-  '/guardrails',
   '/income-hub',
   '/income-history',
   '/expenses',
