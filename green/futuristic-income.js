@@ -135,6 +135,41 @@ function getSplitRatio() {
   };
 }
 
+// Save the updated split ratio to the user's settings
+function saveSplitRatio(splitRatio) {
+  // Validate the split ratio to ensure it adds up to 100%
+  const total = splitRatio.needs + splitRatio.investments + splitRatio.savings;
+  if (total !== 100) {
+    console.error('Split ratio must add up to 100%');
+    return false;
+  }
+  
+  // Update appState if available
+  if (window.appState && window.appState.user) {
+    window.appState.user.splitRatio = splitRatio;
+    
+    // If there's a function to save user settings, call it
+    if (typeof updateUserSettings === 'function') {
+      try {
+        updateUserSettings({ splitRatio });
+      } catch (error) {
+        console.error('Error saving split ratio to user settings:', error);
+      }
+    }
+    
+    // Save to localStorage as fallback
+    try {
+      const userSettings = JSON.parse(localStorage.getItem('stackrUserSettings') || '{}');
+      userSettings.splitRatio = splitRatio;
+      localStorage.setItem('stackrUserSettings', JSON.stringify(userSettings));
+    } catch (error) {
+      console.error('Error saving split ratio to localStorage:', error);
+    }
+  }
+  
+  return true;
+}
+
 // Calculate needs/investments/savings splits based on amount
 function calculateSplits(amount) {
   const ratio = getSplitRatio();
@@ -681,6 +716,570 @@ function showIncomeForm(entryToEdit = null) {
       alert('Error saving income entry. Please try again.');
     }
   });
+}
+
+// Function to show the split customization modal
+function showSplitCustomizationForm() {
+  // Get current split ratios
+  const currentRatio = getSplitRatio();
+  
+  // Create modal overlay
+  const modalOverlay = document.createElement('div');
+  modalOverlay.className = 'modal-overlay';
+  modalOverlay.style.position = 'fixed';
+  modalOverlay.style.top = '0';
+  modalOverlay.style.left = '0';
+  modalOverlay.style.right = '0';
+  modalOverlay.style.bottom = '0';
+  modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+  modalOverlay.style.display = 'flex';
+  modalOverlay.style.justifyContent = 'center';
+  modalOverlay.style.alignItems = 'center';
+  modalOverlay.style.zIndex = '9999';
+  modalOverlay.style.backdropFilter = 'blur(5px)';
+  
+  // Create form container with futuristic styling
+  const formContainer = document.createElement('div');
+  formContainer.className = 'futuristic-card split-form';
+  formContainer.style.width = '90%';
+  formContainer.style.maxWidth = '500px';
+  formContainer.style.padding = '25px';
+  formContainer.style.color = 'white';
+  formContainer.style.position = 'relative';
+  
+  // Add glowing border
+  const glowBorder = document.createElement('div');
+  glowBorder.className = 'glow-border-top';
+  formContainer.appendChild(glowBorder);
+  
+  // Form title
+  const formTitle = document.createElement('h3');
+  formTitle.className = 'glow-text';
+  formTitle.style.fontSize = '1.5rem';
+  formTitle.style.fontWeight = 'bold';
+  formTitle.style.marginBottom = '20px';
+  formTitle.style.display = 'flex';
+  formTitle.style.alignItems = 'center';
+  formTitle.style.gap = '10px';
+  
+  // Add icon to title
+  formTitle.innerHTML = `
+    <div style="background-color: rgba(16, 185, 129, 0.2); padding: 10px; border-radius: 10px; box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+      </svg>
+    </div>
+    <span>Customize Income Split</span>
+  `;
+  
+  formContainer.appendChild(formTitle);
+  
+  // Description text
+  const description = document.createElement('p');
+  description.style.fontSize = '0.875rem';
+  description.style.color = 'rgba(255, 255, 255, 0.7)';
+  description.style.marginBottom = '20px';
+  description.textContent = 'Adjust your income allocation percentages. The total must equal 100%.';
+  formContainer.appendChild(description);
+  
+  // Create form
+  const form = document.createElement('form');
+  form.id = 'split-customization-form';
+  form.style.display = 'grid';
+  form.style.gap = '20px';
+  
+  // Needs input group
+  const needsGroup = document.createElement('div');
+  needsGroup.style.display = 'grid';
+  needsGroup.style.gridTemplateColumns = '1fr';
+  needsGroup.style.gap = '10px';
+  
+  const needsLabel = document.createElement('div');
+  needsLabel.style.display = 'flex';
+  needsLabel.style.justifyContent = 'space-between';
+  needsLabel.style.alignItems = 'center';
+  
+  const needsTitle = document.createElement('label');
+  needsTitle.htmlFor = 'needs-percentage';
+  needsTitle.innerHTML = `
+    <span style="color: #10B981; font-weight: 600; font-size: 1rem;">Needs</span>
+    <span style="font-size: 0.75rem; opacity: 0.7; display: block; margin-top: 2px;">
+      Rent, groceries, bills, etc.
+    </span>
+  `;
+  
+  const needsValue = document.createElement('span');
+  needsValue.id = 'needs-value';
+  needsValue.textContent = `${currentRatio.needs}%`;
+  needsValue.style.fontSize = '1rem';
+  needsValue.style.fontWeight = '600';
+  needsValue.style.color = '#10B981';
+  
+  needsLabel.appendChild(needsTitle);
+  needsLabel.appendChild(needsValue);
+  
+  const needsSlider = document.createElement('input');
+  needsSlider.type = 'range';
+  needsSlider.id = 'needs-percentage';
+  needsSlider.min = '0';
+  needsSlider.max = '100';
+  needsSlider.step = '1';
+  needsSlider.value = currentRatio.needs;
+  needsSlider.style.width = '100%';
+  needsSlider.style.height = '8px';
+  needsSlider.style.borderRadius = '4px';
+  needsSlider.style.appearance = 'none';
+  needsSlider.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+  needsSlider.style.outline = 'none';
+  needsSlider.style.cursor = 'pointer';
+  
+  // Custom slider styling
+  const needsSliderStyle = document.createElement('style');
+  needsSliderStyle.textContent = `
+    #needs-percentage::-webkit-slider-thumb {
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #10B981;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+    }
+    #needs-percentage::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #10B981;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+      border: none;
+    }
+  `;
+  document.head.appendChild(needsSliderStyle);
+  
+  needsGroup.appendChild(needsLabel);
+  needsGroup.appendChild(needsSlider);
+  
+  // Investments input group
+  const investmentsGroup = document.createElement('div');
+  investmentsGroup.style.display = 'grid';
+  investmentsGroup.style.gridTemplateColumns = '1fr';
+  investmentsGroup.style.gap = '10px';
+  
+  const investmentsLabel = document.createElement('div');
+  investmentsLabel.style.display = 'flex';
+  investmentsLabel.style.justifyContent = 'space-between';
+  investmentsLabel.style.alignItems = 'center';
+  
+  const investmentsTitle = document.createElement('label');
+  investmentsTitle.htmlFor = 'investments-percentage';
+  investmentsTitle.innerHTML = `
+    <span style="color: #3B82F6; font-weight: 600; font-size: 1rem;">Investments</span>
+    <span style="font-size: 0.75rem; opacity: 0.7; display: block; margin-top: 2px;">
+      Stocks, retirement, growth
+    </span>
+  `;
+  
+  const investmentsValue = document.createElement('span');
+  investmentsValue.id = 'investments-value';
+  investmentsValue.textContent = `${currentRatio.investments}%`;
+  investmentsValue.style.fontSize = '1rem';
+  investmentsValue.style.fontWeight = '600';
+  investmentsValue.style.color = '#3B82F6';
+  
+  investmentsLabel.appendChild(investmentsTitle);
+  investmentsLabel.appendChild(investmentsValue);
+  
+  const investmentsSlider = document.createElement('input');
+  investmentsSlider.type = 'range';
+  investmentsSlider.id = 'investments-percentage';
+  investmentsSlider.min = '0';
+  investmentsSlider.max = '100';
+  investmentsSlider.step = '1';
+  investmentsSlider.value = currentRatio.investments;
+  investmentsSlider.style.width = '100%';
+  investmentsSlider.style.height = '8px';
+  investmentsSlider.style.borderRadius = '4px';
+  investmentsSlider.style.appearance = 'none';
+  investmentsSlider.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
+  investmentsSlider.style.outline = 'none';
+  investmentsSlider.style.cursor = 'pointer';
+  
+  // Custom slider styling
+  const investmentsSliderStyle = document.createElement('style');
+  investmentsSliderStyle.textContent = `
+    #investments-percentage::-webkit-slider-thumb {
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #3B82F6;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.7);
+    }
+    #investments-percentage::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #3B82F6;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.7);
+      border: none;
+    }
+  `;
+  document.head.appendChild(investmentsSliderStyle);
+  
+  investmentsGroup.appendChild(investmentsLabel);
+  investmentsGroup.appendChild(investmentsSlider);
+  
+  // Savings input group
+  const savingsGroup = document.createElement('div');
+  savingsGroup.style.display = 'grid';
+  savingsGroup.style.gridTemplateColumns = '1fr';
+  savingsGroup.style.gap = '10px';
+  
+  const savingsLabel = document.createElement('div');
+  savingsLabel.style.display = 'flex';
+  savingsLabel.style.justifyContent = 'space-between';
+  savingsLabel.style.alignItems = 'center';
+  
+  const savingsTitle = document.createElement('label');
+  savingsTitle.htmlFor = 'savings-percentage';
+  savingsTitle.innerHTML = `
+    <span style="color: #F59E0B; font-weight: 600; font-size: 1rem;">Savings</span>
+    <span style="font-size: 0.75rem; opacity: 0.7; display: block; margin-top: 2px;">
+      Emergency fund, future goals
+    </span>
+  `;
+  
+  const savingsValue = document.createElement('span');
+  savingsValue.id = 'savings-value';
+  savingsValue.textContent = `${currentRatio.savings}%`;
+  savingsValue.style.fontSize = '1rem';
+  savingsValue.style.fontWeight = '600';
+  savingsValue.style.color = '#F59E0B';
+  
+  savingsLabel.appendChild(savingsTitle);
+  savingsLabel.appendChild(savingsValue);
+  
+  const savingsSlider = document.createElement('input');
+  savingsSlider.type = 'range';
+  savingsSlider.id = 'savings-percentage';
+  savingsSlider.min = '0';
+  savingsSlider.max = '100';
+  savingsSlider.step = '1';
+  savingsSlider.value = currentRatio.savings;
+  savingsSlider.style.width = '100%';
+  savingsSlider.style.height = '8px';
+  savingsSlider.style.borderRadius = '4px';
+  savingsSlider.style.appearance = 'none';
+  savingsSlider.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
+  savingsSlider.style.outline = 'none';
+  savingsSlider.style.cursor = 'pointer';
+  
+  // Custom slider styling
+  const savingsSliderStyle = document.createElement('style');
+  savingsSliderStyle.textContent = `
+    #savings-percentage::-webkit-slider-thumb {
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #F59E0B;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+    }
+    #savings-percentage::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #F59E0B;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+      border: none;
+    }
+  `;
+  document.head.appendChild(savingsSliderStyle);
+  
+  savingsGroup.appendChild(savingsLabel);
+  savingsGroup.appendChild(savingsSlider);
+  
+  // Add visualization of current split
+  const splitVisualization = document.createElement('div');
+  splitVisualization.className = 'split-visualization';
+  splitVisualization.style.height = '12px';
+  splitVisualization.style.borderRadius = '6px';
+  splitVisualization.style.overflow = 'hidden';
+  splitVisualization.style.display = 'flex';
+  splitVisualization.style.marginTop = '20px';
+  splitVisualization.style.marginBottom = '20px';
+  splitVisualization.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.1)';
+  
+  const needsBar = document.createElement('div');
+  needsBar.className = 'needs-bar';
+  needsBar.style.width = `${currentRatio.needs}%`;
+  needsBar.style.height = '100%';
+  needsBar.style.backgroundColor = '#10B981';
+  needsBar.style.transition = 'width 0.3s ease';
+  
+  const investmentsBar = document.createElement('div');
+  investmentsBar.className = 'investments-bar';
+  investmentsBar.style.width = `${currentRatio.investments}%`;
+  investmentsBar.style.height = '100%';
+  investmentsBar.style.backgroundColor = '#3B82F6';
+  investmentsBar.style.transition = 'width 0.3s ease';
+  
+  const savingsBar = document.createElement('div');
+  savingsBar.className = 'savings-bar';
+  savingsBar.style.width = `${currentRatio.savings}%`;
+  savingsBar.style.height = '100%';
+  savingsBar.style.backgroundColor = '#F59E0B';
+  savingsBar.style.transition = 'width 0.3s ease';
+  
+  splitVisualization.appendChild(needsBar);
+  splitVisualization.appendChild(investmentsBar);
+  splitVisualization.appendChild(savingsBar);
+  
+  // Total section
+  const totalSection = document.createElement('div');
+  totalSection.style.display = 'flex';
+  totalSection.style.justifyContent = 'space-between';
+  totalSection.style.alignItems = 'center';
+  totalSection.style.padding = '12px';
+  totalSection.style.borderRadius = '8px';
+  totalSection.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+  totalSection.style.border = '1px solid rgba(79, 70, 229, 0.2)';
+  totalSection.style.marginBottom = '20px';
+  
+  const totalLabel = document.createElement('div');
+  totalLabel.textContent = 'Total';
+  totalLabel.style.fontWeight = '600';
+  
+  const totalValueContainer = document.createElement('div');
+  totalValueContainer.style.display = 'flex';
+  totalValueContainer.style.alignItems = 'center';
+  totalValueContainer.style.gap = '6px';
+  
+  const totalValue = document.createElement('span');
+  totalValue.id = 'total-value';
+  totalValue.textContent = '100%';
+  totalValue.style.fontWeight = '600';
+  totalValue.style.fontSize = '1.125rem';
+  
+  // Status indicator
+  const statusIndicator = document.createElement('div');
+  statusIndicator.id = 'status-indicator';
+  statusIndicator.style.width = '12px';
+  statusIndicator.style.height = '12px';
+  statusIndicator.style.borderRadius = '50%';
+  statusIndicator.style.backgroundColor = '#10B981';
+  statusIndicator.style.transition = 'background-color 0.3s ease';
+  
+  totalValueContainer.appendChild(totalValue);
+  totalValueContainer.appendChild(statusIndicator);
+  
+  totalSection.appendChild(totalLabel);
+  totalSection.appendChild(totalValueContainer);
+  
+  // Actions container
+  const actionsContainer = document.createElement('div');
+  actionsContainer.style.display = 'flex';
+  actionsContainer.style.justifyContent = 'flex-end';
+  actionsContainer.style.gap = '10px';
+  actionsContainer.style.marginTop = '10px';
+  
+  // Cancel button
+  const cancelButton = document.createElement('button');
+  cancelButton.textContent = 'Cancel';
+  cancelButton.style.padding = '10px 20px';
+  cancelButton.style.borderRadius = '8px';
+  cancelButton.style.backgroundColor = 'rgba(31, 41, 55, 0.5)';
+  cancelButton.style.color = 'white';
+  cancelButton.style.border = 'none';
+  cancelButton.style.fontWeight = '500';
+  cancelButton.style.cursor = 'pointer';
+  
+  // Save button
+  const saveButton = document.createElement('button');
+  saveButton.id = 'save-split-btn';
+  saveButton.textContent = 'Save Split';
+  saveButton.className = 'neon-button';
+  saveButton.style.padding = '10px 20px';
+  saveButton.style.display = 'inline-flex';
+  saveButton.style.alignItems = 'center';
+  saveButton.style.gap = '8px';
+  saveButton.style.backgroundColor = 'rgba(79, 70, 229, 0.3)';
+  saveButton.style.color = 'white';
+  saveButton.style.border = '1px solid rgba(79, 70, 229, 0.5)';
+  saveButton.style.borderRadius = '8px';
+  saveButton.style.fontWeight = '600';
+  saveButton.style.cursor = 'pointer';
+  saveButton.style.boxShadow = '0 0 15px rgba(79, 70, 229, 0.3)';
+  saveButton.style.transition = 'all 0.3s ease';
+  saveButton.style.position = 'relative';
+  
+  saveButton.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+      <polyline points="7 3 7 8 15 8"></polyline>
+    </svg>
+    Save Split
+  `;
+  
+  // Add buttons to actions container
+  actionsContainer.appendChild(cancelButton);
+  actionsContainer.appendChild(saveButton);
+  
+  // Add all elements to form
+  form.appendChild(needsGroup);
+  form.appendChild(investmentsGroup);
+  form.appendChild(savingsGroup);
+  form.appendChild(splitVisualization);
+  form.appendChild(totalSection);
+  form.appendChild(actionsContainer);
+  
+  formContainer.appendChild(form);
+  modalOverlay.appendChild(formContainer);
+  document.body.appendChild(modalOverlay);
+  
+  // Function to update split visualization
+  function updateSplitVisualization() {
+    const needsValue = parseInt(needsSlider.value);
+    const investmentsValue = parseInt(investmentsSlider.value);
+    const savingsValue = parseInt(savingsSlider.value);
+    
+    const total = needsValue + investmentsValue + savingsValue;
+    
+    // Update value displays
+    document.getElementById('needs-value').textContent = `${needsValue}%`;
+    document.getElementById('investments-value').textContent = `${investmentsValue}%`;
+    document.getElementById('savings-value').textContent = `${savingsValue}%`;
+    document.getElementById('total-value').textContent = `${total}%`;
+    
+    // Update visualization bars
+    needsBar.style.width = `${needsValue}%`;
+    investmentsBar.style.width = `${investmentsValue}%`;
+    savingsBar.style.width = `${savingsValue}%`;
+    
+    // Update status indicator
+    const statusIndicator = document.getElementById('status-indicator');
+    if (total === 100) {
+      statusIndicator.style.backgroundColor = '#10B981'; // Green
+      saveButton.disabled = false;
+      saveButton.style.opacity = '1';
+      saveButton.style.cursor = 'pointer';
+    } else {
+      statusIndicator.style.backgroundColor = '#EF4444'; // Red
+      saveButton.disabled = true;
+      saveButton.style.opacity = '0.5';
+      saveButton.style.cursor = 'not-allowed';
+    }
+  }
+  
+  // Add event listeners to sliders
+  needsSlider.addEventListener('input', () => {
+    updateSplitVisualization();
+  });
+  
+  investmentsSlider.addEventListener('input', () => {
+    updateSplitVisualization();
+  });
+  
+  savingsSlider.addEventListener('input', () => {
+    updateSplitVisualization();
+  });
+  
+  // Add event listener to cancel button
+  cancelButton.addEventListener('click', () => {
+    document.body.removeChild(modalOverlay);
+  });
+  
+  // Add event listener to save button
+  saveButton.addEventListener('click', () => {
+    const newSplitRatio = {
+      needs: parseInt(needsSlider.value),
+      investments: parseInt(investmentsSlider.value),
+      savings: parseInt(savingsSlider.value)
+    };
+    
+    const total = newSplitRatio.needs + newSplitRatio.investments + newSplitRatio.savings;
+    
+    if (total !== 100) {
+      alert('Split ratio must add up to 100%. Please adjust your values.');
+      return;
+    }
+    
+    // Save the new split ratio
+    saveSplitRatio(newSplitRatio);
+    
+    // Close the modal
+    document.body.removeChild(modalOverlay);
+    
+    // Refresh the income page
+    const incomeContainer = document.querySelector('.income-container');
+    if (incomeContainer && incomeContainer.parentNode) {
+      const newIncomeElement = renderIncomePage();
+      incomeContainer.parentNode.replaceChild(newIncomeElement, incomeContainer);
+    }
+  });
+}
+
+// Function to export income data to CSV
+function exportIncomeData() {
+  const incomeEntries = getIncomeData();
+  
+  if (!incomeEntries || incomeEntries.length === 0) {
+    alert('No income data available to export.');
+    return;
+  }
+  
+  // Sort entries by date (most recent first)
+  const sortedEntries = [...incomeEntries].sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  // CSV header
+  let csvContent = 'Date,Description,Source,Category,Amount,Needs Allocation,Investments Allocation,Savings Allocation\n';
+  
+  // Add each entry as a row in the CSV
+  sortedEntries.forEach(entry => {
+    // Format the values and escape commas in text fields
+    const date = entry.date;
+    const description = `"${(entry.description || '').replace(/"/g, '""')}"`;
+    const source = `"${(entry.source || '').replace(/"/g, '""')}"`;
+    
+    // Get category name from ID
+    let categoryName = '';
+    const categories = getIncomeCategories();
+    const category = categories.find(cat => cat.id === entry.category);
+    if (category) {
+      categoryName = category.name;
+    }
+    
+    const amount = entry.amount.toFixed(2);
+    
+    // Get split values
+    const splits = entry.splits || calculateSplits(entry.amount);
+    const needsAmount = splits.needs.toFixed(2);
+    const investmentsAmount = splits.investments.toFixed(2);
+    const savingsAmount = splits.savings.toFixed(2);
+    
+    // Add row to CSV
+    csvContent += `${date},${description},"${source}","${categoryName}",${amount},${needsAmount},${investmentsAmount},${savingsAmount}\n`;
+  });
+  
+  // Create a download link
+  const encodedUri = encodeURI('data:text/csv;charset=utf-8,' + csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `income_export_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  
+  // Trigger the download
+  link.click();
+  
+  // Clean up
+  document.body.removeChild(link);
 }
 
 // Show confirmation dialog when deleting income entry
@@ -1905,8 +2504,7 @@ export function renderIncomePage(userId) {
   if (customizeSplitBtn) {
     customizeSplitBtn.addEventListener('click', () => {
       console.log('Customize split button clicked');
-      alert('Split ratio customization coming soon! Current split: ' + 
-            `Needs: ${splitRatio.needs}%, Investments: ${splitRatio.investments}%, Savings: ${splitRatio.savings}%`);
+      showSplitCustomizationForm();
     });
   }
   
@@ -1965,7 +2563,7 @@ export function renderIncomePage(userId) {
       exportButton.setAttribute('data-export-event-added', 'true');
       exportButton.addEventListener('click', (e) => {
         console.log('Export button clicked');
-        alert('Export functionality coming soon!');
+        exportIncomeData();
       });
     }
     
