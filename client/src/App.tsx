@@ -112,6 +112,8 @@ function App() {
   const isAuthPage = location === "/auth";
   const isOnboardingPage = location === "/onboarding";
   const isBlogPage = location === "/blog";
+  // Debug the current location
+  console.log("Current location:", location);
   // Only Auth and Onboarding are full-screen pages without sidebar
   const isFullScreenPage = isAuthPage || isOnboardingPage;
 
