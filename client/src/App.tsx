@@ -44,10 +44,31 @@ function Router() {
   // Add a hook to log when router component renders
   useEffect(() => {
     console.log("🧭 Router component rendered");
+    
+    // Handle direct Guardrails navigation
+    const path = window.location.pathname;
+    if (path === '/guardrails' || path === '/spending-guardrails') {
+      console.log("📌 Direct navigation to Guardrails detected");
+    }
   }, []);
   
   return (
     <Switch>
+      {/* Create multiple routes for Guardrails to ensure it's caught */}
+      <Route path="/spending-guardrails">
+        {() => {
+          console.log("⚡ Rendering Guardrails from direct route");
+          return (
+            <div className="guardrails-container">
+              <div className="sticky top-0 z-50 bg-purple-600 text-white text-center py-2 mb-4">
+                DIRECT GUARDRAILS ROUTE ACTIVE
+              </div>
+              <SpendingGuardrails />
+            </div>
+          );
+        }}
+      </Route>
+      
       {/* Guardrails route - moved to the top to avoid routing conflicts */}
       <ProtectedRoute path="/guardrails" component={SpendingGuardrails} />
       

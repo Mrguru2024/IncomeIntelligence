@@ -82,17 +82,17 @@ const navigationStructure = [
       },
       {
         name: "Spending Guardrails",
-        path: "/guardrails",
+        path: "/spending-guardrails", // Use the new alternate route
         icon: <Shield size={20} />,
         badge: "New",
         onClick: (e) => {
           // Add debug logging when this item is clicked
           console.log("🛡️ Guardrails sidebar link clicked");
-          // Force route path
-          window.history.pushState({}, "", "/guardrails");
-          // Force reload window with the route
-          // e.preventDefault();
-          // window.location.href = "/guardrails";
+          // Force route path to the alternative route
+          window.history.pushState({}, "", "/spending-guardrails");
+          // Force a navigation event
+          const navEvent = new PopStateEvent("popstate");
+          window.dispatchEvent(navEvent);
         }
       },
       {
@@ -387,7 +387,7 @@ export default function Sidebar({
                               href={item.path}
                               onClick={(e) => {
                                 // Special routing logic for guardrails
-                                if (item.path === '/guardrails') {
+                                if (item.path === '/spending-guardrails') {
                                   console.log("🛡️ Guardrails link clicked from sidebar");
                                   // Use the item's onClick if available
                                   item.onClick?.(e);
@@ -616,7 +616,7 @@ export default function Sidebar({
                           closeMobileMenu(); // Close the menu first
 
                           // Special handling for guardrails
-                          if (item.path === '/guardrails') {
+                          if (item.path === '/spending-guardrails') {
                             console.log("🛡️ Guardrails clicked in mobile menu");
                             item.onClick?.(e);
                           }
