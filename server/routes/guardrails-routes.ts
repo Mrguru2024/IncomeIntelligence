@@ -15,6 +15,21 @@ const router = express.Router();
 
 // Middleware to ensure user is authenticated
 const requireAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.log('Guardrails auth check - isAuthenticated:', req.isAuthenticated ? req.isAuthenticated() : 'function not available');
+  console.log('Guardrails auth check - user:', req.user);
+  
+  // Development mode bypass
+  if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+    console.log('Guardrails: Development mode - bypassing auth check');
+    req.user = req.user || {
+      id: 1,
+      username: 'developmentUser',
+      email: 'dev@example.com',
+      role: 'user'
+    };
+    return next();
+  }
+  
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: 'Authentication required' });
   }

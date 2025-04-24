@@ -4355,7 +4355,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerPerplexityRoutes(app);
   
   // Register Stackr Guardrails routes
+  console.log('Registering Guardrails routes at /api/guardrails');
   app.use('/api/guardrails', guardrailsRoutes);
+  console.log('Guardrails routes registered successfully');
 
   // Special route for minimal HTML page that doesn't use Firebase or Sanity
   app.get('/minimal', (req, res) => {
