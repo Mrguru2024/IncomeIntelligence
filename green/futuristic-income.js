@@ -2278,6 +2278,9 @@ export function renderIncomePage(userId) {
     exportIncomeData();
   });
   
+  // Mark this button as having event already added to prevent duplicate handlers
+  exportButton.setAttribute('data-export-event-added', 'true');
+  
   filterSection.appendChild(filterButtons);
   filterSection.appendChild(exportButton);
   
@@ -2550,23 +2553,8 @@ export function renderIncomePage(userId) {
       });
     });
     
-    // Make export button functional
-    // Find export button by looking for all buttons and checking text content
-    const allButtons = incomeContainer.querySelectorAll('button');
-    let exportButton = null;
-    allButtons.forEach(button => {
-      if (button.textContent.trim().includes('Export')) {
-        exportButton = button;
-      }
-    });
-    
-    if (exportButton && !exportButton.hasAttribute('data-export-event-added')) {
-      exportButton.setAttribute('data-export-event-added', 'true');
-      exportButton.addEventListener('click', (e) => {
-        console.log('Export button clicked');
-        exportIncomeData();
-      });
-    }
+    // Export button should already have its handler from when it was created
+    // This section is no longer needed since we're adding the handler on creation
     
     console.log('All interactive components verified and enabled!');
   }, 500);
