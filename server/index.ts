@@ -318,6 +318,12 @@ app.get('/bank-connections', (req, res) => {
   res.sendFile(indexPath);
 });
 
+// Add explicit route for guardrails
+app.get('/guardrails', (req, res) => {
+  const indexPath = path.join(process.cwd(), 'client', 'index.html');
+  res.sendFile(indexPath);
+});
+
 // Fallback route for SPA navigation - needed for client-side routing
 app.get('*', (req, res, next) => {
   // Skip API routes
