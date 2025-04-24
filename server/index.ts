@@ -339,32 +339,27 @@ app.get('/guardrails-minimal', (req, res) => {
   }
 });
 
-// Add route for the guardrails feature - always serve the main index.html
-app.get('/guardrails', (req, res) => {
-  logger.info(`Serving Guardrails SPA route`);
-  
-  // Check if accept header includes text/html (browser request) vs application/javascript (module request)
-  const acceptsHtml = req.headers.accept && req.headers.accept.includes('text/html');
-  
-  if (acceptsHtml) {
-    // Browser requesting the page - send the index.html file
-    const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      logger.error(`Index file not found at: ${indexPath}`);
-      res.status(404).send('Application entry point not found');
-    }
-  } else {
-    // This is likely a JavaScript module request, redirect to the module
-    res.redirect('/src/main.tsx');
-  }
-});
+// SPA route handler for all client-side routes including guardrails
+const clientRoutes = [
+  '/guardrails',
+  '/income-hub',
+  '/income-history',
+  '/expenses',
+  '/bank-connections',
+  '/profile',
+  '/settings',
+  '/goals',
+  '/budget-planner',
+  '/reminders',
+  '/financial-advice',
+  '/voice-commands',
+  '/money-mentor'
+];
 
-// Add routes for other SPA pages
-app.get(['/income-hub', '/income-history', '/expenses', '/bank-connections', '/profile', '/settings', '/goals'], (req, res) => {
-  logger.info(`Serving SPA route for: ${req.path}`);
-  // Use path.resolve to ensure proper path joining
+// Remove individual route handlers and use a single handler for all client routes
+app.get(clientRoutes, (req, res) => {
+  logger.info(`Serving SPA route: ${req.path}`);
+  
   const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
@@ -373,6 +368,9 @@ app.get(['/income-hub', '/income-history', '/expenses', '/bank-connections', '/p
     res.status(404).send('Application entry point not found');
   }
 });
+
+// No need for this route handler anymore as we've consolidated it above
+// in the unified client routes handler
 
 // Fallback route for SPA navigation - needed for client-side routing
 app.get('*', (req, res, next) => {
