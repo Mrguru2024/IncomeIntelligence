@@ -327,22 +327,8 @@ app.get('/guard-test', (req, res) => {
   }
 });
 
-// Add route for the minimal Guardrails implementation
-app.get('/guardrails-minimal', (req, res) => {
-  logger.info(`Serving minimal Guardrails implementation`);
-  const minimalPath = path.resolve(process.cwd(), 'client', 'guardrails-minimal.html');
-  if (fs.existsSync(minimalPath)) {
-    res.sendFile(minimalPath);
-  } else {
-    logger.error(`Minimal Guardrails implementation not found at: ${minimalPath}`);
-    res.status(404).send('Minimal Guardrails implementation not found');
-  }
-});
-
-// Note: We're not using a specific handler for guardrails anymore
-// as this was causing conflicts with the Vite middleware.
-// Instead, we'll rely on the Vite middleware to handle SPA routes,
-// which is set up in server/vite.ts
+// SPA routes are handled by the Vite middleware
+// configured in server/vite.ts
 
 // Note: We've removed all specific SPA route handlers
 // and rely on the Vite middleware for development mode which is configured in server/vite.ts
