@@ -27,7 +27,8 @@ import {
   ListChecks,
   CircleDollarSign,
   Users,
-  Brain
+  Brain,
+  Shield
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
@@ -78,6 +79,12 @@ const navigationStructure = [
         name: "Budget Planner",
         path: "/budget-planner",
         icon: <CalendarDays size={20} />,
+      },
+      {
+        name: "Spending Guardrails",
+        path: "/guardrails",
+        icon: <Shield size={20} />,
+        badge: "New"
       },
       {
         name: "Reminders",
