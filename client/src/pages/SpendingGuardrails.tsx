@@ -230,8 +230,13 @@ export default function SpendingGuardrails() {
 
   return (
     <div className="container py-8 max-w-7xl">
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="flex flex-col gap-6 relative">
+        {/* Debug banner to show this is the Guardrails component */}
+        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-purple-800 via-blue-600 to-purple-800 text-white text-center py-1 font-bold text-sm">
+          GUARDRAILS PAGE ACTIVE
+        </div>
+        
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mt-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-blue-500 text-transparent bg-clip-text">Stackr Guardrails</h1>
             <p className="text-muted-foreground">
