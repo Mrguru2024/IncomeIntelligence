@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth';
-import { ThemeProvider } from '@/hooks/useTheme';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import './index.css';
 
 // Import App component with custom Auth provider (no Firebase)

@@ -121,65 +121,63 @@ function App() {
   };
 
   return (
-    <ThemeProvider defaultTheme="light">
-      <OnboardingProvider>
-        <>
-          {/* GREEN Version Banner */}
-          <div className="bg-green-600 text-white text-center p-2 flex items-center justify-center cursor-pointer" onClick={goToGreenVersion}>
-            <span className="mr-2 font-bold">⚠️ Firebase Issues?</span>
-            <span className="hidden sm:inline">Try our 100% Firebase-free</span>
-            <button className="ml-2 bg-white text-green-600 px-3 py-1 rounded-md font-bold text-sm">
-              GREEN Version
-            </button>
-          </div>
-          
-          {isFullScreenPage ? (
-            <main className="w-full">
-              <Router />
-            </main>
-          ) : (
-            <div className="flex min-h-screen w-full max-w-[100vw] overflow-x-hidden">
-              <Sidebar
-                mobileMenuOpen={mobileMenuOpen}
-                setMobileMenuOpen={setMobileMenuOpen}
-              />
-              <div className="flex-1 flex flex-col w-full max-w-[100vw]">
-                <header className="lg:hidden bg-card-background border-b border-border p-4 flex items-center justify-between sticky top-0 z-[100] w-full">
-                  <h1 className="text-xl font-semibold text-foreground">
-                    Stackr
-                  </h1>
-                  <div className="flex items-center space-x-2">
-                    <ThemeToggle />
-                    <button
-                      className="text-foreground hover:bg-accent active:bg-muted p-2 rounded-md bg-muted-background flex items-center justify-center cursor-pointer relative z-[300] transition-colors duration-200"
-                      onClick={() => {
-                        setMobileMenuOpen(true);
-                      }}
-                      type="button"
-                      style={{
-                        touchAction: "manipulation",
-                        WebkitTapHighlightColor: "transparent", // Remove tap highlight on mobile
-                      }}
-                      aria-label="Open menu"
-                    >
-                      <div className="p-1">
-                        <Icons.menu className="h-6 w-6" />
-                      </div>
-                    </button>
-                  </div>
-                </header>
-                <main className="flex-1 w-full overflow-x-hidden max-w-[100vw]">
-                  <Router />
-                </main>
-              </div>
-              <VoiceCommandWidget />
-              <AppTutorial />
-              <AdminTutorial />
+    <OnboardingProvider>
+      <>
+        {/* GREEN Version Banner */}
+        <div className="bg-green-600 text-white text-center p-2 flex items-center justify-center cursor-pointer" onClick={goToGreenVersion}>
+          <span className="mr-2 font-bold">⚠️ Firebase Issues?</span>
+          <span className="hidden sm:inline">Try our 100% Firebase-free</span>
+          <button className="ml-2 bg-white text-green-600 px-3 py-1 rounded-md font-bold text-sm">
+            GREEN Version
+          </button>
+        </div>
+        
+        {isFullScreenPage ? (
+          <main className="w-full">
+            <Router />
+          </main>
+        ) : (
+          <div className="flex min-h-screen w-full max-w-[100vw] overflow-x-hidden">
+            <Sidebar
+              mobileMenuOpen={mobileMenuOpen}
+              setMobileMenuOpen={setMobileMenuOpen}
+            />
+            <div className="flex-1 flex flex-col w-full max-w-[100vw]">
+              <header className="lg:hidden bg-card-background border-b border-border p-4 flex items-center justify-between sticky top-0 z-[100] w-full">
+                <h1 className="text-xl font-semibold text-foreground">
+                  Stackr
+                </h1>
+                <div className="flex items-center space-x-2">
+                  <ThemeToggle />
+                  <button
+                    className="text-foreground hover:bg-accent active:bg-muted p-2 rounded-md bg-muted-background flex items-center justify-center cursor-pointer relative z-[300] transition-colors duration-200"
+                    onClick={() => {
+                      setMobileMenuOpen(true);
+                    }}
+                    type="button"
+                    style={{
+                      touchAction: "manipulation",
+                      WebkitTapHighlightColor: "transparent", // Remove tap highlight on mobile
+                    }}
+                    aria-label="Open menu"
+                  >
+                    <div className="p-1">
+                      <Icons.menu className="h-6 w-6" />
+                    </div>
+                  </button>
+                </div>
+              </header>
+              <main className="flex-1 w-full overflow-x-hidden max-w-[100vw]">
+                <Router />
+              </main>
             </div>
-          )}
-        </>
-      </OnboardingProvider>
-    </ThemeProvider>
+            <VoiceCommandWidget />
+            <AppTutorial />
+            <AdminTutorial />
+          </div>
+        )}
+      </>
+    </OnboardingProvider>
   );
 }
 
