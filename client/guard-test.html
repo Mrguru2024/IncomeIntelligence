@@ -56,8 +56,21 @@
     <ul>
       <li><a href="/">Home</a></li>
       <li><a href="/guardrails">Guardrails Page</a></li>
+      <li><a href="/guardrails" target="_blank">Guardrails Page (new window)</a></li>
+      <li><a href="/#/guardrails">Guardrails Hash Route</a></li>
       <li><a href="/income-hub">Income Hub</a></li>
     </ul>
+    
+    <div class="card">
+      <h2>Direct SPA Navigation</h2>
+      <p>Try direct navigation to the Guardrails page using JavaScript:</p>
+      <button id="directNavButton" class="button">Navigate to Guardrails</button>
+      <script>
+        document.getElementById('directNavButton').addEventListener('click', () => {
+          window.location.href = '/#/guardrails';
+        });
+      </script>
+    </div>
   </div>
   
   <script>

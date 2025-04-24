@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stackr Finance - Spending Guardrails</title>
+  <meta name="description" content="Set spending limits, track expenses, and stay within budget with Stackr Guardrails." />
+  <link rel="icon" type="image/svg+xml" href="/stackr-logo.svg" />
+  <meta name="theme-color" content="#4F46E5" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-primary: #4F46E5;
+      --color-primary-dark: #4338CA;
+      --color-primary-light: #6366F1;
+      --color-secondary: #0EA5E9;
+      --color-accent: #8B5CF6;
+      --color-bg: #F9FAFB;
+      --color-card: #FFFFFF;
+      --color-text: #1F2937;
+      --color-text-secondary: #4B5563;
+      --color-text-tertiary: #6B7280;
+      --color-border: #E5E7EB;
+      --color-success: #10B981;
+      --color-warning: #F59E0B;
+      --color-error: #EF4444;
+      --color-info: #3B82F6;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --radius-sm: 0.125rem;
+      --radius-md: 0.375rem;
+      --radius-lg: 0.5rem;
+      --radius-xl: 0.75rem;
+      --radius-2xl: 1rem;
+      --radius-full: 9999px;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.5;
+    }
+    
+    header {
+      background-color: var(--color-primary);
+      color: white;
+      padding: 1rem;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem;
+      border-radius: var(--radius-md);
+      transition: background-color 0.2s;
+    }
+    
+    .nav-links a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .page-title {
+      margin: 2rem 0 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .page-title h1 {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    
+    .subheading {
+      color: var(--color-text-secondary);
+      margin-bottom: 2rem;
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: 1.5rem;
+    }
+    
+    .tab {
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+    }
+    
+    .tab.active {
+      border-bottom: 2px solid var(--color-primary);
+      color: var(--color-primary);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .card {
+      background: var(--color-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    
+    .card-header {
+      padding: 1.25rem;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .card-description {
+      color: var(--color-text-secondary);
+      font-size: 0.875rem;
+    }
+    
+    .card-content {
+      padding: 1.25rem;
+    }
+    
+    .card-footer {
+      padding: 1.25rem;
+      border-top: 1px solid var(--color-border);
+    }
+    
+    .progress-container {
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.25rem;
+      font-size: 0.875rem;
+    }
+    
+    .progress-bg {
+      height: 0.5rem;
+      background-color: var(--color-border);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background-color: var(--color-primary);
+      border-radius: var(--radius-full);
+    }
+    
+    .progress-bar.warning {
+      background-color: var(--color-warning);
+    }
+    
+    .progress-bar.danger {
+      background-color: var(--color-error);
+    }
+    
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+    }
+    
+    .form-select {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      background-color: white;
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: var(--radius-md);
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .btn-primary {
+      background-color: var(--color-primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--color-primary-dark);
+    }
+    
+    .btn-secondary {
+      background-color: white;
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+    
+    .btn-secondary:hover {
+      background-color: var(--color-bg);
+    }
+    
+    .alert {
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+    }
+    
+    .alert-warning {
+      background-color: #FEF3C7;
+      border: 1px solid #F59E0B;
+      color: #92400E;
+    }
+    
+    .alert-danger {
+      background-color: #FEE2E2;
+      border: 1px solid #EF4444;
+      color: #B91C1C;
+    }
+    
+    .loading {
+      display: flex;
+      justify-content: center;
+      padding: 2rem;
+    }
+    
+    .spinner {
+      width: 2rem;
+      height: 2rem;
+      border: 0.25rem solid #E5E7EB;
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 1rem;
+    }
+    
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (min-width: 1024px) {
+      .grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    .toast {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      padding: 1rem;
+      background: white;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      border-left: 4px solid var(--color-primary);
+      max-width: 300px;
+      animation: slideIn 0.3s ease-out forwards;
+    }
+    
+    .toast-success {
+      border-left-color: var(--color-success);
+    }
+    
+    .toast-error {
+      border-left-color: var(--color-error);
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="logo">Stackr Finance</div>
+      <div class="nav-links">
+        <a href="/">Dashboard</a>
+        <a href="/income-hub">Income Hub</a>
+        <a href="#" class="active">Guardrails</a>
+        <a href="/guard-test">API Test Page</a>
+      </div>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="page-title">
+      <div>
+        <h1>Stackr Guardrails</h1>
+        <p class="subheading">Set spending limits, track expenses, and stay within budget</p>
+      </div>
+      <div id="status-badge"></div>
+    </div>
+    
+    <div class="tabs">
+      <div class="tab active" data-tab="dashboard">Dashboard</div>
+      <div class="tab" data-tab="log-expense">Log Expense</div>
+      <div class="tab" data-tab="limits">Spending Limits</div>
+      <div class="tab" data-tab="insights">AI Insights</div>
+    </div>
+    
+    <div id="dashboard" class="tab-content active">
+      <div class="loading" id="dashboard-loading">
+        <div class="spinner"></div>
+      </div>
+      <div id="dashboard-content" style="display: none;">
+        <div id="summary-card" class="card">
+          <!-- Summary will be inserted here -->
+        </div>
+        
+        <div class="grid">
+          <div id="alerts-card" class="card">
+            <!-- Alerts will be inserted here -->
+          </div>
+          
+          <div id="insights-card" class="card">
+            <!-- AI insights will be inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="log-expense" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Log New Expense</div>
+          <div class="card-description">Track your spending across different categories</div>
+        </div>
+        <div class="card-content">
+          <form id="expense-form">
+            <div class="form-group">
+              <label for="expense-category" class="form-label">Category</label>
+              <select id="expense-category" class="form-select" required>
+                <option value="">Select a category</option>
+                <option value="Food & Dining">Food & Dining</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Housing">Housing</option>
+                <option value="Transportation">Transportation</option>
+                <option value="Travel">Travel</option>
+                <option value="Health & Fitness">Health & Fitness</option>
+                <option value="Personal Care">Personal Care</option>
+                <option value="Education">Education</option>
+                <option value="Gifts & Donations">Gifts & Donations</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Subscriptions">Subscriptions</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="expense-amount" class="form-label">Amount ($)</label>
+              <input type="number" id="expense-amount" class="form-input" step="0.01" min="0.01" required placeholder="0.00">
+            </div>
+            
+            <div class="form-group">
+              <label for="expense-description" class="form-label">Description (Optional)</label>
+              <input type="text" id="expense-description" class="form-input" placeholder="Brief description of the expense">
+            </div>
+            
+            <div class="form-group">
+              <label for="expense-date" class="form-label">Date</label>
+              <input type="date" id="expense-date" class="form-input" value="" required>
+            </div>
+          </form>
+        </div>
+        <div class="card-footer">
+          <button type="button" id="log-expense-btn" class="btn btn-primary">Log Expense</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="limits" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Set Spending Limits</div>
+          <div class="card-description">Define budget limits for different spending categories</div>
+        </div>
+        <div class="card-content">
+          <div id="limits-loading" class="loading">
+            <div class="spinner"></div>
+          </div>
+          <div id="limits-content" style="display: none;">
+            <form id="limit-form">
+              <div class="form-group">
+                <label for="limit-category" class="form-label">Category</label>
+                <select id="limit-category" class="form-select" required>
+                  <option value="">Select a category</option>
+                  <option value="Food & Dining">Food & Dining</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Housing">Housing</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Travel">Travel</option>
+                  <option value="Health & Fitness">Health & Fitness</option>
+                  <option value="Personal Care">Personal Care</option>
+                  <option value="Education">Education</option>
+                  <option value="Gifts & Donations">Gifts & Donations</option>
+                  <option value="Utilities">Utilities</option>
+                  <option value="Subscriptions">Subscriptions</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="limit-amount" class="form-label">Limit Amount ($)</label>
+                <input type="number" id="limit-amount" class="form-input" step="1" min="1" required placeholder="0">
+              </div>
+              
+              <div class="form-group">
+                <label for="limit-cycle" class="form-label">Time Period</label>
+                <select id="limit-cycle" class="form-select" required>
+                  <option value="monthly">Monthly</option>
+                  <option value="weekly">Weekly</option>
+                </select>
+              </div>
+            </form>
+            
+            <div id="current-limits" class="mt-4">
+              <h3 class="text-lg font-semibold mb-2">Current Limits</h3>
+              <div id="limits-list">
+                <!-- Current limits will be inserted here -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button type="button" id="set-limit-btn" class="btn btn-primary">Set Limit</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="insights" class="tab-content">
+      <div id="insights-loading" class="loading">
+        <div class="spinner"></div>
+      </div>
+      <div id="insights-content" style="display: none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">AI Weekly Insights</div>
+            <div class="card-description" id="insights-date-range">Loading date range...</div>
+          </div>
+          <div class="card-content">
+            <div id="ai-suggestion">
+              <!-- AI suggestion will be inserted here -->
+            </div>
+          </div>
+        </div>
+        
+        <div class="card mt-4">
+          <div class="card-header">
+            <div class="card-title">Reflection History</div>
+            <div class="card-description">Your past weekly spending reflections</div>
+          </div>
+          <div class="card-content">
+            <div id="reflection-history">
+              <!-- Reflection history will be inserted here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="toast-container"></div>
+  
+  <script>
+    // Format currency helper
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+      }).format(amount);
+    }
+    
+    // Format date helper
+    function formatDate(dateString) {
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      }).format(new Date(dateString));
+    }
+    
+    // Set today's date for the expense date input
+    document.getElementById('expense-date').valueAsDate = new Date();
+    
+    // Tab switching
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabId = tab.getAttribute('data-tab');
+        
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Show active content
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === tabId) {
+            content.classList.add('active');
+          }
+        });
+      });
+    });
+    
+    // Show toast notification
+    function showToast(message, type = 'success') {
+      const toastContainer = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type === 'error' ? 'toast-error' : 'toast-success'}`;
+      toast.textContent = message;
+      
+      toastContainer.appendChild(toast);
+      
+      // Remove toast after 5 seconds
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out forwards';
+        setTimeout(() => {
+          toastContainer.removeChild(toast);
+        }, 300);
+      }, 5000);
+    }
+    
+    // Fetch data from API
+    async function fetchData(endpoint) {
+      try {
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error(`Error fetching ${endpoint}:`, error);
+        showToast(`Failed to load data: ${error.message}`, 'error');
+        return null;
+      }
+    }
+    
+    // Post data to API
+    async function postData(endpoint, data) {
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error(`Error posting to ${endpoint}:`, error);
+        showToast(`Failed to submit data: ${error.message}`, 'error');
+        throw error;
+      }
+    }
+    
+    // Load dashboard data
+    async function loadDashboard() {
+      document.getElementById('dashboard-loading').style.display = 'flex';
+      document.getElementById('dashboard-content').style.display = 'none';
+      
+      try {
+        // Fetch data in parallel
+        const [summary, alerts, reflection] = await Promise.all([
+          fetchData('/api/guardrails/summary'),
+          fetchData('/api/guardrails/alerts'),
+          fetchData('/api/guardrails/reflection')
+        ]);
+        
+        if (summary) {
+          renderSummary(summary);
+        }
+        
+        if (alerts) {
+          renderAlerts(alerts);
+          updateStatusBadge(alerts);
+        }
+        
+        if (reflection) {
+          renderInsights(reflection);
+        }
+        
+        document.getElementById('dashboard-loading').style.display = 'none';
+        document.getElementById('dashboard-content').style.display = 'block';
+      } catch (error) {
+        console.error('Error loading dashboard:', error);
+        showToast('Failed to load dashboard data', 'error');
+      }
+    }
+    
+    // Render spending summary
+    function renderSummary(summary) {
+      const summaryCard = document.getElementById('summary-card');
+      
+      if (summary.categories.length === 0) {
+        summaryCard.innerHTML = `
+          <div class="card-header">
+            <div>
+              <div class="card-title">Spending Summary</div>
+              <div class="card-description">No data available yet</div>
+            </div>
+          </div>
+          <div class="card-content">
+            <p>No expenses logged yet. Start tracking by logging an expense.</p>
+          </div>
+          <div class="card-footer">
+            <button type="button" id="go-to-log-btn" class="btn btn-primary">Log An Expense</button>
+          </div>
+        `;
+        
+        document.getElementById('go-to-log-btn').addEventListener('click', () => {
+          document.querySelector('[data-tab="log-expense"]').click();
+        });
+        
+        return;
+      }
+      
+      let categoriesHtml = '';
+      
+      summary.categories.forEach(category => {
+        const percentage = category.limit !== null ? Math.min(category.percentage, 100) : 0;
+        let progressClass = '';
+        
+        if (category.status === 'over') {
+          progressClass = 'danger';
+        } else if (category.status === 'warning') {
+          progressClass = 'warning';
+        }
+        
+        categoriesHtml += `
+          <div class="progress-container">
+            <div class="progress-label">
+              <span>${category.category}</span>
+              <span>
+                ${formatCurrency(category.spent)}
+                ${category.limit !== null ? ` of ${formatCurrency(category.limit)}` : ''}
+              </span>
+            </div>
+            ${category.limit !== null ? `
+              <div class="progress-bg">
+                <div class="progress-bar ${progressClass}" style="width: ${percentage}%"></div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+      
+      summaryCard.innerHTML = `
+        <div class="card-header">
+          <div>
+            <div class="card-title">Spending Summary</div>
+            <div class="card-description">
+              ${formatDate(summary.startDate)} - ${formatDate(summary.endDate)}
+            </div>
+          </div>
+          <div>
+            <span style="font-size: 1.5rem; font-weight: 700;">${formatCurrency(summary.totalSpent)}</span>
+            ${summary.totalLimit ? `
+              <span style="font-size: 0.875rem; color: var(--color-text-secondary)">
+                of ${formatCurrency(summary.totalLimit)}
+              </span>
+            ` : ''}
+          </div>
+        </div>
+        <div class="card-content">
+          ${categoriesHtml}
+        </div>
+        <div class="card-footer">
+          <button type="button" id="go-to-log-btn" class="btn btn-primary">Log New Expense</button>
+        </div>
+      `;
+      
+      document.getElementById('go-to-log-btn').addEventListener('click', () => {
+        document.querySelector('[data-tab="log-expense"]').click();
+      });
+    }
+    
+    // Render alerts
+    function renderAlerts(alerts) {
+      const alertsCard = document.getElementById('alerts-card');
+      
+      if (!alerts.alerts || alerts.alerts.length === 0) {
+        alertsCard.innerHTML = `
+          <div class="card-header">
+            <div class="card-title">Spending Status</div>
+            <div class="card-description">All categories within budget</div>
+          </div>
+          <div class="card-content">
+            <p>You're doing great! All spending categories are within their limits.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      let alertsHtml = '';
+      
+      alerts.alerts.forEach(alert => {
+        const alertClass = alert.status === 'over' ? 'alert-danger' : 'alert-warning';
+        const statusText = alert.status === 'over' ? 'Over limit' : 'Approaching limit';
+        
+        alertsHtml += `
+          <div class="alert ${alertClass}">
+            <div style="font-weight: 500;">${alert.category}</div>
+            <div>${formatCurrency(alert.spent)} of ${formatCurrency(alert.limit)} (${Math.round(alert.percentage)}%)</div>
+            <div style="font-size: 0.875rem; margin-top: 0.25rem;">${statusText}</div>
+          </div>
+        `;
+      });
+      
+      alertsCard.innerHTML = `
+        <div class="card-header">
+          <div class="card-title">Alerts</div>
+          <div class="card-description">Categories requiring attention</div>
+        </div>
+        <div class="card-content">
+          ${alertsHtml}
+        </div>
+      `;
+    }
+    
+    // Update status badge
+    function updateStatusBadge(alerts) {
+      const statusBadge = document.getElementById('status-badge');
+      
+      if (alerts.hasOverages) {
+        statusBadge.innerHTML = `
+          <span style="display: inline-block; padding: 0.5rem 0.75rem; background-color: var(--color-error); color: white; border-radius: var(--radius-full); font-weight: 500;">
+            Over Budget
+          </span>
+        `;
+      } else if (alerts.hasWarnings) {
+        statusBadge.innerHTML = `
+          <span style="display: inline-block; padding: 0.5rem 0.75rem; background-color: var(--color-warning); color: white; border-radius: var(--radius-full); font-weight: 500;">
+            Approaching Limits
+          </span>
+        `;
+      } else {
+        statusBadge.innerHTML = `
+          <span style="display: inline-block; padding: 0.5rem 0.75rem; background-color: var(--color-success); color: white; border-radius: var(--radius-full); font-weight: 500;">
+            Within Budget
+          </span>
+        `;
+      }
+    }
+    
+    // Render AI insights
+    function renderInsights(reflection) {
+      const insightsCard = document.getElementById('insights-card');
+      
+      if (!reflection || !reflection.aiSuggestion) {
+        insightsCard.innerHTML = `
+          <div class="card-header">
+            <div class="card-title">AI Weekly Insight</div>
+            <div class="card-description">Not available yet</div>
+          </div>
+          <div class="card-content">
+            <p>Weekly AI insights will be generated once you have spending data.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      insightsCard.innerHTML = `
+        <div class="card-header">
+          <div class="card-title">AI Weekly Insight</div>
+          <div class="card-description">
+            ${formatDate(reflection.weekStartDate)} - ${formatDate(reflection.weekEndDate)}
+          </div>
+        </div>
+        <div class="card-content">
+          <p>${reflection.aiSuggestion}</p>
+        </div>
+      `;
+    }
+    
+    // Load and render spending limits
+    async function loadLimits() {
+      document.getElementById('limits-loading').style.display = 'flex';
+      document.getElementById('limits-content').style.display = 'none';
+      
+      try {
+        const limits = await fetchData('/api/guardrails/limits');
+        
+        if (limits && Array.isArray(limits)) {
+          renderLimits(limits);
+        }
+        
+        document.getElementById('limits-loading').style.display = 'none';
+        document.getElementById('limits-content').style.display = 'block';
+      } catch (error) {
+        console.error('Error loading limits:', error);
+        showToast('Failed to load spending limits', 'error');
+      }
+    }
+    
+    // Render spending limits
+    function renderLimits(limits) {
+      const limitsList = document.getElementById('limits-list');
+      
+      if (limits.length === 0) {
+        limitsList.innerHTML = '<p>No spending limits set yet.</p>';
+        return;
+      }
+      
+      let limitsHtml = '<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse;">';
+      limitsHtml += `
+        <thead>
+          <tr style="border-bottom: 1px solid var(--color-border);">
+            <th style="text-align: left; padding: 0.5rem;">Category</th>
+            <th style="text-align: right; padding: 0.5rem;">Limit</th>
+            <th style="text-align: left; padding: 0.5rem;">Period</th>
+            <th style="text-align: center; padding: 0.5rem;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+      `;
+      
+      limits.forEach(limit => {
+        limitsHtml += `
+          <tr style="border-bottom: 1px solid var(--color-border);">
+            <td style="padding: 0.5rem;">${limit.category}</td>
+            <td style="text-align: right; padding: 0.5rem;">${formatCurrency(limit.limitAmount)}</td>
+            <td style="padding: 0.5rem;">${limit.cycle === 'weekly' ? 'Weekly' : 'Monthly'}</td>
+            <td style="text-align: center; padding: 0.5rem;">
+              <span style="display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 50%; background-color: ${limit.isActive ? 'var(--color-success)' : 'var(--color-text-tertiary)'};"></span>
+            </td>
+          </tr>
+        `;
+      });
+      
+      limitsHtml += '</tbody></table></div>';
+      limitsList.innerHTML = limitsHtml;
+    }
+    
+    // Load insights
+    async function loadInsightsTab() {
+      document.getElementById('insights-loading').style.display = 'flex';
+      document.getElementById('insights-content').style.display = 'none';
+      
+      try {
+        const [reflection, history] = await Promise.all([
+          fetchData('/api/guardrails/reflection'),
+          fetchData('/api/guardrails/reflections/history')
+        ]);
+        
+        if (reflection) {
+          document.getElementById('insights-date-range').textContent = 
+            `${formatDate(reflection.weekStartDate)} - ${formatDate(reflection.weekEndDate)}`;
+          
+          document.getElementById('ai-suggestion').innerHTML = `<p>${reflection.aiSuggestion}</p>`;
+        } else {
+          document.getElementById('ai-suggestion').innerHTML = 
+            '<p>No AI suggestions available yet. Log some expenses to get personalized insights.</p>';
+        }
+        
+        renderReflectionHistory(history);
+        
+        document.getElementById('insights-loading').style.display = 'none';
+        document.getElementById('insights-content').style.display = 'block';
+      } catch (error) {
+        console.error('Error loading insights:', error);
+        showToast('Failed to load AI insights', 'error');
+      }
+    }
+    
+    // Render reflection history
+    function renderReflectionHistory(history) {
+      const historyElement = document.getElementById('reflection-history');
+      
+      if (!history || history.length === 0) {
+        historyElement.innerHTML = '<p>No reflection history available yet.</p>';
+        return;
+      }
+      
+      let historyHtml = '';
+      
+      history.forEach(reflection => {
+        historyHtml += `
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-weight: 500; margin-bottom: 0.5rem;">
+              ${formatDate(reflection.weekStartDate)} - ${formatDate(reflection.weekEndDate)}
+            </div>
+            <p>${reflection.aiSuggestion}</p>
+          </div>
+        `;
+      });
+      
+      historyElement.innerHTML = historyHtml;
+    }
+    
+    // Set up event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load initial data
+      loadDashboard();
+      
+      // Set up tab change listeners
+      document.querySelector('[data-tab="limits"]').addEventListener('click', loadLimits);
+      document.querySelector('[data-tab="insights"]').addEventListener('click', loadInsightsTab);
+      
+      // Set up form submission handlers
+      document.getElementById('log-expense-btn').addEventListener('click', async () => {
+        const form = document.getElementById('expense-form');
+        
+        const category = document.getElementById('expense-category').value;
+        const amountSpent = parseFloat(document.getElementById('expense-amount').value);
+        const description = document.getElementById('expense-description').value;
+        const date = document.getElementById('expense-date').value;
+        
+        if (!category || isNaN(amountSpent) || amountSpent <= 0 || !date) {
+          showToast('Please fill out all required fields', 'error');
+          return;
+        }
+        
+        try {
+          await postData('/api/guardrails/logs', {
+            category,
+            amountSpent,
+            description,
+            timestamp: new Date(date).toISOString()
+          });
+          
+          showToast('Expense logged successfully');
+          
+          // Reset form
+          document.getElementById('expense-category').value = '';
+          document.getElementById('expense-amount').value = '';
+          document.getElementById('expense-description').value = '';
+          document.getElementById('expense-date').valueAsDate = new Date();
+          
+          // Switch to dashboard
+          document.querySelector('[data-tab="dashboard"]').click();
+          
+          // Reload dashboard
+          loadDashboard();
+        } catch (error) {
+          console.error('Error logging expense:', error);
+        }
+      });
+      
+      document.getElementById('set-limit-btn').addEventListener('click', async () => {
+        const category = document.getElementById('limit-category').value;
+        const limitAmount = parseInt(document.getElementById('limit-amount').value);
+        const cycle = document.getElementById('limit-cycle').value;
+        
+        if (!category || isNaN(limitAmount) || limitAmount <= 0 || !cycle) {
+          showToast('Please fill out all required fields', 'error');
+          return;
+        }
+        
+        try {
+          await postData('/api/guardrails/limits', {
+            category,
+            limitAmount,
+            cycle,
+            isActive: true
+          });
+          
+          showToast('Spending limit set successfully');
+          
+          // Reset form
+          document.getElementById('limit-category').value = '';
+          document.getElementById('limit-amount').value = '';
+          
+          // Reload limits
+          loadLimits();
+          
+          // Reload dashboard data
+          loadDashboard();
+        } catch (error) {
+          console.error('Error setting limit:', error);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

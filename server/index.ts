@@ -327,6 +327,18 @@ app.get('/guard-test', (req, res) => {
   }
 });
 
+// Add route for the minimal Guardrails implementation
+app.get('/guardrails-minimal', (req, res) => {
+  logger.info(`Serving minimal Guardrails implementation`);
+  const minimalPath = path.resolve(process.cwd(), 'client', 'guardrails-minimal.html');
+  if (fs.existsSync(minimalPath)) {
+    res.sendFile(minimalPath);
+  } else {
+    logger.error(`Minimal Guardrails implementation not found at: ${minimalPath}`);
+    res.status(404).send('Minimal Guardrails implementation not found');
+  }
+});
+
 // Add route for the guardrails feature - always serve the main index.html
 app.get('/guardrails', (req, res) => {
   logger.info(`Serving Guardrails SPA route`);
