@@ -1052,6 +1052,14 @@ export function showUpgradeModal(tierId = 'pro', billingInterval = 'monthly') {
   featuresList.appendChild(list);
   modal.appendChild(featuresList);
   
+  // Add referral program section if authenticated and tier has a referral program
+  if (isAuthenticated() && tier.referralProgram) {
+    const referralSection = renderReferralProgram(tier);
+    if (referralSection) {
+      modal.appendChild(referralSection);
+    }
+  }
+  
   // Action button
   const buttonContainer = document.createElement('div');
   

@@ -5,6 +5,7 @@
 
 // Import application state
 import { appState } from './src/main.js';
+import { createToast } from './components/toast.js';
 
 /**
  * Renders the login page
@@ -540,4 +541,70 @@ export function updateUserData(userData) {
   if (typeof window.saveStateToStorage === 'function') {
     window.saveStateToStorage();
   }
+}
+
+/**
+ * Generate a referral link for the current user
+ * @returns {string} - The referral link
+ */
+export function generateReferralLink() {
+  const user = getCurrentUser();
+  if (!user) {
+    console.error('Cannot generate referral link: User not authenticated');
+    return '';
+  }
+  
+  // Generate or use existing referral code
+  const referralCode = user.referralCode || `${getUserDisplayName().toLowerCase().replace(/[^a-z0-9]/g, '')}-${Math.floor(Math.random() * 10000)}`;
+  
+  // Update user if new code was generated
+  if (!user.referralCode) {
+    updateUserData({ referralCode });
+  }
+  
+  // Create the referral URL
+  const baseUrl = window.location.origin;
+  return `${baseUrl}?ref=${referralCode}`;
+}
+
+/**
+ * Check URL for referral code and store if present
+ * This should be called once on application start
+ */
+export function checkAndStoreReferralCode() {
+  if (!window.location.search) return;
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const referralCode = urlParams.get('ref');
+  
+  if (referralCode) {
+    // Store the referral code in local storage for later use during registration
+    localStorage.setItem('stackrReferralCode', referralCode);
+    console.log('Referral code stored:', referralCode);
+    
+    // Show a toast notification
+    createToast('Welcome! You were referred by a friend.', 'info');
+  }
+}
+
+/**
+ * Apply stored referral code during registration or account creation
+ * @param {Object} userData - User data being created/updated
+ * @returns {Object} - Updated user data with referral information
+ */
+export function applyStoredReferralCode(userData) {
+  const storedReferralCode = localStorage.getItem('stackrReferralCode');
+  
+  if (storedReferralCode && userData) {
+    // Add referral data to user object
+    userData.referredBy = storedReferralCode;
+    
+    // Clear the stored code after applying
+    localStorage.removeItem('stackrReferralCode');
+    
+    console.log('Applied referral code to user account:', storedReferralCode);
+    createToast('Referral applied successfully!', 'success');
+  }
+  
+  return userData;
 }
