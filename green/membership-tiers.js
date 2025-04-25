@@ -715,8 +715,23 @@ export function renderMembershipUpgradePage(containerId = 'app', preselectedTier
   closeButton.style.cursor = 'pointer';
   closeButton.style.zIndex = '10';
   closeButton.setAttribute('aria-label', 'Close');
-  closeButton.addEventListener('click', () => {
-    window.location.hash = '#dashboard';
+  closeButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Close button clicked - redirecting to dashboard');
+    
+    // Try this more direct approach
+    if (isAuthenticated()) {
+      try {
+        window.location = window.location.origin + window.location.pathname + '#dashboard';
+        // Force a reload
+        setTimeout(() => {
+          window.location.reload();
+        }, 50);
+      } catch (err) {
+        console.error('Error redirecting:', err);
+      }
+    }
   });
   pageContainer.appendChild(closeButton);
   
