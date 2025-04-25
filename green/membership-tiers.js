@@ -14,32 +14,37 @@ export const MEMBERSHIP_TIERS = {
     id: 'free',
     name: 'Free',
     color: '#6B7280', // gray
-    description: 'Get started with basic financial tracking',
+    description: 'Start your financial journey with essential tools',
     monthlyPrice: 0,
     yearlyPrice: 0,
     features: [
       'Basic income & expense tracking',
       'Manual bank account syncing',
       'Core budgeting tools',
-      'Limited AI financial advice',
-      'Community forum access'
+      'Basic financial insights',
+      'Limited AI financial advice (3/month)',
+      'Community forum access',
+      'Standard financial reports'
     ]
   },
   PRO: {
     id: 'pro',
     name: 'Pro',
     color: '#6366F1', // indigo
-    description: 'Enhanced financial tools for serious growth',
+    badge: 'Most Popular',
+    description: 'Accelerate your financial growth with advanced tools',
     monthlyPrice: 9.99,
-    yearlyPrice: 99.99,
+    yearlyPrice: 99.99, // Save ~$20/year
     features: [
       'Everything in Free tier',
       'Unlimited bank account syncing',
-      'Advanced AI financial advisor',
+      'Unlimited AI financial advisor sessions',
       'Custom income splitting ratios',
-      'Unlimited goals & projects',
-      'Smart spending insights',
-      'Service provider tools',
+      'Unlimited goals & projects tracking',
+      'Advanced spending insights & guardrails',
+      'Service provider business tools',
+      'Weekly financial health reports',
+      'Client management tools',
       'Email & priority support'
     ]
   },
@@ -47,17 +52,20 @@ export const MEMBERSHIP_TIERS = {
     id: 'lifetime',
     name: 'Lifetime Pro',
     color: '#8B5CF6', // purple
-    badge: 'Best Deal',
-    description: 'One-time payment for lifetime Pro benefits',
-    oneTimePrice: 299.99,
+    badge: 'Best Value',
+    description: 'Invest once in your financial future, benefit forever',
+    oneTimePrice: 299.99, // ~2.5 years of Pro subscription
     features: [
-      'All Pro tier features',
-      'Lifetime access, never pay again',
-      'Early access to new features',
-      'Dedicated support',
+      'All Pro tier features forever',
+      'One-time payment, never pay again',
+      'Early access to all new features',
+      'Dedicated priority support',
       'VIP community access',
-      'Custom dashboard',
-      'Unlimited devices'
+      'Custom dashboard layouts',
+      'Unlimited devices & users',
+      'Personalized quarterly financial reviews',
+      'Advanced data export options',
+      'Exclusive financial masterclasses'
     ]
   }
 };
