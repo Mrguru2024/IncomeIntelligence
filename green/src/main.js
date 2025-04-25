@@ -3606,7 +3606,7 @@ function renderPageContent(container) {
         });
         break;
       case 'wellness':
-        // Import the Financial Wellness page module
+        // Import the Personal Financial Assessment page module
         import('../wellness-page.js').then(module => {
           // Using async function as renderWellnessPage returns a Promise
           (async () => {
@@ -3614,13 +3614,13 @@ function renderPageContent(container) {
               const wellnessPage = await module.renderWellnessPage(appState.user.id);
               container.appendChild(wellnessPage);
             } catch (error) {
-              console.error('Error rendering wellness page:', error);
-              container.appendChild(createErrorMessage('Failed to load financial wellness data'));
+              console.error('Error rendering personal financial assessment page:', error);
+              container.appendChild(createErrorMessage('Failed to load personal financial assessment data'));
             }
           })();
         }).catch(error => {
-          console.error('Error loading wellness page module:', error);
-          container.appendChild(createErrorMessage('Failed to load financial wellness module'));
+          console.error('Error loading personal financial assessment module:', error);
+          container.appendChild(createErrorMessage('Failed to load personal financial assessment module'));
         });
         break;
         
@@ -3877,7 +3877,7 @@ function renderPageContent(container) {
           'moneymentor': 'psychology',
           'subscriptionsniper': 'budgeting',
           'savingschallenges': 'saving',
-          'wellnessscorecard': 'psychology',
+          'wellnessscorecard': 'psychology', // Personal Financial Assessment
           'debt': 'debt'
         };
         
