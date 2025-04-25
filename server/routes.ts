@@ -1855,10 +1855,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update invoice
   app.patch("/api/invoices/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid invoice ID" });
-      }
+      const id = req.params.id;
       
       // Fetch the invoice to check if the user is authorized to update it
       const existingInvoice = await storage.getInvoiceById(id);
@@ -1888,10 +1885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete invoice
   app.delete("/api/invoices/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid invoice ID" });
-      }
+      const id = req.params.id;
       
       // Fetch the invoice to check if the user is authorized to delete it
       const existingInvoice = await storage.getInvoiceById(id);
@@ -1923,13 +1917,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(503).json({ message: "Stripe payment processing is not available" });
       }
 
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid invoice ID" });
-      }
+      const id = req.params.id;
       
       // Fetch the invoice
-      const invoice = await storage.getInvoiceById(id.toString());
+      const invoice = await storage.getInvoiceById(id);
       if (!invoice) {
         return res.status(404).json({ message: "Invoice not found" });
       }
@@ -1946,19 +1937,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create a payment intent with Stripe
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(parseFloat(invoice.totalAmount) * 100), // Convert to cents
+        amount: Math.round(parseFloat(invoice.total) * 100), // Convert to cents
         currency: "usd",
         metadata: {
-          invoiceId: id.toString(),
-          userId: invoice.userId.toString(),
+          invoiceId: id,
+          userId: invoice.userId,
           clientName: invoice.clientName,
           invoiceNumber: invoice.invoiceNumber
         }
       });
       
       // Update the invoice with the payment intent ID
-      await storage.updateInvoice(id.toString(), {
-        stripePaymentIntentId: paymentIntent.id
+      await storage.updateInvoice(id, {
+        stripePaymentIntent: paymentIntent.id
       });
       
       // Return the client secret to the frontend
@@ -1975,13 +1966,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mark an invoice as paid (manual process, not via Stripe)
   app.post("/api/invoices/:id/mark-paid", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid invoice ID" });
-      }
+      const id = req.params.id;
       
       // Fetch the invoice to check if the user is authorized
-      const invoice = await storage.getInvoiceById(id.toString());
+      const invoice = await storage.getInvoiceById(id);
       if (!invoice) {
         return res.status(404).json({ message: "Invoice not found" });
       }
@@ -1992,7 +1980,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Mark the invoice as paid
-      const paidInvoice = await storage.markInvoiceAsPaid(id.toString(), {
+      const paidInvoice = await storage.markInvoiceAsPaid(id, {
         paidAt: new Date()
       });
       
