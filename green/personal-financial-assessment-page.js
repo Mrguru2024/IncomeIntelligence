@@ -64,7 +64,7 @@ export async function renderPersonalFinancialAssessmentPage(userId) {
     }
     
     // Render the scorecard page
-    const scorecardElement = await renderWellnessScorecardPage(userId);
+    const scorecardElement = await renderPersonalFinancialAssessmentScorecardPage(userId);
     container.appendChild(scorecardElement);
     
     // Add scorecard explanation section
@@ -134,7 +134,7 @@ export async function renderPersonalFinancialAssessmentPage(userId) {
         container.removeChild(loadingElement);
         
         // Render scorecard
-        const scorecardElement = await renderWellnessScorecardPage(userId);
+        const scorecardElement = await renderPersonalFinancialAssessmentScorecardPage(userId);
         container.appendChild(scorecardElement);
         
         // Add explanation section

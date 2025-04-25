@@ -33,7 +33,7 @@ const SCORE_RANGES = [
  * @param {string} userId - User ID
  * @returns {Promise<Object>} - Complete scorecard data
  */
-export async function calculateWellnessScore(userId) {
+export async function calculatePersonalFinancialAssessmentScore(userId) {
   try {
     // Get financial data for the user
     const insights = await getFinancialInsights(userId);
@@ -1045,7 +1045,7 @@ export function getUserWellnessScorecard(userId) {
  * @param {string} userId - User ID
  * @returns {Object|null} - Latest personal financial assessment scorecard or null
  */
-export function getLatestWellnessScorecard(userId) {
+export function getLatestPersonalFinancialAssessmentScorecard(userId) {
   const scorecards = getUserWellnessScorecard(userId);
   return scorecards.length > 0 ? scorecards[0] : null;
 }
@@ -1055,7 +1055,7 @@ export function getLatestWellnessScorecard(userId) {
  * @param {string} userId - User ID
  * @returns {boolean} - True if it's time for a new scorecard
  */
-export function shouldGenerateWellnessScorecard(userId) {
+export function shouldGeneratePersonalFinancialAssessmentScorecard(userId) {
   const scorecards = getUserWellnessScorecard(userId);
   
   // If no scorecards, definitely generate one
@@ -1093,11 +1093,11 @@ export async function renderPersonalFinancialAssessmentScorecardPage(userId) {
   
   try {
     // Get latest scorecard or generate a new one
-    let scorecard = getLatestWellnessScorecard(userId);
+    let scorecard = getLatestPersonalFinancialAssessmentScorecard(userId);
     
     // If no scorecard exists or it's time for a new one, calculate a new scorecard
-    if (!scorecard || shouldGenerateWellnessScorecard(userId)) {
-      scorecard = await calculateWellnessScore(userId);
+    if (!scorecard || shouldGeneratePersonalFinancialAssessmentScorecard(userId)) {
+      scorecard = await calculatePersonalFinancialAssessmentScore(userId);
     }
     
     // Remove loading element
