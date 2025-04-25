@@ -1134,7 +1134,7 @@ export async function renderPersonalFinancialAssessmentScorecardPage(userId) {
       
       try {
         // Calculate new scorecard
-        const newScorecard = await calculateWellnessScore(userId);
+        const newScorecard = await calculatePersonalFinancialAssessmentScore(userId);
         
         // Remove loading element
         container.removeChild(loadingElement);
@@ -1178,7 +1178,7 @@ function createScorecardContent(scorecard) {
   
   // Add overall score section
   const scoreSection = document.createElement('section');
-  scoreSection.className = 'wellness-overall-score';
+  scoreSection.className = 'personal-financial-assessment-overall-score';
   scoreSection.innerHTML = `
     <div class="score-circle" style="background: conic-gradient(${scorecard.scoreColor} 0% ${scorecard.overallScore}%, #e2e8f0 ${scorecard.overallScore}% 100%)">
       <div class="score-inner">
@@ -1192,7 +1192,7 @@ function createScorecardContent(scorecard) {
   
   // Add category scores section
   const categoriesSection = document.createElement('section');
-  categoriesSection.className = 'wellness-categories';
+  categoriesSection.className = 'personal-financial-assessment-categories';
   
   const categoriesHeader = document.createElement('h2');
   categoriesHeader.textContent = 'Financial Health Categories';
@@ -1239,7 +1239,7 @@ function createScorecardContent(scorecard) {
   
   // Add recommendations section
   const recommendationsSection = document.createElement('section');
-  recommendationsSection.className = 'wellness-recommendations';
+  recommendationsSection.className = 'personal-financial-assessment-recommendations';
   
   const recommendationsHeader = document.createElement('h2');
   recommendationsHeader.textContent = 'Personalized Recommendations';
@@ -1267,7 +1267,7 @@ function createScorecardContent(scorecard) {
   
   // Add insights section
   const insightsSection = document.createElement('section');
-  insightsSection.className = 'wellness-insights';
+  insightsSection.className = 'personal-financial-assessment-insights';
   
   const insightsHeader = document.createElement('h2');
   insightsHeader.textContent = 'Financial Insights';
@@ -1294,7 +1294,7 @@ function createScorecardContent(scorecard) {
   
   // Add action button section
   const actionSection = document.createElement('section');
-  actionSection.className = 'wellness-actions';
+  actionSection.className = 'personal-financial-assessment-actions';
   
   const actionButton = document.createElement('button');
   actionButton.className = 'refresh-scorecard-button';
@@ -1314,7 +1314,7 @@ function createScorecardContent(scorecard) {
       parentElement.appendChild(loadingElement);
       
       // Calculate new scorecard
-      const newScorecard = await calculateWellnessScore(scorecard.userId);
+      const newScorecard = await calculatePersonalFinancialAssessmentScore(scorecard.userId);
       
       // Remove loading element
       parentElement.removeChild(loadingElement);
@@ -1408,7 +1408,7 @@ function addScorecardStyles() {
       font-size: 0.9rem;
     }
     
-    .wellness-overall-score {
+    .personal-financial-assessment-overall-score {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1454,9 +1454,9 @@ function addScorecardStyles() {
       margin: 0 auto;
     }
     
-    .wellness-categories,
-    .wellness-recommendations,
-    .wellness-insights {
+    .personal-financial-assessment-categories,
+    .personal-financial-assessment-recommendations,
+    .personal-financial-assessment-insights {
       margin-bottom: 3rem;
     }
     
