@@ -55,6 +55,7 @@ import { requireAdmin } from "./middleware/adminMiddleware";
 import { requireProSubscription } from "./middleware/proSubscriptionMiddleware";
 import { spendingPersonalityService } from "./spending-personality-service";
 import { registerPerplexityRoutes } from "./routes/perplexity-routes";
+import { registerOpenAIRoutes } from "./routes/openai-routes";
 // Guardrails removed as requested
 import Stripe from "stripe";
 // Express already imported at top
@@ -4528,6 +4529,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register Perplexity AI routes
   registerPerplexityRoutes(app);
+  
+  // Register OpenAI routes
+  registerOpenAIRoutes(app);
   
   // Guardrails routes have been removed as requested
 
