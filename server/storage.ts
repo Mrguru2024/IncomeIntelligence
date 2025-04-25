@@ -338,6 +338,7 @@ export class MemStorage implements IStorage {
     this.stackrGigs = new Map();
     this.affiliatePrograms = new Map();
     this.userAffiliates = new Map();
+    this.invoices = new Map();
     
     this.userCurrentId = 1;
     this.userProfileCurrentId = 1;
@@ -362,6 +363,7 @@ export class MemStorage implements IStorage {
     this.stackrGigCurrentId = 1;
     this.affiliateProgramCurrentId = 1;
     this.userAffiliateCurrentId = 1;
+    this.invoiceCurrentId = 1;
     
     // Add some initial data
     this.setupInitialData();
@@ -1399,6 +1401,125 @@ export class MemStorage implements IStorage {
         joinedDate: affiliate ? affiliate.dateJoined : undefined
       };
     });
+  }
+
+  // Invoice methods
+  async getUserInvoices(userId: string): Promise<Invoice[]> {
+    return Array.from(this.invoices.values()).filter(invoice => invoice.userId === userId);
+  }
+
+  async getInvoiceById(id: string): Promise<Invoice | undefined> {
+    const numId = parseInt(id);
+    return this.invoices.get(numId);
+  }
+
+  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
+    const id = this.invoiceCurrentId++;
+    const now = new Date();
+    
+    const invoiceObj: Invoice = {
+      id,
+      userId: invoice.userId,
+      clientName: invoice.clientName,
+      clientEmail: invoice.clientEmail || null,
+      clientPhone: invoice.clientPhone || null,
+      invoiceNumber: invoice.invoiceNumber,
+      issueDate: invoice.issueDate || now,
+      dueDate: invoice.dueDate,
+      amount: invoice.amount,
+      taxAmount: invoice.taxAmount || "0",
+      totalAmount: invoice.totalAmount,
+      status: invoice.status || "draft",
+      description: invoice.description || null,
+      items: invoice.items || [],
+      notes: invoice.notes || null,
+      terms: invoice.terms || null,
+      paymentMethod: invoice.paymentMethod || null,
+      paid: invoice.paid || false,
+      paidDate: invoice.paidDate || null,
+      paidAmount: invoice.paidAmount || null,
+      stripePaymentIntentId: invoice.stripePaymentIntentId || null
+    };
+    
+    this.invoices.set(id, invoiceObj);
+    return invoiceObj;
+  }
+
+  async updateInvoice(id: string, invoice: Partial<InsertInvoice>): Promise<Invoice | undefined> {
+    const numId = parseInt(id);
+    const existingInvoice = this.invoices.get(numId);
+    if (!existingInvoice) return undefined;
+    
+    const updatedInvoice: Invoice = {
+      ...existingInvoice,
+      ...invoice
+    };
+    
+    this.invoices.set(numId, updatedInvoice);
+    return updatedInvoice;
+  }
+
+  async deleteInvoice(id: string): Promise<boolean> {
+    const numId = parseInt(id);
+    return this.invoices.delete(numId);
+  }
+
+  async markInvoiceAsPaid(id: string, paymentInfo: { paidAt: Date, stripePaymentIntent?: string }): Promise<Invoice | undefined> {
+    const numId = parseInt(id);
+    const existingInvoice = this.invoices.get(numId);
+    if (!existingInvoice) return undefined;
+    
+    const updatedInvoice: Invoice = {
+      ...existingInvoice,
+      status: "paid",
+      paid: true,
+      paidDate: paymentInfo.paidAt,
+      paidAmount: existingInvoice.totalAmount,
+      stripePaymentIntentId: paymentInfo.stripePaymentIntent || existingInvoice.stripePaymentIntentId
+    };
+    
+    this.invoices.set(numId, updatedInvoice);
+    return updatedInvoice;
+  }
+
+  async getInvoiceSummary(userId: string): Promise<{ paymentMethod: string, totalInvoices: number, amountCollected: string, amountOutstanding: string }[]> {
+    const userInvoices = await this.getUserInvoices(userId);
+    
+    // Group invoices by payment method
+    const paymentMethodGroups = new Map<string, Invoice[]>();
+    
+    for (const invoice of userInvoices) {
+      const paymentMethod = invoice.paymentMethod || 'Other';
+      if (!paymentMethodGroups.has(paymentMethod)) {
+        paymentMethodGroups.set(paymentMethod, []);
+      }
+      paymentMethodGroups.get(paymentMethod)?.push(invoice);
+    }
+    
+    // Calculate summary for each payment method
+    const result: { paymentMethod: string, totalInvoices: number, amountCollected: string, amountOutstanding: string }[] = [];
+    
+    for (const [paymentMethod, invoices] of paymentMethodGroups.entries()) {
+      let amountCollected = 0;
+      let amountOutstanding = 0;
+      
+      for (const invoice of invoices) {
+        if (invoice.paid) {
+          amountCollected += parseFloat(invoice.paidAmount || invoice.totalAmount);
+        } else {
+          amountOutstanding += parseFloat(invoice.totalAmount);
+        }
+      }
+      
+      result.push({
+        paymentMethod,
+        totalInvoices: invoices.length,
+        amountCollected: amountCollected.toFixed(2),
+        amountOutstanding: amountOutstanding.toFixed(2)
+      });
+    }
+    
+    return result;
   }
 }
 
