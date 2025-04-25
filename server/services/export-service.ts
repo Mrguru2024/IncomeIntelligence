@@ -3,7 +3,7 @@ import { storage } from '../storage';
 import { Parser } from 'json2csv';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import { sendEmail } from './email-service';
+import { sendEmail } from '../email-service';
 import fs from 'fs';
 import path from 'path';
 import { formatCurrency, formatDate } from '../utils/formatter';

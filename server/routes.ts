@@ -57,6 +57,7 @@ import { spendingPersonalityService } from "./spending-personality-service";
 import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import { registerOpenAIRoutes } from "./routes/openai-routes";
 import { registerAIStatusRoutes } from "./routes/ai-status-routes";
+import { registerExportRoutes } from "./routes/export-routes";
 import { sendEmail, sendPaymentConfirmationEmail } from "./email-service";
 // Guardrails removed as requested
 import Stripe from "stripe";
@@ -4627,6 +4628,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register OpenAI routes
   registerOpenAIRoutes(app);
+  
+  // Register AI status routes
+  registerAIStatusRoutes(app);
+  
+  // Register export routes
+  registerExportRoutes(app);
   
   // Guardrails routes have been removed as requested
 
