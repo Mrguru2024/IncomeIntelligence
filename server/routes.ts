@@ -56,6 +56,7 @@ import { requireProSubscription } from "./middleware/proSubscriptionMiddleware";
 import { spendingPersonalityService } from "./spending-personality-service";
 import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import { registerOpenAIRoutes } from "./routes/openai-routes";
+import { sendEmail } from "./email-service";
 // Guardrails removed as requested
 import Stripe from "stripe";
 // Express already imported at top
@@ -4871,6 +4872,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error getting user bank accounts:', error);
       res.status(500).json({ error: 'Failed to get bank accounts' });
+    }
+  });
+
+  // Generate PDF invoice and return download URL
+  app.get("/api/invoices/:id/pdf", requireAuth, async (req, res) => {
+    try {
+      const id = req.params.id;
+      
+      // Fetch the invoice
+      const invoice = await storage.getInvoiceById(id);
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Check if user is the creator of the invoice
+      if (req.user?.id !== invoice.userId) {
+        return res.status(403).json({ message: "Unauthorized to access this invoice" });
+      }
+      
+      // Import the invoice service dynamically to avoid circular dependencies
+      const { generateInvoicePdf } = await import("./services/invoice-service");
+      
+      // Generate the PDF
+      const pdfPath = await generateInvoicePdf(invoice);
+      
+      // Update the invoice with the PDF path
+      await storage.updateInvoice(id, {
+        invoicePdf: pdfPath
+      });
+      
+      // Return file for download
+      res.download(pdfPath, `invoice-${invoice.invoiceNumber}.pdf`);
+    } catch (error) {
+      console.error('Error generating invoice PDF:', error);
+      res.status(500).json({ message: "Failed to generate invoice PDF" });
+    }
+  });
+  
+  // Send invoice to client via email
+  app.post("/api/invoices/:id/send", requireAuth, async (req, res) => {
+    try {
+      const id = req.params.id;
+      
+      // Fetch the invoice
+      const invoice = await storage.getInvoiceById(id);
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Check if user is the creator of the invoice
+      if (req.user?.id !== invoice.userId) {
+        return res.status(403).json({ message: "Unauthorized to send this invoice" });
+      }
+      
+      // Check if client email is provided
+      if (!invoice.clientEmail) {
+        return res.status(400).json({ message: "Invoice has no client email address" });
+      }
+      
+      // Import the invoice service dynamically to avoid circular dependencies
+      const { sendInvoiceEmail } = await import("./services/invoice-service");
+      
+      // Send the invoice email
+      const emailSent = await sendInvoiceEmail(invoice, sendEmail);
+      
+      if (!emailSent) {
+        return res.status(500).json({ message: "Failed to send invoice email" });
+      }
+      
+      res.json({ message: "Invoice sent successfully" });
+    } catch (error) {
+      console.error('Error sending invoice email:', error);
+      res.status(500).json({ message: "Failed to send invoice email" });
+    }
+  });
+  
+  // Stripe webhook handler for payment events
+  app.post("/api/webhooks/stripe", express.raw({ type: "application/json" }), async (req, res) => {
+    try {
+      if (!stripe) {
+        return res.status(503).json({ message: "Stripe payment processing is not available" });
+      }
+      
+      const sig = req.headers["stripe-signature"];
+      if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
+        return res.status(400).json({ message: "Missing Stripe signature or webhook secret" });
+      }
+      
+      let event;
+      try {
+        event = stripe.webhooks.constructEvent(
+          req.body,
+          sig,
+          process.env.STRIPE_WEBHOOK_SECRET
+        );
+      } catch (err) {
+        console.error(`Webhook signature verification failed: ${err.message}`);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+      }
+      
+      // Handle specific events
+      switch (event.type) {
+        case "payment_intent.succeeded":
+          const paymentIntent = event.data.object;
+          console.log(`Payment succeeded for intent: ${paymentIntent.id}`);
+          
+          // Find the invoice using metadata
+          if (paymentIntent.metadata && paymentIntent.metadata.invoiceId) {
+            const invoiceId = paymentIntent.metadata.invoiceId;
+            const invoice = await storage.getInvoiceById(invoiceId);
+            
+            if (invoice) {
+              // Mark the invoice as paid
+              await storage.markInvoiceAsPaid(invoiceId, {
+                paidAt: new Date()
+              });
+              
+              // Send email notification
+              if (sendEmail && invoice.clientEmail) {
+                try {
+                  // Send payment confirmation email to the client
+                  await sendEmail({
+                    to: invoice.clientEmail,
+                    from: "accounting@stackr.finance", // Update with your sender email
+                    subject: `Payment Confirmation - Invoice #${invoice.invoiceNumber}`,
+                    html: `
+                      <h1>Payment Confirmation</h1>
+                      <p>Dear ${invoice.clientName},</p>
+                      <p>Thank you for your payment of $${parseFloat(invoice.total).toFixed(2)} for invoice #${invoice.invoiceNumber}.</p>
+                      <p>Your payment has been successfully processed and recorded.</p>
+                      <p>Thank you for your business!</p>
+                    `,
+                  });
+                } catch (emailError) {
+                  console.error("Failed to send confirmation email:", emailError);
+                  // Continue processing even if email fails
+                }
+              }
+            }
+          }
+          break;
+          
+        case "payment_intent.payment_failed":
+          const failedPaymentIntent = event.data.object;
+          console.log(`Payment failed for intent: ${failedPaymentIntent.id}`);
+          
+          // Optional: Update the invoice status to reflect the failed payment
+          if (failedPaymentIntent.metadata && failedPaymentIntent.metadata.invoiceId) {
+            const invoiceId = failedPaymentIntent.metadata.invoiceId;
+            // Just log the failure for now, we could update a status field later
+            console.log(`Payment failed for invoice: ${invoiceId}`);
+          }
+          break;
+          
+        // Add other event types as needed
+        
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+      
+      // Return a 200 response to acknowledge receipt of the event
+      res.json({ received: true });
+    } catch (error) {
+      console.error('Error handling Stripe webhook:', error);
+      res.status(500).json({ message: "Webhook handler failed" });
     }
   });
 
