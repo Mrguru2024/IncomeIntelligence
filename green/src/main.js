@@ -3781,20 +3781,13 @@ function renderPageContent(container) {
       case 'savingschallenges':
         // Import the savings challenges module
         import('../savings-challenges.js').then(module => {
-          // Check if the function is async (returns a promise)
-          const result = module.renderSavingsChallengesPage(appState.user.id);
-          if (result instanceof Promise) {
-            result
-              .then(pageElement => {
-                container.appendChild(pageElement);
-              })
-              .catch(err => {
-                console.error('Error rendering savings challenges page:', err);
-                container.appendChild(createErrorMessage('Failed to load savings challenges'));
-              });
-          } else {
-            // Handle synchronous return (directly append to container)
-            container.appendChild(result);
+          try {
+            // The function expects a containerId, not a userId
+            module.renderSavingsChallengesPage('app');
+            console.log('Savings challenges page rendered successfully');
+          } catch (err) {
+            console.error('Error rendering savings challenges page:', err);
+            container.appendChild(createErrorMessage('Failed to load savings challenges'));
           }
         }).catch(error => {
           console.error('Error loading savings challenges module:', error);

@@ -165,3 +165,113 @@ accounting@stackr.finance
     `,
   });
 }
+
+/**
+ * Send a notification email to a user
+ * @param options The notification email options
+ * @returns Promise<boolean> indicating success or failure
+ */
+export async function sendNotificationEmail(options: {
+  to: string;
+  subject: string;
+  userName: string;
+  notificationText: string;
+  actionUrl?: string;
+  actionText?: string;
+}): Promise<boolean> {
+  const { to, subject, userName, notificationText, actionUrl, actionText } = options;
+  
+  let actionButton = '';
+  if (actionUrl && actionText) {
+    actionButton = `
+      <a href="${actionUrl}" style="display: inline-block; background-color: #4a6cf7; color: white; padding: 10px 16px; text-decoration: none; border-radius: 4px; margin-top: 15px; font-weight: 500;">${actionText}</a>
+    `;
+  }
+  
+  return sendEmail({
+    to,
+    from: 'notifications@stackr.finance',
+    subject,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #2c3e50; margin-bottom: 20px;">Stackr Finance Notification</h2>
+        <p>Hello ${userName},</p>
+        <p>${notificationText}</p>
+        ${actionButton}
+        <p style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee; font-size: 12px; color: #777;">
+          This is an automated notification from Stackr Finance. You can manage your notification preferences in your account settings.
+        </p>
+      </div>
+    `,
+    text: `
+Stackr Finance Notification
+
+Hello ${userName},
+
+${notificationText}
+
+${actionUrl ? `${actionText}: ${actionUrl}` : ''}
+
+This is an automated notification from Stackr Finance. You can manage your notification preferences in your account settings.
+    `,
+  });
+}
+
+/**
+ * Send a reminder email to a user
+ * @param options The reminder email options
+ * @returns Promise<boolean> indicating success or failure
+ */
+export async function sendReminderEmail(options: {
+  to: string;
+  subject: string;
+  userName: string;
+  reminderText: string;
+  dueDate?: string;
+  amount?: string;
+  category?: string;
+}): Promise<boolean> {
+  const { to, subject, userName, reminderText, dueDate, amount, category } = options;
+  
+  let detailsSection = '';
+  if (dueDate || amount || category) {
+    detailsSection = `
+      <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+        <h3 style="margin-top: 0; color: #2c3e50;">Reminder Details</h3>
+        ${dueDate ? `<p><strong>Due Date:</strong> ${dueDate}</p>` : ''}
+        ${amount ? `<p><strong>Amount:</strong> $${amount}</p>` : ''}
+        ${category ? `<p><strong>Category:</strong> ${category}</p>` : ''}
+      </div>
+    `;
+  }
+  
+  return sendEmail({
+    to,
+    from: 'reminders@stackr.finance',
+    subject,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #2c3e50; margin-bottom: 20px;">Stackr Finance Reminder</h2>
+        <p>Hello ${userName},</p>
+        <p>${reminderText}</p>
+        ${detailsSection}
+        <p style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee; font-size: 12px; color: #777;">
+          This is an automated reminder from Stackr Finance. You can manage your reminder settings in your account.
+        </p>
+      </div>
+    `,
+    text: `
+Stackr Finance Reminder
+
+Hello ${userName},
+
+${reminderText}
+
+${dueDate ? `Due Date: ${dueDate}` : ''}
+${amount ? `Amount: $${amount}` : ''}
+${category ? `Category: ${category}` : ''}
+
+This is an automated reminder from Stackr Finance. You can manage your reminder settings in your account.
+    `,
+  });
+}

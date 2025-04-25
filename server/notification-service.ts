@@ -1,195 +1,247 @@
-import { storage } from './storage';
+import { sendEmail } from './email-service';
 import { sendNotificationEmail, sendReminderEmail } from './email-service';
-import { addDays, addWeeks, addMonths } from 'date-fns';
-import { InsertNotification } from '@shared/schema';
+import { storage } from './storage';
+import { Notification, Reminder } from '@shared/schema';
 
-export type NotificationType = 'info' | 'warning' | 'success' | 'reminder';
-
-export interface NotificationRequest {
-  userId: number;
+/**
+ * In-memory notifications queue for batch processing
+ */
+const notificationQueue: {
+  userId: string;
   title: string;
   message: string;
-  type: NotificationType;
-  sendEmail?: boolean;
-  sendPush?: boolean;
-  metadata?: any;
+  type: string;
+  link?: string;
+  createdAt: Date;
+}[] = [];
+
+/**
+ * Queue a notification for delivery
+ * @param notification The notification to queue
+ */
+export function queueNotification(notification: {
+  userId: string;
+  title: string;
+  message: string;
+  type: string;
+  link?: string;
+}) {
+  notificationQueue.push({
+    ...notification,
+    createdAt: new Date(),
+  });
+  
+  // Process queue if it reaches a certain size
+  if (notificationQueue.length >= 5) {
+    processNotificationQueue();
+  }
 }
 
-export class NotificationService {
-  /**
-   * Send a notification to the client-side for immediate processing
-   * This is used for real-time notifications like guardrails alerts
-   */
-  async sendNotification(notification: {
-    userId: string;
-    type: string;
-    title: string;
-    message: string;
-    data?: any;
-    read: boolean;
-    createdAt: Date;
-  }): Promise<void> {
-    try {
-      // Convert userId from string to number
-      const userId = parseInt(notification.userId, 10);
-      if (isNaN(userId)) {
-        console.error('Invalid userId for notification:', notification.userId);
-        return;
-      }
-      
-      // Create a notification record in the database
-      const notificationPayload: InsertNotification = {
-        userId,
-        title: notification.title,
-        message: notification.message,
-        type: notification.type as any, // Cast to match the expected type
-        isRead: notification.read,
-        metadata: notification.data || null
-      };
-      
-      await storage.createNotification(notificationPayload);
-      
-      // In a real implementation, we would emit this notification to connected clients 
-      // through WebSockets or Server-Sent Events
-      console.log(`Notification sent to user ${userId}: ${notification.title}`);
-    } catch (error) {
-      console.error('Error sending notification:', error);
-    }
+/**
+ * Process queued notifications by storing them in the database
+ * and sending email notifications if relevant
+ */
+export async function processNotificationQueue() {
+  if (notificationQueue.length === 0) {
+    return;
   }
   
-  /**
-   * Create a new notification and optionally send it via configured channels
-   */
-  async createNotification(notificationData: NotificationRequest): Promise<any> {
-    try {
-      // First, save the notification in the database
-      const notificationPayload: InsertNotification = {
-        userId: notificationData.userId,
-        title: notificationData.title,
-        message: notificationData.message,
-        type: notificationData.type,
-        isRead: false,
-        metadata: notificationData.metadata ? notificationData.metadata : null
-      };
-      
-      const notification = await storage.createNotification(notificationPayload);
-      
-      // Get user data for sending notifications
-      const user = await storage.getUser(notificationData.userId);
-      
-      if (!user) {
-        console.error(`User with ID ${notificationData.userId} not found`);
-        return notification;
-      }
-      
-      // Send email if requested and user has an email
-      if (notificationData.sendEmail && user.email) {
-        await sendNotificationEmail(
-          user.email,
-          notificationData.title,
-          notificationData.message,
-          notificationData.type
-        );
-      }
-      
-      // Send push notification if requested (to be implemented)
-      if (notificationData.sendPush) {
-        // Future implementation for push notifications
-        console.log('Push notification requested but not implemented yet');
-      }
-      
-      return notification;
-    } catch (error) {
-      console.error('Error creating notification:', error);
-      throw error;
-    }
-  }
+  console.log(`Processing ${notificationQueue.length} notifications`);
   
-  /**
-   * Send reminder notifications for upcoming reminders
-   */
-  async sendReminderNotifications(): Promise<void> {
+  const notificationsToProcess = [...notificationQueue];
+  notificationQueue.length = 0; // Clear the queue
+  
+  for (const notification of notificationsToProcess) {
     try {
-      // Get all active reminders that are due today
-      const dueReminders = await storage.getDueReminders(1); // Placeholder for now, we'll update the call later
+      // Store notification in database
+      await storeNotification(notification);
       
-      for (const reminder of dueReminders) {
-        // Get user data
-        const user = await storage.getUser(reminder.userId);
+      // Send email if it's an important notification
+      if (notification.type === 'important' || notification.type === 'alert') {
+        const user = await storage.getUserById(parseInt(notification.userId));
         
-        if (!user || !user.email) {
-          console.log(`Cannot send reminder: User with ID ${reminder.userId} not found or has no email`);
-          continue;
+        if (user && user.email && user.settings?.emailNotifications !== false) {
+          await sendNotificationEmail({
+            to: user.email,
+            subject: notification.title,
+            userName: user.firstName || user.username || 'User',
+            notificationText: notification.message,
+            actionUrl: notification.link,
+            actionText: 'View Details',
+          });
         }
-        
-        // Create a notification record
-        await this.createNotification({
-          userId: reminder.userId,
-          title: reminder.title,
-          message: reminder.message,
-          type: 'reminder',
-          sendEmail: true,
-          metadata: { reminderId: reminder.id }
-        });
-        
-        // Send email directly for the reminder
-        await sendReminderEmail(
-          user.email,
-          reminder.title,
-          reminder.message,
-          reminder.nextRemindAt
-        );
-        
-        // Mark reminder as sent
-        await storage.markReminderSent(reminder.id);
-        
-        // Update next due date based on frequency
-        await this.updateReminderNextDate(reminder);
       }
     } catch (error) {
-      console.error('Error sending reminder notifications:', error);
+      console.error('Error processing notification:', error);
+      // Put failed notification back in the queue
+      notificationQueue.push(notification);
     }
-  }
-  
-  /**
-   * Update a reminder's next date based on its frequency
-   */
-  private async updateReminderNextDate(reminder: any): Promise<void> {
-    // Check if this is a one-time reminder
-    if (reminder.frequency === 'once') {
-      // For one-time reminders, just mark as inactive
-      await storage.updateReminder(reminder.id, { isActive: false });
-      return;
-    }
-    
-    // Calculate the next remind date based on frequency
-    let nextDate = new Date(reminder.nextRemindAt);
-    
-    switch (reminder.frequency) {
-      case 'daily':
-        nextDate = addDays(nextDate, 1);
-        break;
-      case 'weekly':
-        nextDate = addWeeks(nextDate, 1);
-        break;
-      case 'biweekly':
-        nextDate = addWeeks(nextDate, 2);
-        break;
-      case 'monthly':
-        nextDate = addMonths(nextDate, 1);
-        break;
-      case 'quarterly':
-        nextDate = addMonths(nextDate, 3);
-        break;
-      case 'yearly':
-        nextDate = addMonths(nextDate, 12);
-        break;
-      default:
-        return; // Unknown frequency, don't update
-    }
-    
-    await storage.updateReminderNextDate(reminder.id, nextDate);
   }
 }
 
-export const notificationService = new NotificationService();
+/**
+ * Store a notification in the database
+ * @param notification The notification to store
+ */
+async function storeNotification(notification: {
+  userId: string;
+  title: string;
+  message: string;
+  type: string;
+  link?: string;
+  createdAt: Date;
+}) {
+  try {
+    await storage.createNotification({
+      userId: parseInt(notification.userId),
+      title: notification.title,
+      message: notification.message,
+      type: notification.type,
+      link: notification.link,
+      read: false,
+      createdAt: notification.createdAt,
+    });
+    return true;
+  } catch (error) {
+    console.error('Error storing notification:', error);
+    return false;
+  }
+}
+
+/**
+ * Process and send reminders that are due
+ */
+export async function processReminders() {
+  try {
+    const now = new Date();
+    const reminders = await storage.getReminders();
+    const dueReminders = reminders.filter(reminder => 
+      reminder.nextReminderDate && new Date(reminder.nextReminderDate) <= now && !reminder.completed
+    );
+    
+    console.log(`Processing ${dueReminders.length} due reminders`);
+    
+    for (const reminder of dueReminders) {
+      await processReminder(reminder);
+    }
+    
+    return dueReminders.length;
+  } catch (error) {
+    console.error('Error processing reminders:', error);
+    return 0;
+  }
+}
+
+/**
+ * Process an individual reminder
+ * @param reminder The reminder to process
+ */
+async function processReminder(reminder: Reminder) {
+  try {
+    const user = await storage.getUserById(reminder.userId);
+    
+    if (!user) {
+      console.error(`User ${reminder.userId} not found for reminder ${reminder.id}`);
+      return false;
+    }
+    
+    // Send email notification
+    if (user.email && user.settings?.emailReminders !== false) {
+      await sendReminderEmail({
+        to: user.email,
+        subject: `Reminder: ${reminder.title}`,
+        userName: user.firstName || user.username || 'User',
+        reminderText: reminder.description || reminder.title,
+        dueDate: reminder.dueDate ? new Date(reminder.dueDate).toLocaleDateString() : undefined,
+        amount: reminder.amount,
+        category: reminder.category,
+      });
+    }
+    
+    // Create in-app notification
+    await storage.createNotification({
+      userId: reminder.userId,
+      title: `Reminder: ${reminder.title}`,
+      message: reminder.description || 'Your scheduled reminder is due.',
+      type: 'reminder',
+      read: false,
+      createdAt: new Date(),
+    });
+    
+    // Update reminder's next date based on frequency
+    const nextDate = calculateNextReminderDate(reminder);
+    
+    if (nextDate) {
+      await storage.updateReminderNextDate(reminder.id, nextDate);
+    } else {
+      // If no next date (one-time reminder), mark as completed
+      await storage.updateReminderStatus(reminder.id, true);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error processing reminder ${reminder.id}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Calculate the next reminder date based on frequency
+ * @param reminder The reminder to calculate next date for
+ * @returns The next reminder date or null if it's a one-time reminder
+ */
+function calculateNextReminderDate(reminder: Reminder): Date | null {
+  if (!reminder.frequency || reminder.frequency === 'once') {
+    return null; // One-time reminder
+  }
+  
+  const now = new Date();
+  const nextDate = new Date(now);
+  
+  switch (reminder.frequency) {
+    case 'daily':
+      nextDate.setDate(nextDate.getDate() + 1);
+      break;
+    case 'weekly':
+      nextDate.setDate(nextDate.getDate() + 7);
+      break;
+    case 'biweekly':
+      nextDate.setDate(nextDate.getDate() + 14);
+      break;
+    case 'monthly':
+      nextDate.setMonth(nextDate.getMonth() + 1);
+      break;
+    case 'quarterly':
+      nextDate.setMonth(nextDate.getMonth() + 3);
+      break;
+    case 'yearly':
+      nextDate.setFullYear(nextDate.getFullYear() + 1);
+      break;
+    default:
+      return null;
+  }
+  
+  return nextDate;
+}
+
+/**
+ * Initialize the notification service
+ * Sets up timers for processing the notification queue and reminders
+ */
+export function initializeNotificationService() {
+  console.log('Initializing notification service');
+  
+  // Process notification queue every 5 minutes
+  setInterval(processNotificationQueue, 5 * 60 * 1000);
+  
+  // Process reminders every hour
+  setInterval(processReminders, 60 * 60 * 1000);
+  
+  // Initial processing
+  setTimeout(() => {
+    processNotificationQueue();
+    processReminders();
+  }, 5000);
+  
+  return true;
+}

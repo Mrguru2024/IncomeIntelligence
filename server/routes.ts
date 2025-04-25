@@ -49,13 +49,14 @@ import {
   type FinancialAdviceRequest 
 } from "./ai-service";
 import { generateBlogImage, formatBlogImagePrompt } from "./services/image-generation-service";
-import { notificationService } from "./notification-service";
+import { initializeNotificationService, queueNotification, processNotificationQueue, processReminders } from "./notification-service";
 import { requireAuth, checkUserMatch } from "./middleware/authMiddleware";
 import { requireAdmin } from "./middleware/adminMiddleware";
 import { requireProSubscription } from "./middleware/proSubscriptionMiddleware";
 import { spendingPersonalityService } from "./spending-personality-service";
 import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import { registerOpenAIRoutes } from "./routes/openai-routes";
+import { registerAIStatusRoutes } from "./routes/ai-status-routes";
 import { sendEmail, sendPaymentConfirmationEmail } from "./email-service";
 // Guardrails removed as requested
 import Stripe from "stripe";
@@ -2849,8 +2850,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Check for due reminders and send notifications
   app.post("/api/notifications/check-reminders", async (req, res) => {
     try {
-      await notificationService.sendReminderNotifications();
-      res.json({ success: true, message: "Reminder notifications processed" });
+      const processedCount = await processReminders();
+      res.json({ 
+        success: true, 
+        message: `${processedCount} reminder notifications processed` 
+      });
     } catch (error) {
       console.error('Error processing reminder notifications:', error);
       res.status(500).json({ message: "Failed to process reminder notifications" });

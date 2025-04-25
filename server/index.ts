@@ -32,7 +32,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { initializeAIClients } from './ai-service';
-import { initializeEmailClient } from './email-service';
+// Email client is auto-initialized in './email-service';
 import { initializePerplexityService } from './services/perplexity-service';
 import { initializeImageGenerationService } from './services/image-generation-service';
 import { errorHandler } from './middleware/error-handler';
@@ -53,7 +53,7 @@ if (result.error) {
 // Initialize services
 try {
   initializeAIClients();
-  initializeEmailClient();
+  // Email client auto-initializes in email-service.ts when imported
   initializePerplexityService();
   initializeImageGenerationService();
 } catch (error) {
