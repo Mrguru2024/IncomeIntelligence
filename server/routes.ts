@@ -920,17 +920,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Send a notification to client-side for guardrails processing
             // This will be picked up by the client-side notification system
-            notificationService.sendNotification({
+            queueNotification({
               userId: validatedData.userId.toString(),
-              type: 'EXPENSE_CREATED',
+              type: 'expense',
               title: 'New expense recorded',
               message: `${validatedData.category}: $${Math.abs(validatedData.amount).toFixed(2)}`,
-              data: {
-                transaction: transactionData,
-                spendingLimits: userData.spendingLimits
-              },
-              read: false,
-              createdAt: new Date()
+              link: `/expenses`
             });
           }
         }
@@ -2779,7 +2774,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const notificationData = schema.parse(req.body);
       
-      const notification = await notificationService.createNotification(notificationData);
+      // Queue notification for delivery rather than creating directly
+      queueNotification(notificationData);
+      const notification = await storage.createNotification({
+        userId: parseInt(notificationData.userId),
+        title: notificationData.title,
+        message: notificationData.message,
+        type: notificationData.type || 'info',
+        read: false,
+        createdAt: new Date(),
+        link: notificationData.link
+      });
       res.status(201).json(notification);
     } catch (error) {
       if (error instanceof z.ZodError) {
