@@ -15,7 +15,7 @@ import {
  * @param {string} userId - User ID
  * @returns {Promise<HTMLElement>} - The assessment page container
  */
-export async function renderWellnessPage(userId) {
+export async function renderPersonalFinancialAssessmentPage(userId) {
   // Create main container
   const container = document.createElement('div');
   container.className = 'personal-financial-assessment-page';

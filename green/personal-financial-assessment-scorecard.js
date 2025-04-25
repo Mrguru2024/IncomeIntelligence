@@ -1077,7 +1077,7 @@ export function shouldGenerateWellnessScorecard(userId) {
  * @param {string} userId - User ID
  * @returns {HTMLElement} - The scorecard page element
  */
-export async function renderWellnessScorecardPage(userId) {
+export async function renderPersonalFinancialAssessmentScorecardPage(userId) {
   // Container for the entire page
   const container = document.createElement('div');
   container.className = 'personal-financial-assessment-page';

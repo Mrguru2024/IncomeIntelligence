@@ -3607,12 +3607,12 @@ function renderPageContent(container) {
         break;
       case 'wellness':
         // Import the Personal Financial Assessment page module
-        import('../wellness-page.js').then(module => {
-          // Using async function as renderWellnessPage returns a Promise
+        import('../personal-financial-assessment-page.js').then(module => {
+          // Using async function as renderPersonalFinancialAssessmentPage returns a Promise
           (async () => {
             try {
-              const wellnessPage = await module.renderWellnessPage(appState.user.id);
-              container.appendChild(wellnessPage);
+              const assessmentPage = await module.renderPersonalFinancialAssessmentPage(appState.user.id);
+              container.appendChild(assessmentPage);
             } catch (error) {
               console.error('Error rendering personal financial assessment page:', error);
               container.appendChild(createErrorMessage('Failed to load personal financial assessment data'));
@@ -3877,7 +3877,7 @@ function renderPageContent(container) {
           'moneymentor': 'psychology',
           'subscriptionsniper': 'budgeting',
           'savingschallenges': 'saving',
-          'wellnessscorecard': 'psychology', // Personal Financial Assessment
+          'personal-financial-assessment': 'psychology',
           'debt': 'debt'
         };
         
