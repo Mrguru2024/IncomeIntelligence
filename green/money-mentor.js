@@ -843,18 +843,25 @@ export async function renderMoneyMentorPage(userId) {
     proFeaturesList.appendChild(item);
   });
   
+  // Create a container for the upgrade button
+  const upgradeButtonContainer = document.createElement('div');
+  upgradeButtonContainer.style.marginTop = '16px';
+  
   // Use the renderQuickUpgradeButton function from membership-tiers.js to create a standardized upgrade button
-  const upgradeButton = renderQuickUpgradeButton({
-    text: 'Upgrade to Pro',
-    onClick: () => showUpgradeModal('pro'),
-    gradient: true,
-    fullWidth: true
-  });
+  renderQuickUpgradeButton(upgradeButtonContainer, 'pro', 'button', 'medium');
+  
+  // Add click event handler to show upgrade modal when the button is clicked
+  const upgradeButton = upgradeButtonContainer.querySelector('button');
+  if (upgradeButton) {
+    upgradeButton.addEventListener('click', () => {
+      showUpgradeModal('pro');
+    });
+  }
   
   proCard.appendChild(proBadgeContainer);
   proCard.appendChild(proDescription);
   proCard.appendChild(proFeaturesList);
-  proCard.appendChild(upgradeButton);
+  proCard.appendChild(upgradeButtonContainer);
   
   sidebar.appendChild(topicsCard);
   sidebar.appendChild(proCard);
@@ -962,12 +969,18 @@ export async function renderMoneyMentorPage(userId) {
       
       messagesContainer.appendChild(createMessageElement(errorMessage));
       
-      // Show toast
+      // Show toast and upgrade modal if it's a subscription issue
+      const isSubscriptionError = error.message === 'This feature requires a Pro subscription';
       createToast(
-        error.message === 'This feature requires a Pro subscription' ? 'Pro Subscription Required' : 'Error',
+        isSubscriptionError ? 'Pro Subscription Required' : 'Error',
         error.message,
         'error'
       );
+      
+      // Show upgrade modal for subscription errors
+      if (isSubscriptionError) {
+        showUpgradeModal('pro');
+      }
     } finally {
       isLoading = false;
     }
