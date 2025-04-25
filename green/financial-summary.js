@@ -13,10 +13,10 @@ import { createFinancialSummaryNotification } from './notification-service.js';
 export function generateWeeklySummary(userId, financialData) {
   if (!userId || !financialData) return;
   
-  // In a real app, we would fetch the user's financial data for the past week
-  // For this demo, we'll use the provided data or generate some mock data
+  // Fetch the user's financial data for the past week
+  // Use the provided data or calculate from transaction history
   
-  const weeklyData = financialData.weekly || generateMockWeeklyData();
+  const weeklyData = financialData.weekly || calculateWeeklyData(userId);
   
   // Calculate key metrics
   const totalIncome = weeklyData.income.reduce((sum, item) => sum + item.amount, 0);
@@ -76,10 +76,10 @@ export function generateWeeklySummary(userId, financialData) {
 export function generateMonthlySummary(userId, financialData) {
   if (!userId || !financialData) return;
   
-  // In a real app, we would fetch the user's financial data for the past month
-  // For this demo, we'll use the provided data or generate some mock data
+  // Fetch the user's financial data for the past month
+  // Use the provided data or calculate from transaction history
   
-  const monthlyData = financialData.monthly || generateMockMonthlyData();
+  const monthlyData = financialData.monthly || calculateMonthlyData(userId);
   
   // Calculate key metrics
   const totalIncome = monthlyData.income.reduce((sum, item) => sum + item.amount, 0);
@@ -293,61 +293,166 @@ function calculatePercentageChange(oldValue, newValue) {
 }
 
 /**
- * Generate mock weekly financial data
- * @returns {Object} - Mock weekly financial data
+ * Calculate weekly financial data from user's transaction history
+ * @param {string} userId - User ID
+ * @returns {Object} - Weekly financial data
  */
-function generateMockWeeklyData() {
+function calculateWeeklyData(userId) {
   const today = new Date();
   const startDate = new Date(today);
   startDate.setDate(today.getDate() - 7);
   
+  // Fetch user's transactions for the past week
+  const transactions = fetchUserTransactions(userId, startDate, today);
+  
+  // Group transactions into income and expenses
+  const income = transactions.filter(transaction => transaction.amount > 0)
+    .map(transaction => ({
+      category: transaction.category,
+      description: transaction.description,
+      amount: transaction.amount
+    }));
+  
+  const expenses = transactions.filter(transaction => transaction.amount < 0)
+    .map(transaction => ({
+      category: transaction.category,
+      description: transaction.description,
+      amount: Math.abs(transaction.amount) // Convert to positive for easier calculations
+    }));
+  
   return {
     startDate: startDate.toISOString(),
     endDate: today.toISOString(),
-    income: [
-      { category: 'Salary', description: 'Weekly paycheck', amount: 850 },
-      { category: 'Side Gig', description: 'Freelance work', amount: 200 }
-    ],
-    expenses: [
-      { category: 'Groceries', description: 'Weekly groceries', amount: 120 },
-      { category: 'Dining', description: 'Restaurants', amount: 85 },
-      { category: 'Transportation', description: 'Gas & transit', amount: 60 },
-      { category: 'Entertainment', description: 'Movies & activities', amount: 45 },
-      { category: 'Shopping', description: 'Clothing', amount: 75 }
-    ]
+    income,
+    expenses
   };
 }
 
 /**
- * Generate mock monthly financial data
- * @returns {Object} - Mock monthly financial data
+ * Fetch user transactions for a specific date range
+ * @param {string} userId - User ID
+ * @param {Date} startDate - Start date
+ * @param {Date} endDate - End date
+ * @returns {Array} - Array of transaction objects
  */
-function generateMockMonthlyData() {
+function fetchUserTransactions(userId, startDate, endDate) {
+  // In a production app, this would query the database or transaction API
+  
+  // For the GREEN version, we'll try to get transactions from localStorage
+  // or return an empty array if none exist
+  try {
+    const transactionKey = `stackr_transactions_${userId}`;
+    const storedTransactions = localStorage.getItem(transactionKey);
+    
+    if (!storedTransactions) {
+      return [];
+    }
+    
+    const allTransactions = JSON.parse(storedTransactions);
+    
+    // Filter transactions by date range
+    return allTransactions.filter(transaction => {
+      const transactionDate = new Date(transaction.date);
+      return transactionDate >= startDate && transactionDate <= endDate;
+    });
+  } catch (error) {
+    console.error('Error fetching user transactions:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch user goals
+ * @param {string} userId - User ID
+ * @returns {Array} - Array of goal objects
+ */
+function fetchUserGoals(userId) {
+  // In a production app, this would query the database or goals API
+  
+  // For the GREEN version, we'll try to get goals from localStorage
+  // or return an empty array if none exist
+  try {
+    const goalsKey = `stackr_goals_${userId}`;
+    const storedGoals = localStorage.getItem(goalsKey);
+    
+    if (!storedGoals) {
+      return [];
+    }
+    
+    return JSON.parse(storedGoals);
+  } catch (error) {
+    console.error('Error fetching user goals:', error);
+    return [];
+  }
+}
+
+/**
+ * Calculate monthly financial data from user's transaction history
+ * @param {string} userId - User ID
+ * @returns {Object} - Monthly financial data
+ */
+function calculateMonthlyData(userId) {
   const today = new Date();
   const month = today.toLocaleString('default', { month: 'long' });
+  const year = today.getFullYear();
+  
+  // Calculate start of current month and previous month
+  const startOfMonth = new Date(year, today.getMonth(), 1);
+  const startOfPrevMonth = new Date(year, today.getMonth() - 1, 1);
+  const endOfPrevMonth = new Date(year, today.getMonth(), 0);
+  
+  // Fetch transactions for current and previous month
+  const currentMonthTransactions = fetchUserTransactions(userId, startOfMonth, today);
+  const prevMonthTransactions = fetchUserTransactions(userId, startOfPrevMonth, endOfPrevMonth);
+  
+  // Group current month transactions into income and expenses
+  const income = currentMonthTransactions.filter(transaction => transaction.amount > 0)
+    .map(transaction => ({
+      category: transaction.category,
+      description: transaction.description,
+      amount: transaction.amount
+    }));
+  
+  const expenses = currentMonthTransactions.filter(transaction => transaction.amount < 0)
+    .map(transaction => ({
+      category: transaction.category,
+      description: transaction.description,
+      amount: Math.abs(transaction.amount) // Convert to positive for easier calculations
+    }));
+  
+  // Process previous month data (if available)
+  let previousMonth = null;
+  if (prevMonthTransactions.length > 0) {
+    const prevIncome = prevMonthTransactions.filter(transaction => transaction.amount > 0)
+      .map(transaction => ({
+        category: transaction.category,
+        description: transaction.description,
+        amount: transaction.amount
+      }));
+    
+    const prevExpenses = prevMonthTransactions.filter(transaction => transaction.amount < 0)
+      .map(transaction => ({
+        category: transaction.category,
+        description: transaction.description,
+        amount: Math.abs(transaction.amount) // Convert to positive for easier calculations
+      }));
+    
+    previousMonth = {
+      income: prevIncome,
+      expenses: prevExpenses
+    };
+  }
+  
+  // Fetch user goals
+  const goals = fetchUserGoals(userId);
   
   return {
     month,
-    year: today.getFullYear(),
-    income: [
-      { category: 'Salary', description: 'Monthly paycheck', amount: 3400 },
-      { category: 'Side Gig', description: 'Freelance work', amount: 800 },
-      { category: 'Investments', description: 'Dividend payments', amount: 200 }
-    ],
-    expenses: [
-      { category: 'Housing', description: 'Rent/Mortgage', amount: 1200 },
-      { category: 'Groceries', description: 'Monthly groceries', amount: 480 },
-      { category: 'Dining', description: 'Restaurants', amount: 340 },
-      { category: 'Transportation', description: 'Gas & transit', amount: 240 },
-      { category: 'Entertainment', description: 'Movies & activities', amount: 180 },
-      { category: 'Shopping', description: 'Clothing', amount: 250 },
-      { category: 'Utilities', description: 'Electric, water, internet', amount: 210 },
-      { category: 'Insurance', description: 'Auto & renters', amount: 150 }
-    ],
-    goals: [
-      { name: 'Emergency Fund', target: 1000, current: 1200, completed: true },
-      { name: 'Vacation Savings', target: 2000, current: 1500, completed: false }
-    ]
+    year,
+    income,
+    expenses,
+    previousMonth,
+    goals
   };
 }
 

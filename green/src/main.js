@@ -3101,6 +3101,36 @@ function renderPageContent(container) {
     import('../notification-ui.js').then(module => {
       // Initialize notification UI
       module.initNotificationUI(appState);
+      
+      // Also check for financial summaries on page load
+      import('../financial-summary.js').then(summaryModule => {
+        // Check if it's time for weekly or monthly summary
+        if (shouldGenerateWeeklySummary(appState.user.id)) {
+          const generateWeeklySummary = summaryModule.scheduleWeeklySummary(appState.user.id);
+          generateWeeklySummary();
+          
+          // Save last summary time
+          saveLastSummaryTime(appState.user.id, 'weekly');
+        }
+        
+        if (shouldGenerateMonthlySummary(appState.user.id)) {
+          const generateMonthlySummary = summaryModule.scheduleMonthlySummary(appState.user.id);
+          generateMonthlySummary();
+          
+          // Save last summary time
+          saveLastSummaryTime(appState.user.id, 'monthly');
+        }
+      }).catch(error => {
+        console.error('Error checking financial summaries:', error);
+      });
+      
+      // Check for achievements
+      import('../achievement-service.js').then(achieveModule => {
+        achieveModule.checkAchievements(appState.user.id, appState.userData);
+        achieveModule.updateLoginStreak(appState.user.id);
+      }).catch(error => {
+        console.error('Error checking achievements:', error);
+      });
     }).catch(error => {
       console.error('Error initializing notification system:', error);
     });
@@ -3345,6 +3375,83 @@ function createErrorMessage(message) {
   container.appendChild(text);
   
   return container;
+}
+
+/**
+ * Check if it's time to generate a weekly summary
+ * @param {string} userId - User ID
+ * @returns {boolean} - True if summary should be generated
+ */
+function shouldGenerateWeeklySummary(userId) {
+  if (!userId) return false;
+  
+  try {
+    const lastSummaryKey = `stackr_last_weekly_summary_${userId}`;
+    const lastSummaryTime = localStorage.getItem(lastSummaryKey);
+    
+    if (!lastSummaryTime) {
+      return true; // First time, generate summary
+    }
+    
+    const lastTime = new Date(lastSummaryTime);
+    const currentTime = new Date();
+    
+    // Check if it's been at least 6 days since the last summary
+    const timeDiff = currentTime.getTime() - lastTime.getTime();
+    const daysDiff = timeDiff / (1000 * 3600 * 24);
+    
+    return daysDiff >= 6;
+  } catch (error) {
+    console.error('Error checking weekly summary schedule:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if it's time to generate a monthly summary
+ * @param {string} userId - User ID
+ * @returns {boolean} - True if summary should be generated
+ */
+function shouldGenerateMonthlySummary(userId) {
+  if (!userId) return false;
+  
+  try {
+    const lastSummaryKey = `stackr_last_monthly_summary_${userId}`;
+    const lastSummaryTime = localStorage.getItem(lastSummaryKey);
+    
+    if (!lastSummaryTime) {
+      return true; // First time, generate summary
+    }
+    
+    const lastTime = new Date(lastSummaryTime);
+    const currentTime = new Date();
+    
+    // Check if we're in a new month compared to the last summary
+    return (
+      lastTime.getMonth() !== currentTime.getMonth() ||
+      lastTime.getFullYear() !== currentTime.getFullYear()
+    );
+  } catch (error) {
+    console.error('Error checking monthly summary schedule:', error);
+    return false;
+  }
+}
+
+/**
+ * Save the timestamp of the last summary generation
+ * @param {string} userId - User ID
+ * @param {string} summaryType - Type of summary ('weekly' or 'monthly')
+ */
+function saveLastSummaryTime(userId, summaryType) {
+  if (!userId || !summaryType) return;
+  
+  try {
+    const summaryKey = `stackr_last_${summaryType}_summary_${userId}`;
+    const currentTime = new Date().toISOString();
+    localStorage.setItem(summaryKey, currentTime);
+  } catch (error) {
+    console.error(`Error saving ${summaryType} summary time:`, error);
+  }
 }
 
 // Initialize the app when DOM is loaded
