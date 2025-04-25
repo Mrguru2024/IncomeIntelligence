@@ -1803,6 +1803,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get all invoices for the current user
+  app.get("/api/invoices", async (req, res) => {
+    try {
+      // For demonstration, we'll return sample invoices
+      // In a real implementation, this would fetch from storage
+      const sampleInvoices = [
+        {
+          id: 'inv-001',
+          invoiceNumber: 'INV-2025-001',
+          clientName: 'Acme Corporation',
+          totalAmount: 2450.00,
+          issuedDate: '2025-04-15',
+          dueDate: '2025-05-15',
+          status: 'pending',
+          items: [
+            { description: 'Web Development', quantity: 1, unitPrice: 2000, amount: 2000 },
+            { description: 'Hosting Setup', quantity: 3, unitPrice: 150, amount: 450 }
+          ]
+        },
+        {
+          id: 'inv-002',
+          invoiceNumber: 'INV-2025-002',
+          clientName: 'Tech Solutions Inc.',
+          totalAmount: 850.00,
+          issuedDate: '2025-04-01',
+          dueDate: '2025-05-01',
+          status: 'paid',
+          items: [
+            { description: 'UI/UX Design', quantity: 1, unitPrice: 850, amount: 850 }
+          ]
+        },
+        {
+          id: 'inv-003',
+          invoiceNumber: 'INV-2025-003',
+          clientName: 'Global Ventures LLC',
+          totalAmount: 3200.00,
+          issuedDate: '2025-03-12',
+          dueDate: '2025-04-12',
+          status: 'overdue',
+          items: [
+            { description: 'Market Analysis', quantity: 1, unitPrice: 1800, amount: 1800 },
+            { description: 'Strategy Consulting', quantity: 4, unitPrice: 350, amount: 1400 }
+          ]
+        }
+      ];
+      
+      res.json(sampleInvoices);
+    } catch (error) {
+      console.error('Error getting invoices:', error);
+      res.status(500).json({ message: "Failed to get invoices" });
+    }
+  });
+  
   // Get invoice by ID
   app.get("/api/invoices/:id", requireAuth, async (req, res) => {
     try {
