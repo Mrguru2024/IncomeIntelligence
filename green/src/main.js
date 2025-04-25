@@ -649,6 +649,12 @@ function createHeader() {
       icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>'
     },
     { 
+      id: 'savingschallenges', 
+      title: 'Savings Challenges',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+      badge: 'New'
+    },
+    { 
       id: 'settings', 
       title: 'Settings',
       icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>'
@@ -832,6 +838,7 @@ function createFooter() {
         { name: 'Dashboard', url: '#dashboard' },
         { name: 'Income', url: '#income' },
         { name: 'Bank Accounts', url: '#bankconnections' },
+        { name: 'Savings Challenges', url: '#savingschallenges' },
         { name: 'Affiliates', url: '#affiliates' },
         { name: 'Gigs', url: '#gigs' },
         { name: 'Settings', url: '#settings' }
@@ -3747,6 +3754,29 @@ function renderPageContent(container) {
         }).catch(error => {
           console.error('Error loading membership module:', error);
           container.innerHTML = '<div class="error-message">Unable to load membership page. Please try again later.</div>';
+        });
+        break;
+      case 'savingschallenges':
+        // Import the savings challenges module
+        import('../savings-challenges.js').then(module => {
+          // Check if the function is async (returns a promise)
+          const result = module.renderSavingsChallengesPage(appState.user.id);
+          if (result instanceof Promise) {
+            result
+              .then(pageElement => {
+                container.appendChild(pageElement);
+              })
+              .catch(err => {
+                console.error('Error rendering savings challenges page:', err);
+                container.appendChild(createErrorMessage('Failed to load savings challenges'));
+              });
+          } else {
+            // Handle synchronous return (directly append to container)
+            container.appendChild(result);
+          }
+        }).catch(error => {
+          console.error('Error loading savings challenges module:', error);
+          container.appendChild(createErrorMessage('Failed to load savings challenges module'));
         });
         break;
       default:
