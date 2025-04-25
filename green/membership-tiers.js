@@ -5,6 +5,7 @@
 
 import { isAuthenticated, getCurrentUser, getUserSubscriptionTier } from './auth.js';
 import { createToast } from './components/toast.js';
+import { renderSidebar } from './sidebar.js';
 
 /**
  * Membership tier definitions
@@ -687,6 +688,9 @@ export function renderMembershipUpgradePage(containerId = 'app', preselectedTier
   // Clear container
   container.innerHTML = '';
   
+  // Render sidebar with membership section active
+  renderSidebar('membership');
+  
   // Get user's current tier
   const currentTier = isAuthenticated() ? getUserSubscriptionTier() : 'free';
   
@@ -860,6 +864,9 @@ export function showUpgradeModal(tierId = 'pro', billingInterval = 'monthly') {
   // Get the tier details
   const tier = MEMBERSHIP_TIERS[tierId.toUpperCase()];
   if (!tier) return;
+  
+  // Ensure sidebar is rendered
+  renderSidebar('membership');
   
   // Get current tier
   const currentTier = isAuthenticated() ? getUserSubscriptionTier() : 'free';
