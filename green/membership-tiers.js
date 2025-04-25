@@ -264,7 +264,8 @@ export function renderReferralProgram(tier) {
   const linkInput = document.createElement('input');
   linkInput.type = 'text';
   linkInput.readOnly = true;
-  linkInput.value = generateReferralLink();
+  const referralLink = generateReferralLink();
+  linkInput.value = referralLink;
   linkInput.style.flex = '1';
   linkInput.style.padding = '8px 12px';
   linkInput.style.border = '1px solid #d1d5db';
@@ -277,7 +278,7 @@ export function renderReferralProgram(tier) {
   copyButton.style.backgroundColor = tier.color;
   copyButton.style.color = 'white';
   copyButton.style.border = 'none';
-  copyButton.style.borderRadius = '0 4px 4px 0';
+  copyButton.style.borderRadius = '0 4px 0 0';
   copyButton.style.fontSize = '14px';
   copyButton.style.cursor = 'pointer';
   copyButton.textContent = 'Copy';
@@ -289,7 +290,70 @@ export function renderReferralProgram(tier) {
   });
   
   linkGroup.appendChild(copyButton);
+  
+  // Add share button if Web Share API is available
+  if (navigator.share) {
+    const shareButton = document.createElement('button');
+    shareButton.style.padding = '8px 12px';
+    shareButton.style.backgroundColor = '#10b981'; // Green color for share
+    shareButton.style.color = 'white';
+    shareButton.style.border = 'none';
+    shareButton.style.borderRadius = '0 4px 4px 0';
+    shareButton.style.fontSize = '14px';
+    shareButton.style.cursor = 'pointer';
+    
+    // Add share icon
+    shareButton.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="18" cy="5" r="3"></circle>
+        <circle cx="6" cy="12" r="3"></circle>
+        <circle cx="18" cy="19" r="3"></circle>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+      </svg>
+    `;
+    
+    shareButton.addEventListener('click', async () => {
+      try {
+        await navigator.share({
+          title: 'Join me on Stackr',
+          text: 'Use my referral link to join Stackr and get 1 month free Pro trial!',
+          url: referralLink
+        });
+        createToast('Thanks for sharing!', 'success');
+      } catch (err) {
+        console.error('Share failed:', err);
+      }
+    });
+    
+    linkGroup.appendChild(shareButton);
+  }
+  
   linkContainer.appendChild(linkGroup);
+  
+  // Add share suggestions
+  const shareSuggestions = document.createElement('div');
+  shareSuggestions.style.marginTop = '12px';
+  shareSuggestions.style.fontSize = '13px';
+  shareSuggestions.style.color = '#6b7280';
+  
+  const shareText = document.createElement('p');
+  shareText.style.margin = '0 0 8px 0';
+  shareText.textContent = 'Suggested message:';
+  shareSuggestions.appendChild(shareText);
+  
+  const messageBox = document.createElement('div');
+  messageBox.style.padding = '8px 12px';
+  messageBox.style.backgroundColor = '#f9fafb';
+  messageBox.style.border = '1px solid #e5e7eb';
+  messageBox.style.borderRadius = '4px';
+  messageBox.style.fontSize = '13px';
+  messageBox.style.fontStyle = 'italic';
+  messageBox.style.color = '#4b5563';
+  messageBox.textContent = 'I\'ve been using Stackr to manage my finances and thought you might like it too! Use my referral link for 1 month of Pro access free.';
+  shareSuggestions.appendChild(messageBox);
+  
+  linkContainer.appendChild(shareSuggestions);
   
   container.appendChild(linkContainer);
   
