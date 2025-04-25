@@ -1795,10 +1795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all invoices for a user
   app.get("/api/users/:userId/invoices", requireAuth, async (req, res) => {
     try {
-      const userId = parseInt(req.params.userId);
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
+      const userId = req.params.userId;
       
       const invoices = await storage.getUserInvoices(userId);
       res.json(invoices);
@@ -1811,10 +1808,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get invoice by ID
   app.get("/api/invoices/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid invoice ID" });
-      }
+      const id = req.params.id;
       
       const invoice = await storage.getInvoiceById(id);
       if (!invoice) {
@@ -1919,6 +1913,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting invoice:', error);
       res.status(500).json({ message: "Failed to delete invoice" });
+    }
+  });
+
+  // Create a payment intent for an invoice
+  app.post("/api/invoices/:id/payment-intent", requireAuth, async (req, res) => {
+    try {
+      if (!stripe) {
+        return res.status(503).json({ message: "Stripe payment processing is not available" });
+      }
+
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid invoice ID" });
+      }
+      
+      // Fetch the invoice
+      const invoice = await storage.getInvoiceById(id.toString());
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Check if user is allowed to create payment intent
+      if (req.user?.id !== invoice.userId) {
+        return res.status(403).json({ message: "Unauthorized to process payment for this invoice" });
+      }
+      
+      // Ensure the invoice is not already paid
+      if (invoice.paid) {
+        return res.status(400).json({ message: "This invoice has already been paid" });
+      }
+      
+      // Create a payment intent with Stripe
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(parseFloat(invoice.totalAmount) * 100), // Convert to cents
+        currency: "usd",
+        metadata: {
+          invoiceId: id.toString(),
+          userId: invoice.userId.toString(),
+          clientName: invoice.clientName,
+          invoiceNumber: invoice.invoiceNumber
+        }
+      });
+      
+      // Update the invoice with the payment intent ID
+      await storage.updateInvoice(id.toString(), {
+        stripePaymentIntentId: paymentIntent.id
+      });
+      
+      // Return the client secret to the frontend
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+        invoiceId: id
+      });
+    } catch (error) {
+      console.error('Error creating payment intent:', error);
+      res.status(500).json({ message: "Failed to create payment intent" });
+    }
+  });
+  
+  // Mark an invoice as paid (manual process, not via Stripe)
+  app.post("/api/invoices/:id/mark-paid", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid invoice ID" });
+      }
+      
+      // Fetch the invoice to check if the user is authorized
+      const invoice = await storage.getInvoiceById(id.toString());
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Check if user is the creator of the invoice
+      if (req.user?.id !== invoice.userId) {
+        return res.status(403).json({ message: "Unauthorized to update this invoice" });
+      }
+      
+      // Mark the invoice as paid
+      const paidInvoice = await storage.markInvoiceAsPaid(id.toString(), {
+        paidAt: new Date()
+      });
+      
+      res.json(paidInvoice);
+    } catch (error) {
+      console.error('Error marking invoice as paid:', error);
+      res.status(500).json({ message: "Failed to mark invoice as paid" });
+    }
+  });
+  
+  // Get invoice summary by payment method
+  app.get("/api/users/:userId/invoice-summary", requireAuth, async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      if (req.user?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized to access this data" });
+      }
+      
+      const summary = await storage.getInvoiceSummary(userId);
+      res.json(summary);
+    } catch (error) {
+      console.error('Error getting invoice summary:', error);
+      res.status(500).json({ message: "Failed to get invoice summary" });
     }
   });
   
