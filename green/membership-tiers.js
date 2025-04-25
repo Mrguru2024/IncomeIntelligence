@@ -14,18 +14,26 @@ export const MEMBERSHIP_TIERS = {
     id: 'free',
     name: 'Free',
     color: '#6B7280', // gray
-    description: 'Start your financial journey with essential tools',
+    description: 'Start your financial journey with basic tools',
     monthlyPrice: 0,
     yearlyPrice: 0,
     features: [
       'Basic income & expense tracking',
-      'Manual bank account syncing',
-      'Core budgeting tools',
-      'Basic financial insights',
-      'Limited AI financial advice (3/month)',
-      'Community forum access',
-      'Standard financial reports'
-    ]
+      'Manual bank account syncing (1 account)',
+      'Simple budget creation',
+      'Basic spending reports',
+      'Access to referral program',
+      'Mobile web access',
+      'Community forum access'
+    ],
+    referralProgram: {
+      creditPerReferral: 10,
+      bonusThresholds: [
+        { count: 3, reward: 10 },
+        { count: 8, reward: 50 }
+      ],
+      maxReferralCredit: 100
+    }
   },
   PRO: {
     id: 'pro',
@@ -46,7 +54,15 @@ export const MEMBERSHIP_TIERS = {
       'Weekly financial health reports',
       'Client management tools',
       'Email & priority support'
-    ]
+    ],
+    referralProgram: {
+      creditPerReferral: 15,
+      bonusThresholds: [
+        { count: 3, reward: 15 },
+        { count: 8, reward: 75 }
+      ],
+      maxReferralCredit: 200
+    }
   },
   LIFETIME: {
     id: 'lifetime',
@@ -66,7 +82,16 @@ export const MEMBERSHIP_TIERS = {
       'Personalized quarterly financial reviews',
       'Advanced data export options',
       'Exclusive financial masterclasses'
-    ]
+    ],
+    referralProgram: {
+      creditPerReferral: 20,
+      bonusThresholds: [
+        { count: 3, reward: 20 },
+        { count: 8, reward: 100 }
+      ],
+      maxReferralCredit: 300,
+      lifetimeReferralBonus: true
+    }
   }
 };
 
