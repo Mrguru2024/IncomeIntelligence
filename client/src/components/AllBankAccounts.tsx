@@ -30,15 +30,27 @@ export default function AllBankAccounts({ userId }: { userId: number }) {
 
   // Fetch all bank accounts for the user
   const {
-    data: accounts = [],
+    data: accounts = [] as BankAccount[],
     isLoading,
     error,
   } = useQuery<BankAccount[]>({
     queryKey: ["/api/bank-accounts/user/" + userId],
+    queryFn: async () => {
+      try {
+        const response = await fetch(`/api/bank-accounts/user/${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch bank accounts');
+        }
+        return await response.json();
+      } catch (err) {
+        console.log("Error loading bank accounts handled:", err);
+        return [] as BankAccount[];
+      }
+    }
   });
 
   // Filter accounts based on search term
-  const filteredAccounts = accounts.filter((account) =>
+  const filteredAccounts = accounts.filter((account: BankAccount) =>
     account.accountName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     account.institutionName.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -96,7 +108,7 @@ export default function AllBankAccounts({ userId }: { userId: number }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAccounts.map((account) => (
+              {filteredAccounts.map((account: BankAccount) => (
                 <TableRow key={account.id}>
                   <TableCell className="font-medium">
                     {account.institutionName}

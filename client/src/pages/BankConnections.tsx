@@ -72,6 +72,18 @@ export default function BankConnections() {
     error: connectionsError,
   } = useQuery<BankConnection[]>({
     queryKey: ["/api/bank-connections/user/" + userId],
+    queryFn: async () => {
+      try {
+        const response = await fetch(`/api/bank-connections/user/${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch bank connections');
+        }
+        return await response.json();
+      } catch (err) {
+        console.log("Error fetching bank connections handled:", err);
+        return [] as BankConnection[];
+      }
+    }
   });
 
   // Fetch accounts for the selected connection
@@ -202,7 +214,7 @@ export default function BankConnections() {
           </div>
         ) : connections?.length > 0 ? (
           <div className="grid gap-4">
-            {connections.map((connection) => (
+            {connections.map((connection: BankConnection) => (
               <Card
                 key={connection.id}
                 className={`overflow-hidden cursor-pointer transition-all ${
