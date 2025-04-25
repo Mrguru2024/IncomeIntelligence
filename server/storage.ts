@@ -47,6 +47,24 @@ export interface IStorage {
   updateStripeSubscriptionId(userId: number, subscriptionId: string): Promise<User | undefined>;
   updateUserStripeInfo(userId: number, stripeInfo: { customerId: string, subscriptionId: string }): Promise<User | undefined>;
   
+  // Get comprehensive user data including spending limits
+  getUserData(userId: number): Promise<{
+    id: number;
+    username: string;
+    email: string;
+    spendingLimits?: Array<{
+      id: string;
+      category: string;
+      limit: number;
+      period: 'weekly' | 'monthly';
+    }>;
+    subscription?: {
+      status: string;
+      plan: string;
+    };
+    profile?: UserProfile;
+  } | undefined>;
+  
   // User profile methods
   getUserProfile(userId: number): Promise<UserProfile | undefined>;
   createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
