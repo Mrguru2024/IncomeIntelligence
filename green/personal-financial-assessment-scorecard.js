@@ -19,7 +19,7 @@ const PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES = {
   GUARDRAILS_USAGE: { name: 'Spending Guardrails', maxPoints: 5 }
 };
 
-// Wellness score ranges and their interpretations
+// Personal Financial Assessment score ranges and their interpretations
 const SCORE_RANGES = [
   { min: 90, max: 100, level: 'Excellent', color: 'var(--color-success-600)', description: 'Your financial health is excellent! You\'re making great choices across almost all financial dimensions.' },
   { min: 75, max: 89, level: 'Strong', color: 'var(--color-success-500)', description: 'You have a strong financial foundation. Some minor improvements could further strengthen your position.' },
@@ -183,11 +183,11 @@ function calculateCategoryScores(userData) {
   const guardrailsUsage = calculateGuardrailsUsageScore(userData);
   categoryScores.push({
     category: 'GUARDRAILS_USAGE',
-    name: WELLNESS_CATEGORIES.GUARDRAILS_USAGE.name,
+    name: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.GUARDRAILS_USAGE.name,
     points: guardrailsUsage.points,
-    maxPoints: WELLNESS_CATEGORIES.GUARDRAILS_USAGE.maxPoints,
+    maxPoints: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.GUARDRAILS_USAGE.maxPoints,
     details: guardrailsUsage.details,
-    percentage: Math.round((guardrailsUsage.points / WELLNESS_CATEGORIES.GUARDRAILS_USAGE.maxPoints) * 100)
+    percentage: Math.round((guardrailsUsage.points / PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.GUARDRAILS_USAGE.maxPoints) * 100)
   });
   
   return categoryScores;
