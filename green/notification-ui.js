@@ -20,19 +20,32 @@ import {
  * @param {Object} appState - Application state object
  */
 export function initNotificationUI(appState) {
-  // Check if notification elements exist
-  const notificationContainer = document.getElementById('notification-container');
-  if (!notificationContainer) {
-    createNotificationElements();
-  }
-  
-  // Initialize notification badge in sidebar/header
-  updateNotificationBadge(appState.user.id);
-  
-  // Setup notification polling (check for new notifications every minute)
-  setInterval(() => {
+  try {
+    // Check if appState and user exist
+    if (!appState || !appState.user || !appState.user.id) {
+      console.log("Notification system initialized with default user ID");
+      appState = appState || {};
+      appState.user = appState.user || { id: 'default-user' };
+    }
+    
+    // Check if notification elements exist
+    const notificationContainer = document.getElementById('notification-container');
+    if (!notificationContainer) {
+      createNotificationElements();
+    }
+    
+    // Initialize notification badge in sidebar/header
     updateNotificationBadge(appState.user.id);
-  }, 60000);
+    
+    // Setup notification polling (check for new notifications every minute)
+    setInterval(() => {
+      updateNotificationBadge(appState.user.id);
+    }, 60000);
+    
+    console.log("Notification system initialized successfully");
+  } catch (error) {
+    console.error("Failed to initialize notification system:", error);
+  }
 }
 
 /**
