@@ -2237,7 +2237,6 @@ function confirmDeleteListing(listing, appState) {
     }
   }
 }
-}
 
 /**
  * Get mock inquiries data
