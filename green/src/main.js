@@ -4191,6 +4191,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load saved data
   loadStateFromStorage();
   
+  // Check if user came through a referral link
+  import('./auth.js').then(authModule => {
+    if (typeof authModule.checkAndStoreReferralCode === 'function') {
+      authModule.checkAndStoreReferralCode();
+    }
+  }).catch(err => {
+    console.error('Error loading auth module for referral check:', err);
+  });
+  
   // Check URL for initial navigation
   const hash = window.location.hash.replace('#', '');
   // If no hash is provided, show landing page for unauthenticated and dashboard for authenticated users

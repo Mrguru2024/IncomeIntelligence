@@ -221,18 +221,36 @@ export function renderLoginPage() {
       return;
     }
     
+    // Create user data
+    let userData = {
+      isAuthenticated: true,
+      name: username,
+      username: username,
+      email: username.includes('@') ? username : `${username}@example.com`,
+      onboardingCompleted: true
+    };
+    
+    // Check for stored referral code and apply it if present
+    userData = applyStoredReferralCode(userData);
+    
     // For demonstration, accept any username/password
     // This would be replaced with actual authentication logic
     appState.user.isAuthenticated = true;
-    appState.user.name = username;
-    appState.user.email = username.includes('@') ? username : `${username}@example.com`;
+    appState.user.name = userData.name;
+    appState.user.email = userData.email;
+    
+    if (userData.referredBy) {
+      appState.user.referredBy = userData.referredBy;
+      createToast('Referral bonus applied!', 'success');
+    }
     
     // Store in localStorage for persistence
     localStorage.setItem('stackrUser', JSON.stringify({
-      username: username,
-      email: appState.user.email,
+      username: userData.username,
+      email: userData.email,
       isAuthenticated: true,
-      onboardingCompleted: true
+      onboardingCompleted: true,
+      referredBy: userData.referredBy
     }));
     
     console.log('Navigated from login to dashboard');
@@ -305,16 +323,35 @@ export function renderLoginPage() {
     
     // Mock successful Google login for demo
     setTimeout(() => {
+      // Create user data
+      let userData = {
+        isAuthenticated: true,
+        name: 'Google User',
+        email: 'googleuser@example.com',
+        username: 'Google User',
+        onboardingCompleted: true
+      };
+      
+      // Check for stored referral code and apply it if present
+      userData = applyStoredReferralCode(userData);
+      
+      // Update app state with user data
       appState.user.isAuthenticated = true;
-      appState.user.name = 'Google User';
-      appState.user.email = 'googleuser@example.com';
+      appState.user.name = userData.name;
+      appState.user.email = userData.email;
+      
+      if (userData.referredBy) {
+        appState.user.referredBy = userData.referredBy;
+        createToast('Referral bonus applied!', 'success');
+      }
       
       // Store in localStorage for persistence
       localStorage.setItem('stackrUser', JSON.stringify({
-        username: 'Google User',
-        email: 'googleuser@example.com',
+        username: userData.username,
+        email: userData.email,
         isAuthenticated: true,
-        onboardingCompleted: true
+        onboardingCompleted: true,
+        referredBy: userData.referredBy
       }));
       
       window.navigateTo('dashboard');
