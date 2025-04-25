@@ -1,0 +1,58 @@
+# GREEN VERSION DEPENDENCY MAP
+
+## CORE FILES (Critical - DO NOT REMOVE)
+- green/src/main.js - Main application entry point
+- green/index.html - HTML entry point
+- green/sidebar.js - Navigation sidebar
+- green/bank-connections.js - Bank connection management
+- green/plaid-link.js - Plaid API integration
+- green/login.js - Authentication
+- green/server.js - Standalone server for GREEN version
+
+## DYNAMICALLY IMPORTED (Required for functionality)
+- green/affiliates-hub.js - Affiliate program management
+- green/blog-page.js - Blog content
+- green/challenges-page.js - Savings challenges
+- green/financial-mascot.js - Financial mascot feature
+- green/futuristic-income.js - Income tracking page
+- green/guardrails.js - Spending limits feature
+- green/landing-new.js - New landing page
+- green/money-mentor.js - Money mentor feature
+- green/onboarding.js - Onboarding flow
+- green/subscriptions.js - Subscription management
+- green/subscription-sniper.js - Subscription tracking
+- green/wellness-page.js - Financial wellness
+
+## UTILITY FILES (Required by other modules)
+- green/utils/security-utils.js - Security utilities
+- green/utils/subscription-utils.js - Subscription utilities
+- green/utils/ui-utils.js - UI utilities
+- green/utils/validation.js - Form validation
+- green/components/toast.js - Toast notifications
+- green/affiliates.js - Affiliate data (used by affiliates-hub)
+- green/blog-data.js - Blog content data
+- green/auth.js - Auth utilities
+
+## RARELY USED / POTENTIAL CANDIDATES FOR ARCHIVAL
+- green/dashboard.js - Dashboard (may be used by main.js directly)
+- green/data-export.js - Data export functionality
+- green/expenses.js - Expenses tracking
+- green/forgot-password.js - Password recovery
+- green/gigs.js - Gigs features
+- green/income.js - Income features (different from futuristic-income)
+- green/landing.js - Old landing page (replaced by landing-new)
+- green/receipt-scanner.js - Receipt scanning feature
+- green/savings-challenges.js - Older savings challenges implementation
+- green/savings-goals.js - Savings goals feature
+- green/wellness-scorecard.js - Wellness scorecard feature
+
+## KNOWN BACKUP FILES (Can be moved to archive)
+- All main.js.* files in green/src/
+- Any *.bak, *.backup, *.old files
+
+## DEPENDENCIES
+- main.js imports sidebar.js
+- main.js imports bank-connections.js
+- bank-connections.js imports plaid-link.js
+- sidebar.js imports bank-connections.js
+- Most other files are dynamically imported via import() calls in main.js
