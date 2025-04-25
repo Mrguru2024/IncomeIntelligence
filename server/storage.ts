@@ -1074,7 +1074,12 @@ export class MemStorage implements IStorage {
     const existingLimits = this.userSpendingLimits.get(userId) || [];
     
     // Add the new limit
-    existingLimits.push(limit);
+    existingLimits.push({
+      id: limit.id,
+      category: limit.category,
+      limit: limit.limit,
+      period: limit.period
+    });
     
     // Save updated limits
     this.userSpendingLimits.set(userId, existingLimits);
