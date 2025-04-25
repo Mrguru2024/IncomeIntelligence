@@ -8,7 +8,7 @@ import {
   calculateWellnessScore,
   getLatestWellnessScorecard,
   shouldGenerateWellnessScorecard
-} from './wellness-scorecard.js';
+} from './personal-financial-assessment-scorecard.js';
 
 /**
  * Render the main personal financial assessment page
@@ -18,14 +18,14 @@ import {
 export async function renderWellnessPage(userId) {
   // Create main container
   const container = document.createElement('div');
-  container.className = 'wellness-page';
+  container.className = 'personal-financial-assessment-page';
   container.style.maxWidth = '1200px';
   container.style.margin = '0 auto';
   container.style.padding = 'var(--container-padding)';
   
   // Add page header
   const header = document.createElement('header');
-  header.className = 'wellness-page-header';
+  header.className = 'personal-financial-assessment-page-header';
   header.style.marginBottom = '2rem';
   header.innerHTML = `
     <h1 style="margin-bottom: 0.5rem; font-size: 2rem; font-weight: 700;">Personal Financial Assessment</h1>
@@ -41,7 +41,7 @@ export async function renderWellnessPage(userId) {
     if (shouldGenerateWellnessScorecard(userId)) {
       // Add loading indicator
       const loadingElement = document.createElement('div');
-      loadingElement.className = 'wellness-loading';
+      loadingElement.className = 'personal-financial-assessment-loading';
       loadingElement.innerHTML = `
         <div class="loading-spinner" style="
           width: 40px;
@@ -56,7 +56,7 @@ export async function renderWellnessPage(userId) {
       `;
       container.appendChild(loadingElement);
       
-      // Calculate new wellness score
+      // Calculate new personal-financial-assessment score
       await calculateWellnessScore(userId);
       
       // Remove loading indicator
@@ -77,7 +77,7 @@ export async function renderWellnessPage(userId) {
     
     // Create error message
     const errorElement = document.createElement('div');
-    errorElement.className = 'wellness-error';
+    errorElement.className = 'personal-financial-assessment-error';
     errorElement.style.textAlign = 'center';
     errorElement.style.padding = '2rem';
     errorElement.style.maxWidth = '600px';
@@ -112,7 +112,7 @@ export async function renderWellnessPage(userId) {
       try {
         // Add loading indicator
         const loadingElement = document.createElement('div');
-        loadingElement.className = 'wellness-loading';
+        loadingElement.className = 'personal-financial-assessment-loading';
         loadingElement.innerHTML = `
           <div class="loading-spinner" style="
             width: 40px;
@@ -157,7 +157,7 @@ export async function renderWellnessPage(userId) {
  */
 function createExplanationSection() {
   const section = document.createElement('section');
-  section.className = 'wellness-explanation';
+  section.className = 'personal-financial-assessment-explanation';
   section.style.marginTop = '3rem';
   section.style.padding = '2rem';
   section.style.background = 'var(--color-card-background)';

@@ -29,7 +29,7 @@ const SCORE_RANGES = [
 ];
 
 /**
- * Calculate a user's financial wellness score
+ * Calculate a user's financial personal financial assessment score
  * @param {string} userId - User ID
  * @returns {Promise<Object>} - Complete scorecard data
  */
@@ -83,7 +83,7 @@ export async function calculateWellnessScore(userId) {
     
     return scorecard;
   } catch (error) {
-    console.log('Error calculating wellness score:', error);
+    console.log('Error calculating personal financial assessment score:', error);
     // Return a minimal scorecard in case of error
     return {
       userId,
@@ -93,7 +93,7 @@ export async function calculateWellnessScore(userId) {
       recommendations: [
         {
           category: 'System',
-          text: 'We encountered an issue calculating your wellness score. Please try again later.',
+          text: 'We encountered an issue calculating your personal financial assessment score. Please try again later.',
           priority: 'high'
         }
       ],
@@ -955,14 +955,14 @@ function generateInsights(userData, categoryScores) {
 }
 
 /**
- * Save wellness scorecard for a user
+ * Save personal financial assessment scorecard for a user
  * @param {string} userId - User ID
  * @param {Object} scorecard - Wellness scorecard data
  */
 function saveWellnessScorecard(userId, scorecard) {
   try {
     // Get existing scorecards from localStorage
-    const existingDataStr = localStorage.getItem('wellness-scorecards') || '{}';
+    const existingDataStr = localStorage.getItem('personal-financial-assessments') || '{}';
     const existingData = JSON.parse(existingDataStr);
     
     // Add/update this user's scorecard
@@ -977,10 +977,10 @@ function saveWellnessScorecard(userId, scorecard) {
     }
     
     // Save back to localStorage
-    localStorage.setItem('wellness-scorecards', JSON.stringify(existingData));
+    localStorage.setItem('personal-financial-assessments', JSON.stringify(existingData));
     
   } catch (error) {
-    console.log('Error saving wellness scorecard:', error);
+    console.log('Error saving personal financial assessment scorecard:', error);
   }
 }
 
@@ -996,11 +996,11 @@ function notifyUserAboutScorecard(userId, scorecard) {
     let message = '';
     
     if (scorecard.overallScore >= 80) {
-      message = `Great job! Your financial wellness score is ${scorecard.overallScore}. You're making excellent financial choices.`;
+      message = `Great job! Your financial personal financial assessment score is ${scorecard.overallScore}. You're making excellent financial choices.`;
     } else if (scorecard.overallScore >= 60) {
-      message = `Your financial wellness score is ${scorecard.overallScore}. You've made good progress with some areas for improvement.`;
+      message = `Your financial personal financial assessment score is ${scorecard.overallScore}. You've made good progress with some areas for improvement.`;
     } else {
-      message = `Your financial wellness score is ${scorecard.overallScore}. Check your assessment for important recommendations.`;
+      message = `Your financial personal financial assessment score is ${scorecard.overallScore}. Check your assessment for important recommendations.`;
     }
     
     // Add notification with specific type identifier
@@ -1022,28 +1022,28 @@ function notifyUserAboutScorecard(userId, scorecard) {
 }
 
 /**
- * Get saved wellness scorecards for a user
+ * Get saved personal financial assessment scorecards for a user
  * @param {string} userId - User ID
  * @returns {Array} - Array of user's scorecards, newest first
  */
 export function getUserWellnessScorecard(userId) {
   try {
     // Get scorecards from localStorage
-    const existingDataStr = localStorage.getItem('wellness-scorecards') || '{}';
+    const existingDataStr = localStorage.getItem('personal-financial-assessments') || '{}';
     const existingData = JSON.parse(existingDataStr);
     
     // Return this user's scorecards or empty array
     return existingData[userId] || [];
   } catch (error) {
-    console.log('Error getting wellness scorecards:', error);
+    console.log('Error getting personal financial assessment scorecards:', error);
     return [];
   }
 }
 
 /**
- * Get the latest wellness scorecard for a user
+ * Get the latest personal financial assessment scorecard for a user
  * @param {string} userId - User ID
- * @returns {Object|null} - Latest wellness scorecard or null
+ * @returns {Object|null} - Latest personal financial assessment scorecard or null
  */
 export function getLatestWellnessScorecard(userId) {
   const scorecards = getUserWellnessScorecard(userId);
@@ -1051,7 +1051,7 @@ export function getLatestWellnessScorecard(userId) {
 }
 
 /**
- * Check if it's time to generate a new wellness scorecard
+ * Check if it's time to generate a new personal financial assessment scorecard
  * @param {string} userId - User ID
  * @returns {boolean} - True if it's time for a new scorecard
  */
@@ -1073,18 +1073,18 @@ export function shouldGenerateWellnessScorecard(userId) {
 }
 
 /**
- * Render the wellness scorecard page
+ * Render the personal financial assessment scorecard page
  * @param {string} userId - User ID
  * @returns {HTMLElement} - The scorecard page element
  */
 export async function renderWellnessScorecardPage(userId) {
   // Container for the entire page
   const container = document.createElement('div');
-  container.className = 'wellness-scorecard-page';
+  container.className = 'personal-financial-assessment-page';
   
   // Create loading state
   const loadingElement = document.createElement('div');
-  loadingElement.className = 'wellness-scorecard-loading';
+  loadingElement.className = 'personal-financial-assessment-loading';
   loadingElement.innerHTML = `
     <div class="loading-spinner"></div>
     <p>Calculating your personal financial assessment...</p>
@@ -1118,7 +1118,7 @@ export async function renderWellnessScorecardPage(userId) {
     
     // Create error message
     const errorElement = document.createElement('div');
-    errorElement.className = 'wellness-scorecard-error';
+    errorElement.className = 'personal-financial-assessment-error';
     errorElement.innerHTML = `
       <h2>Unable to Load Personal Financial Assessment</h2>
       <p>We encountered an issue while calculating your personal financial assessment. Please try again later.</p>
@@ -1161,11 +1161,11 @@ export async function renderWellnessScorecardPage(userId) {
  */
 function createScorecardContent(scorecard) {
   const content = document.createElement('div');
-  content.className = 'wellness-scorecard-content';
+  content.className = 'personal-financial-assessment-content';
   
   // Add header
   const header = document.createElement('header');
-  header.className = 'wellness-scorecard-header';
+  header.className = 'personal-financial-assessment-header';
   header.innerHTML = `
     <h1>Personal Financial Assessment</h1>
     <p class="scorecard-date">Generated on ${new Date(scorecard.generatedAt).toLocaleDateString('en-US', { 
@@ -1306,7 +1306,7 @@ function createScorecardContent(scorecard) {
       parentElement.removeChild(content);
       
       const loadingElement = document.createElement('div');
-      loadingElement.className = 'wellness-scorecard-loading';
+      loadingElement.className = 'personal-financial-assessment-loading';
       loadingElement.innerHTML = `
         <div class="loading-spinner"></div>
         <p>Recalculating your personal financial assessment...</p>
@@ -1333,22 +1333,22 @@ function createScorecardContent(scorecard) {
   return content;
 }
 
-// Add stylesheet for the wellness scorecard
+// Add stylesheet for the personal financial assessment scorecard
 function addScorecardStyles() {
   // Check if stylesheet already exists
-  if (document.getElementById('wellness-scorecard-styles')) return;
+  if (document.getElementById('personal-financial-assessment-styles')) return;
   
   const styleSheet = document.createElement('style');
-  styleSheet.id = 'wellness-scorecard-styles';
+  styleSheet.id = 'personal-financial-assessment-styles';
   
   styleSheet.textContent = `
-    .wellness-scorecard-page {
+    .personal-financial-assessment-page {
       max-width: 1000px;
       margin: 0 auto;
       padding: var(--container-padding);
     }
     
-    .wellness-scorecard-loading {
+    .personal-financial-assessment-loading {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1370,7 +1370,7 @@ function addScorecardStyles() {
       to { transform: rotate(360deg); }
     }
     
-    .wellness-scorecard-error {
+    .personal-financial-assessment-error {
       text-align: center;
       padding: 2rem;
       background: var(--color-card-background);
@@ -1389,12 +1389,12 @@ function addScorecardStyles() {
       font-weight: 500;
     }
     
-    .wellness-scorecard-header {
+    .personal-financial-assessment-header {
       text-align: center;
       margin-bottom: 2rem;
     }
     
-    .wellness-scorecard-header h1 {
+    .personal-financial-assessment-header h1 {
       margin-bottom: 0.5rem;
       background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary, #6366f1) 100%);
       -webkit-background-clip: text;
