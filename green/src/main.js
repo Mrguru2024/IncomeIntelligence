@@ -3754,62 +3754,107 @@ function renderPageContent(container) {
   }
   
   // Initialize notification system for authenticated users
-  if (appState.user.isAuthenticated && 
+  if (appState.user && appState.user.isAuthenticated && 
       !['login', 'register', 'landing'].includes(appState.currentPage)) {
     
-    // Import and initialize notification system
-    import('../notification-ui.js').then(module => {
-      // Initialize notification UI
-      module.initNotificationUI(appState);
+    try {
+      // Create backup ID for safety
+      const userId = appState.user.id || `user-${Date.now()}`;
       
-      // Also check for financial summaries on page load
-      import('../financial-summary.js').then(summaryModule => {
-        // Check if it's time for weekly or monthly summary
-        if (shouldGenerateWeeklySummary(appState.user.id)) {
-          const generateWeeklySummary = summaryModule.scheduleWeeklySummary(appState.user.id);
-          generateWeeklySummary();
+      // Import and initialize notification system with error handling
+      import('../notification-ui.js').then(module => {
+        try {
+          // Set up a safe version of the app state with all required properties
+          const safeAppState = {
+            ...appState,
+            user: {
+              ...appState.user,
+              id: userId
+            },
+            userData: appState.userData || {}
+          };
           
-          // Save last summary time
-          saveLastSummaryTime(appState.user.id, 'weekly');
-        }
-        
-        if (shouldGenerateMonthlySummary(appState.user.id)) {
-          const generateMonthlySummary = summaryModule.scheduleMonthlySummary(appState.user.id);
-          generateMonthlySummary();
+          // Initialize notification UI with safety wrapping
+          module.initNotificationUI(safeAppState);
           
-          // Save last summary time
-          saveLastSummaryTime(appState.user.id, 'monthly');
+          // Financial summaries handling with try/catch
+          try {
+            import('../financial-summary.js').then(summaryModule => {
+              try {
+                // Check if it's time for weekly or monthly summary
+                if (shouldGenerateWeeklySummary(userId)) {
+                  const generateWeeklySummary = summaryModule.scheduleWeeklySummary(userId);
+                  generateWeeklySummary();
+                  
+                  // Save last summary time
+                  saveLastSummaryTime(userId, 'weekly');
+                }
+                
+                if (shouldGenerateMonthlySummary(userId)) {
+                  const generateMonthlySummary = summaryModule.scheduleMonthlySummary(userId);
+                  generateMonthlySummary();
+                  
+                  // Save last summary time
+                  saveLastSummaryTime(userId, 'monthly');
+                }
+              } catch (summaryError) {
+                console.log('Financial summary generation error:', summaryError);
+              }
+            }).catch(error => {
+              console.log('Financial summary module error:', error);
+            });
+          } catch (fsModuleError) {
+            console.log('Financial summary module import error:', fsModuleError);
+          }
+          
+          // Achievements handling with try/catch
+          try {
+            import('../achievement-service.js').then(achieveModule => {
+              try {
+                achieveModule.checkAchievements(userId, safeAppState.userData);
+                achieveModule.updateLoginStreak(userId);
+              } catch (achieveError) {
+                console.log('Achievement checking error:', achieveError);
+              }
+            }).catch(error => {
+              console.log('Achievement module error:', error);
+            });
+          } catch (achieveModuleError) {
+            console.log('Achievement module import error:', achieveModuleError);
+          }
+          
+          // Guardrails checking with try/catch
+          try {
+            if (safeAppState.userData && safeAppState.userData.spendingLimits &&
+                Array.isArray(safeAppState.userData.spendingLimits) &&
+                safeAppState.userData.spendingLimits.length > 0) {
+              
+              import('../guardrails-notifications.js').then(guardrailsModule => {
+                try {
+                  // Check all spending categories against limits
+                  guardrailsModule.checkAllSpendingLimits(
+                    userId, 
+                    safeAppState.userData.spendingLimits
+                  );
+                } catch (guardError) {
+                  console.log('Guardrails checking error:', guardError);
+                }
+              }).catch(error => {
+                console.log('Guardrails module error:', error);
+              });
+            }
+          } catch (guardrailsModuleError) {
+            console.log('Guardrails module import error:', guardrailsModuleError);
+          }
+        } catch (notifError) {
+          console.log('Notification initialization error:', notifError);
         }
       }).catch(error => {
-        console.error('Error checking financial summaries:', error);
+        console.log('Notification UI module error:', error);
       });
-      
-      // Check for achievements
-      import('../achievement-service.js').then(achieveModule => {
-        achieveModule.checkAchievements(appState.user.id, appState.userData);
-        achieveModule.updateLoginStreak(appState.user.id);
-      }).catch(error => {
-        console.error('Error checking achievements:', error);
-      });
-      
-      // Check spending against guardrails limits
-      if (appState.userData && appState.userData.spendingLimits &&
-          Array.isArray(appState.userData.spendingLimits) &&
-          appState.userData.spendingLimits.length > 0) {
-        
-        import('../guardrails-notifications.js').then(guardrailsModule => {
-          // Check all spending categories against limits
-          guardrailsModule.checkAllSpendingLimits(
-            appState.user.id, 
-            appState.userData.spendingLimits
-          );
-        }).catch(error => {
-          console.error('Error checking guardrails limits:', error);
-        });
-      }
-    }).catch(error => {
-      console.error('Error initializing notification system:', error);
-    });
+    } catch (outerError) {
+      console.log('Notification system setup error:', outerError);
+    }
   }
   
   // Initialize financial mascot for authenticated users on relevant pages
