@@ -720,17 +720,27 @@ export function renderMembershipUpgradePage(containerId = 'app', preselectedTier
     e.stopPropagation();
     console.log('Close button clicked - redirecting to dashboard');
     
-    // Try this more direct approach
-    if (isAuthenticated()) {
-      try {
-        window.location = window.location.origin + window.location.pathname + '#dashboard';
-        // Force a reload
-        setTimeout(() => {
-          window.location.reload();
-        }, 50);
-      } catch (err) {
-        console.error('Error redirecting:', err);
+    // Create a close button that works with the app's navigation system
+    try {
+      // First trigger a hashchange event
+      window.location.hash = '#dashboard';
+      
+      // Also manually dispatch a popstate event to ensure the app handles it
+      const popStateEvent = new PopStateEvent('popstate', {
+        bubbles: true,
+        cancelable: true,
+        state: { page: 'dashboard' }
+      });
+      window.dispatchEvent(popStateEvent);
+      
+      // Fallback - try to reload the page if needed
+      if (document.getElementById('app').innerHTML.includes('Stackr Finance Membership')) {
+        setTimeout(() => window.location.reload(), 100);
       }
+    } catch (err) {
+      console.error('Error navigating:', err);
+      // Last resort fallback
+      window.location.href = window.location.origin + window.location.pathname + '#dashboard';
     }
   });
   pageContainer.appendChild(closeButton);
@@ -999,6 +1009,24 @@ export function showUpgradeModal(tierId = 'pro', billingInterval = 'monthly') {
   closeButton.style.cursor = 'pointer';
   closeButton.addEventListener('click', () => {
     document.body.removeChild(overlay);
+    
+    // If the user is authenticated, try to trigger navigation to dashboard
+    if (isAuthenticated()) {
+      try {
+        // First trigger a hashchange event
+        window.location.hash = '#dashboard';
+        
+        // Also manually dispatch a popstate event to ensure the app handles it
+        const popStateEvent = new PopStateEvent('popstate', {
+          bubbles: true,
+          cancelable: true,
+          state: { page: 'dashboard' }
+        });
+        window.dispatchEvent(popStateEvent);
+      } catch (err) {
+        console.error('Error navigating from modal:', err);
+      }
+    }
   });
   modal.appendChild(closeButton);
   
