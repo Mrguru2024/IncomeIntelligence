@@ -2112,81 +2112,434 @@ function renderGigsPage() {
   container.appendChild(heading);
   
   const description = document.createElement('p');
-  description.textContent = 'Find opportunities to earn extra income with these gig options:';
+  description.textContent = 'Find opportunities to earn extra income with these gig platforms and resources:';
   container.appendChild(description);
   
-  // List of gig categories in cards
-  const gigCategories = [
-    {
-      title: 'Freelance Services',
-      description: 'Offer your professional skills on platforms like Upwork, Fiverr or Freelancer.',
-      color: '#34A853'
-    },
-    {
-      title: 'Affiliate Marketing',
-      description: 'Earn commission by promoting products you love through affiliate programs.',
-      color: '#4285F4'
-    },
-    {
-      title: 'Content Creation',
-      description: 'Create and monetize blogs, videos, podcasts or other digital content.',
-      color: '#FBBC05'
-    },
-    {
-      title: 'Sell Digital Products',
-      description: 'Create and sell e-books, courses, templates, or digital art.',
-      color: '#EA4335'
-    },
-    {
-      title: 'Local Services',
-      description: 'Offer services in your community like tutoring, pet sitting, or handyman work.',
-      color: '#34A853'
+  // Loading state
+  const loadingIndicator = document.createElement('div');
+  loadingIndicator.className = 'loading-indicator';
+  loadingIndicator.innerHTML = `
+    <div class="loading-spinner" style="display: flex; justify-content: center; margin: 40px 0;">
+      <svg width="40" height="40" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <style>.spinner_OSmW{transform-origin:center;animation:spinner_T6mA .75s step-end infinite}@keyframes spinner_T6mA{8.3%{transform:rotate(30deg)}16.6%{transform:rotate(60deg)}25%{transform:rotate(90deg)}33.3%{transform:rotate(120deg)}41.6%{transform:rotate(150deg)}50%{transform:rotate(180deg)}58.3%{transform:rotate(210deg)}66.6%{transform:rotate(240deg)}75%{transform:rotate(270deg)}83.3%{transform:rotate(300deg)}91.6%{transform:rotate(330deg)}100%{transform:rotate(360deg)}}</style>
+        <g class="spinner_OSmW"><circle cx="12" cy="2.5" r="1.5" fill="#34A853"/><circle cx="16.5" cy="4" r="1.5" fill="#34A853" opacity=".8"/><circle cx="19.5" cy="7.5" r="1.5" fill="#34A853" opacity=".7"/><circle cx="20.5" cy="12" r="1.5" fill="#34A853" opacity=".6"/><circle cx="19.5" cy="16.5" r="1.5" fill="#34A853" opacity=".5"/><circle cx="16.5" cy="19.5" r="1.5" fill="#34A853" opacity=".4"/><circle cx="12" cy="20.5" r="1.5" fill="#34A853" opacity=".3"/><circle cx="7.5" cy="19.5" r="1.5" fill="#34A853" opacity=".3"/><circle cx="4" cy="16.5" r="1.5" fill="#34A853" opacity=".3"/><circle cx="2.5" cy="12" r="1.5" fill="#34A853" opacity=".3"/><circle cx="4" cy="7.5" r="1.5" fill="#34A853" opacity=".4"/><circle cx="7.5" cy="4" r="1.5" fill="#34A853" opacity=".5"/></g>
+      </svg>
+    </div>
+    <p style="text-align: center; color: #666;">Loading gig resources...</p>
+  `;
+  container.appendChild(loadingIndicator);
+  
+  // Dynamically import the gig-resources module
+  import('../gig-resources.js').then(module => {
+    // Remove loading indicator
+    loadingIndicator.remove();
+    
+    // Get categories from the module
+    const gigCategories = module.gigCategories;
+    
+    // Create category tabs
+    const tabsContainer = document.createElement('div');
+    tabsContainer.className = 'category-tabs';
+    tabsContainer.style.display = 'flex';
+    tabsContainer.style.overflowX = 'auto';
+    tabsContainer.style.padding = '10px 0';
+    tabsContainer.style.marginBottom = '20px';
+    
+    // Add "All Categories" tab
+    const allCategoriesTab = document.createElement('button');
+    allCategoriesTab.textContent = 'All Categories';
+    allCategoriesTab.className = 'active-tab';
+    allCategoriesTab.style.padding = '8px 16px';
+    allCategoriesTab.style.marginRight = '10px';
+    allCategoriesTab.style.border = 'none';
+    allCategoriesTab.style.borderRadius = '4px';
+    allCategoriesTab.style.backgroundColor = '#34A853';
+    allCategoriesTab.style.color = 'white';
+    allCategoriesTab.style.fontWeight = 'bold';
+    allCategoriesTab.style.cursor = 'pointer';
+    allCategoriesTab.dataset.categoryId = 'all';
+    tabsContainer.appendChild(allCategoriesTab);
+    
+    // Add tab for each category
+    gigCategories.forEach(category => {
+      const tab = document.createElement('button');
+      tab.textContent = category.name;
+      tab.style.padding = '8px 16px';
+      tab.style.marginRight = '10px';
+      tab.style.border = 'none';
+      tab.style.borderRadius = '4px';
+      tab.style.backgroundColor = '#f0f0f0';
+      tab.style.color = '#333';
+      tab.style.cursor = 'pointer';
+      tab.dataset.categoryId = category.id;
+      tabsContainer.appendChild(tab);
+    });
+    
+    container.appendChild(tabsContainer);
+    
+    // Content container
+    const contentContainer = document.createElement('div');
+    contentContainer.id = 'gig-content-container';
+    container.appendChild(contentContainer);
+    
+    // Function to display all categories
+    function displayAllCategories() {
+      contentContainer.innerHTML = '';
+      
+      // Beginner-friendly platforms section
+      const beginnerSection = document.createElement('div');
+      beginnerSection.className = 'beginner-section';
+      beginnerSection.style.marginBottom = '40px';
+      
+      const beginnerTitle = document.createElement('h3');
+      beginnerTitle.textContent = 'Beginner-Friendly Platforms';
+      beginnerTitle.style.fontSize = '20px';
+      beginnerTitle.style.marginBottom = '16px';
+      beginnerSection.appendChild(beginnerTitle);
+      
+      // Grid for beginner-friendly platforms
+      const beginnerGrid = document.createElement('div');
+      beginnerGrid.style.display = 'grid';
+      beginnerGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+      beginnerGrid.style.gap = '20px';
+      
+      const beginnerPlatforms = module.getBeginnerFriendlyPlatforms().slice(0, 6);
+      beginnerPlatforms.forEach(platform => {
+        beginnerGrid.appendChild(createPlatformCard(platform));
+      });
+      
+      beginnerSection.appendChild(beginnerGrid);
+      contentContainer.appendChild(beginnerSection);
+      
+      // Display each category with limited items
+      gigCategories.forEach(category => {
+        const categorySection = document.createElement('div');
+        categorySection.className = 'category-section';
+        categorySection.style.marginBottom = '40px';
+        
+        const sectionHeader = document.createElement('div');
+        sectionHeader.style.display = 'flex';
+        sectionHeader.style.justifyContent = 'space-between';
+        sectionHeader.style.alignItems = 'center';
+        sectionHeader.style.marginBottom = '16px';
+        
+        const categoryTitle = document.createElement('h3');
+        categoryTitle.textContent = category.name;
+        categoryTitle.style.fontSize = '20px';
+        categoryTitle.style.margin = '0';
+        sectionHeader.appendChild(categoryTitle);
+        
+        const viewAllLink = document.createElement('a');
+        viewAllLink.textContent = 'View all';
+        viewAllLink.href = '#';
+        viewAllLink.style.color = '#34A853';
+        viewAllLink.style.fontWeight = 'medium';
+        viewAllLink.dataset.category = category.id;
+        viewAllLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          displayCategory(category.id);
+          
+          // Update active tab
+          document.querySelectorAll('.category-tabs button').forEach(btn => {
+            btn.style.backgroundColor = '#f0f0f0';
+            btn.style.color = '#333';
+            btn.className = '';
+          });
+          
+          const categoryTab = document.querySelector(`.category-tabs button[data-category-id="${category.id}"]`);
+          if (categoryTab) {
+            categoryTab.style.backgroundColor = '#34A853';
+            categoryTab.style.color = 'white';
+            categoryTab.className = 'active-tab';
+          }
+        });
+        sectionHeader.appendChild(viewAllLink);
+        
+        categorySection.appendChild(sectionHeader);
+        
+        const categoryDesc = document.createElement('p');
+        categoryDesc.textContent = category.description;
+        categoryDesc.style.marginBottom = '16px';
+        categorySection.appendChild(categoryDesc);
+        
+        // Grid for platforms
+        const platformsGrid = document.createElement('div');
+        platformsGrid.style.display = 'grid';
+        platformsGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+        platformsGrid.style.gap = '20px';
+        
+        category.platforms.slice(0, 3).forEach(platform => {
+          platformsGrid.appendChild(createPlatformCard({...platform, category: category.name}));
+        });
+        
+        categorySection.appendChild(platformsGrid);
+        contentContainer.appendChild(categorySection);
+      });
+      
+      // Add resources section
+      const resourcesSection = document.createElement('div');
+      resourcesSection.className = 'resources-section';
+      resourcesSection.style.marginBottom = '40px';
+      
+      const resourcesTitle = document.createElement('h3');
+      resourcesTitle.textContent = 'Learning Resources';
+      resourcesTitle.style.fontSize = '20px';
+      resourcesTitle.style.marginBottom = '16px';
+      resourcesSection.appendChild(resourcesTitle);
+      
+      // Grid for resources
+      const resourcesGrid = document.createElement('div');
+      resourcesGrid.style.display = 'grid';
+      resourcesGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+      resourcesGrid.style.gap = '20px';
+      
+      module.getAllGigResources().slice(0, 6).forEach(resource => {
+        resourcesGrid.appendChild(createResourceCard(resource));
+      });
+      
+      resourcesSection.appendChild(resourcesGrid);
+      contentContainer.appendChild(resourcesSection);
     }
-  ];
-  
-  const gigGrid = document.createElement('div');
-  gigGrid.style.display = 'grid';
-  gigGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
-  gigGrid.style.gap = '20px';
-  gigGrid.style.marginTop = '20px';
-  
-  gigCategories.forEach(gig => {
-    const gigCard = document.createElement('div');
-    gigCard.style.backgroundColor = '#f5f5f5';
-    gigCard.style.borderRadius = '8px';
-    gigCard.style.overflow = 'hidden';
-    gigCard.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
     
-    // Color accent at the top
-    const colorBar = document.createElement('div');
-    colorBar.style.height = '8px';
-    colorBar.style.backgroundColor = gig.color;
-    gigCard.appendChild(colorBar);
+    // Function to display a specific category
+    function displayCategory(categoryId) {
+      const category = module.getGigCategoryById(categoryId);
+      if (!category) return;
+      
+      contentContainer.innerHTML = '';
+      
+      const categoryHeader = document.createElement('div');
+      categoryHeader.style.marginBottom = '20px';
+      
+      const categoryTitle = document.createElement('h3');
+      categoryTitle.textContent = category.name;
+      categoryTitle.style.fontSize = '20px';
+      categoryTitle.style.marginBottom = '8px';
+      categoryHeader.appendChild(categoryTitle);
+      
+      const categoryDesc = document.createElement('p');
+      categoryDesc.textContent = category.description;
+      categoryHeader.appendChild(categoryDesc);
+      
+      contentContainer.appendChild(categoryHeader);
+      
+      // Platforms section
+      const platformsSection = document.createElement('div');
+      platformsSection.style.marginBottom = '30px';
+      
+      const platformsTitle = document.createElement('h4');
+      platformsTitle.textContent = 'Available Platforms';
+      platformsTitle.style.fontSize = '18px';
+      platformsTitle.style.marginBottom = '16px';
+      platformsSection.appendChild(platformsTitle);
+      
+      // Grid for platforms
+      const platformsGrid = document.createElement('div');
+      platformsGrid.style.display = 'grid';
+      platformsGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+      platformsGrid.style.gap = '20px';
+      
+      category.platforms.forEach(platform => {
+        platformsGrid.appendChild(createPlatformCard({...platform, category: category.name}));
+      });
+      
+      platformsSection.appendChild(platformsGrid);
+      contentContainer.appendChild(platformsSection);
+      
+      // Resources section (if available)
+      if (category.resources && category.resources.length > 0) {
+        const resourcesSection = document.createElement('div');
+        
+        const resourcesTitle = document.createElement('h4');
+        resourcesTitle.textContent = 'Learning Resources';
+        resourcesTitle.style.fontSize = '18px';
+        resourcesTitle.style.marginBottom = '16px';
+        resourcesSection.appendChild(resourcesTitle);
+        
+        // Grid for resources
+        const resourcesGrid = document.createElement('div');
+        resourcesGrid.style.display = 'grid';
+        resourcesGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+        resourcesGrid.style.gap = '20px';
+        
+        category.resources.forEach(resource => {
+          resourcesGrid.appendChild(createResourceCard({...resource, category: category.name}));
+        });
+        
+        resourcesSection.appendChild(resourcesGrid);
+        contentContainer.appendChild(resourcesSection);
+      }
+    }
     
-    const content = document.createElement('div');
-    content.style.padding = '20px';
+    // Add event listeners to tabs
+    tabsContainer.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') {
+        // Update active tab
+        tabsContainer.querySelectorAll('button').forEach(btn => {
+          btn.style.backgroundColor = '#f0f0f0';
+          btn.style.color = '#333';
+          btn.className = '';
+        });
+        
+        e.target.style.backgroundColor = '#34A853';
+        e.target.style.color = 'white';
+        e.target.className = 'active-tab';
+        
+        // Display appropriate content
+        const categoryId = e.target.dataset.categoryId;
+        if (categoryId === 'all') {
+          displayAllCategories();
+        } else {
+          displayCategory(categoryId);
+        }
+      }
+    });
     
-    const title = document.createElement('h3');
-    title.textContent = gig.title;
-    title.style.marginTop = '0';
-    title.style.color = gig.color;
-    content.appendChild(title);
+    // Initially display all categories
+    displayAllCategories();
     
-    const desc = document.createElement('p');
-    desc.textContent = gig.description;
-    content.appendChild(desc);
+    // Add search functionality
+    const searchContainer = document.createElement('div');
+    searchContainer.style.marginBottom = '24px';
     
-    const exploreBtn = createButton('Explore', null, gig.color);
-    exploreBtn.style.marginTop = '10px';
-    content.appendChild(exploreBtn);
+    const searchForm = document.createElement('form');
+    searchForm.style.display = 'flex';
+    searchForm.style.position = 'relative';
     
-    gigCard.appendChild(content);
-    gigGrid.appendChild(gigCard);
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Search for gig platforms...';
+    searchInput.style.width = '100%';
+    searchInput.style.padding = '12px 16px';
+    searchInput.style.paddingRight = '48px';
+    searchInput.style.borderRadius = '4px';
+    searchInput.style.border = '1px solid #ccc';
+    searchInput.style.fontSize = '16px';
+    
+    const searchButton = document.createElement('button');
+    searchButton.type = 'submit';
+    searchButton.style.position = 'absolute';
+    searchButton.style.right = '12px';
+    searchButton.style.top = '50%';
+    searchButton.style.transform = 'translateY(-50%)';
+    searchButton.style.background = 'none';
+    searchButton.style.border = 'none';
+    searchButton.style.cursor = 'pointer';
+    searchButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
+    
+    searchForm.appendChild(searchInput);
+    searchForm.appendChild(searchButton);
+    searchContainer.appendChild(searchForm);
+    
+    // Insert search at the top, below description
+    container.insertBefore(searchContainer, container.childNodes[2]);
+    
+    // Handle search submission
+    searchForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const query = searchInput.value.trim();
+      
+      if (query === '') return;
+      
+      // Reset tabs
+      tabsContainer.querySelectorAll('button').forEach(btn => {
+        btn.style.backgroundColor = '#f0f0f0';
+        btn.style.color = '#333';
+        btn.className = '';
+      });
+      
+      // Display search results
+      contentContainer.innerHTML = '';
+      
+      const resultsHeader = document.createElement('div');
+      resultsHeader.style.marginBottom = '20px';
+      
+      const resultsTitle = document.createElement('h3');
+      resultsTitle.textContent = `Search Results for "${query}"`;
+      resultsTitle.style.fontSize = '20px';
+      resultsTitle.style.marginBottom = '8px';
+      resultsHeader.appendChild(resultsTitle);
+      
+      const results = module.searchGigPlatforms(query);
+      
+      const resultsCount = document.createElement('p');
+      resultsCount.textContent = `Found ${results.length} platforms`;
+      resultsHeader.appendChild(resultsCount);
+      
+      contentContainer.appendChild(resultsHeader);
+      
+      if (results.length === 0) {
+        const noResults = document.createElement('div');
+        noResults.style.textAlign = 'center';
+        noResults.style.padding = '40px 0';
+        
+        const noResultsIcon = document.createElement('div');
+        noResultsIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
+        noResultsIcon.style.marginBottom = '16px';
+        noResults.appendChild(noResultsIcon);
+        
+        const noResultsTitle = document.createElement('h4');
+        noResultsTitle.textContent = 'No results found';
+        noResultsTitle.style.fontSize = '18px';
+        noResultsTitle.style.marginBottom = '8px';
+        noResults.appendChild(noResultsTitle);
+        
+        const noResultsText = document.createElement('p');
+        noResultsText.textContent = 'Try different keywords or browse by category';
+        noResultsText.style.color = '#666';
+        noResults.appendChild(noResultsText);
+        
+        contentContainer.appendChild(noResults);
+      } else {
+        // Grid for results
+        const resultsGrid = document.createElement('div');
+        resultsGrid.style.display = 'grid';
+        resultsGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+        resultsGrid.style.gap = '20px';
+        
+        results.forEach(platform => {
+          resultsGrid.appendChild(createPlatformCard(platform));
+        });
+        
+        contentContainer.appendChild(resultsGrid);
+      }
+    });
+  }).catch(error => {
+    // Remove loading indicator
+    loadingIndicator.remove();
+    
+    // Show error message
+    const errorMsg = document.createElement('div');
+    errorMsg.style.textAlign = 'center';
+    errorMsg.style.padding = '40px 20px';
+    errorMsg.style.backgroundColor = '#ffebee';
+    errorMsg.style.color = '#d32f2f';
+    errorMsg.style.borderRadius = '8px';
+    errorMsg.style.marginTop = '20px';
+    
+    const errorIcon = document.createElement('div');
+    errorIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+    errorMsg.appendChild(errorIcon);
+    
+    const errorTitle = document.createElement('h3');
+    errorTitle.textContent = 'Failed to load gig resources';
+    errorTitle.style.marginTop = '16px';
+    errorMsg.appendChild(errorTitle);
+    
+    const errorDesc = document.createElement('p');
+    errorDesc.textContent = `Error: ${error.message}. Please try again later.`;
+    errorMsg.appendChild(errorDesc);
+    
+    const retryBtn = createButton('Retry', () => {
+      window.location.reload();
+    });
+    errorMsg.appendChild(retryBtn);
+    
+    container.appendChild(errorMsg);
+    console.error('Error loading gig resources:', error);
   });
   
-  container.appendChild(gigGrid);
-  
-  // Income Generation Program Highlight
+  // Income Generation Program Highlight (still show this while loading)
   const programHighlight = document.createElement('div');
   programHighlight.style.backgroundColor = '#34A853';
   programHighlight.style.color = 'white';
@@ -2216,6 +2569,197 @@ function renderGigsPage() {
   container.appendChild(programHighlight);
   
   return container;
+}
+
+// Helper function to create platform cards
+function createPlatformCard(platform) {
+  const card = document.createElement('div');
+  card.style.backgroundColor = 'white';
+  card.style.borderRadius = '8px';
+  card.style.overflow = 'hidden';
+  card.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+  card.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+  
+  // Hover effect
+  card.addEventListener('mouseover', () => {
+    card.style.transform = 'translateY(-5px)';
+    card.style.boxShadow = '0 8px 15px rgba(0,0,0,0.15)';
+  });
+  
+  card.addEventListener('mouseout', () => {
+    card.style.transform = 'translateY(0)';
+    card.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+  });
+  
+  const cardContent = document.createElement('div');
+  cardContent.style.padding = '20px';
+  
+  // Header with title and optional badge
+  const header = document.createElement('div');
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'flex-start';
+  header.style.marginBottom = '12px';
+  
+  const title = document.createElement('h4');
+  title.textContent = platform.name;
+  title.style.margin = '0';
+  title.style.fontSize = '18px';
+  title.style.fontWeight = 'bold';
+  title.style.color = '#34A853';
+  header.appendChild(title);
+  
+  if (platform.beginner_friendly) {
+    const badge = document.createElement('span');
+    badge.textContent = 'Beginner Friendly';
+    badge.style.fontSize = '11px';
+    badge.style.padding = '4px 8px';
+    badge.style.backgroundColor = '#e8f5e9';
+    badge.style.color = '#2e7d32';
+    badge.style.borderRadius = '12px';
+    badge.style.fontWeight = 'medium';
+    header.appendChild(badge);
+  }
+  
+  cardContent.appendChild(header);
+  
+  // Category if available
+  if (platform.category) {
+    const category = document.createElement('div');
+    category.textContent = platform.category;
+    category.style.fontSize = '14px';
+    category.style.color = '#666';
+    category.style.marginBottom = '8px';
+    cardContent.appendChild(category);
+  }
+  
+  // Description
+  const description = document.createElement('p');
+  description.textContent = platform.description;
+  description.style.marginBottom = '16px';
+  description.style.color = '#333';
+  cardContent.appendChild(description);
+  
+  // Button
+  const button = document.createElement('a');
+  button.href = platform.url;
+  button.target = '_blank';
+  button.rel = 'noopener noreferrer';
+  button.textContent = 'Visit Platform';
+  button.style.display = 'inline-flex';
+  button.style.alignItems = 'center';
+  button.style.color = '#34A853';
+  button.style.fontWeight = 'medium';
+  button.style.textDecoration = 'none';
+  
+  const buttonIcon = document.createElement('span');
+  buttonIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>';
+  buttonIcon.style.marginLeft = '4px';
+  button.appendChild(buttonIcon);
+  
+  cardContent.appendChild(button);
+  card.appendChild(cardContent);
+  
+  return card;
+}
+
+// Helper function to create resource cards
+function createResourceCard(resource) {
+  const card = document.createElement('div');
+  card.style.backgroundColor = 'white';
+  card.style.borderRadius = '8px';
+  card.style.overflow = 'hidden';
+  card.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+  card.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+  
+  // Hover effect
+  card.addEventListener('mouseover', () => {
+    card.style.transform = 'translateY(-5px)';
+    card.style.boxShadow = '0 8px 15px rgba(0,0,0,0.15)';
+  });
+  
+  card.addEventListener('mouseout', () => {
+    card.style.transform = 'translateY(0)';
+    card.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+  });
+  
+  const cardContent = document.createElement('div');
+  cardContent.style.padding = '20px';
+  
+  // Header with title and type badge
+  const header = document.createElement('div');
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'flex-start';
+  header.style.marginBottom = '12px';
+  
+  const title = document.createElement('h4');
+  title.textContent = resource.title;
+  title.style.margin = '0';
+  title.style.fontSize = '18px';
+  title.style.fontWeight = 'bold';
+  title.style.color = '#4285F4';
+  header.appendChild(title);
+  
+  // Type badge styling
+  let badgeColor = '#e3f2fd';
+  let textColor = '#1565c0';
+  
+  if (resource.type === 'article') {
+    badgeColor = '#f3e5f5';
+    textColor = '#6a1b9a';
+  } else if (resource.type === 'course') {
+    badgeColor = '#fff3e0';
+    textColor = '#e65100';
+  } else if (resource.type === 'video') {
+    badgeColor = '#ffebee';
+    textColor = '#c62828';
+  }
+  
+  const typeBadge = document.createElement('span');
+  typeBadge.textContent = resource.type.charAt(0).toUpperCase() + resource.type.slice(1);
+  typeBadge.style.fontSize = '11px';
+  typeBadge.style.padding = '4px 8px';
+  typeBadge.style.backgroundColor = badgeColor;
+  typeBadge.style.color = textColor;
+  typeBadge.style.borderRadius = '12px';
+  typeBadge.style.fontWeight = 'medium';
+  header.appendChild(typeBadge);
+  
+  cardContent.appendChild(header);
+  
+  // Category if available
+  if (resource.category) {
+    const category = document.createElement('div');
+    category.textContent = resource.category;
+    category.style.fontSize = '14px';
+    category.style.color = '#666';
+    category.style.marginBottom = '8px';
+    cardContent.appendChild(category);
+  }
+  
+  // Button
+  const button = document.createElement('a');
+  button.href = resource.url;
+  button.target = '_blank';
+  button.rel = 'noopener noreferrer';
+  button.textContent = 'View Resource';
+  button.style.display = 'inline-flex';
+  button.style.alignItems = 'center';
+  button.style.color = '#4285F4';
+  button.style.fontWeight = 'medium';
+  button.style.textDecoration = 'none';
+  button.style.marginTop = '16px';
+  
+  const buttonIcon = document.createElement('span');
+  buttonIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>';
+  buttonIcon.style.marginLeft = '4px';
+  button.appendChild(buttonIcon);
+  
+  cardContent.appendChild(button);
+  card.appendChild(cardContent);
+  
+  return card;
 }
 
 function renderSettingsPage() {
