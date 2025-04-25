@@ -1658,3 +1658,29 @@ export const insertSpendingReflectionSchema = createInsertSchema(spendingReflect
 
 export type SpendingReflection = typeof spendingReflections.$inferSelect;
 export type InsertSpendingReflection = z.infer<typeof insertSpendingReflectionSchema>;
+
+// Scheduled Exports for regular financial data reports
+export const scheduledExports = pgTable("scheduled_exports", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  email: text("email").notNull(),
+  frequency: text("frequency").notNull(), // 'weekly', 'biweekly', 'monthly'
+  dataType: text("data_type").notNull(), // 'income', 'expenses', 'transactions', 'summary'
+  format: text("format").notNull(), // 'csv', 'pdf'
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastSentAt: timestamp("last_sent_at"),
+  nextSendAt: timestamp("next_send_at").notNull(),
+  customTitle: text("custom_title"),
+  includeNotes: boolean("include_notes").default(true),
+  categories: json("categories"), // Optional array of categories to include
+});
+
+// Create insert schema for scheduled exports
+export const insertScheduledExportSchema = createInsertSchema(scheduledExports).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type ScheduledExport = typeof scheduledExports.$inferSelect;
+export type InsertScheduledExport = z.infer<typeof insertScheduledExportSchema>;

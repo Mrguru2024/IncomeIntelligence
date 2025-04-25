@@ -19,7 +19,8 @@ import { users, type User, type InsertUser, incomes, type Income, type InsertInc
   stackrGigs, type StackrGig, type InsertStackrGig,
   affiliatePrograms, type AffiliateProgram, type InsertAffiliateProgram,
   userAffiliates, type UserAffiliate, type InsertUserAffiliate,
-  invoices, type Invoice, type InsertInvoice
+  invoices, type Invoice, type InsertInvoice,
+  scheduledExports, type ScheduledExport, type InsertScheduledExport
 } from "@shared/schema";
 import { eq, sql, and, or, desc, asc } from 'drizzle-orm';
 import { db } from './db';
