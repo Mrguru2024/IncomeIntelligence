@@ -3612,6 +3612,22 @@ function renderPageContent(container) {
           container.appendChild(createErrorMessage('Failed to load affiliates hub module'));
         });
         break;
+      case 'invoices':
+        // Import the invoices page module
+        import('../invoices.js').then(module => {
+          // Clear container first for clean rendering
+          container.innerHTML = '';
+          // Create app container for the invoices page
+          const appContainer = document.createElement('div');
+          appContainer.id = 'app-container';
+          container.appendChild(appContainer);
+          // Render invoices in the container
+          module.renderInvoicesPage('app-container');
+        }).catch(error => {
+          console.error('Error loading invoices module:', error);
+          container.appendChild(createErrorMessage('Failed to load invoices module'));
+        });
+        break;
       case 'personal-financial-assessment':
         // Import the Personal Financial Assessment page module
         import('../personal-financial-assessment-page.js').then(module => {

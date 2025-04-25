@@ -30,7 +30,7 @@ function showLoadingState(containerId) {
 }
 
 // Render the invoices page
-export function renderInvoicesPage(containerId = 'app') {
+export function renderInvoicesPage(containerId = 'app-container') {
   // Get container
   const container = document.getElementById(containerId);
   
