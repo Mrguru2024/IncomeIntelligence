@@ -3740,6 +3740,15 @@ function renderPageContent(container) {
       case 'settings':
         container.appendChild(renderSettingsPage());
         break;
+      case 'membership':
+        // Import the membership tiers page module
+        import('../membership-tiers.js').then(module => {
+          module.renderMembershipUpgradePage('app');
+        }).catch(error => {
+          console.error('Error loading membership module:', error);
+          container.innerHTML = '<div class="error-message">Unable to load membership page. Please try again later.</div>';
+        });
+        break;
       default:
         // Dashboard is an async function, so we need to handle it with promises
         renderDashboardPage()
