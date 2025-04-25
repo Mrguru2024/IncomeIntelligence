@@ -34,7 +34,7 @@
 - green/auth.js - Auth utilities
 
 ## RARELY USED / POTENTIAL CANDIDATES FOR ARCHIVAL
-- green/wellness-scorecard.js - Wellness scorecard feature
+<!-- All candidates have been processed and moved to archive -->
 
 ## ARCHIVED FILES (Moved to green/archive)
 - green/archive/dashboard.js - Old dashboard implementation (replaced by direct implementation in main.js)
@@ -58,3 +58,11 @@
 - bank-connections.js imports plaid-link.js
 - sidebar.js imports bank-connections.js
 - Most other files are dynamically imported via import() calls in main.js
+
+## CODEBASE CLEANUP SUMMARY
+- Identified and archived 10 unused or redundant files
+- Clarified dependencies between core modules
+- Documented which features are implemented directly in main.js
+- Removed duplicate functionality (e.g., CSV export)
+- Preserved all working features and functionality
+- Improved codebase organization by centralizing related features
