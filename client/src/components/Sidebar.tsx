@@ -18,6 +18,7 @@ import {
   Mic, 
   User, 
   Lock,
+  FileDown,
   FileText, 
   Gift, 
   Settings, 
