@@ -1,7 +1,8 @@
 /**
- * Financial Wellness Scorecard
- * This module evaluates a user's financial health across multiple dimensions
- * and provides personalized recommendations.
+ * Personal Financial Wellness Assessment
+ * This module evaluates a user's overall financial health across multiple dimensions
+ * and provides personalized recommendations specifically for personal finance.
+ * Note: This is completely distinct from service provider/gig worker ratings.
  */
 
 import { getFinancialInsights } from './financial-summary.js';
@@ -991,7 +992,7 @@ function saveWellnessScorecard(userId, scorecard) {
 function notifyUserAboutScorecard(userId, scorecard) {
   try {
     // Create notification title based on score
-    let title = 'Financial Wellness Scorecard';
+    let title = 'Personal Financial Assessment';
     let message = '';
     
     if (scorecard.overallScore >= 80) {
@@ -999,10 +1000,10 @@ function notifyUserAboutScorecard(userId, scorecard) {
     } else if (scorecard.overallScore >= 60) {
       message = `Your financial wellness score is ${scorecard.overallScore}. You've made good progress with some areas for improvement.`;
     } else {
-      message = `Your financial wellness score is ${scorecard.overallScore}. Check your scorecard for important recommendations.`;
+      message = `Your financial wellness score is ${scorecard.overallScore}. Check your assessment for important recommendations.`;
     }
     
-    // Add notification
+    // Add notification with specific type identifier
     addNotification(userId, {
       title,
       message,
@@ -1011,11 +1012,12 @@ function notifyUserAboutScorecard(userId, scorecard) {
       data: {
         scoreId: scorecard.generatedAt.getTime(),
         score: scorecard.overallScore,
-        scoreLevel: scorecard.scoreLevel
+        scoreLevel: scorecard.scoreLevel,
+        assessmentType: 'personal_finance' // Add identifier to distinguish from gig worker ratings
       }
     });
   } catch (error) {
-    console.log('Error sending scorecard notification:', error);
+    console.log('Error sending financial assessment notification:', error);
   }
 }
 
@@ -1085,7 +1087,7 @@ export async function renderWellnessScorecardPage(userId) {
   loadingElement.className = 'wellness-scorecard-loading';
   loadingElement.innerHTML = `
     <div class="loading-spinner"></div>
-    <p>Calculating your financial wellness score...</p>
+    <p>Calculating your personal financial assessment...</p>
   `;
   container.appendChild(loadingElement);
   
@@ -1165,7 +1167,7 @@ function createScorecardContent(scorecard) {
   const header = document.createElement('header');
   header.className = 'wellness-scorecard-header';
   header.innerHTML = `
-    <h1>Financial Wellness Scorecard</h1>
+    <h1>Personal Financial Assessment</h1>
     <p class="scorecard-date">Generated on ${new Date(scorecard.generatedAt).toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long', 
