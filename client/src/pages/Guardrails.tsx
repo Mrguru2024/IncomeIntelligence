@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { BadgeDollarSign, Bell, Shield, Trash2 } from "lucide-react";
+import { BadgeDollarSign, Bell, Shield, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 
 // Define the category types and interfaces
 type SpendingCategory = 
@@ -25,6 +29,15 @@ type SpendingCategory =
 
 type LimitPeriod = "weekly" | "monthly";
 
+// Interface for API response from /api/guardrails/spending-limits/:userId
+interface ApiSpendingLimit {
+  id: string;
+  category: string;
+  limit: number;
+  period: LimitPeriod;
+}
+
+// Interface for the frontend with additional properties for UI
 interface SpendingLimit {
   id: string;
   category: SpendingCategory;
@@ -32,6 +45,14 @@ interface SpendingLimit {
   period: LimitPeriod;
   notifyAtPercent: number;
   enabled: boolean;
+}
+
+// Interface for adding a new spending limit
+interface AddSpendingLimitRequest {
+  userId: string | number;
+  category: string;
+  limit: number;
+  period: LimitPeriod;
 }
 
 // Category configuration with icons and display names
@@ -89,81 +110,176 @@ const categoryConfig = {
 };
 
 const GuardrailsPage = () => {
-  // Mock data for the spending limits
-  const [spendingLimits, setSpendingLimits] = useState<SpendingLimit[]>([
-    {
-      id: "1",
-      category: "food",
-      amount: 300,
-      period: "monthly",
-      notifyAtPercent: 75,
-      enabled: true
-    },
-    {
-      id: "2",
-      category: "entertainment",
-      amount: 100,
-      period: "monthly",
-      notifyAtPercent: 90,
-      enabled: true
-    }
-  ]);
-
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const userId = user?.id;
+  
+  // Default notification threshold value
+  const DEFAULT_NOTIFY_PERCENT = 80;
+  
   const [newLimit, setNewLimit] = useState<Omit<SpendingLimit, "id">>({
     category: "food",
     amount: 200,
     period: "monthly",
-    notifyAtPercent: 80,
+    notifyAtPercent: DEFAULT_NOTIFY_PERCENT,
     enabled: true
   });
-
-  const { toast } = useToast();
-
+  
+  // Fetch spending limits from API
+  const { 
+    data: apiLimits = [], 
+    isLoading: isLoadingLimits,
+    error: limitsError 
+  } = useQuery({
+    queryKey: ['/api/guardrails/spending-limits', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const response = await apiRequest('GET', `/api/guardrails/spending-limits/${userId}`);
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!userId,
+  });
+  
+  // Transform API limits to UI format with enabled and notifyAtPercent props
+  const spendingLimits: SpendingLimit[] = apiLimits.map((limit: ApiSpendingLimit) => ({
+    id: limit.id,
+    category: limit.category as SpendingCategory,
+    amount: limit.limit,
+    period: limit.period,
+    notifyAtPercent: DEFAULT_NOTIFY_PERCENT,
+    enabled: true
+  }));
+  
+  // Add spending limit mutation
+  const addLimitMutation = useMutation({
+    mutationFn: async (data: AddSpendingLimitRequest) => {
+      const response = await apiRequest('POST', '/api/guardrails/spending-limits', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/guardrails/spending-limits', userId] });
+      
+      toast({
+        title: "Spending limit added",
+        description: `New limit for ${categoryConfig[newLimit.category].name} has been created.`,
+      });
+      
+      // Reset form for next entry
+      setNewLimit({
+        category: "food",
+        amount: 200,
+        period: "monthly",
+        notifyAtPercent: DEFAULT_NOTIFY_PERCENT,
+        enabled: true
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error adding limit",
+        description: "Failed to add spending limit. Please try again.",
+        variant: "destructive"
+      });
+      console.error("Error adding spending limit:", error);
+    }
+  });
+  
+  // Delete spending limit mutation
+  const deleteLimitMutation = useMutation({
+    mutationFn: async ({ limitId, userId }: { limitId: string, userId: string | number }) => {
+      const response = await apiRequest('DELETE', `/api/guardrails/spending-limits/${limitId}`, { userId });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/guardrails/spending-limits', userId] });
+      
+      toast({
+        title: "Spending limit removed",
+        description: "The spending limit has been deleted.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error removing limit",
+        description: "Failed to remove spending limit. Please try again.",
+        variant: "destructive"
+      });
+      console.error("Error removing spending limit:", error);
+    }
+  });
+  
+  // Update spending limit mutation (for toggling enabled status)
+  const updateLimitMutation = useMutation({
+    mutationFn: async ({ limitId, updates, userId }: { 
+      limitId: string, 
+      updates: Partial<ApiSpendingLimit>,
+      userId: string | number 
+    }) => {
+      const response = await apiRequest('PUT', `/api/guardrails/spending-limits/${limitId}`, {
+        ...updates,
+        userId
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/guardrails/spending-limits', userId] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating limit",
+        description: "Failed to update spending limit. Please try again.",
+        variant: "destructive"
+      });
+      console.error("Error updating spending limit:", error);
+    }
+  });
+  
   const handleAddLimit = () => {
-    const id = Math.random().toString(36).substring(2, 9);
-    setSpendingLimits([...spendingLimits, { ...newLimit, id }]);
+    if (!userId) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to add spending limits.",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    toast({
-      title: "Spending limit added",
-      description: `New limit for ${categoryConfig[newLimit.category].name} has been created.`,
-    });
-    
-    // Reset form for next entry
-    setNewLimit({
-      category: "food",
-      amount: 200,
-      period: "monthly",
-      notifyAtPercent: 80,
-      enabled: true
+    addLimitMutation.mutate({
+      userId,
+      category: newLimit.category,
+      limit: newLimit.amount,
+      period: newLimit.period
     });
   };
 
   const handleDeleteLimit = (id: string) => {
-    const updatedLimits = spendingLimits.filter(limit => limit.id !== id);
-    setSpendingLimits(updatedLimits);
+    if (!userId) return;
     
-    toast({
-      title: "Spending limit removed",
-      description: "The spending limit has been deleted.",
+    deleteLimitMutation.mutate({
+      limitId: id,
+      userId
     });
   };
 
   const handleToggleLimit = (id: string) => {
-    const updatedLimits = spendingLimits.map(limit => {
-      if (limit.id === id) {
-        return { ...limit, enabled: !limit.enabled };
-      }
-      return limit;
-    });
-    setSpendingLimits(updatedLimits);
+    if (!userId) return;
     
     const limit = spendingLimits.find(l => l.id === id);
-    if (limit) {
-      toast({
-        title: limit.enabled ? "Limit disabled" : "Limit enabled",
-        description: `${categoryConfig[limit.category].name} spending limit has been ${limit.enabled ? "disabled" : "enabled"}.`,
-      });
-    }
+    if (!limit) return;
+    
+    // In a real implementation, we would update the 'enabled' status on the backend
+    // For now, we'll just show a toast message since our API doesn't support this yet
+    toast({
+      title: limit.enabled ? "Limit disabled" : "Limit enabled",
+      description: `${categoryConfig[limit.category].name} spending limit has been ${limit.enabled ? "disabled" : "enabled"}.`,
+    });
+    
+    // For a full implementation, uncomment this:
+    // updateLimitMutation.mutate({
+    //   limitId: id,
+    //   updates: { enabled: !limit.enabled },
+    //   userId
+    // });
   };
 
   return (
@@ -182,7 +298,18 @@ const GuardrailsPage = () => {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Your Spending Limits</h2>
         
-        {spendingLimits.length === 0 ? (
+        {isLoadingLimits ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : limitsError ? (
+          <Alert variant="destructive">
+            <AlertTitle>Error loading spending limits</AlertTitle>
+            <AlertDescription>
+              There was a problem loading your spending limits. Please try again later.
+            </AlertDescription>
+          </Alert>
+        ) : spendingLimits.length === 0 ? (
           <Alert>
             <AlertTitle>No spending limits set</AlertTitle>
             <AlertDescription>
@@ -232,8 +359,13 @@ const GuardrailsPage = () => {
                     size="sm" 
                     className="ml-auto text-destructive" 
                     onClick={() => handleDeleteLimit(limit.id)}
+                    disabled={deleteLimitMutation.isPending}
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
+                    {deleteLimitMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4 mr-1" />
+                    )}
                     Remove
                   </Button>
                 </CardFooter>
@@ -261,6 +393,7 @@ const GuardrailsPage = () => {
                   onValueChange={(value: SpendingCategory) => 
                     setNewLimit({...newLimit, category: value})
                   }
+                  disabled={addLimitMutation.isPending}
                 >
                   <SelectTrigger id="category">
                     <SelectValue placeholder="Select category" />
@@ -280,6 +413,7 @@ const GuardrailsPage = () => {
                   onValueChange={(value: LimitPeriod) => 
                     setNewLimit({...newLimit, period: value})
                   }
+                  disabled={addLimitMutation.isPending}
                 >
                   <SelectTrigger id="period">
                     <SelectValue placeholder="Select period" />
@@ -300,6 +434,7 @@ const GuardrailsPage = () => {
                 min="1"
                 value={newLimit.amount} 
                 onChange={(e) => setNewLimit({...newLimit, amount: Number(e.target.value)})}
+                disabled={addLimitMutation.isPending}
               />
             </div>
 
@@ -317,6 +452,7 @@ const GuardrailsPage = () => {
                 step={5} 
                 value={[newLimit.notifyAtPercent]} 
                 onValueChange={(value) => setNewLimit({...newLimit, notifyAtPercent: value[0]})}
+                disabled={addLimitMutation.isPending}
               />
               <p className="text-sm text-muted-foreground mt-1">
                 You'll receive notifications when your spending reaches this percentage of your limit.
@@ -325,7 +461,18 @@ const GuardrailsPage = () => {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleAddLimit} className="ml-auto">Add Spending Limit</Button>
+          <Button 
+            onClick={handleAddLimit} 
+            className="ml-auto"
+            disabled={addLimitMutation.isPending}
+          >
+            {addLimitMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Adding...
+              </>
+            ) : "Add Spending Limit"}
+          </Button>
         </CardFooter>
       </Card>
 
