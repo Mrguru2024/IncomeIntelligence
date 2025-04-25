@@ -2924,6 +2924,15 @@ function renderPageContent(container) {
       case 'expenses':
         container.appendChild(renderExpensesPage());
         break;
+      case 'guardrails':
+        // Import the Guardrails page module
+        import('../guardrails.js').then(module => {
+          container.appendChild(module.initGuardrailsPage(appState.user.id));
+        }).catch(error => {
+          console.error('Error loading guardrails module:', error);
+          container.appendChild(createErrorMessage('Failed to load guardrails module'));
+        });
+        break;
       case 'gigs':
         container.appendChild(renderGigsPage());
         break;
