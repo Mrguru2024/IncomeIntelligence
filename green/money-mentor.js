@@ -843,43 +843,13 @@ export async function renderMoneyMentorPage(userId) {
     proFeaturesList.appendChild(item);
   });
   
-  const upgradeButton = document.createElement('a');
-  upgradeButton.href = '/subscription.html';
-  upgradeButton.style.display = 'block';
-  upgradeButton.style.width = '100%';
-  upgradeButton.style.textDecoration = 'none';
-  
-  const upgradeButtonInner = document.createElement('button');
-  upgradeButtonInner.style.width = '100%';
-  upgradeButtonInner.style.padding = '10px 0';
-  upgradeButtonInner.style.background = 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)';
-  upgradeButtonInner.style.color = 'white';
-  upgradeButtonInner.style.border = 'none';
-  upgradeButtonInner.style.borderRadius = '8px';
-  upgradeButtonInner.style.fontSize = '15px';
-  upgradeButtonInner.style.fontWeight = '600';
-  upgradeButtonInner.style.cursor = 'pointer';
-  upgradeButtonInner.style.boxShadow = '0 4px 10px rgba(99, 102, 241, 0.3)';
-  upgradeButtonInner.style.transition = 'all 0.2s ease';
-  upgradeButtonInner.textContent = 'Upgrade to Pro';
-  
-  // Button hover effect
-  upgradeButtonInner.addEventListener('mouseover', () => {
-    upgradeButtonInner.style.transform = 'translateY(-2px)';
-    upgradeButtonInner.style.boxShadow = '0 6px 15px rgba(99, 102, 241, 0.4)';
+  // Use the renderQuickUpgradeButton function from membership-tiers.js to create a standardized upgrade button
+  const upgradeButton = renderQuickUpgradeButton({
+    text: 'Upgrade to Pro',
+    onClick: () => showUpgradeModal('pro'),
+    gradient: true,
+    fullWidth: true
   });
-  
-  upgradeButtonInner.addEventListener('mouseout', () => {
-    upgradeButtonInner.style.transform = 'translateY(0)';
-    upgradeButtonInner.style.boxShadow = '0 4px 10px rgba(99, 102, 241, 0.3)';
-  });
-  
-  // Add click event handler to show upgrade modal
-  upgradeButtonInner.addEventListener('click', () => {
-    showUpgradeModal('pro');
-  });
-  
-  upgradeButton.appendChild(upgradeButtonInner);
   
   proCard.appendChild(proBadgeContainer);
   proCard.appendChild(proDescription);
@@ -928,6 +898,8 @@ export async function renderMoneyMentorPage(userId) {
     
     if (!hasPro) {
       createToast('Pro Subscription Required', 'This feature requires a Pro subscription. Please upgrade to access Money Mentor.', 'error');
+      // Show upgrade modal when user tries to use Money Mentor without Pro subscription
+      showUpgradeModal('pro');
       return;
     }
     
