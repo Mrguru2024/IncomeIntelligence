@@ -3605,7 +3605,7 @@ function renderPageContent(container) {
           container.appendChild(createErrorMessage('Failed to load affiliates hub module'));
         });
         break;
-      case 'wellness':
+      case 'personal-financial-assessment':
         // Import the Personal Financial Assessment page module
         import('../personal-financial-assessment-page.js').then(module => {
           // Using async function as renderPersonalFinancialAssessmentPage returns a Promise
@@ -4251,7 +4251,7 @@ function initFinancialMascot() {
       'moneymentor': 'psychology',
       'subscriptionsniper': 'budgeting',
       'savingschallenges': 'saving',
-      'wellnessscorecard': 'psychology',
+      'personal-financial-assessment-scorecard': 'psychology',
       'debt': 'debt'
     };
     

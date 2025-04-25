@@ -1460,18 +1460,18 @@ function addScorecardStyles() {
       margin-bottom: 3rem;
     }
     
-    .wellness-categories h2,
-    .wellness-recommendations h2,
-    .wellness-insights h2 {
+    .personal-financial-assessment-categories h2,
+    .personal-financial-assessment-recommendations h2,
+    .personal-financial-assessment-insights h2 {
       margin-bottom: 1.5rem;
       color: var(--color-heading);
       position: relative;
       padding-bottom: 0.5rem;
     }
     
-    .wellness-categories h2:after,
-    .wellness-recommendations h2:after,
-    .wellness-insights h2:after {
+    .personal-financial-assessment-categories h2:after,
+    .personal-financial-assessment-recommendations h2:after,
+    .personal-financial-assessment-insights h2:after {
       content: '';
       position: absolute;
       bottom: 0;
@@ -1614,7 +1614,7 @@ function addScorecardStyles() {
       font-size: 0.95rem;
     }
     
-    .wellness-actions {
+    .personal-financial-assessment-actions {
       display: flex;
       justify-content: center;
       margin-top: 2rem;
