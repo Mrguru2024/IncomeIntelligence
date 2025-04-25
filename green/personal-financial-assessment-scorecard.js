@@ -9,7 +9,7 @@ import { getFinancialInsights } from './financial-summary.js';
 import { createNotification, NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from './notification-service.js';
 
 // Categories and maximum points for each
-const WELLNESS_CATEGORIES = {
+const PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES = {
   INCOME_STABILITY: { name: 'Income Stability', maxPoints: 20 },
   SAVINGS_RATIO: { name: 'Savings Ratio', maxPoints: 20 },
   INVESTMENT_HEALTH: { name: 'Investment Health', maxPoints: 15 },
@@ -76,7 +76,7 @@ export async function calculatePersonalFinancialAssessmentScore(userId) {
     scorecard.insights = generateInsights(userData, scorecard.categoryScores);
     
     // Store the scorecard for the user
-    saveWellnessScorecard(userId, scorecard);
+    savePersonalFinancialAssessmentScorecard(userId, scorecard);
     
     // Notify the user about their new scorecard
     notifyUserAboutScorecard(userId, scorecard);
@@ -117,22 +117,22 @@ function calculateCategoryScores(userData) {
   const incomeStability = calculateIncomeStabilityScore(userData);
   categoryScores.push({
     category: 'INCOME_STABILITY',
-    name: WELLNESS_CATEGORIES.INCOME_STABILITY.name,
+    name: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.INCOME_STABILITY.name,
     points: incomeStability.points,
-    maxPoints: WELLNESS_CATEGORIES.INCOME_STABILITY.maxPoints,
+    maxPoints: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.INCOME_STABILITY.maxPoints,
     details: incomeStability.details,
-    percentage: Math.round((incomeStability.points / WELLNESS_CATEGORIES.INCOME_STABILITY.maxPoints) * 100)
+    percentage: Math.round((incomeStability.points / PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.INCOME_STABILITY.maxPoints) * 100)
   });
   
   // Savings Ratio score
   const savingsRatio = calculateSavingsRatioScore(userData);
   categoryScores.push({
     category: 'SAVINGS_RATIO',
-    name: WELLNESS_CATEGORIES.SAVINGS_RATIO.name,
+    name: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.SAVINGS_RATIO.name,
     points: savingsRatio.points,
-    maxPoints: WELLNESS_CATEGORIES.SAVINGS_RATIO.maxPoints,
+    maxPoints: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.SAVINGS_RATIO.maxPoints,
     details: savingsRatio.details,
-    percentage: Math.round((savingsRatio.points / WELLNESS_CATEGORIES.SAVINGS_RATIO.maxPoints) * 100)
+    percentage: Math.round((savingsRatio.points / PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.SAVINGS_RATIO.maxPoints) * 100)
   });
   
   // Investment Health score
@@ -200,7 +200,7 @@ function calculateCategoryScores(userData) {
  */
 function calculateIncomeStabilityScore(userData) {
   const income = userData.income || [];
-  const maxPoints = WELLNESS_CATEGORIES.INCOME_STABILITY.maxPoints;
+  const maxPoints = PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.INCOME_STABILITY.maxPoints;
   let points = 0;
   const details = [];
   
@@ -260,7 +260,7 @@ function calculateIncomeStabilityScore(userData) {
  * @returns {Object} - Points and details
  */
 function calculateSavingsRatioScore(userData) {
-  const maxPoints = WELLNESS_CATEGORIES.SAVINGS_RATIO.maxPoints;
+  const maxPoints = PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.SAVINGS_RATIO.maxPoints;
   let points = 0;
   const details = [];
   
@@ -319,7 +319,7 @@ function calculateSavingsRatioScore(userData) {
  * @returns {Object} - Points and details
  */
 function calculateInvestmentHealthScore(userData) {
-  const maxPoints = WELLNESS_CATEGORIES.INVESTMENT_HEALTH.maxPoints;
+  const maxPoints = PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.INVESTMENT_HEALTH.maxPoints;
   let points = 0;
   const details = [];
   
@@ -394,7 +394,7 @@ function calculateInvestmentHealthScore(userData) {
  * @returns {Object} - Points and details
  */
 function calculateDebtManagementScore(userData) {
-  const maxPoints = WELLNESS_CATEGORIES.DEBT_MANAGEMENT.maxPoints;
+  const maxPoints = PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.DEBT_MANAGEMENT.maxPoints;
   let points = maxPoints; // Start with max points and subtract for debt issues
   const details = [];
   
