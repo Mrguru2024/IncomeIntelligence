@@ -312,6 +312,9 @@ app.use((req, res, next) => {
 // Create HTTP server
 const httpServer = createServer(app);
 
+// Setup Vite for serving the client-side SPA
+setupVite(app, httpServer);
+
 // Setup routes for SPA navigation
 // Bank connections route moved to combined route handler below
 
