@@ -760,7 +760,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertExpenseSchema.parse(req.body);
       
+      // Create the expense record
       const expense = await storage.createExpense(validatedData);
+      
+      // Get user's spending limits for guardrails check
+      try {
+        if (validatedData.userId && validatedData.category) {
+          const userData = await storage.getUserData(validatedData.userId);
+          
+          // Check if user has spending limits set
+          if (userData && userData.spendingLimits && Array.isArray(userData.spendingLimits)) {
+            // Create a transaction object for guardrails check
+            const transactionData = {
+              id: `exp-${expense.id}`,
+              userId: validatedData.userId,
+              category: validatedData.category,
+              description: validatedData.description || 'Expense',
+              amount: -Math.abs(validatedData.amount), // Negative for expenses
+              date: validatedData.date || new Date().toISOString()
+            };
+            
+            // Send a notification to client-side for guardrails processing
+            // This will be picked up by the client-side notification system
+            notificationService.sendNotification({
+              userId: validatedData.userId.toString(),
+              type: 'EXPENSE_CREATED',
+              title: 'New expense recorded',
+              message: `${validatedData.category}: $${Math.abs(validatedData.amount).toFixed(2)}`,
+              data: {
+                transaction: transactionData,
+                spendingLimits: userData.spendingLimits
+              },
+              read: false,
+              createdAt: new Date()
+            });
+          }
+        }
+      } catch (guardrailsError) {
+        // Don't fail the expense creation if guardrails check fails
+        console.error('Error processing guardrails for expense:', guardrailsError);
+      }
+      
       res.status(201).json(expense);
     } catch (error) {
       if (error instanceof z.ZodError) {
