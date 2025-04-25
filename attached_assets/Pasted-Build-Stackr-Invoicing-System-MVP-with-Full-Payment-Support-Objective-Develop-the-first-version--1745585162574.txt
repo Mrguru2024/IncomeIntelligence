@@ -1,0 +1,195 @@
+Build Stackr Invoicing System MVP with Full Payment Support
+🎯 Objective:
+Develop the first version of the Stackr Pay module. It allows users to:
+
+Send customizable invoices
+
+Accept payments via Stripe (online, mobile wallets)
+
+Record in-person payments (cash/card/Zelle)
+
+Connect Stripe Terminal for real-world card swipes
+
+See summary of all paid/unpaid invoices by method
+
+✅ Step 1: Invoice Table Schema (PostgreSQL)
+📄 migrations/invoices.sql
+
+sql
+Copy
+Edit
+CREATE TABLE invoices (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  client_name TEXT,
+  client_email TEXT,
+  line_items JSONB,
+  payment_method TEXT, -- "online", "mobile", "in_person"
+  payment_type TEXT,   -- "card", "cash", "zelle", etc.
+  total NUMERIC,
+  due_date TIMESTAMP,
+  paid BOOLEAN DEFAULT false,
+  stripe_payment_intent TEXT,
+  stripe_terminal_id TEXT,
+  paid_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+✅ Step 2: Invoice Creation UI (Frontend, Vanilla JS)
+📄 public/invoice.html
+
+html
+Copy
+Edit
+<form id="invoice-form">
+  <input name="client_name" placeholder="Client Name" required />
+  <input name="client_email" placeholder="Client Email" />
+  <input name="line_items" placeholder="JSON Line Items" required />
+  <input name="total" placeholder="Total Amount" required />
+  <input type="date" name="due_date" required />
+
+  <select name="payment_method" id="payment-method">
+    <option value="online">Online</option>
+    <option value="mobile">Mobile</option>
+    <option value="in_person">In-Person</option>
+  </select>
+
+  <div id="in-person-type" style="display: none;">
+    <select name="payment_type">
+      <option value="cash">Cash</option>
+      <option value="card">Card</option>
+      <option value="zelle">Zelle</option>
+    </select>
+  </div>
+
+  <button type="submit">Send/Save Invoice</button>
+</form>
+
+<script>
+  document.getElementById("payment-method").addEventListener("change", (e) => {
+    document.getElementById("in-person-type").style.display =
+      e.target.value === "in_person" ? "block" : "none";
+  });
+
+  document.getElementById("invoice-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = Object.fromEntries(new FormData(e.target).entries());
+    await fetch("/api/invoices/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    alert("Invoice saved!");
+  });
+</script>
+✅ Step 3: Express Backend Route
+📄 routes/invoices.js
+
+js
+Copy
+Edit
+router.post("/api/invoices/create", async (req, res) => {
+  const {
+    client_name,
+    client_email,
+    line_items,
+    payment_method,
+    payment_type,
+    total,
+    due_date
+  } = req.body;
+
+  const result = await db.query(`
+    INSERT INTO invoices
+    (id, user_id, client_name, client_email, line_items, payment_method, payment_type, total, due_date)
+    VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING id
+  `, [
+    req.user.id, client_name, client_email,
+    JSON.stringify(JSON.parse(line_items)),
+    payment_method, payment_type, total, due_date
+  ]);
+
+  res.json({ success: true, invoiceId: result.rows[0].id });
+});
+✅ Step 4: Stripe Terminal Integration (Card Reader)
+📌 Use Stripe Terminal API + Reader SDK
+📚 https://stripe.com/docs/terminal
+
+🧩 Setup:
+
+Connect a reader via Stripe Dashboard
+
+Store stripe_terminal_id in invoice
+
+Add webhook to listen for successful reader payments
+
+Use /api/terminal/charge route to start charge on device
+
+📄 Sample route:
+
+js
+Copy
+Edit
+router.post("/api/terminal/charge", async (req, res) => {
+  const { invoiceId, readerId } = req.body;
+  const invoice = await db.query("SELECT * FROM invoices WHERE id = $1", [invoiceId]);
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: Math.round(invoice.rows[0].total * 100),
+    currency: "usd",
+  });
+
+  await stripe.terminal.readers.processPaymentIntent(readerId, {
+    payment_intent: paymentIntent.id
+  });
+
+  await db.query(`
+    UPDATE invoices SET stripe_payment_intent = $1, stripe_terminal_id = $2 WHERE id = $3
+  `, [paymentIntent.id, readerId, invoiceId]);
+
+  res.json({ success: true });
+});
+✅ Step 5: Stackr Pay Summary Dashboard
+📄 Route: /api/invoices/summary
+
+js
+Copy
+Edit
+router.get("/api/invoices/summary", async (req, res) => {
+  const summary = await db.query(`
+    SELECT
+      payment_method,
+      COUNT(*) AS total_invoices,
+      SUM(CASE WHEN paid THEN total ELSE 0 END) AS amount_collected,
+      SUM(CASE WHEN NOT paid THEN total ELSE 0 END) AS amount_outstanding
+    FROM invoices
+    WHERE user_id = $1
+    GROUP BY payment_method
+  `, [req.user.id]);
+
+  res.json({ summary: summary.rows });
+});
+📄 UI Example (JS)
+
+js
+Copy
+Edit
+async function loadSummary() {
+  const res = await fetch("/api/invoices/summary");
+  const data = await res.json();
+  document.getElementById("summary").innerHTML =
+    data.summary.map(s => `
+      <p><strong>${s.payment_method}</strong> — Paid: $${s.amount_collected}, Due: $${s.amount_outstanding}</p>
+    `).join("");
+}
+
+loadSummary();
+✅ Final Output: Stackr Pay MVP Includes
+
+Feature	Status ✅
+Invoice builder UI	✅
+Online / mobile payments	✅
+In-person payments (cash/card)	✅
+Stripe Terminal integration	✅
+Invoice status & payment logs	✅
+Stackr Pay income dashboard	✅

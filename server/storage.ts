@@ -18,7 +18,8 @@ import { users, type User, type InsertUser, incomes, type Income, type InsertInc
   budgets, type Budget, type InsertBudget,
   stackrGigs, type StackrGig, type InsertStackrGig,
   affiliatePrograms, type AffiliateProgram, type InsertAffiliateProgram,
-  userAffiliates, type UserAffiliate, type InsertUserAffiliate
+  userAffiliates, type UserAffiliate, type InsertUserAffiliate,
+  invoices, type Invoice, type InsertInvoice
 } from "@shared/schema";
 import { eq, sql, and, or, desc, asc } from 'drizzle-orm';
 import { db } from './db';
@@ -251,6 +252,15 @@ export interface IStorage {
   getStackrGigsByUserId(userId: number): Promise<StackrGig[]>;
   getStackrGigsByStatus(status: string): Promise<StackrGig[]>;
   applyForGig(gigId: number, userId: number): Promise<StackrGig | undefined>;
+  
+  // Invoice methods
+  getUserInvoices(userId: string): Promise<Invoice[]>;
+  getInvoiceById(id: string): Promise<Invoice | undefined>;
+  createInvoice(invoice: InsertInvoice): Promise<Invoice>;
+  updateInvoice(id: string, invoice: Partial<InsertInvoice>): Promise<Invoice | undefined>;
+  deleteInvoice(id: string): Promise<boolean>;
+  markInvoiceAsPaid(id: string, paymentInfo: { paidAt: Date, stripePaymentIntent?: string }): Promise<Invoice | undefined>;
+  getInvoiceSummary(userId: string): Promise<{ paymentMethod: string, totalInvoices: number, amountCollected: string, amountOutstanding: string }[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -277,6 +287,7 @@ export class MemStorage implements IStorage {
   private stackrGigs: Map<number, StackrGig>;
   private affiliatePrograms: Map<number, AffiliateProgram>;
   private userAffiliates: Map<number, UserAffiliate>;
+  private invoices: Map<number, Invoice>;
   
   private userCurrentId: number;
   private userProfileCurrentId: number;
@@ -301,6 +312,7 @@ export class MemStorage implements IStorage {
   private stackrGigCurrentId: number;
   private affiliateProgramCurrentId: number;
   private userAffiliateCurrentId: number;
+  private invoiceCurrentId: number;
 
   constructor() {
     this.users = new Map();

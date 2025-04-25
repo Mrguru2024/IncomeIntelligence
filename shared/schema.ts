@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, numeric, json, jsonb, decimal, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, numeric, json, jsonb, decimal, date, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -297,6 +297,50 @@ export type Income = typeof incomes.$inferSelect;
 export function getCategoryById(categoryId: string) {
   return incomeCategories.find(cat => cat.id === categoryId) || incomeCategories[incomeCategories.length - 1]; // Default to "Other"
 }
+
+// Invoices schema
+export const invoices = pgTable("invoices", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull(),
+  clientName: text("client_name").notNull(),
+  clientEmail: text("client_email"),
+  lineItems: jsonb("line_items").notNull(),
+  total: numeric("total").notNull(),
+  dueDate: timestamp("due_date").notNull(),
+  paymentMethod: text("payment_method").notNull(), // online, mobile, in_person
+  paymentType: text("payment_type"), // card, cash, zelle, etc for in_person payments
+  paid: boolean("paid").default(false),
+  stripePaymentIntent: text("stripe_payment_intent"),
+  stripeTerminalId: text("stripe_terminal_id"),
+  paidAt: timestamp("paid_at"),
+  invoiceNumber: text("invoice_number").notNull(),
+  invoicePdf: text("invoice_pdf"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertInvoiceSchema = createInsertSchema(invoices).extend({
+  // Convert dueDate from string or Date to Date
+  dueDate: z.preprocess(
+    (arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) {
+        return new Date(arg);
+      }
+      return arg;
+    },
+    z.date()
+  ),
+  // Line items should be an array of objects
+  lineItems: z.array(z.object({
+    description: z.string(),
+    quantity: z.number().positive(),
+    unitPrice: z.number().nonnegative(),
+    amount: z.number().nonnegative()
+  }))
+}).omit({ id: true, paidAt: true, invoicePdf: true });
+
+export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+export type Invoice = typeof invoices.$inferSelect;
 
 // Stackr Gigs schema
 export const stackrGigs = pgTable("stackr_gigs", {
@@ -681,57 +725,6 @@ export const insertUsedGearListingSchema = createInsertSchema(usedGearListings).
 
 export type InsertUsedGearListing = z.infer<typeof insertUsedGearListingSchema>;
 export type UsedGearListing = typeof usedGearListings.$inferSelect;
-
-// Invoices schema
-export const invoices = pgTable("invoices", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  clientName: text("client_name").notNull(),
-  clientEmail: text("client_email"),
-  clientPhone: text("client_phone"),
-  invoiceNumber: text("invoice_number").notNull(),
-  issueDate: timestamp("issue_date").notNull().defaultNow(),
-  dueDate: timestamp("due_date").notNull(),
-  amount: numeric("amount").notNull(),
-  taxAmount: numeric("tax_amount").default("0"),
-  totalAmount: numeric("total_amount").notNull(),
-  status: text("status").notNull().default("draft"), // draft, sent, paid, overdue, cancelled
-  description: text("description"),
-  items: json("items"), // Array of line items
-  notes: text("notes"),
-  terms: text("terms"),
-  paymentMethod: text("payment_method"),
-  paid: boolean("paid").default(false),
-  paidDate: timestamp("paid_date"),
-  paidAmount: numeric("paid_amount"),
-  stripePaymentIntentId: text("stripe_payment_intent_id"),
-});
-
-export const insertInvoiceSchema = createInsertSchema(invoices).pick({
-  userId: true,
-  clientName: true,
-  clientEmail: true,
-  clientPhone: true,
-  invoiceNumber: true,
-  issueDate: true,
-  dueDate: true,
-  amount: true,
-  taxAmount: true,
-  totalAmount: true,
-  status: true,
-  description: true,
-  items: true,
-  notes: true,
-  terms: true,
-  paymentMethod: true,
-  paid: true,
-  paidDate: true,
-  paidAmount: true,
-  stripePaymentIntentId: true,
-});
-
-export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
-export type Invoice = typeof invoices.$inferSelect;
 
 // Creative Grants schema
 export const creativeGrants = pgTable("creative_grants", {
