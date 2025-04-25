@@ -698,7 +698,41 @@ export function renderMembershipUpgradePage(containerId = 'app', preselectedTier
   const pageContainer = document.createElement('div');
   pageContainer.style.maxWidth = '1200px';
   pageContainer.style.margin = '0 auto';
-  pageContainer.style.padding = '40px 20px';
+  pageContainer.style.padding = '20px 20px 40px';
+  
+  // Add Stackr logo at the top
+  const logoContainer = document.createElement('div');
+  logoContainer.style.display = 'flex';
+  logoContainer.style.justifyContent = 'center';
+  logoContainer.style.marginBottom = '30px';
+  logoContainer.style.cursor = 'pointer';
+  
+  const logo = document.createElement('div');
+  logo.innerHTML = `
+    <svg width="150" height="50" viewBox="0 0 180 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M25.5 10C25.5 8.61929 26.6193 7.5 28 7.5H42C43.3807 7.5 44.5 8.61929 44.5 10V14C44.5 15.3807 43.3807 16.5 42 16.5H28C26.6193 16.5 25.5 15.3807 25.5 14V10Z" fill="#6366F1"/>
+      <path d="M12.5 23C12.5 21.6193 13.6193 20.5 15 20.5H42C43.3807 20.5 44.5 21.6193 44.5 23V27C44.5 28.3807 43.3807 29.5 42 29.5H15C13.6193 29.5 12.5 28.3807 12.5 27V23Z" fill="#8B5CF6"/>
+      <path d="M18.5 36C18.5 34.6193 19.6193 33.5 21 33.5H48C49.3807 33.5 50.5 34.6193 50.5 36V40C50.5 41.3807 49.3807 42.5 48 42.5H21C19.6193 42.5 18.5 41.3807 18.5 40V36Z" fill="#EC4899"/>
+      <path d="M60 18V40H64.144V32.568H71.492V28.964H64.144V21.604H72.292V18H60Z" fill="#111827"/>
+      <path d="M76.5767 18V40H80.7207V18H76.5767Z" fill="#111827"/>
+      <path d="M87.1903 23.58V40H91.3343V23.58H96.9824V20H81.5183V23.58H87.1903Z" fill="#111827"/>
+      <path d="M109.457 40.38C113.337 40.38 116.281 38.588 117.477 35.644L113.889 34.236C113.109 36.064 111.553 37.028 109.457 37.028C106.685 37.028 104.769 35.136 104.769 31.84C104.769 28.544 106.673 26.652 109.457 26.652C111.553 26.652 113.073 27.7 113.781 29.384L117.369 27.964C116.281 25.052 113.361 23.2 109.445 23.2C104.217 23.2 100.469 26.72 100.469 31.84C100.469 36.96 104.193 40.38 109.457 40.38Z" fill="#111827"/>
+      <path d="M127.334 40.38C130.218 40.38 132.238 39.26 133.358 37.67H133.622V40H137.598V23.58H133.454V32.432C133.454 35.204 131.634 36.976 129.142 36.976C126.902 36.976 125.43 35.644 125.43 33.252V23.58H121.286V34.248C121.286 38.056 123.754 40.38 127.334 40.38Z" fill="#111827"/>
+      <path d="M142.911 23.58V40H147.055V30.9C147.055 28.188 148.655 26.464 151.031 26.464C153.275 26.464 154.659 27.832 154.659 30.116V40H158.803V29.144C158.803 25.4 156.403 23.2 152.979 23.2C150.239 23.2 148.143 24.344 147.139 26.02H146.875V23.58H142.911Z" fill="#111827"/>
+    </svg>
+  `;
+  
+  // Add click event to redirect based on authentication status
+  logoContainer.addEventListener('click', () => {
+    if (isAuthenticated()) {
+      window.location.hash = '#dashboard';
+    } else {
+      window.location.hash = '#';
+    }
+  });
+  
+  logoContainer.appendChild(logo);
+  pageContainer.appendChild(logoContainer);
   
   // Create page header
   const header = document.createElement('div');
@@ -895,6 +929,44 @@ export function showUpgradeModal(tierId = 'pro', billingInterval = 'monthly') {
   modal.style.position = 'relative';
   modal.style.maxHeight = '90vh';
   modal.style.overflowY = 'auto';
+  
+  // Add Stackr logo at the top of the modal
+  const logoContainer = document.createElement('div');
+  logoContainer.style.display = 'flex';
+  logoContainer.style.justifyContent = 'center';
+  logoContainer.style.marginBottom = '24px';
+  logoContainer.style.cursor = 'pointer';
+  
+  const logo = document.createElement('div');
+  logo.innerHTML = `
+    <svg width="120" height="40" viewBox="0 0 180 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M25.5 10C25.5 8.61929 26.6193 7.5 28 7.5H42C43.3807 7.5 44.5 8.61929 44.5 10V14C44.5 15.3807 43.3807 16.5 42 16.5H28C26.6193 16.5 25.5 15.3807 25.5 14V10Z" fill="#6366F1"/>
+      <path d="M12.5 23C12.5 21.6193 13.6193 20.5 15 20.5H42C43.3807 20.5 44.5 21.6193 44.5 23V27C44.5 28.3807 43.3807 29.5 42 29.5H15C13.6193 29.5 12.5 28.3807 12.5 27V23Z" fill="#8B5CF6"/>
+      <path d="M18.5 36C18.5 34.6193 19.6193 33.5 21 33.5H48C49.3807 33.5 50.5 34.6193 50.5 36V40C50.5 41.3807 49.3807 42.5 48 42.5H21C19.6193 42.5 18.5 41.3807 18.5 40V36Z" fill="#EC4899"/>
+      <path d="M60 18V40H64.144V32.568H71.492V28.964H64.144V21.604H72.292V18H60Z" fill="#111827"/>
+      <path d="M76.5767 18V40H80.7207V18H76.5767Z" fill="#111827"/>
+      <path d="M87.1903 23.58V40H91.3343V23.58H96.9824V20H81.5183V23.58H87.1903Z" fill="#111827"/>
+      <path d="M109.457 40.38C113.337 40.38 116.281 38.588 117.477 35.644L113.889 34.236C113.109 36.064 111.553 37.028 109.457 37.028C106.685 37.028 104.769 35.136 104.769 31.84C104.769 28.544 106.673 26.652 109.457 26.652C111.553 26.652 113.073 27.7 113.781 29.384L117.369 27.964C116.281 25.052 113.361 23.2 109.445 23.2C104.217 23.2 100.469 26.72 100.469 31.84C100.469 36.96 104.193 40.38 109.457 40.38Z" fill="#111827"/>
+      <path d="M127.334 40.38C130.218 40.38 132.238 39.26 133.358 37.67H133.622V40H137.598V23.58H133.454V32.432C133.454 35.204 131.634 36.976 129.142 36.976C126.902 36.976 125.43 35.644 125.43 33.252V23.58H121.286V34.248C121.286 38.056 123.754 40.38 127.334 40.38Z" fill="#111827"/>
+      <path d="M142.911 23.58V40H147.055V30.9C147.055 28.188 148.655 26.464 151.031 26.464C153.275 26.464 154.659 27.832 154.659 30.116V40H158.803V29.144C158.803 25.4 156.403 23.2 152.979 23.2C150.239 23.2 148.143 24.344 147.139 26.02H146.875V23.58H142.911Z" fill="#111827"/>
+    </svg>
+  `;
+  
+  // Add click event to redirect based on authentication status
+  logoContainer.addEventListener('click', () => {
+    // Remove the modal first
+    document.body.removeChild(overlay);
+    
+    // Then redirect
+    if (isAuthenticated()) {
+      window.location.hash = '#dashboard';
+    } else {
+      window.location.hash = '#';
+    }
+  });
+  
+  logoContainer.appendChild(logo);
+  modal.appendChild(logoContainer);
   
   // Close button
   const closeButton = document.createElement('button');
