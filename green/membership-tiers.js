@@ -699,6 +699,26 @@ export function renderMembershipUpgradePage(containerId = 'app', preselectedTier
   pageContainer.style.maxWidth = '1200px';
   pageContainer.style.margin = '0 auto';
   pageContainer.style.padding = '20px 20px 40px';
+  pageContainer.style.position = 'relative'; // Added for absolute positioning of close button
+  
+  // Add close button (X)
+  const closeButton = document.createElement('button');
+  closeButton.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>`;
+  closeButton.style.position = 'absolute';
+  closeButton.style.top = '16px';
+  closeButton.style.right = '16px';
+  closeButton.style.border = 'none';
+  closeButton.style.background = 'none';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.zIndex = '10';
+  closeButton.setAttribute('aria-label', 'Close');
+  closeButton.addEventListener('click', () => {
+    window.location.hash = '#dashboard';
+  });
+  pageContainer.appendChild(closeButton);
   
   // Add Stackr logo at the top
   const logoContainer = document.createElement('div');
