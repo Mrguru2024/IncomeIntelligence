@@ -70,6 +70,26 @@ export interface IStorage {
   createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
   updateUserProfile(userId: number, profile: Partial<InsertUserProfile>): Promise<UserProfile | undefined>;
   
+  // Spending limits methods
+  addSpendingLimit(userId: number, limit: {
+    id: string;
+    category: string;
+    limit: number;
+    period: 'weekly' | 'monthly';
+  }): Promise<boolean>;
+  getSpendingLimits(userId: number): Promise<Array<{
+    id: string;
+    category: string;
+    limit: number;
+    period: 'weekly' | 'monthly';
+  }>>;
+  updateSpendingLimit(userId: number, limitId: string, updates: Partial<{
+    category: string;
+    limit: number;
+    period: 'weekly' | 'monthly';
+  }>): Promise<boolean>;
+  deleteSpendingLimit(userId: number, limitId: string): Promise<boolean>;
+  
   // Affiliate methods
   getAffiliatePrograms(): Promise<AffiliateProgram[]>;
   getAffiliateProgramById(id: number): Promise<AffiliateProgram | undefined>;
@@ -910,6 +930,62 @@ export class MemStorage implements IStorage {
     this.users.set(userId, updatedUser);
     return updatedUser;
   }
+  
+  async getUserData(userId: number): Promise<{
+    id: number;
+    username: string;
+    email: string;
+    spendingLimits?: Array<{
+      id: string;
+      category: string;
+      limit: number;
+      period: 'weekly' | 'monthly';
+    }>;
+    subscription?: {
+      status: string;
+      plan: string;
+    };
+    profile?: UserProfile;
+  } | undefined> {
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+    
+    const profile = await this.getUserProfile(userId);
+    const subscription = await this.getUserSubscription(userId);
+    
+    // Get spending limits from user profile or a default setting
+    // In a real implementation, these would come from a dedicated table
+    let spendingLimits = [];
+    
+    if (profile && profile.preferences && profile.preferences.spendingLimits) {
+      spendingLimits = profile.preferences.spendingLimits;
+    } else {
+      // Add some default spending limits for testing guardrails
+      spendingLimits = [
+        {
+          id: `limit-${Date.now()}-1`,
+          category: 'Food',
+          limit: 200,
+          period: 'weekly'
+        },
+        {
+          id: `limit-${Date.now()}-2`,
+          category: 'Entertainment',
+          limit: 150,
+          period: 'monthly'
+        }
+      ];
+    }
+    
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      spendingLimits,
+      subscription: subscription || undefined,
+      profile
+    };
+  }
 
   // Income methods (simplified, only including what's necessary)
 
@@ -977,6 +1053,83 @@ export class MemStorage implements IStorage {
   async getUserProfile(userId: number): Promise<UserProfile | undefined> { return undefined; }
   async createUserProfile(profile: InsertUserProfile): Promise<UserProfile> { return {} as UserProfile; }
   async updateUserProfile(userId: number, profile: Partial<InsertUserProfile>): Promise<UserProfile | undefined> { return undefined; }
+  
+  // Spending limits implementation 
+  // In a real implementation, we would store these in a database table
+  // For now, we'll use a memory map to store user spending limits
+  private userSpendingLimits: Map<number, Array<{
+    id: string;
+    category: string;
+    limit: number;
+    period: 'weekly' | 'monthly';
+  }>> = new Map();
+  
+  async addSpendingLimit(userId: number, limit: {
+    id: string;
+    category: string;
+    limit: number;
+    period: 'weekly' | 'monthly';
+  }): Promise<boolean> {
+    // Get existing limits or create a new array
+    const existingLimits = this.userSpendingLimits.get(userId) || [];
+    
+    // Add the new limit
+    existingLimits.push(limit);
+    
+    // Save updated limits
+    this.userSpendingLimits.set(userId, existingLimits);
+    
+    return true;
+  }
+  
+  async getSpendingLimits(userId: number): Promise<Array<{
+    id: string;
+    category: string;
+    limit: number;
+    period: 'weekly' | 'monthly';
+  }>> {
+    // Return existing limits or empty array if none exist
+    return this.userSpendingLimits.get(userId) || [];
+  }
+  
+  async updateSpendingLimit(userId: number, limitId: string, updates: Partial<{
+    category: string;
+    limit: number;
+    period: 'weekly' | 'monthly';
+  }>): Promise<boolean> {
+    // Get existing limits
+    const existingLimits = this.userSpendingLimits.get(userId);
+    if (!existingLimits) return false;
+    
+    // Find the limit to update
+    const limitIndex = existingLimits.findIndex(limit => limit.id === limitId);
+    if (limitIndex === -1) return false;
+    
+    // Update the limit
+    existingLimits[limitIndex] = {
+      ...existingLimits[limitIndex],
+      ...updates
+    };
+    
+    // Save updated limits
+    this.userSpendingLimits.set(userId, existingLimits);
+    
+    return true;
+  }
+  
+  async deleteSpendingLimit(userId: number, limitId: string): Promise<boolean> {
+    // Get existing limits
+    const existingLimits = this.userSpendingLimits.get(userId);
+    if (!existingLimits) return false;
+    
+    // Filter out the limit to delete
+    const updatedLimits = existingLimits.filter(limit => limit.id !== limitId);
+    
+    // Save updated limits
+    this.userSpendingLimits.set(userId, updatedLimits);
+    
+    return true;
+  }
   async getIncomesByCategory(userId: number, category: string): Promise<Income[]> { return []; }
   async getIncomesByDateRange(userId: number, startDate: Date, endDate: Date): Promise<Income[]> { return []; }
   async getIncomeYears(userId: number): Promise<number[]> { return []; }

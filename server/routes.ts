@@ -755,6 +755,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // ========== GUARDRAILS API ENDPOINTS ==========
+  
+  // Get user spending limits
+  app.get("/api/guardrails/spending-limits/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId, 10);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const spendingLimits = await storage.getSpendingLimits(userId);
+      res.json(spendingLimits);
+    } catch (error) {
+      console.error('Error getting spending limits:', error);
+      res.status(500).json({ message: "Failed to get spending limits" });
+    }
+  });
+  
+  // Add new spending limit
+  app.post("/api/guardrails/spending-limits", async (req, res) => {
+    try {
+      const { userId, category, limit, period } = req.body;
+      
+      if (!userId || !category || !limit || !period) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      const userIdNum = parseInt(userId, 10);
+      if (isNaN(userIdNum)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Validate period is either weekly or monthly
+      if (period !== 'weekly' && period !== 'monthly') {
+        return res.status(400).json({ message: "Period must be either 'weekly' or 'monthly'" });
+      }
+      
+      // Add the spending limit
+      const limitId = `limit-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const success = await storage.addSpendingLimit(userIdNum, {
+        id: limitId,
+        category,
+        limit: parseFloat(limit),
+        period
+      });
+      
+      if (success) {
+        return res.status(201).json({ 
+          id: limitId,
+          category,
+          limit: parseFloat(limit),
+          period
+        });
+      } else {
+        return res.status(500).json({ message: "Failed to add spending limit" });
+      }
+    } catch (error) {
+      console.error('Error adding spending limit:', error);
+      res.status(500).json({ message: "Failed to add spending limit" });
+    }
+  });
+  
+  // Update spending limit
+  app.put("/api/guardrails/spending-limits/:limitId", async (req, res) => {
+    try {
+      const { userId, category, limit, period } = req.body;
+      const limitId = req.params.limitId;
+      
+      if (!userId || !limitId) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      const userIdNum = parseInt(userId, 10);
+      if (isNaN(userIdNum)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Build update object with only provided fields
+      const updates: any = {};
+      if (category) updates.category = category;
+      if (limit) updates.limit = parseFloat(limit);
+      if (period) {
+        if (period !== 'weekly' && period !== 'monthly') {
+          return res.status(400).json({ message: "Period must be either 'weekly' or 'monthly'" });
+        }
+        updates.period = period;
+      }
+      
+      // Update the spending limit
+      const success = await storage.updateSpendingLimit(userIdNum, limitId, updates);
+      
+      if (success) {
+        // Get the updated spending limits to return
+        const spendingLimits = await storage.getSpendingLimits(userIdNum);
+        const updatedLimit = spendingLimits.find(limit => limit.id === limitId);
+        
+        return res.json(updatedLimit);
+      } else {
+        return res.status(404).json({ message: "Spending limit not found" });
+      }
+    } catch (error) {
+      console.error('Error updating spending limit:', error);
+      res.status(500).json({ message: "Failed to update spending limit" });
+    }
+  });
+  
+  // Delete spending limit
+  app.delete("/api/guardrails/spending-limits/:limitId", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      const limitId = req.params.limitId;
+      
+      if (!userId || !limitId) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      const userIdNum = parseInt(userId, 10);
+      if (isNaN(userIdNum)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Delete the spending limit
+      const success = await storage.deleteSpendingLimit(userIdNum, limitId);
+      
+      if (success) {
+        return res.status(200).json({ message: "Spending limit deleted successfully" });
+      } else {
+        return res.status(404).json({ message: "Spending limit not found" });
+      }
+    } catch (error) {
+      console.error('Error deleting spending limit:', error);
+      res.status(500).json({ message: "Failed to delete spending limit" });
+    }
+  });
+  
   // Create new expense
   app.post("/api/expenses", async (req, res) => {
     try {

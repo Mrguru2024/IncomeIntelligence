@@ -17,6 +17,47 @@ export interface NotificationRequest {
 
 export class NotificationService {
   /**
+   * Send a notification to the client-side for immediate processing
+   * This is used for real-time notifications like guardrails alerts
+   */
+  async sendNotification(notification: {
+    userId: string;
+    type: string;
+    title: string;
+    message: string;
+    data?: any;
+    read: boolean;
+    createdAt: Date;
+  }): Promise<void> {
+    try {
+      // Convert userId from string to number
+      const userId = parseInt(notification.userId, 10);
+      if (isNaN(userId)) {
+        console.error('Invalid userId for notification:', notification.userId);
+        return;
+      }
+      
+      // Create a notification record in the database
+      const notificationPayload: InsertNotification = {
+        userId,
+        title: notification.title,
+        message: notification.message,
+        type: notification.type as any, // Cast to match the expected type
+        isRead: notification.read,
+        metadata: notification.data || null
+      };
+      
+      await storage.createNotification(notificationPayload);
+      
+      // In a real implementation, we would emit this notification to connected clients 
+      // through WebSockets or Server-Sent Events
+      console.log(`Notification sent to user ${userId}: ${notification.title}`);
+    } catch (error) {
+      console.error('Error sending notification:', error);
+    }
+  }
+  
+  /**
    * Create a new notification and optionally send it via configured channels
    */
   async createNotification(notificationData: NotificationRequest): Promise<any> {
