@@ -4192,7 +4192,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadStateFromStorage();
   
   // Check if user came through a referral link
-  import('./auth.js').then(authModule => {
+  import('../auth.js').then(authModule => {
     if (typeof authModule.checkAndStoreReferralCode === 'function') {
       authModule.checkAndStoreReferralCode();
     }
