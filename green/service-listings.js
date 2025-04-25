@@ -513,6 +513,33 @@ function createListingCard(listing, appState) {
   const actions = document.createElement('div');
   actions.style.display = 'flex';
   actions.style.gap = '8px';
+  actions.style.flexWrap = 'wrap';
+  
+  // Preview button
+  const previewButton = document.createElement('button');
+  previewButton.innerHTML = `
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+    <span>Preview</span>
+  `;
+  previewButton.style.display = 'flex';
+  previewButton.style.alignItems = 'center';
+  previewButton.style.gap = '4px';
+  previewButton.style.padding = '8px 12px';
+  previewButton.style.backgroundColor = '#f0f0f0';
+  previewButton.style.color = '#333';
+  previewButton.style.border = 'none';
+  previewButton.style.borderRadius = '4px';
+  previewButton.style.cursor = 'pointer';
+  previewButton.style.flex = '1';
+  
+  previewButton.addEventListener('click', () => {
+    showListingPreview(listing, appState);
+  });
+  
+  actions.appendChild(previewButton);
   
   // Edit button
   const editButton = document.createElement('button');
@@ -534,10 +561,17 @@ function createListingCard(listing, appState) {
   editButton.style.flex = '1';
   
   editButton.addEventListener('click', () => {
-    alert(`Edit listing: ${listing.name}`);
+    openEditListingForm(listing, appState);
   });
   
   actions.appendChild(editButton);
+  
+  // Second row of buttons
+  const actionsRow2 = document.createElement('div');
+  actionsRow2.style.display = 'flex';
+  actionsRow2.style.gap = '8px';
+  actionsRow2.style.marginTop = '8px';
+  actionsRow2.style.width = '100%';
   
   // Toggle status button
   const toggleButton = document.createElement('button');
@@ -569,10 +603,38 @@ function createListingCard(listing, appState) {
   toggleButton.style.flex = '1';
   
   toggleButton.addEventListener('click', () => {
-    alert(`${listing.isActive ? 'Pause' : 'Activate'} listing: ${listing.name}`);
+    toggleListingStatus(listing, appState);
   });
   
-  actions.appendChild(toggleButton);
+  actionsRow2.appendChild(toggleButton);
+  
+  // Delete button
+  const deleteButton = document.createElement('button');
+  deleteButton.innerHTML = `
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    </svg>
+    <span>Delete</span>
+  `;
+  deleteButton.style.display = 'flex';
+  deleteButton.style.alignItems = 'center';
+  deleteButton.style.gap = '4px';
+  deleteButton.style.padding = '8px 12px';
+  deleteButton.style.backgroundColor = '#fff0f0';
+  deleteButton.style.color = '#d32f2f';
+  deleteButton.style.border = '1px solid #ffcdd2';
+  deleteButton.style.borderRadius = '4px';
+  deleteButton.style.cursor = 'pointer';
+  deleteButton.style.flex = '1';
+  
+  deleteButton.addEventListener('click', () => {
+    confirmDeleteListing(listing, appState);
+  });
+  
+  actionsRow2.appendChild(deleteButton);
+  
+  actions.appendChild(actionsRow2);
   
   content.appendChild(actions);
   
@@ -1348,36 +1410,833 @@ function createFormGroup(labelText, inputType, inputName, placeholder = '') {
 /**
  * Get mock service listings data
  */
+/**
+ * Get user service listings from local storage or return mock data as fallback
+ */
 function getMockServiceListings() {
-  return [
-    {
-      id: 1,
-      name: 'Professional Plumbing Services',
-      category: 'plumber',
-      isActive: true,
-      location: 'Chicago, IL',
-      views: 72,
-      inquiries: 8
-    },
-    {
-      id: 2,
-      name: 'Home Electrical Repairs',
-      category: 'electrician',
-      isActive: true,
-      location: 'Chicago, IL',
-      views: 45,
-      inquiries: 5
-    },
-    {
-      id: 3,
-      name: 'Landscaping & Garden Design',
-      category: 'landscaper',
-      isActive: false,
-      location: 'Evanston, IL',
-      views: 10,
-      inquiries: 1
+  try {
+    // First check if we have listings in localStorage
+    const storedListings = localStorage.getItem('stackr_service_listings');
+    if (storedListings) {
+      return JSON.parse(storedListings);
     }
-  ];
+    
+    // If no listings found in localStorage, return mock data and save it
+    const mockData = [
+      {
+        id: 1,
+        name: 'Professional Plumbing Services',
+        category: 'plumber',
+        isActive: true,
+        location: 'Chicago, IL',
+        views: 72,
+        inquiries: 8,
+        description: 'Expert plumbing services for residential and commercial properties. Specializing in repairs, installations, and emergency services.',
+        rate: 75,
+        pricingType: 'hourly_rate',
+        radius: 30,
+        skills: 'Leak repairs, Water heater installation, Pipe replacements',
+        contactEmail: 'plumbing@example.com',
+        contactPhone: '(312) 555-7890',
+        remoteAvailable: false
+      },
+      {
+        id: 2,
+        name: 'Home Electrical Repairs',
+        category: 'electrician',
+        isActive: true,
+        location: 'Chicago, IL',
+        views: 45,
+        inquiries: 5,
+        description: 'Licensed electrician providing reliable and safe electrical services for homes and small businesses.',
+        rate: 85,
+        pricingType: 'hourly_rate',
+        radius: 25,
+        skills: 'Wiring, Panel upgrades, Lighting installation',
+        contactEmail: 'electrical@example.com',
+        contactPhone: '(312) 555-1234',
+        remoteAvailable: false
+      },
+      {
+        id: 3,
+        name: 'Landscaping & Garden Design',
+        category: 'landscaper',
+        isActive: false,
+        location: 'Evanston, IL',
+        views: 10,
+        inquiries: 1,
+        description: 'Transform your outdoor space with professional landscaping and garden design services.',
+        rate: 60,
+        pricingType: 'hourly_rate',
+        radius: 15,
+        skills: 'Garden design, Lawn care, Planting',
+        contactEmail: 'gardens@example.com',
+        contactPhone: '(847) 555-9876',
+        remoteAvailable: false
+      }
+    ];
+    
+    // Save mock data to localStorage for future editing
+    localStorage.setItem('stackr_service_listings', JSON.stringify(mockData));
+    
+    return mockData;
+  } catch (error) {
+    console.error('Error getting service listings:', error);
+    return [];
+  }
+}
+
+/**
+ * Save service listings to localStorage
+ */
+function saveServiceListings(listings) {
+  try {
+    localStorage.setItem('stackr_service_listings', JSON.stringify(listings));
+    return true;
+  } catch (error) {
+    console.error('Error saving service listings:', error);
+    return false;
+  }
+}
+
+/**
+ * Show listing preview in a modal dialog
+ */
+function showListingPreview(listing, appState) {
+  // Create modal container
+  const modal = document.createElement('div');
+  modal.className = 'service-preview-modal';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modal.style.display = 'flex';
+  modal.style.justifyContent = 'center';
+  modal.style.alignItems = 'center';
+  modal.style.zIndex = '1000';
+  
+  // Create modal content
+  const modalContent = document.createElement('div');
+  modalContent.className = 'service-preview-content';
+  modalContent.style.backgroundColor = 'white';
+  modalContent.style.borderRadius = '8px';
+  modalContent.style.maxWidth = '90%';
+  modalContent.style.width = '700px';
+  modalContent.style.maxHeight = '90%';
+  modalContent.style.overflowY = 'auto';
+  modalContent.style.position = 'relative';
+  
+  // Preview header
+  const previewHeader = document.createElement('div');
+  previewHeader.style.padding = '16px 24px';
+  previewHeader.style.borderBottom = '1px solid #eee';
+  previewHeader.style.display = 'flex';
+  previewHeader.style.justifyContent = 'space-between';
+  previewHeader.style.alignItems = 'center';
+  
+  const previewTitle = document.createElement('h3');
+  previewTitle.textContent = 'Service Preview';
+  previewTitle.style.margin = '0';
+  previewHeader.appendChild(previewTitle);
+  
+  const previewDescription = document.createElement('p');
+  previewDescription.textContent = 'This is how your listing appears to users';
+  previewDescription.style.fontSize = '14px';
+  previewDescription.style.color = '#666';
+  previewDescription.style.margin = '4px 0 0 0';
+  previewHeader.appendChild(previewDescription);
+  
+  // Close button
+  const closeButton = document.createElement('button');
+  closeButton.innerHTML = `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  `;
+  closeButton.style.background = 'none';
+  closeButton.style.border = 'none';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.padding = '4px';
+  closeButton.style.color = '#666';
+  closeButton.style.position = 'absolute';
+  closeButton.style.right = '16px';
+  closeButton.style.top = '16px';
+  
+  closeButton.addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  previewHeader.appendChild(closeButton);
+  modalContent.appendChild(previewHeader);
+  
+  // Preview content
+  const previewContent = document.createElement('div');
+  previewContent.style.padding = '24px';
+  
+  // Service details
+  const serviceView = document.createElement('div');
+  serviceView.className = 'service-listing-view';
+  
+  // Service header
+  const serviceHeader = document.createElement('div');
+  serviceHeader.style.display = 'flex';
+  serviceHeader.style.gap = '16px';
+  serviceHeader.style.marginBottom = '24px';
+  
+  // Service icon
+  const serviceIcon = document.createElement('div');
+  serviceIcon.innerHTML = getIconSvg(getCategoryIcon(listing.category));
+  serviceIcon.style.display = 'flex';
+  serviceIcon.style.alignItems = 'center';
+  serviceIcon.style.justifyContent = 'center';
+  serviceIcon.style.width = '60px';
+  serviceIcon.style.height = '60px';
+  serviceIcon.style.backgroundColor = '#f0f9f4';
+  serviceIcon.style.borderRadius = '50%';
+  serviceIcon.style.flexShrink = '0';
+  serviceHeader.appendChild(serviceIcon);
+  
+  // Service title and info
+  const serviceTitleBlock = document.createElement('div');
+  
+  const serviceTitle = document.createElement('h2');
+  serviceTitle.textContent = listing.name;
+  serviceTitle.style.margin = '0 0 4px 0';
+  serviceTitle.style.fontWeight = 'bold';
+  serviceTitleBlock.appendChild(serviceTitle);
+  
+  const serviceCategory = document.createElement('div');
+  serviceCategory.textContent = getCategoryName(listing.category);
+  serviceCategory.style.color = '#666';
+  serviceCategory.style.marginBottom = '4px';
+  serviceTitleBlock.appendChild(serviceCategory);
+  
+  const serviceLocation = document.createElement('div');
+  serviceLocation.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+      <circle cx="12" cy="10" r="3"></circle>
+    </svg>
+    <span style="vertical-align: middle;">${listing.location}</span>
+  `;
+  serviceLocation.style.color = '#666';
+  serviceLocation.style.fontSize = '14px';
+  serviceTitleBlock.appendChild(serviceLocation);
+  
+  serviceHeader.appendChild(serviceTitleBlock);
+  serviceView.appendChild(serviceHeader);
+  
+  // Service description
+  if (listing.description) {
+    const descriptionSection = document.createElement('div');
+    descriptionSection.style.marginBottom = '24px';
+    
+    const descriptionTitle = document.createElement('h4');
+    descriptionTitle.textContent = 'About This Service';
+    descriptionTitle.style.marginBottom = '8px';
+    descriptionSection.appendChild(descriptionTitle);
+    
+    const description = document.createElement('p');
+    description.textContent = listing.description;
+    description.style.margin = '0';
+    description.style.lineHeight = '1.6';
+    description.style.color = '#333';
+    descriptionSection.appendChild(description);
+    
+    serviceView.appendChild(descriptionSection);
+  }
+  
+  // Pricing information
+  const pricingSection = document.createElement('div');
+  pricingSection.style.marginBottom = '24px';
+  pricingSection.style.display = 'flex';
+  pricingSection.style.gap = '24px';
+  
+  // Rate
+  if (listing.rate) {
+    const rateBox = document.createElement('div');
+    rateBox.style.flexGrow = '1';
+    rateBox.style.padding = '16px';
+    rateBox.style.backgroundColor = '#f9f9f9';
+    rateBox.style.borderRadius = '8px';
+    
+    const rateTitle = document.createElement('div');
+    rateTitle.textContent = 'Rate';
+    rateTitle.style.fontWeight = 'bold';
+    rateTitle.style.marginBottom = '4px';
+    rateBox.appendChild(rateTitle);
+    
+    const rateValue = document.createElement('div');
+    rateValue.innerHTML = `<span style="font-size: 24px; font-weight: bold;">$${listing.rate}</span>`;
+    
+    // Add pricing type label
+    if (listing.pricingType) {
+      let pricingLabel = '';
+      switch (listing.pricingType) {
+        case 'hourly_rate':
+          pricingLabel = '/hour';
+          break;
+        case 'fixed_price':
+          pricingLabel = ' fixed';
+          break;
+        case 'negotiable':
+          pricingLabel = ' negotiable';
+          break;
+        case 'free_estimate':
+          pricingLabel = ' (free estimate)';
+          break;
+      }
+      rateValue.innerHTML += `<span style="font-size: 14px; color: #666;">${pricingLabel}</span>`;
+    }
+    
+    rateBox.appendChild(rateValue);
+    pricingSection.appendChild(rateBox);
+  }
+  
+  // Service area
+  if (listing.radius) {
+    const radiusBox = document.createElement('div');
+    radiusBox.style.flexGrow = '1';
+    radiusBox.style.padding = '16px';
+    radiusBox.style.backgroundColor = '#f9f9f9';
+    radiusBox.style.borderRadius = '8px';
+    
+    const radiusTitle = document.createElement('div');
+    radiusTitle.textContent = 'Service Area';
+    radiusTitle.style.fontWeight = 'bold';
+    radiusTitle.style.marginBottom = '4px';
+    radiusBox.appendChild(radiusTitle);
+    
+    const radiusValue = document.createElement('div');
+    radiusValue.innerHTML = `<span style="font-size: 20px; font-weight: bold;">${listing.radius}</span><span style="font-size: 14px; color: #666;"> mile radius</span>`;
+    radiusBox.appendChild(radiusValue);
+    
+    pricingSection.appendChild(radiusBox);
+  }
+  
+  // Remote available
+  if (listing.remoteAvailable) {
+    const remoteBox = document.createElement('div');
+    remoteBox.style.flexGrow = '1';
+    remoteBox.style.padding = '16px';
+    remoteBox.style.backgroundColor = '#f9f9f9';
+    remoteBox.style.borderRadius = '8px';
+    
+    const remoteTitle = document.createElement('div');
+    remoteTitle.textContent = 'Remote Service';
+    remoteTitle.style.fontWeight = 'bold';
+    remoteTitle.style.marginBottom = '4px';
+    remoteBox.appendChild(remoteTitle);
+    
+    const remoteValue = document.createElement('div');
+    remoteValue.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34A853" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span style="font-size: 16px; vertical-align: middle; margin-left: 4px;">Available</span>
+    `;
+    remoteBox.appendChild(remoteValue);
+    
+    pricingSection.appendChild(remoteBox);
+  }
+  
+  serviceView.appendChild(pricingSection);
+  
+  // Skills and specialties
+  if (listing.skills) {
+    const skillsSection = document.createElement('div');
+    skillsSection.style.marginBottom = '24px';
+    
+    const skillsTitle = document.createElement('h4');
+    skillsTitle.textContent = 'Skills & Specialties';
+    skillsTitle.style.marginBottom = '12px';
+    skillsSection.appendChild(skillsTitle);
+    
+    const skillsList = document.createElement('div');
+    skillsList.style.display = 'flex';
+    skillsList.style.flexWrap = 'wrap';
+    skillsList.style.gap = '8px';
+    
+    const skills = listing.skills.split(',');
+    skills.forEach(skill => {
+      const skillTag = document.createElement('span');
+      skillTag.textContent = skill.trim();
+      skillTag.style.padding = '4px 12px';
+      skillTag.style.backgroundColor = '#f0f0f0';
+      skillTag.style.borderRadius = '16px';
+      skillTag.style.fontSize = '14px';
+      skillsList.appendChild(skillTag);
+    });
+    
+    skillsSection.appendChild(skillsList);
+    serviceView.appendChild(skillsSection);
+  }
+  
+  // Contact information
+  const contactSection = document.createElement('div');
+  contactSection.style.marginBottom = '24px';
+  
+  const contactTitle = document.createElement('h4');
+  contactTitle.textContent = 'Contact Information';
+  contactTitle.style.marginBottom = '12px';
+  contactSection.appendChild(contactTitle);
+  
+  const contactList = document.createElement('div');
+  contactList.style.display = 'flex';
+  contactList.style.flexDirection = 'column';
+  contactList.style.gap = '8px';
+  
+  if (listing.contactEmail) {
+    const emailItem = document.createElement('div');
+    emailItem.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <polyline points="22,6 12,13 2,6"></polyline>
+      </svg>
+      <span style="vertical-align: middle;">${listing.contactEmail}</span>
+    `;
+    contactList.appendChild(emailItem);
+  }
+  
+  if (listing.contactPhone) {
+    const phoneItem = document.createElement('div');
+    phoneItem.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+      </svg>
+      <span style="vertical-align: middle;">${listing.contactPhone}</span>
+    `;
+    contactList.appendChild(phoneItem);
+  }
+  
+  contactSection.appendChild(contactList);
+  serviceView.appendChild(contactSection);
+  
+  // Request button
+  const requestButton = document.createElement('button');
+  requestButton.textContent = 'Request Service';
+  requestButton.style.backgroundColor = '#34A853';
+  requestButton.style.color = 'white';
+  requestButton.style.border = 'none';
+  requestButton.style.borderRadius = '4px';
+  requestButton.style.padding = '12px 24px';
+  requestButton.style.fontSize = '16px';
+  requestButton.style.fontWeight = 'bold';
+  requestButton.style.cursor = 'pointer';
+  requestButton.style.width = '100%';
+  
+  requestButton.addEventListener('click', () => {
+    alert('This is a preview. Users would be able to request your service here.');
+  });
+  
+  serviceView.appendChild(requestButton);
+  previewContent.appendChild(serviceView);
+  
+  modalContent.appendChild(previewContent);
+  modal.appendChild(modalContent);
+  
+  // Add modal to body
+  document.body.appendChild(modal);
+  
+  // Close when clicking outside
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  });
+}
+
+/**
+ * Open edit form for a service listing
+ */
+function openEditListingForm(listing, appState) {
+  // Create modal container
+  const modal = document.createElement('div');
+  modal.className = 'service-edit-modal';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modal.style.display = 'flex';
+  modal.style.justifyContent = 'center';
+  modal.style.alignItems = 'center';
+  modal.style.zIndex = '1000';
+  
+  // Create modal content
+  const modalContent = document.createElement('div');
+  modalContent.className = 'service-edit-content';
+  modalContent.style.backgroundColor = 'white';
+  modalContent.style.borderRadius = '8px';
+  modalContent.style.maxWidth = '90%';
+  modalContent.style.width = '800px';
+  modalContent.style.maxHeight = '90%';
+  modalContent.style.overflowY = 'auto';
+  modalContent.style.position = 'relative';
+  
+  // Edit form header
+  const formHeader = document.createElement('div');
+  formHeader.style.padding = '16px 24px';
+  formHeader.style.borderBottom = '1px solid #eee';
+  formHeader.style.display = 'flex';
+  formHeader.style.justifyContent = 'space-between';
+  formHeader.style.alignItems = 'center';
+  
+  const formTitle = document.createElement('h3');
+  formTitle.textContent = 'Edit Service Listing';
+  formTitle.style.margin = '0';
+  formHeader.appendChild(formTitle);
+  
+  // Close button
+  const closeButton = document.createElement('button');
+  closeButton.innerHTML = `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  `;
+  closeButton.style.background = 'none';
+  closeButton.style.border = 'none';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.padding = '4px';
+  closeButton.style.color = '#666';
+  
+  closeButton.addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  formHeader.appendChild(closeButton);
+  modalContent.appendChild(formHeader);
+  
+  // Form content
+  const formContent = document.createElement('div');
+  formContent.style.padding = '24px';
+  
+  // Create edit form - similar to create form but with values filled in
+  const form = document.createElement('form');
+  form.style.display = 'grid';
+  form.style.gridTemplateColumns = 'repeat(2, 1fr)';
+  form.style.gap = '24px';
+  
+  // Service Name
+  const nameGroup = createFormGroup('Service Name', 'text', 'serviceName', 'e.g. Professional Plumbing Services');
+  nameGroup.style.gridColumn = '1 / 3';
+  const nameInput = nameGroup.querySelector('input');
+  nameInput.value = listing.name || '';
+  form.appendChild(nameGroup);
+  
+  // Service Category
+  const categoryGroup = createFormGroup('Service Category', 'select', 'serviceCategory');
+  categoryGroup.style.gridColumn = '1 / 2';
+  
+  const categorySelect = categoryGroup.querySelector('select');
+  SERVICE_CATEGORIES.forEach(category => {
+    const option = document.createElement('option');
+    option.value = category.id;
+    option.textContent = category.name;
+    if (category.id === listing.category) {
+      option.selected = true;
+    }
+    categorySelect.appendChild(option);
+  });
+  
+  form.appendChild(categoryGroup);
+  
+  // Pricing Type
+  const pricingTypeGroup = createFormGroup('Pricing Type', 'select', 'pricingType');
+  pricingTypeGroup.style.gridColumn = '2 / 3';
+  
+  const pricingTypeSelect = pricingTypeGroup.querySelector('select');
+  ['Hourly Rate', 'Fixed Price', 'Negotiable', 'Free Estimate'].forEach(type => {
+    const option = document.createElement('option');
+    option.value = type.toLowerCase().replace(/\s/g, '_');
+    option.textContent = type;
+    if (option.value === listing.pricingType) {
+      option.selected = true;
+    }
+    pricingTypeSelect.appendChild(option);
+  });
+  
+  form.appendChild(pricingTypeGroup);
+  
+  // Rate
+  const rateGroup = createFormGroup('Rate (USD)', 'number', 'rate', 'e.g. 50');
+  rateGroup.style.gridColumn = '1 / 2';
+  const rateInput = rateGroup.querySelector('input');
+  rateInput.value = listing.rate || '';
+  form.appendChild(rateGroup);
+  
+  // Location
+  const locationGroup = createFormGroup('Service Location', 'text', 'location', 'e.g. Chicago, IL');
+  locationGroup.style.gridColumn = '2 / 3';
+  const locationInput = locationGroup.querySelector('input');
+  locationInput.value = listing.location || '';
+  form.appendChild(locationGroup);
+  
+  // Service Radius
+  const radiusGroup = createFormGroup('Service Radius (miles)', 'number', 'radius', 'e.g. 25');
+  radiusGroup.style.gridColumn = '1 / 2';
+  const radiusInput = radiusGroup.querySelector('input');
+  radiusInput.value = listing.radius || '25';
+  form.appendChild(radiusGroup);
+  
+  // Is Remote Friendly?
+  const remoteGroup = document.createElement('div');
+  remoteGroup.className = 'form-group';
+  remoteGroup.style.gridColumn = '2 / 3';
+  remoteGroup.style.display = 'flex';
+  remoteGroup.style.alignItems = 'center';
+  
+  const remoteLabel = document.createElement('label');
+  remoteLabel.innerHTML = 'Remote Work Available?';
+  remoteLabel.style.marginBottom = '8px';
+  remoteLabel.style.display = 'block';
+  remoteLabel.style.fontWeight = 'bold';
+  remoteGroup.appendChild(remoteLabel);
+  
+  const remoteToggle = document.createElement('label');
+  remoteToggle.className = 'toggle-switch';
+  remoteToggle.style.position = 'relative';
+  remoteToggle.style.display = 'inline-block';
+  remoteToggle.style.width = '50px';
+  remoteToggle.style.height = '24px';
+  remoteToggle.style.marginLeft = '16px';
+  
+  const remoteInput = document.createElement('input');
+  remoteInput.type = 'checkbox';
+  remoteInput.id = 'remoteAvailable';
+  remoteInput.name = 'remoteAvailable';
+  remoteInput.style.opacity = '0';
+  remoteInput.style.width = '0';
+  remoteInput.style.height = '0';
+  remoteInput.checked = listing.remoteAvailable || false;
+  
+  const slider = document.createElement('span');
+  slider.className = 'slider';
+  slider.style.position = 'absolute';
+  slider.style.cursor = 'pointer';
+  slider.style.top = '0';
+  slider.style.left = '0';
+  slider.style.right = '0';
+  slider.style.bottom = '0';
+  slider.style.backgroundColor = remoteInput.checked ? '#34A853' : '#ccc';
+  slider.style.transition = '.4s';
+  slider.style.borderRadius = '34px';
+  
+  slider.innerHTML = `
+    <span style="position: absolute; content: ''; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; transform: ${remoteInput.checked ? 'translateX(26px)' : 'translateX(0)'}"></span>
+  `;
+  
+  remoteInput.addEventListener('change', function() {
+    if (this.checked) {
+      slider.style.backgroundColor = '#34A853';
+      slider.querySelector('span').style.transform = 'translateX(26px)';
+    } else {
+      slider.style.backgroundColor = '#ccc';
+      slider.querySelector('span').style.transform = 'translateX(0)';
+    }
+  });
+  
+  remoteToggle.appendChild(remoteInput);
+  remoteToggle.appendChild(slider);
+  remoteGroup.appendChild(remoteToggle);
+  
+  form.appendChild(remoteGroup);
+  
+  // Description
+  const descriptionGroup = createFormGroup('Service Description', 'textarea', 'description', 'Describe your services, expertise, and what sets you apart...');
+  descriptionGroup.style.gridColumn = '1 / 3';
+  const descriptionInput = descriptionGroup.querySelector('textarea');
+  descriptionInput.value = listing.description || '';
+  form.appendChild(descriptionGroup);
+  
+  // Skills
+  const skillsGroup = createFormGroup('Skills and Specialties', 'text', 'skills', 'e.g. Residential plumbing, water heaters, leak repair');
+  skillsGroup.style.gridColumn = '1 / 3';
+  const skillsInput = skillsGroup.querySelector('input');
+  skillsInput.value = listing.skills || '';
+  
+  const skillsHelp = document.createElement('div');
+  skillsHelp.textContent = 'Separate multiple skills with commas';
+  skillsHelp.style.fontSize = '12px';
+  skillsHelp.style.color = '#666';
+  skillsHelp.style.marginTop = '4px';
+  
+  skillsGroup.appendChild(skillsHelp);
+  form.appendChild(skillsGroup);
+  
+  // Contact Email
+  const emailGroup = createFormGroup('Contact Email', 'email', 'contactEmail', 'e.g. your@email.com');
+  emailGroup.style.gridColumn = '1 / 2';
+  const emailInput = emailGroup.querySelector('input');
+  emailInput.value = listing.contactEmail || '';
+  form.appendChild(emailGroup);
+  
+  // Contact Phone
+  const phoneGroup = createFormGroup('Contact Phone', 'tel', 'contactPhone', 'e.g. (555) 555-5555');
+  phoneGroup.style.gridColumn = '2 / 3';
+  const phoneInput = phoneGroup.querySelector('input');
+  phoneInput.value = listing.contactPhone || '';
+  form.appendChild(phoneGroup);
+  
+  // Hidden ID field to identify which listing we're editing
+  const idInput = document.createElement('input');
+  idInput.type = 'hidden';
+  idInput.name = 'id';
+  idInput.value = listing.id;
+  form.appendChild(idInput);
+  
+  // Submit button
+  const submitGroup = document.createElement('div');
+  submitGroup.className = 'form-group';
+  submitGroup.style.gridColumn = '1 / 3';
+  submitGroup.style.marginTop = '16px';
+  
+  const submitButton = document.createElement('button');
+  submitButton.type = 'submit';
+  submitButton.textContent = 'Save Changes';
+  submitButton.style.padding = '12px 24px';
+  submitButton.style.backgroundColor = '#34A853';
+  submitButton.style.color = 'white';
+  submitButton.style.border = 'none';
+  submitButton.style.borderRadius = '4px';
+  submitButton.style.fontWeight = 'bold';
+  submitButton.style.cursor = 'pointer';
+  submitButton.style.transition = 'background-color 0.2s';
+  
+  submitButton.addEventListener('mouseover', () => {
+    submitButton.style.backgroundColor = '#2E9748';
+  });
+  
+  submitButton.addEventListener('mouseout', () => {
+    submitButton.style.backgroundColor = '#34A853';
+  });
+  
+  submitGroup.appendChild(submitButton);
+  form.appendChild(submitGroup);
+  
+  // Handle form submission
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // Get form data
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Update listing in storage
+    updateListing(data, appState);
+    
+    // Close the modal
+    document.body.removeChild(modal);
+  });
+  
+  formContent.appendChild(form);
+  modalContent.appendChild(formContent);
+  modal.appendChild(modalContent);
+  
+  // Add modal to body
+  document.body.appendChild(modal);
+  
+  // Close when clicking outside
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  });
+}
+
+/**
+ * Toggle a listing's active status
+ */
+function toggleListingStatus(listing, appState) {
+  // Get current listings
+  const listings = getMockServiceListings();
+  
+  // Find and update the listing
+  const updatedListings = listings.map(item => {
+    if (item.id === listing.id) {
+      return { ...item, isActive: !item.isActive };
+    }
+    return item;
+  });
+  
+  // Save updated listings
+  if (saveServiceListings(updatedListings)) {
+    // Show success message
+    const statusMessage = !listing.isActive ? 'activated' : 'paused';
+    alert(`Listing has been ${statusMessage} successfully.`);
+    
+    // Refresh the listings display
+    const tabContent = document.querySelector('.tab-content');
+    renderMyListings(tabContent, appState);
+  }
+}
+
+/**
+ * Update a listing with form data
+ */
+function updateListing(formData, appState) {
+  // Get current listings
+  const listings = getMockServiceListings();
+  
+  // Find and update the listing
+  const updatedListings = listings.map(item => {
+    if (item.id === parseInt(formData.id)) {
+      return {
+        ...item,
+        name: formData.serviceName,
+        category: formData.serviceCategory,
+        pricingType: formData.pricingType,
+        rate: formData.rate ? parseFloat(formData.rate) : 0,
+        location: formData.location,
+        radius: formData.radius ? parseInt(formData.radius) : 25,
+        remoteAvailable: formData.remoteAvailable === 'on',
+        description: formData.description,
+        skills: formData.skills,
+        contactEmail: formData.contactEmail,
+        contactPhone: formData.contactPhone
+      };
+    }
+    return item;
+  });
+  
+  // Save updated listings
+  if (saveServiceListings(updatedListings)) {
+    // Show success message
+    alert('Listing updated successfully.');
+    
+    // Refresh the listings display
+    const tabContent = document.querySelector('.tab-content');
+    renderMyListings(tabContent, appState);
+  }
+}
+
+/**
+ * Confirm and delete a service listing
+ */
+function confirmDeleteListing(listing, appState) {
+  if (confirm(`Are you sure you want to delete the listing "${listing.name}"? This action cannot be undone.`)) {
+    // Get current listings
+    const listings = getMockServiceListings();
+    
+    // Remove the listing
+    const updatedListings = listings.filter(item => item.id !== listing.id);
+    
+    // Save updated listings
+    if (saveServiceListings(updatedListings)) {
+      // Show success message
+      alert('Listing deleted successfully.');
+      
+      // Refresh the listings display
+      const tabContent = document.querySelector('.tab-content');
+      renderMyListings(tabContent, appState);
+    }
+  }
+}
 }
 
 /**
