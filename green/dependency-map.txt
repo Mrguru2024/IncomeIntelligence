@@ -34,9 +34,6 @@
 - green/auth.js - Auth utilities
 
 ## RARELY USED / POTENTIAL CANDIDATES FOR ARCHIVAL
-- green/income.js - Income features (different from futuristic-income)
-- green/landing.js - Old landing page (replaced by landing-new)
-- green/receipt-scanner.js - Receipt scanning feature
 - green/wellness-scorecard.js - Wellness scorecard feature
 
 ## ARCHIVED FILES (Moved to green/archive)
