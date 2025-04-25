@@ -1,311 +1,226 @@
 /**
- * Toast Notification Component for Stackr Finance GREEN Edition
- * Creates and manages toast notifications throughout the application
+ * Toast notification component
+ * Provides simple toast notifications for the application
  */
 
-// Global toast container reference
-let toastContainer = null;
-
-/**
- * Toast types with associated styles
- */
-const TOAST_TYPES = {
-  SUCCESS: {
-    bgColor: 'var(--color-success-light, #E8F5E9)',
-    borderColor: 'var(--color-success, #4CAF50)',
-    textColor: 'var(--color-success-dark, #2E7D32)',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
-  },
-  ERROR: {
-    bgColor: 'var(--color-error-light, #FFEBEE)',
-    borderColor: 'var(--color-error, #F44336)',
-    textColor: 'var(--color-error-dark, #C62828)',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>'
-  },
-  WARNING: {
-    bgColor: 'var(--color-warning-light, #FFF8E1)',
-    borderColor: 'var(--color-warning, #FFC107)',
-    textColor: 'var(--color-warning-dark, #FF8F00)',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
-  },
-  INFO: {
-    bgColor: 'var(--color-info-light, #E3F2FD)',
-    borderColor: 'var(--color-info, #2196F3)',
-    textColor: 'var(--color-info-dark, #0D47A1)',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>'
-  },
-  PRO: {
-    bgColor: 'var(--color-pro-light, #F3E5F5)',
-    borderColor: 'var(--color-pro, #9C27B0)',
-    textColor: 'var(--color-pro-dark, #6A1B9A)',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>'
-  }
-};
+// Keep track of active toasts
+let activeToasts = [];
+let toastContainer;
 
 /**
  * Initialize the toast container
- * @returns {HTMLElement} - Toast container element
+ * @returns {HTMLElement} - The toast container element
  */
 function initToastContainer() {
-  // If container already exists, return it
-  if (toastContainer) {
-    return toastContainer;
-  }
+  if (toastContainer) return toastContainer;
   
   // Create container
   toastContainer = document.createElement('div');
-  toastContainer.className = 'toast-container';
-  toastContainer.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-    max-width: 100%;
-    pointer-events: none;
-  `;
+  toastContainer.id = 'toast-container';
+  toastContainer.style.position = 'fixed';
+  toastContainer.style.bottom = '20px';
+  toastContainer.style.right = '20px';
+  toastContainer.style.zIndex = '9999';
+  toastContainer.style.display = 'flex';
+  toastContainer.style.flexDirection = 'column';
+  toastContainer.style.alignItems = 'flex-end';
+  toastContainer.style.gap = '10px';
   
+  // Add to body
   document.body.appendChild(toastContainer);
+  
   return toastContainer;
 }
 
 /**
- * Create and show a toast notification
- * @param {Object} options - Toast configuration options
- * @param {string} options.message - Message to display in the toast
- * @param {string} [options.type='INFO'] - Toast type (SUCCESS, ERROR, WARNING, INFO, PRO)
- * @param {number} [options.duration=5000] - Duration in milliseconds before auto-dismiss
- * @param {Function} [options.onClose] - Callback function when toast is closed
- * @param {string} [options.actionText] - Text for action button (optional)
- * @param {Function} [options.onAction] - Callback for action button click (optional)
- * @returns {Object} - Toast controller with close method
+ * Create a toast notification
+ * @param {string} message - The message to display
+ * @param {string} type - The type of toast (success, error, info, warning)
+ * @param {number} duration - How long to display the toast (ms)
+ * @returns {HTMLElement} - The toast element
  */
-export function createToast(options) {
-  const { 
-    message, 
-    type = 'INFO', 
-    duration = 5000, 
-    onClose, 
-    actionText,
-    onAction 
-  } = options;
-  
-  // Get container
+export function createToast(message, type = 'info', duration = 3000) {
+  // Initialize container if needed
   const container = initToastContainer();
-  
-  // Get style based on type
-  const toastStyle = TOAST_TYPES[type] || TOAST_TYPES.INFO;
   
   // Create toast element
   const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.style.cssText = `
-    display: flex;
-    align-items: flex-start;
-    background-color: ${toastStyle.bgColor};
-    color: ${toastStyle.textColor};
-    border-left: 4px solid ${toastStyle.borderColor};
-    padding: 12px 16px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    margin-bottom: 8px;
-    min-width: 300px;
-    max-width: 450px;
-    transform: translateX(120%);
-    transition: transform 0.3s ease;
-    pointer-events: auto;
-    position: relative;
-  `;
+  toast.className = `toast toast-${type}`;
+  toast.style.padding = '12px 16px';
+  toast.style.borderRadius = '6px';
+  toast.style.marginBottom = '8px';
+  toast.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+  toast.style.display = 'flex';
+  toast.style.alignItems = 'center';
+  toast.style.minWidth = '200px';
+  toast.style.maxWidth = '350px';
+  toast.style.animation = 'toast-slide-in 0.3s ease';
+  toast.style.cursor = 'pointer';
+  toast.style.opacity = '0';
+  toast.style.transform = 'translateX(100%)';
   
-  // Create icon container
-  const iconContainer = document.createElement('div');
-  iconContainer.className = 'toast-icon';
-  iconContainer.style.cssText = `
-    margin-right: 12px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  `;
-  iconContainer.innerHTML = toastStyle.icon;
-  
-  // Create content container
-  const contentContainer = document.createElement('div');
-  contentContainer.className = 'toast-content';
-  contentContainer.style.cssText = `
-    flex-grow: 1;
-  `;
-  
-  // Create message element
-  const messageElement = document.createElement('div');
-  messageElement.className = 'toast-message';
-  messageElement.style.cssText = `
-    margin-bottom: ${actionText ? '8px' : '0'};
-  `;
-  messageElement.textContent = message;
-  
-  contentContainer.appendChild(messageElement);
-  
-  // Create action button if actionText is provided
-  if (actionText && typeof onAction === 'function') {
-    const actionButton = document.createElement('button');
-    actionButton.className = 'toast-action';
-    actionButton.textContent = actionText;
-    actionButton.style.cssText = `
-      background: none;
-      border: none;
-      color: ${toastStyle.borderColor};
-      font-weight: bold;
-      padding: 4px 8px;
-      margin-top: 4px;
-      cursor: pointer;
-      border-radius: 4px;
-      font-family: inherit;
-      font-size: 14px;
-    `;
-    actionButton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      onAction();
-      removeToast();
-    });
-    contentContainer.appendChild(actionButton);
+  // Set colors based on type
+  switch (type) {
+    case 'success':
+      toast.style.backgroundColor = '#e9f7ef';
+      toast.style.border = '1px solid #4CAF50';
+      toast.style.color = '#2e7d32';
+      break;
+    case 'error':
+      toast.style.backgroundColor = '#FFEBEE';
+      toast.style.border = '1px solid #F44336';
+      toast.style.color = '#c62828';
+      break;
+    case 'warning':
+      toast.style.backgroundColor = '#FFF8E1';
+      toast.style.border = '1px solid #FFC107';
+      toast.style.color = '#ff8f00';
+      break;
+    default: // info
+      toast.style.backgroundColor = '#E3F2FD';
+      toast.style.border = '1px solid #2196F3';
+      toast.style.color = '#0277bd';
   }
+  
+  // Icon based on type
+  let icon;
+  switch (type) {
+    case 'success':
+      icon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+      break;
+    case 'error':
+      icon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+      break;
+    case 'warning':
+      icon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+      break;
+    default: // info
+      icon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+  }
+  
+  // Create icon span
+  const iconSpan = document.createElement('span');
+  iconSpan.style.marginRight = '10px';
+  iconSpan.style.display = 'flex';
+  iconSpan.style.alignItems = 'center';
+  iconSpan.innerHTML = icon;
+  
+  // Create message span
+  const messageSpan = document.createElement('span');
+  messageSpan.style.flex = '1';
+  messageSpan.style.fontSize = '14px';
+  messageSpan.textContent = message;
   
   // Create close button
   const closeButton = document.createElement('button');
-  closeButton.className = 'toast-close';
-  closeButton.style.cssText = `
-    background: none;
-    border: none;
-    color: ${toastStyle.textColor};
-    opacity: 0.7;
-    cursor: pointer;
-    margin-left: 8px;
-    padding: 0;
-  `;
-  closeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+  closeButton.style.background = 'none';
+  closeButton.style.border = 'none';
+  closeButton.style.color = 'inherit';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.marginLeft = '10px';
+  closeButton.style.padding = '0';
+  closeButton.style.display = 'flex';
+  closeButton.style.alignItems = 'center';
+  closeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
   
+  // Add elements to toast
+  toast.appendChild(iconSpan);
+  toast.appendChild(messageSpan);
+  toast.appendChild(closeButton);
+  
+  // Add animation styles
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes toast-slide-in {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes toast-slide-out {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Function to remove toast
+  const removeToast = () => {
+    toast.style.animation = 'toast-slide-out 0.3s ease forwards';
+    
+    // Wait for animation to complete
+    setTimeout(() => {
+      if (container.contains(toast)) {
+        container.removeChild(toast);
+      }
+      
+      // Remove from active toasts array
+      activeToasts = activeToasts.filter(t => t !== toast);
+      
+      // Remove container if no active toasts
+      if (activeToasts.length === 0 && container.parentNode) {
+        container.parentNode.removeChild(container);
+        toastContainer = null;
+      }
+    }, 300);
+  };
+  
+  // Add event listeners
   closeButton.addEventListener('click', (e) => {
     e.stopPropagation();
     removeToast();
   });
   
-  // Add elements to toast
-  toast.appendChild(iconContainer);
-  toast.appendChild(contentContainer);
-  toast.appendChild(closeButton);
+  toast.addEventListener('click', () => {
+    removeToast();
+  });
   
   // Add toast to container
   container.appendChild(toast);
+  activeToasts.push(toast);
   
-  // Slide in animation (after a small delay to ensure DOM update)
-  setTimeout(() => {
+  // Start animation
+  requestAnimationFrame(() => {
     toast.style.transform = 'translateX(0)';
-  }, 10);
+    toast.style.opacity = '1';
+  });
   
-  // Set up auto-dismiss
-  let timeout;
-  if (duration > 0) {
-    timeout = setTimeout(removeToast, duration);
-  }
+  // Auto-remove after duration
+  setTimeout(removeToast, duration);
   
-  // Function to remove toast
-  function removeToast() {
-    clearTimeout(timeout);
-    
-    // Slide out animation
-    toast.style.transform = 'translateX(120%)';
-    
-    // Remove after animation
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.parentNode.removeChild(toast);
-      }
-      
-      // Call onClose callback if provided
-      if (typeof onClose === 'function') {
-        onClose();
-      }
-    }, 300);
-  }
+  return toast;
+}
+
+/**
+ * Remove all active toasts
+ */
+export function clearAllToasts() {
+  if (!toastContainer) return;
   
-  // Return controller
-  return {
-    close: removeToast
-  };
-}
-
-/**
- * Success toast shorthand
- * @param {string} message - Success message
- * @param {number} [duration=5000] - Duration in milliseconds
- */
-export function showSuccessToast(message, duration = 5000) {
-  return createToast({
-    message,
-    type: 'SUCCESS',
-    duration
-  });
-}
-
-/**
- * Error toast shorthand
- * @param {string} message - Error message
- * @param {number} [duration=6000] - Duration in milliseconds (errors show longer by default)
- */
-export function showErrorToast(message, duration = 6000) {
-  return createToast({
-    message,
-    type: 'ERROR',
-    duration
-  });
-}
-
-/**
- * Warning toast shorthand
- * @param {string} message - Warning message
- * @param {number} [duration=5000] - Duration in milliseconds
- */
-export function showWarningToast(message, duration = 5000) {
-  return createToast({
-    message,
-    type: 'WARNING',
-    duration
-  });
-}
-
-/**
- * Info toast shorthand
- * @param {string} message - Info message
- * @param {number} [duration=4000] - Duration in milliseconds (info shows shorter by default)
- */
-export function showInfoToast(message, duration = 4000) {
-  return createToast({
-    message,
-    type: 'INFO',
-    duration
-  });
-}
-
-/**
- * Pro feature toast with upgrade action
- * @param {string} message - Message about the Pro feature
- */
-export function showProFeatureToast(message) {
-  return createToast({
-    message,
-    type: 'PRO',
-    duration: 7000,
-    actionText: 'Upgrade Now',
-    onAction: () => {
-      // Navigate to pricing page
-      window.location.hash = 'pricing';
+  // Remove each toast
+  activeToasts.forEach(toast => {
+    if (toastContainer.contains(toast)) {
+      toastContainer.removeChild(toast);
     }
   });
+  
+  // Clear array
+  activeToasts = [];
+  
+  // Remove container
+  if (toastContainer.parentNode) {
+    toastContainer.parentNode.removeChild(toastContainer);
+    toastContainer = null;
+  }
 }
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', initToastContainer);

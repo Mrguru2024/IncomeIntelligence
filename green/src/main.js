@@ -3631,6 +3631,28 @@ function renderPageContent(container) {
         });
         break;
         
+      case 'aipersonalization':
+        // Import the AI Personalization page module
+        import('../ai-personalization.js').then(module => {
+          console.log('AI Personalization module loaded successfully:', Object.keys(module));
+          try {
+            const aiPage = module.initAIPersonalizationPage(appState.user.id);
+            console.log('AI Personalization page created successfully');
+            if (aiPage && aiPage.nodeType) {
+              container.appendChild(aiPage);
+            } else {
+              throw new Error('Invalid DOM element returned from AI Personalization module');
+            }
+          } catch (error) {
+            console.error('Error rendering AI Personalization page:', error);
+            container.appendChild(createErrorMessage('Error rendering AI Insights: ' + error.message));
+          }
+        }).catch(error => {
+          console.error('Error loading AI Personalization module:', error);
+          container.appendChild(createErrorMessage('Failed to load AI Insights module'));
+        });
+        break;
+        
       case 'moneymentor':
         // Import the Money Mentor page module
         import('../money-mentor.js').then(async module => {

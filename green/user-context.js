@@ -3,8 +3,14 @@
  * Provides personalized AI reflections, motivations, and behavior tracking
  */
 
-// Import necessary service
+// Import necessary services
 import { createToast } from './components/toast.js';
+import { 
+  generateMotivationMessage, 
+  generateFinancialReflection, 
+  generateBehaviorSummary, 
+  generateTeamMemberEncouragement 
+} from './openai-helper.js';
 
 // User context data (localStorage based for GREEN version)
 class UserContextStore {
