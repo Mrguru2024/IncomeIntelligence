@@ -237,30 +237,12 @@ export async function getDailyMotivation() {
   }
   
   try {
-    // Generate AI prompt
-    const prompt = userContextStore.generateMotivationPrompt();
-    
-    // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 150
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to get AI response');
-    }
-    
-    const data = await response.json();
-    const message = data.choices?.[0]?.message?.content || 'Your daily actions build toward financial freedom.';
+    const ctx = userContextStore.getContext();
+    // Use the helper function instead of direct API call
+    const message = await generateMotivationMessage(
+      ctx.goals.join(', '), 
+      ctx.painPoints.join(', ')
+    );
     
     // Update the last motivation date
     userContextStore.updateMotivationDate();
@@ -299,35 +281,22 @@ export async function getWeeklyReflection() {
   }
   
   try {
-    // Generate AI prompt
-    const prompt = userContextStore.generateReflectionPrompt();
+    const ctx = userContextStore.getContext();
+    // Get recent interactions, limited to last 10
+    const recentActivity = ctx.interactionHistory
+      .slice(0, 10)
+      .map(i => `${i.type}: ${i.detail}`)
+      .join(', ');
     
-    // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 300
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to get AI response');
-    }
-    
-    const data = await response.json();
-    const advice = data.choices?.[0]?.message?.content || 'Keep tracking your expenses and setting realistic goals.';
+    // Use the helper function instead of direct API call
+    const advice = await generateFinancialReflection(
+      ctx.goals.join(', '),
+      ctx.painPoints.join(', '),
+      recentActivity
+    );
     
     // Update the last reflection date
     userContextStore.updateReflectionDate();
-    
-    const ctx = userContextStore.getContext();
     return {
       struggles: ctx.painPoints,
       wins: ['Consistent tracking', 'Setting clear goals'],
@@ -367,30 +336,8 @@ export async function generateMonthlySummary(month, monthData) {
       ? monthData.split('overspend:')[1].split(',')[0].trim()
       : null;
     
-    // Generate AI prompt
-    const prompt = userContextStore.generateBehaviorSummaryPrompt(monthData);
-    
-    // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 300
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to get AI response');
-    }
-    
-    const data = await response.json();
-    const summary = data.choices?.[0]?.message?.content || 'Monthly summary not available.';
+    // Use the helper function instead of direct API call
+    const summary = await generateBehaviorSummary(monthData);
     
     // Save the behavior summary
     return userContextStore.saveBehaviorSummary(month, topCategory, overspendCategory, summary);
@@ -452,35 +399,12 @@ export async function getTeamSummary(users) {
   
   try {
     const summaries = await Promise.all(users.map(async user => {
-      // Generate a basic prompt for each user
-      const prompt = `
-${user.name} is working towards these financial goals: ${user.goals.join(', ')}.
-Their struggles are: ${user.painPoints.join(', ')}.
-Write one sentence of financial encouragement that's specific to their situation.
-Keep it under 150 characters.
-`;
-      
-      // Call OpenAI API
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-          max_tokens: 100
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
-      }
-      
-      const data = await response.json();
-      const summary = data.choices?.[0]?.message?.content || 'Keep up the good work!';
+      // Use the helper function
+      const summary = await generateTeamMemberEncouragement(
+        user.name,
+        user.goals,
+        user.painPoints
+      );
       
       return { 
         user: user.name, 
