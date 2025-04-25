@@ -922,7 +922,11 @@ export async function renderMoneyMentorPage(userId) {
     if (!query || isLoading) return;
     
     if (!hasPro) {
-      createToast('Pro Subscription Required', 'This feature requires a Pro subscription. Please upgrade to access Money Mentor.', 'error');
+      createToast({
+        title: 'Pro Subscription Required', 
+        message: 'This feature requires a Pro subscription. Please upgrade to access Money Mentor.', 
+        type: 'ERROR'
+      });
       // Show upgrade modal when user tries to use Money Mentor without Pro subscription
       showUpgradeModal('pro');
       return;
@@ -989,11 +993,11 @@ export async function renderMoneyMentorPage(userId) {
       
       // Show toast and upgrade modal if it's a subscription issue
       const isSubscriptionError = error.message === 'This feature requires a Pro subscription';
-      createToast(
-        isSubscriptionError ? 'Pro Subscription Required' : 'Error',
-        error.message,
-        'error'
-      );
+      createToast({
+        title: isSubscriptionError ? 'Pro Subscription Required' : 'Error',
+        message: error.message,
+        type: 'ERROR'
+      });
       
       // Show upgrade modal for subscription errors
       if (isSubscriptionError) {
