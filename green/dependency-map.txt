@@ -42,9 +42,17 @@
 - green/income.js - Income features (different from futuristic-income)
 - green/landing.js - Old landing page (replaced by landing-new)
 - green/receipt-scanner.js - Receipt scanning feature
-- green/savings-challenges.js - Older savings challenges implementation
-- green/savings-goals.js - Savings goals feature
 - green/wellness-scorecard.js - Wellness scorecard feature
+
+## ARCHIVED FILES (Moved to green/archive)
+- green/archive/dashboard.js - Old dashboard implementation (replaced by direct implementation in main.js)
+- green/archive/expenses.js - Old expenses implementation (replaced by direct implementation in main.js) 
+- green/archive/income.js - Old income features (replaced by futuristic-income.js)
+- green/archive/landing.js - Old landing page (replaced by landing-new.js)
+- green/archive/receipt-scanner.js - Unused receipt scanning feature
+- green/archive/savings-challenges.js - Older savings challenges implementation
+- green/archive/savings-goals.js - Unused savings goals feature
+- green/archive/wellness-scorecard.js - Old wellness scorecard implementation
 
 ## KNOWN BACKUP FILES (Can be moved to archive)
 - All main.js.* files in green/src/
