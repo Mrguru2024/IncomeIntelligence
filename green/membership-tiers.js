@@ -349,7 +349,7 @@ function renderTierCard(tier, billingInterval, currentTier) {
     button.addEventListener('click', () => {
       if (tier.id === 'free') {
         // Free downgrade process
-        const confirmed = confirm('Are you sure you want to downgrade to the Free tier? You'll lose access to premium features.');
+        const confirmed = confirm('Are you sure you want to downgrade to the Free tier? You"ll lose access to premium features.');
         if (confirmed) {
           createToast('Successfully downgraded to Free tier', 'success');
           setTimeout(() => location.reload(), 1000);
