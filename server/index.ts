@@ -335,7 +335,7 @@ app.get('/guard-test', (req, res) => {
 // For production mode, a fallback handler would be used, but not needed in development
 
 // Start server
-const PORT = parseInt(process.env.PORT || "5001", 10);
+const PORT = parseInt(process.env.PORT || "5002", 10);
 
 // Handle EADDRINUSE error with more graceful exit
 httpServer.on('error', (err: any) => {

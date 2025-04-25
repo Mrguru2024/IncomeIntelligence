@@ -1,0 +1,80 @@
+🗂️ Task Goal:
+Create a new page in the Stackr app called Guardrails where users can set category-based spending limits.
+The page should be accessible through the sidebar menu and follow existing app styling and routing.
+
+✅ Step 1: Add Sidebar Navigation Link
+📍 File: components/Sidebar.tsx (or NavigationMenu.tsx, depending on structure)
+
+➕ Add the following link in the sidebar component:
+
+tsx
+Copy
+Edit
+import { Link } from "react-router-dom"; // or 'next/link' for Next.js
+
+<Link to="/guardrails" className="nav-link text-purple-600 font-semibold">
+  💡 Guardrails
+</Link>
+If using NavLink from React Router, wrap it like this to support active link styling:
+
+tsx
+Copy
+Edit
+<NavLink
+  to="/guardrails"
+  className={({ isActive }) => isActive ? "nav-link font-bold text-indigo-600" : "nav-link"}
+>
+  💡 Guardrails
+</NavLink>
+✅ Step 2: Create Guardrails Page
+📍 File Path: src/pages/Guardrails.tsx (or app/guardrails/page.tsx in Next.js App Router)
+
+Create a new React component with placeholder text:
+
+tsx
+Copy
+Edit
+const GuardrailsPage = () => {
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Stackr Guardrails</h1>
+      <p className="text-gray-600 mb-6">
+        Set weekly or monthly spending limits by category and get alerted before you overspend.
+      </p>
+
+      {/* TODO: Insert GuardrailsForm and GuardrailsSummary components here */}
+    </div>
+  );
+};
+
+export default GuardrailsPage;
+✅ Step 3: Register the Route
+If using React Router:
+📍 File: src/App.tsx or src/routes.tsx
+
+tsx
+Copy
+Edit
+import GuardrailsPage from "./pages/Guardrails";
+
+<Route path="/guardrails" element={<GuardrailsPage />} />
+If using Next.js App Router:
+📍 Create File: app/guardrails/page.tsx
+
+tsx
+Copy
+Edit
+export default function GuardrailsPage() {
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-2">Stackr Guardrails</h1>
+      <p className="text-gray-500">Monitor and limit your category-based spending automatically.</p>
+    </div>
+  );
+}
+🎯 Output
+Sidebar should now include a visible link labeled “💡 Guardrails”
+
+Clicking the link opens the /guardrails route
+
+A placeholder page loads with a title and instructions for managing spending limits
