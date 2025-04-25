@@ -12,6 +12,7 @@ import {
   getBehaviorSummaries
 } from './user-context.js';
 import { createToast } from './components/toast.js';
+import { checkOpenAIConfigured } from './openai-helper.js';
 
 /**
  * Initialize the AI Personalization page
@@ -32,12 +33,36 @@ export function initAIPersonalizationPage(userId) {
   // Header section
   const header = document.createElement('header');
   header.style.marginBottom = '32px';
+  
+  // Create status indicator element
+  const statusIndicator = document.createElement('div');
+  statusIndicator.id = 'ai-status-indicator';
+  statusIndicator.style.display = 'flex';
+  statusIndicator.style.alignItems = 'center';
+  statusIndicator.style.gap = '8px';
+  statusIndicator.style.marginTop = '8px';
+  statusIndicator.style.padding = '6px 12px';
+  statusIndicator.style.borderRadius = '16px';
+  statusIndicator.style.fontSize = '14px';
+  statusIndicator.style.fontWeight = '500';
+  statusIndicator.style.backgroundColor = '#f3f4f6';
+  statusIndicator.style.color = '#6b7280';
+  statusIndicator.style.width = 'fit-content';
+  
+  // Set initial loading state
+  statusIndicator.innerHTML = `
+    <span class="status-dot" style="height: 8px; width: 8px; border-radius: 50%; background-color: #9ca3af;"></span>
+    <span>AI Status: Checking...</span>
+  `;
+  
   header.innerHTML = `
     <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 12px; color: #1f2937;">AI Insights</h1>
     <p style="color: #4b5563; font-size: 16px; margin: 0;">
       Get personalized financial insights powered by Stackr's AI. Update your preferences to receive more tailored advice.
     </p>
   `;
+  
+  header.appendChild(statusIndicator);
   container.appendChild(header);
   
   // Create insights section
@@ -48,7 +73,72 @@ export function initAIPersonalizationPage(userId) {
   const preferencesSection = createPreferencesSection();
   container.appendChild(preferencesSection);
   
+  // Check OpenAI status and update indicator
+  updateAIStatusIndicator();
+  
   return container;
+}
+
+/**
+ * Update the AI status indicator with the current status
+ */
+async function updateAIStatusIndicator() {
+  const statusIndicator = document.getElementById('ai-status-indicator');
+  if (!statusIndicator) return;
+  
+  try {
+    const configStatus = await checkOpenAIConfigured();
+    let statusColor, statusText;
+    
+    switch (configStatus.status) {
+      case 'active':
+        statusColor = '#10b981'; // Green
+        statusText = 'AI Status: Active';
+        break;
+      case 'quota_exceeded':
+        statusColor = '#f59e0b'; // Yellow/Orange
+        statusText = 'AI Status: Quota Exceeded (Using Fallbacks)';
+        break;
+      case 'error':
+        statusColor = '#ef4444'; // Red
+        statusText = 'AI Status: Error';
+        break;
+      case 'unavailable':
+        statusColor = '#ef4444'; // Red
+        statusText = 'AI Status: Unavailable';
+        break;
+      default:
+        statusColor = '#9ca3af'; // Gray
+        statusText = `AI Status: ${configStatus.status || 'Unknown'}`;
+    }
+    
+    statusIndicator.innerHTML = `
+      <span class="status-dot" style="height: 8px; width: 8px; border-radius: 50%; background-color: ${statusColor};"></span>
+      <span>${statusText}</span>
+    `;
+    
+    // Update the background color based on status
+    if (configStatus.status === 'active') {
+      statusIndicator.style.backgroundColor = '#ecfdf5'; // Light green bg
+      statusIndicator.style.color = '#065f46'; // Dark green text
+    } else if (configStatus.status === 'quota_exceeded') {
+      statusIndicator.style.backgroundColor = '#fffbeb'; // Light yellow bg
+      statusIndicator.style.color = '#92400e'; // Dark orange text
+    } else if (configStatus.status === 'error' || configStatus.status === 'unavailable') {
+      statusIndicator.style.backgroundColor = '#fee2e2'; // Light red bg
+      statusIndicator.style.color = '#b91c1c'; // Dark red text
+    }
+    
+    console.log(`OpenAI API status: ${configStatus.status}`);
+  } catch (error) {
+    console.error('Error updating AI status indicator:', error);
+    statusIndicator.innerHTML = `
+      <span class="status-dot" style="height: 8px; width: 8px; border-radius: 50%; background-color: #ef4444;"></span>
+      <span>AI Status: Error checking status</span>
+    `;
+    statusIndicator.style.backgroundColor = '#fee2e2'; // Light red bg
+    statusIndicator.style.color = '#b91c1c'; // Dark red text
+  }
 }
 
 /**
