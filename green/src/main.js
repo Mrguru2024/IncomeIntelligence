@@ -3026,6 +3026,16 @@ function renderPageContent(container) {
           container.appendChild(createErrorMessage('Failed to load savings challenges module'));
         });
         break;
+        
+      case 'notificationsdemo':
+        // Import the notification demo module
+        import('../notification-demo.js').then(module => {
+          container.appendChild(module.renderNotificationDemoPage());
+        }).catch(error => {
+          console.error('Error loading notification demo module:', error);
+          container.appendChild(createErrorMessage('Failed to load notification demo.'));
+        });
+        break;
       case 'subscriptionsniper':
         // Import the subscription sniper page module
         import('../subscription-sniper.js').then(module => {
