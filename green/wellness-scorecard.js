@@ -1,5 +1,5 @@
 /**
- * Personal Financial Wellness Assessment
+ * Personal Financial Assessment
  * This module evaluates a user's overall financial health across multiple dimensions
  * and provides personalized recommendations specifically for personal finance.
  * Note: This is completely distinct from service provider/gig worker ratings.

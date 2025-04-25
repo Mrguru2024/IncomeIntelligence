@@ -1,6 +1,6 @@
 /**
- * Financial Wellness Page
- * This module renders the financial wellness scorecard and related UI
+ * Personal Financial Assessment Page
+ * This module renders the personal financial assessment and related UI
  */
 
 import { 
@@ -11,9 +11,9 @@ import {
 } from './wellness-scorecard.js';
 
 /**
- * Render the main financial wellness page
+ * Render the main personal financial assessment page
  * @param {string} userId - User ID
- * @returns {Promise<HTMLElement>} - The wellness page container
+ * @returns {Promise<HTMLElement>} - The assessment page container
  */
 export async function renderWellnessPage(userId) {
   // Create main container
