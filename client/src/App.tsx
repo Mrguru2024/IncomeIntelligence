@@ -29,6 +29,7 @@ import Guardrails from "@/pages/Guardrails";
 import InvoicesPage from "@/pages/InvoicesPage";
 import PayInvoicePage from "@/pages/PayInvoicePage";
 import PaymentConfirmationPage from "@/pages/PaymentConfirmationPage";
+import ExportsPage from "@/pages/ExportsPage";
 import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import AppTutorial from "@/components/AppTutorial";
@@ -78,6 +79,7 @@ function Router() {
       <ProtectedRoute path="/income-hub/gigs" component={StackrGigs} />
       <ProtectedRoute path="/blog/editor" component={BlogEditorPage} />
       <ProtectedRoute path="/invoices" component={InvoicesPage} />
+      <ProtectedRoute path="/exports" component={ExportsPage} />
       <Route path="/pay-invoice" component={PayInvoicePage} />
       <Route path="/payment-confirmation" component={PaymentConfirmationPage} />
       <Route path="/blog" component={BlogPage} />

@@ -154,6 +154,13 @@ const navigationStructure = [
         name: "Voice Commands",
         path: "/voice-commands",
         icon: <Mic size={20} />,
+      },
+      {
+        name: "Exports",
+        path: "/exports",
+        icon: <FileDown size={20} />,
+        badge: "New",
+        badgeColor: "bg-gradient-to-r from-emerald-500 to-green-500"
       }
     ]
   },
