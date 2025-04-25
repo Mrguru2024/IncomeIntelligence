@@ -231,6 +231,34 @@ async function generateLeaderboard() {
 }
 
 /**
+ * Fetch user data for challenges page
+ * @param {number} userId - The user ID
+ * @returns {Promise<Object>} - User financial data
+ */
+async function fetchUserData(userId) {
+  try {
+    // Simulated API call to get user's financial data
+    const challenges = await getAvailableChallenges(userId);
+    const stats = await getChallengeStatistics(userId);
+    const recommendations = await getRecommendedChallenges(userId);
+    
+    return {
+      id: userId,
+      challenges,
+      stats,
+      recommendations,
+      preferences: {
+        preferredCategories: ['food', 'entertainment', 'bills'],
+        difficultyPreference: 'medium'
+      }
+    };
+  } catch (error) {
+    console.error('Error loading challenges data:', error);
+    throw error;
+  }
+}
+
+/**
  * Render the Savings Challenge page
  * @param {number} userId - The user ID
  * @returns {HTMLElement} - The rendered page element

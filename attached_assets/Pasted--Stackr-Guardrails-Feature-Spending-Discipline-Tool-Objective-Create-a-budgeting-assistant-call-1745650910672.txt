@@ -1,0 +1,111 @@
+ Stackr Guardrails Feature (Spending Discipline Tool)
+Objective:
+Create a budgeting assistant called Stackr Guardrails that allows users to set spending limits for categories, get proactive alerts, and receive weekly behavioral summaries with AI-based suggestions.
+
+1. Models / Schema Updates (Drizzle ORM / PostgreSQL)
+Create or update the following tables:
+
+ts
+Copy
+Edit
+// spending_limits.ts
+export const spendingLimits = pgTable("spending_limits", {
+  id: serial("id").primaryKey(),
+  userId: uuid("user_id").references(() => users.id),
+  category: varchar("category", { length: 100 }),
+  limitAmount: numeric("limit_amount"),
+  cycle: varchar("cycle", { length: 20 }), // 'weekly', 'monthly'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// spending_logs.ts
+export const spendingLogs = pgTable("spending_logs", {
+  id: serial("id").primaryKey(),
+  userId: uuid("user_id").references(() => users.id),
+  category: varchar("category", { length: 100 }),
+  amountSpent: numeric("amount_spent"),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+2. Backend API Endpoints (Express + TypeScript)
+POST /api/guardrails/limits
+Set or update a category limit.
+
+GET /api/guardrails/summary
+Return current vs limit per category + alert thresholds (e.g. 80%, 100%).
+
+GET /api/guardrails/reflection
+Return weekly summary + suggestion prompt (calls AI agent).
+
+3. Spending Alert Logic (Backend Utility)
+Write a function to trigger alerts:
+
+ts
+Copy
+Edit
+function checkSpendingAgainstLimit(userId: string) {
+  // Fetch all spending for current cycle
+  // Compare with each spendingLimit
+  // If above 80%, trigger notification
+  // If over 100%, soft block UI return
+}
+Integrate this into:
+
+New transaction logging
+
+Bank sync callbacks (Plaid)
+
+Manual expense entries
+
+4. Frontend UI (React + Tailwind)
+Settings Page: Allow users to set category limits by week/month
+
+Alerts UI: Modal or toast warnings if close to or over budget
+
+Weekly Review Component:
+
+Breakdown of each category
+
+Color code: green (safe), yellow (close), red (over)
+
+Suggestion (from AI)
+
+5. AI Integration (OpenAI or Anthropic)
+Use your AI planning agent to give custom advice:
+
+ts
+Copy
+Edit
+const prompt = `
+User spent $350 on 'Tools' this week, exceeding their $300 limit. 
+Their goal is to save for a van. Provide practical, encouraging advice.
+`;
+
+const response = await openai.chat.completions.create({ ... });
+Display this advice in the Weekly Reflection UI.
+
+6. Weekly Reset Cron (Node Scheduler or Firebase Function)
+Create a server-side job to:
+
+Archive past week's logs
+
+Reset or roll limits
+
+Trigger /api/guardrails/reflection to store reflection data
+
+7. Optional Feature Toggles
+“Discipline Mode”: Toggle to soft block user from entering new transactions in overspent categories
+
+“AI Coach Only”: Sends gentle nudges only, without blocking
+
+8. Dev Checklist
+ New DB tables created and migrated
+
+ CRUD APIs for limit creation, updates, and summaries
+
+ Alert logic for overspending events
+
+ Weekly reflection component created
+
+ AI assistant configured with dynamic spending prompts
+
+ All data secure and tied to session auth (JWT)
