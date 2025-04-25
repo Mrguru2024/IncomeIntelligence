@@ -201,43 +201,43 @@ function createNotificationElements() {
   modalBody.style.flex = '1';
   
   // Create notifications list
-  const notificationsList = document.createElement('div');
-  notificationsList.id = 'notifications-modal-list';
-  notificationsList.style.padding = '0';
+  const notificationsListModal = document.createElement('div');
+  notificationsListModal.id = 'notifications-modal-list';
+  notificationsListModal.style.padding = '0';
   
   // Create empty state
-  const emptyState = document.createElement('div');
-  emptyState.id = 'notifications-modal-empty-state';
-  emptyState.style.padding = '40px 20px';
-  emptyState.style.display = 'flex';
-  emptyState.style.flexDirection = 'column';
-  emptyState.style.alignItems = 'center';
-  emptyState.style.justifyContent = 'center';
-  emptyState.style.color = '#666';
-  emptyState.style.textAlign = 'center';
+  const emptyStateModal = document.createElement('div');
+  emptyStateModal.id = 'notifications-modal-empty-state';
+  emptyStateModal.style.padding = '40px 20px';
+  emptyStateModal.style.display = 'flex';
+  emptyStateModal.style.flexDirection = 'column';
+  emptyStateModal.style.alignItems = 'center';
+  emptyStateModal.style.justifyContent = 'center';
+  emptyStateModal.style.color = '#666';
+  emptyStateModal.style.textAlign = 'center';
   
-  const emptyIcon = document.createElement('div');
-  emptyIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>';
-  emptyIcon.style.marginBottom = '16px';
-  emptyIcon.style.opacity = '0.5';
+  const emptyIconModal = document.createElement('div');
+  emptyIconModal.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>';
+  emptyIconModal.style.marginBottom = '16px';
+  emptyIconModal.style.opacity = '0.5';
   
-  const emptyTitle = document.createElement('h4');
-  emptyTitle.textContent = 'No notifications';
-  emptyTitle.style.margin = '0 0 8px 0';
-  emptyTitle.style.fontSize = '16px';
-  emptyTitle.style.fontWeight = '600';
+  const emptyTitleModal = document.createElement('h4');
+  emptyTitleModal.textContent = 'No notifications';
+  emptyTitleModal.style.margin = '0 0 8px 0';
+  emptyTitleModal.style.fontSize = '16px';
+  emptyTitleModal.style.fontWeight = '600';
   
   const emptyMessage = document.createElement('p');
   emptyMessage.textContent = 'You\'re all caught up! Check back later for updates on your finances.';
   emptyMessage.style.margin = '0';
   emptyMessage.style.fontSize = '14px';
   
-  emptyState.appendChild(emptyIcon);
-  emptyState.appendChild(emptyTitle);
-  emptyState.appendChild(emptyMessage);
+  emptyStateModal.appendChild(emptyIconModal);
+  emptyStateModal.appendChild(emptyTitleModal);
+  emptyStateModal.appendChild(emptyMessage);
   
-  notificationsList.appendChild(emptyState);
-  modalBody.appendChild(notificationsList);
+  notificationsListModal.appendChild(emptyStateModal);
+  modalBody.appendChild(notificationsListModal);
   
   modal.appendChild(modalHeader);
   modal.appendChild(actionsBar);
@@ -357,48 +357,48 @@ function createNotificationElements() {
   panelActions.appendChild(clearAllBtnPanel);
   
   // Create notifications list container
-  const notificationsList = document.createElement('div');
-  notificationsList.id = 'notifications-list';
-  notificationsList.style.flex = '1';
-  notificationsList.style.overflowY = 'auto';
-  notificationsList.style.padding = '8px 16px';
+  const notificationsListPanel = document.createElement('div');
+  notificationsListPanel.id = 'notifications-list';
+  notificationsListPanel.style.flex = '1';
+  notificationsListPanel.style.overflowY = 'auto';
+  notificationsListPanel.style.padding = '8px 16px';
   
   // Create empty state for when there are no notifications
-  const emptyState = document.createElement('div');
-  emptyState.id = 'notifications-empty-state';
-  emptyState.style.display = 'flex';
-  emptyState.style.flexDirection = 'column';
-  emptyState.style.alignItems = 'center';
-  emptyState.style.justifyContent = 'center';
-  emptyState.style.padding = '32px 16px';
-  emptyState.style.color = '#666';
-  emptyState.style.textAlign = 'center';
+  const emptyStatePanel = document.createElement('div');
+  emptyStatePanel.id = 'notifications-empty-state';
+  emptyStatePanel.style.display = 'flex';
+  emptyStatePanel.style.flexDirection = 'column';
+  emptyStatePanel.style.alignItems = 'center';
+  emptyStatePanel.style.justifyContent = 'center';
+  emptyStatePanel.style.padding = '32px 16px';
+  emptyStatePanel.style.color = '#666';
+  emptyStatePanel.style.textAlign = 'center';
   
-  const emptyIcon = document.createElement('div');
-  emptyIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>';
-  emptyIcon.style.marginBottom = '16px';
-  emptyIcon.style.color = '#ccc';
+  const emptyIconPanel = document.createElement('div');
+  emptyIconPanel.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>';
+  emptyIconPanel.style.marginBottom = '16px';
+  emptyIconPanel.style.color = '#ccc';
   
-  const emptyTitle = document.createElement('h4');
-  emptyTitle.textContent = 'No Notifications';
-  emptyTitle.style.margin = '0 0 8px 0';
-  emptyTitle.style.fontSize = '16px';
-  emptyTitle.style.fontWeight = '600';
+  const emptyTitlePanel = document.createElement('h4');
+  emptyTitlePanel.textContent = 'No Notifications';
+  emptyTitlePanel.style.margin = '0 0 8px 0';
+  emptyTitlePanel.style.fontSize = '16px';
+  emptyTitlePanel.style.fontWeight = '600';
   
   const emptyText = document.createElement('p');
   emptyText.textContent = 'You don\'t have any notifications yet.';
   emptyText.style.margin = '0';
   emptyText.style.fontSize = '14px';
   
-  emptyState.appendChild(emptyIcon);
-  emptyState.appendChild(emptyTitle);
-  emptyState.appendChild(emptyText);
-  notificationsList.appendChild(emptyState);
+  emptyStatePanel.appendChild(emptyIconPanel);
+  emptyStatePanel.appendChild(emptyTitlePanel);
+  emptyStatePanel.appendChild(emptyText);
+  notificationsListPanel.appendChild(emptyStatePanel);
   
   // Assemble panel
   notificationPanel.appendChild(panelHeader);
   notificationPanel.appendChild(panelActions);
-  notificationPanel.appendChild(notificationsList);
+  notificationPanel.appendChild(notificationsListPanel);
   
   // Add everything to body
   document.body.appendChild(notificationContainer);
@@ -611,9 +611,9 @@ export function openNotificationModal(userId) {
       markAllReadBtn.setAttribute('data-user-id', userId);
     }
     
-    const clearAllBtn = container.querySelectorAll('#notification-modal button')[1];
-    if (clearAllBtn) {
-      clearAllBtn.setAttribute('data-user-id', userId);
+    const clearAllBtnModal = container.querySelectorAll('#notification-modal button')[1];
+    if (clearAllBtnModal) {
+      clearAllBtnModal.setAttribute('data-user-id', userId);
     }
     
     // Render notifications in the modal
@@ -660,7 +660,7 @@ function handleEscapeKey(e) {
  */
 function renderModalNotificationsList(userId) {
   const listContainer = document.getElementById('notifications-modal-list');
-  const emptyState = document.getElementById('notifications-modal-empty-state');
+  const emptyStateModal = document.getElementById('notifications-modal-empty-state');
   
   if (!listContainer) return;
   
@@ -677,15 +677,15 @@ function renderModalNotificationsList(userId) {
   
   // Show empty state if no notifications
   if (!notifications || notifications.length === 0) {
-    if (emptyState) {
-      emptyState.style.display = 'flex';
+    if (emptyStateModal) {
+      emptyStateModal.style.display = 'flex';
     }
     return;
   }
   
   // Hide empty state
-  if (emptyState) {
-    emptyState.style.display = 'none';
+  if (emptyStateModal) {
+    emptyStateModal.style.display = 'none';
   }
   
   // Sort notifications by date (newest first)
