@@ -35,10 +35,7 @@
 
 ## RARELY USED / POTENTIAL CANDIDATES FOR ARCHIVAL
 - green/dashboard.js - Dashboard (may be used by main.js directly)
-- green/data-export.js - Data export functionality
 - green/expenses.js - Expenses tracking
-- green/forgot-password.js - Password recovery
-- green/gigs.js - Gigs features
 - green/income.js - Income features (different from futuristic-income)
 - green/landing.js - Old landing page (replaced by landing-new)
 - green/receipt-scanner.js - Receipt scanning feature
@@ -46,7 +43,9 @@
 
 ## ARCHIVED FILES (Moved to green/archive)
 - green/archive/dashboard.js - Old dashboard implementation (replaced by direct implementation in main.js)
+- green/archive/data-export.js - CSV export functionality (exported directly in futuristic-income.js)
 - green/archive/expenses.js - Old expenses implementation (replaced by direct implementation in main.js) 
+- green/archive/forgot-password.js - Password recovery (unused, has missing dependencies)
 - green/archive/income.js - Old income features (replaced by futuristic-income.js)
 - green/archive/landing.js - Old landing page (replaced by landing-new.js)
 - green/archive/receipt-scanner.js - Unused receipt scanning feature
