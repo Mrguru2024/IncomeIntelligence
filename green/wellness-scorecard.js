@@ -1109,7 +1109,7 @@ export async function renderWellnessScorecardPage(userId) {
     
     return container;
   } catch (error) {
-    console.log('Error rendering wellness scorecard:', error);
+    console.log('Error rendering personal financial assessment:', error);
     
     // Remove loading element
     if (loadingElement.parentNode === container) {
@@ -1120,8 +1120,8 @@ export async function renderWellnessScorecardPage(userId) {
     const errorElement = document.createElement('div');
     errorElement.className = 'wellness-scorecard-error';
     errorElement.innerHTML = `
-      <h2>Unable to Load Financial Wellness Scorecard</h2>
-      <p>We encountered an issue while calculating your financial wellness score. Please try again later.</p>
+      <h2>Unable to Load Personal Financial Assessment</h2>
+      <p>We encountered an issue while calculating your personal financial assessment. Please try again later.</p>
       <button class="retry-button">Try Again</button>
     `;
     
@@ -1298,7 +1298,7 @@ function createScorecardContent(scorecard) {
   
   const actionButton = document.createElement('button');
   actionButton.className = 'refresh-scorecard-button';
-  actionButton.textContent = 'Refresh Scorecard';
+  actionButton.textContent = 'Refresh Assessment';
   actionButton.addEventListener('click', async () => {
     try {
       // Replace current content with loading state
@@ -1309,7 +1309,7 @@ function createScorecardContent(scorecard) {
       loadingElement.className = 'wellness-scorecard-loading';
       loadingElement.innerHTML = `
         <div class="loading-spinner"></div>
-        <p>Recalculating your financial wellness score...</p>
+        <p>Recalculating your personal financial assessment...</p>
       `;
       parentElement.appendChild(loadingElement);
       
@@ -1323,7 +1323,7 @@ function createScorecardContent(scorecard) {
       const newContent = createScorecardContent(newScorecard);
       parentElement.appendChild(newContent);
     } catch (error) {
-      console.log('Error refreshing scorecard:', error);
+      console.log('Error refreshing financial assessment:', error);
     }
   });
   

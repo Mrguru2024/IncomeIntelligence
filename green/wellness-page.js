@@ -28,10 +28,10 @@ export async function renderWellnessPage(userId) {
   header.className = 'wellness-page-header';
   header.style.marginBottom = '2rem';
   header.innerHTML = `
-    <h1 style="margin-bottom: 0.5rem; font-size: 2rem; font-weight: 700;">Financial Wellness Scorecard</h1>
+    <h1 style="margin-bottom: 0.5rem; font-size: 2rem; font-weight: 700;">Personal Financial Assessment</h1>
     <p style="color: var(--color-text-secondary); max-width: 700px;">
       Your personalized financial health assessment based on your income, expenses, savings, and financial habits.
-      This scorecard helps identify your strengths and opportunities for improvement.
+      This assessment helps identify your strengths and opportunities for improvement.
     </p>
   `;
   container.appendChild(header);
