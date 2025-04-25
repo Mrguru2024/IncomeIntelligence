@@ -3009,8 +3009,8 @@ function renderPageContent(container) {
         });
         break;
       case 'challenges':
-        // Import the Savings Challenges page module
-        import('../challenges-page.js').then(module => {
+        // Import the Savings Challenges page module (using the new fixed version)
+        import('../challenges-page-new.js').then(module => {
           // Using async function as renderChallengesPage returns a Promise
           (async () => {
             try {
