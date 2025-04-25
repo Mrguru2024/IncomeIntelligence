@@ -80,7 +80,6 @@ const navigationStructure = [
         path: "/budget-planner",
         icon: <CalendarDays size={20} />,
       },
-
       {
         name: "Reminders",
         path: "/reminders",
