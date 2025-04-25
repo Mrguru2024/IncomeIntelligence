@@ -17,6 +17,15 @@ export const MEMBERSHIP_TIERS = {
     description: 'Start your financial journey with basic tools',
     monthlyPrice: 0,
     yearlyPrice: 0,
+    referralProgram: {
+      creditPerReferral: 10,
+      bonusThresholds: [
+        { count: 3, reward: 10 },
+        { count: 8, reward: 50 }
+      ],
+      maxReferralCredit: 100,
+      lifetimeReferralBonus: false
+    },
     features: [
       'Basic income & expense tracking',
       'Manual bank account syncing (1 account)',
@@ -25,15 +34,7 @@ export const MEMBERSHIP_TIERS = {
       'Access to referral program',
       'Mobile web access',
       'Community forum access'
-    ],
-    referralProgram: {
-      creditPerReferral: 10,
-      bonusThresholds: [
-        { count: 3, reward: 10 },
-        { count: 8, reward: 50 }
-      ],
-      maxReferralCredit: 100
-    }
+    ]
   },
   PRO: {
     id: 'pro',
@@ -94,6 +95,164 @@ export const MEMBERSHIP_TIERS = {
     }
   }
 };
+
+/**
+ * Generate a referral link for the current user
+ * @returns {string} - The referral link
+ */
+export function generateReferralLink() {
+  const currentUser = getCurrentUser();
+  const userId = currentUser?.id || 'demo-user';
+  const baseUrl = window.location.origin;
+  return `${baseUrl}?ref=${userId}`;
+}
+
+/**
+ * Render the referral program section
+ * @param {object} tier - The membership tier
+ * @returns {HTMLElement} - The referral program UI element
+ */
+export function renderReferralProgram(tier) {
+  if (!tier.referralProgram) return null;
+  
+  const container = document.createElement('div');
+  container.className = 'referral-program';
+  container.style.marginTop = '24px';
+  container.style.padding = '16px';
+  container.style.border = '1px solid #e5e7eb';
+  container.style.borderRadius = '8px';
+  container.style.backgroundColor = '#f9fafb';
+  
+  const title = document.createElement('h4');
+  title.style.fontSize = '16px';
+  title.style.fontWeight = 'bold';
+  title.style.marginBottom = '12px';
+  title.style.display = 'flex';
+  title.style.alignItems = 'center';
+  title.style.color = tier.color;
+  
+  // Add gift icon
+  title.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px">
+      <polyline points="20 12 20 22 4 22 4 12"></polyline>
+      <rect x="2" y="7" width="20" height="5"></rect>
+      <line x1="12" y1="22" x2="12" y2="7"></line>
+      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+    </svg>
+    Referral Program
+  `;
+  
+  container.appendChild(title);
+  
+  const description = document.createElement('p');
+  description.style.fontSize = '14px';
+  description.style.marginBottom = '16px';
+  description.style.color = '#4b5563';
+  description.textContent = `Earn $${tier.referralProgram.creditPerReferral} credit for each friend who signs up using your link.`;
+  container.appendChild(description);
+  
+  // Bonus thresholds
+  if (tier.referralProgram.bonusThresholds && tier.referralProgram.bonusThresholds.length > 0) {
+    const bonusContainer = document.createElement('div');
+    bonusContainer.style.marginBottom = '16px';
+    
+    const bonusTitle = document.createElement('p');
+    bonusTitle.style.fontSize = '14px';
+    bonusTitle.style.fontWeight = 'bold';
+    bonusTitle.style.marginBottom = '8px';
+    bonusTitle.textContent = 'Bonus rewards:';
+    bonusContainer.appendChild(bonusTitle);
+    
+    const bonusList = document.createElement('ul');
+    bonusList.style.listStyle = 'none';
+    bonusList.style.padding = '0';
+    bonusList.style.margin = '0';
+    
+    tier.referralProgram.bonusThresholds.forEach(threshold => {
+      const item = document.createElement('li');
+      item.style.fontSize = '14px';
+      item.style.display = 'flex';
+      item.style.alignItems = 'center';
+      item.style.marginBottom = '6px';
+      
+      // Add checkmark icon
+      item.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${tier.color}" stroke-width="2" style="margin-right: 8px">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span>${threshold.count} referrals: <strong>$${threshold.reward} bonus</strong></span>
+      `;
+      
+      bonusList.appendChild(item);
+    });
+    
+    bonusContainer.appendChild(bonusList);
+    container.appendChild(bonusContainer);
+  }
+  
+  const maxInfo = document.createElement('p');
+  maxInfo.style.fontSize = '13px';
+  maxInfo.style.color = '#6b7280';
+  maxInfo.style.marginBottom = '16px';
+  maxInfo.innerHTML = `Max referral credit: <strong>$${tier.referralProgram.maxReferralCredit}</strong>`;
+  
+  if (tier.referralProgram.lifetimeReferralBonus) {
+    maxInfo.innerHTML += ' <span style="color: #10b981; font-weight: bold;">(Unlimited for Lifetime members!)</span>';
+  }
+  
+  container.appendChild(maxInfo);
+  
+  // Referral Link
+  const linkContainer = document.createElement('div');
+  linkContainer.style.marginTop = '16px';
+  
+  const linkLabel = document.createElement('label');
+  linkLabel.style.display = 'block';
+  linkLabel.style.fontSize = '14px';
+  linkLabel.style.fontWeight = 'bold';
+  linkLabel.style.marginBottom = '8px';
+  linkLabel.textContent = 'Your Referral Link:';
+  linkContainer.appendChild(linkLabel);
+  
+  const linkGroup = document.createElement('div');
+  linkGroup.style.display = 'flex';
+  
+  const linkInput = document.createElement('input');
+  linkInput.type = 'text';
+  linkInput.readOnly = true;
+  linkInput.value = generateReferralLink();
+  linkInput.style.flex = '1';
+  linkInput.style.padding = '8px 12px';
+  linkInput.style.border = '1px solid #d1d5db';
+  linkInput.style.borderRadius = '4px 0 0 4px';
+  linkInput.style.fontSize = '14px';
+  linkGroup.appendChild(linkInput);
+  
+  const copyButton = document.createElement('button');
+  copyButton.style.padding = '8px 12px';
+  copyButton.style.backgroundColor = tier.color;
+  copyButton.style.color = 'white';
+  copyButton.style.border = 'none';
+  copyButton.style.borderRadius = '0 4px 4px 0';
+  copyButton.style.fontSize = '14px';
+  copyButton.style.cursor = 'pointer';
+  copyButton.textContent = 'Copy';
+  
+  copyButton.addEventListener('click', () => {
+    linkInput.select();
+    document.execCommand('copy');
+    createToast('Referral link copied to clipboard!', 'success');
+  });
+  
+  linkGroup.appendChild(copyButton);
+  linkContainer.appendChild(linkGroup);
+  
+  container.appendChild(linkContainer);
+  
+  return container;
+}
 
 /**
  * Initialize Stripe checkout
@@ -347,6 +506,14 @@ function renderTierCard(tier, billingInterval, currentTier) {
   });
   
   card.appendChild(featuresList);
+  
+  // Add referral program section if authenticated
+  if (isAuthenticated() && tier.referralProgram) {
+    const referralSection = renderReferralProgram(tier);
+    if (referralSection) {
+      card.appendChild(referralSection);
+    }
+  }
   
   // Button
   const buttonContainer = document.createElement('div');
