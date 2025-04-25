@@ -139,44 +139,44 @@ function calculateCategoryScores(userData) {
   const investmentHealth = calculateInvestmentHealthScore(userData);
   categoryScores.push({
     category: 'INVESTMENT_HEALTH',
-    name: WELLNESS_CATEGORIES.INVESTMENT_HEALTH.name,
+    name: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.INVESTMENT_HEALTH.name,
     points: investmentHealth.points,
-    maxPoints: WELLNESS_CATEGORIES.INVESTMENT_HEALTH.maxPoints,
+    maxPoints: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.INVESTMENT_HEALTH.maxPoints,
     details: investmentHealth.details,
-    percentage: Math.round((investmentHealth.points / WELLNESS_CATEGORIES.INVESTMENT_HEALTH.maxPoints) * 100)
+    percentage: Math.round((investmentHealth.points / PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.INVESTMENT_HEALTH.maxPoints) * 100)
   });
   
   // Debt Management score
   const debtManagement = calculateDebtManagementScore(userData);
   categoryScores.push({
     category: 'DEBT_MANAGEMENT',
-    name: WELLNESS_CATEGORIES.DEBT_MANAGEMENT.name,
+    name: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.DEBT_MANAGEMENT.name,
     points: debtManagement.points,
-    maxPoints: WELLNESS_CATEGORIES.DEBT_MANAGEMENT.maxPoints,
+    maxPoints: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.DEBT_MANAGEMENT.maxPoints,
     details: debtManagement.details,
-    percentage: Math.round((debtManagement.points / WELLNESS_CATEGORIES.DEBT_MANAGEMENT.maxPoints) * 100)
+    percentage: Math.round((debtManagement.points / PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.DEBT_MANAGEMENT.maxPoints) * 100)
   });
   
   // Expense Control score
   const expenseControl = calculateExpenseControlScore(userData);
   categoryScores.push({
     category: 'EXPENSE_CONTROL',
-    name: WELLNESS_CATEGORIES.EXPENSE_CONTROL.name,
+    name: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.EXPENSE_CONTROL.name,
     points: expenseControl.points,
-    maxPoints: WELLNESS_CATEGORIES.EXPENSE_CONTROL.maxPoints,
+    maxPoints: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.EXPENSE_CONTROL.maxPoints,
     details: expenseControl.details,
-    percentage: Math.round((expenseControl.points / WELLNESS_CATEGORIES.EXPENSE_CONTROL.maxPoints) * 100)
+    percentage: Math.round((expenseControl.points / PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.EXPENSE_CONTROL.maxPoints) * 100)
   });
   
   // Goal Progress score
   const goalProgress = calculateGoalProgressScore(userData);
   categoryScores.push({
     category: 'GOAL_PROGRESS',
-    name: WELLNESS_CATEGORIES.GOAL_PROGRESS.name,
+    name: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.GOAL_PROGRESS.name,
     points: goalProgress.points,
-    maxPoints: WELLNESS_CATEGORIES.GOAL_PROGRESS.maxPoints,
+    maxPoints: PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.GOAL_PROGRESS.maxPoints,
     details: goalProgress.details,
-    percentage: Math.round((goalProgress.points / WELLNESS_CATEGORIES.GOAL_PROGRESS.maxPoints) * 100)
+    percentage: Math.round((goalProgress.points / PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.GOAL_PROGRESS.maxPoints) * 100)
   });
   
   // Guardrails Usage score
@@ -490,7 +490,7 @@ function calculateDebtManagementScore(userData) {
  * @returns {Object} - Points and details
  */
 function calculateExpenseControlScore(userData) {
-  const maxPoints = WELLNESS_CATEGORIES.EXPENSE_CONTROL.maxPoints;
+  const maxPoints = PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.EXPENSE_CONTROL.maxPoints;
   let points = 0;
   const details = [];
   
@@ -592,7 +592,7 @@ function calculateExpenseControlScore(userData) {
  * @returns {Object} - Points and details
  */
 function calculateGoalProgressScore(userData) {
-  const maxPoints = WELLNESS_CATEGORIES.GOAL_PROGRESS.maxPoints;
+  const maxPoints = PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.GOAL_PROGRESS.maxPoints;
   let points = 0;
   const details = [];
   
@@ -664,7 +664,7 @@ function calculateGoalProgressScore(userData) {
  * @returns {Object} - Points and details
  */
 function calculateGuardrailsUsageScore(userData) {
-  const maxPoints = WELLNESS_CATEGORIES.GUARDRAILS_USAGE.maxPoints;
+  const maxPoints = PERSONAL_FINANCIAL_ASSESSMENT_CATEGORIES.GUARDRAILS_USAGE.maxPoints;
   let points = 0;
   const details = [];
   
