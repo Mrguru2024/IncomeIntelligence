@@ -59,10 +59,11 @@ export const MEMBERSHIP_TIERS = {
     referralProgram: {
       creditPerReferral: 15,
       bonusThresholds: [
-        { count: 3, reward: 15 },
-        { count: 8, reward: 75 }
+        { count: 5, reward: 25 },
+        { count: 10, reward: 75 }
       ],
-      maxReferralCredit: 200
+      maxReferralCredit: 300,
+      referralMultiplier: 1.5 // 50% bonus for Lifetime referrals
     }
   },
   LIFETIME: {
@@ -87,11 +88,12 @@ export const MEMBERSHIP_TIERS = {
     referralProgram: {
       creditPerReferral: 20,
       bonusThresholds: [
-        { count: 3, reward: 20 },
-        { count: 8, reward: 100 }
+        { count: 5, reward: 35 },
+        { count: 10, reward: 100 }
       ],
-      maxReferralCredit: 300,
-      lifetimeReferralBonus: true
+      maxReferralCredit: 500,
+      lifetimeReferralBonus: true,
+      referralMultiplier: 2 // Double bonus for Lifetime referrals
     }
   }
 };
@@ -147,10 +149,50 @@ export function renderReferralProgram(tier) {
   
   const description = document.createElement('p');
   description.style.fontSize = '14px';
-  description.style.marginBottom = '16px';
+  description.style.marginBottom = '8px';
   description.style.color = '#4b5563';
-  description.textContent = `Earn $${tier.referralProgram.creditPerReferral} credit for each friend who signs up using your link.`;
+  description.textContent = `Earn $${tier.referralProgram.creditPerReferral} credit for each friend who upgrades to a paid membership using your link.`;
   container.appendChild(description);
+  
+  // Add note that specifies paid membership requirement
+  const requirementNote = document.createElement('p');
+  requirementNote.style.fontSize = '13px';
+  requirementNote.style.marginBottom = '16px';
+  requirementNote.style.fontStyle = 'italic';
+  requirementNote.style.color = '#6b7280';
+  requirementNote.textContent = 'Note: Credit is only earned when your referred friend subscribes to a paid tier (Pro or Lifetime).';
+  container.appendChild(requirementNote);
+  
+  // Special incentives - two-way referral bonus
+  const specialBonusContainer = document.createElement('div');
+  specialBonusContainer.style.marginBottom = '16px';
+  specialBonusContainer.style.backgroundColor = `rgba(${hexToRgb(tier.color)}, 0.1)`;
+  specialBonusContainer.style.borderRadius = '8px';
+  specialBonusContainer.style.padding = '12px';
+  
+  const specialBonusTitle = document.createElement('p');
+  specialBonusTitle.style.fontSize = '14px';
+  specialBonusTitle.style.fontWeight = 'bold';
+  specialBonusTitle.style.marginBottom = '8px';
+  specialBonusTitle.style.color = tier.color;
+  specialBonusTitle.textContent = '✨ Two-way Referral Rewards';
+  specialBonusContainer.appendChild(specialBonusTitle);
+  
+  const specialBonusDescription = document.createElement('p');
+  specialBonusDescription.style.fontSize = '13px';
+  specialBonusDescription.style.marginBottom = '8px';
+  specialBonusDescription.style.color = '#4b5563';
+  specialBonusDescription.innerHTML = `<strong>Your friend gets:</strong> 1 month free Pro trial when they sign up with your link`;
+  specialBonusContainer.appendChild(specialBonusDescription);
+  
+  const upgradeBonusDescription = document.createElement('p');
+  upgradeBonusDescription.style.fontSize = '13px';
+  upgradeBonusDescription.style.marginBottom = '0';
+  upgradeBonusDescription.style.color = '#4b5563';
+  upgradeBonusDescription.innerHTML = `<strong>You get:</strong> ${tier.referralProgram.referralMultiplier ? `<span style="color: ${tier.color}; font-weight: bold;">${tier.referralProgram.referralMultiplier}x bonus</span> when friends upgrade to Lifetime` : 'Standard reward for any paid plan your friend chooses'}`;
+  specialBonusContainer.appendChild(upgradeBonusDescription);
+  
+  container.appendChild(specialBonusContainer);
   
   // Bonus thresholds
   if (tier.referralProgram.bonusThresholds && tier.referralProgram.bonusThresholds.length > 0) {
