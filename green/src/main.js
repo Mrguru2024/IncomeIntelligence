@@ -3091,6 +3091,19 @@ function renderPageContent(container) {
     }
   }
   
+  // Initialize notification system for authenticated users
+  if (appState.user.isAuthenticated && 
+      !['login', 'register', 'landing'].includes(appState.currentPage)) {
+    
+    // Import and initialize notification system
+    import('../notification-ui.js').then(module => {
+      // Initialize notification UI
+      module.initNotificationUI(appState);
+    }).catch(error => {
+      console.error('Error initializing notification system:', error);
+    });
+  }
+  
   // Initialize financial mascot for authenticated users on relevant pages
   if (appState.user.isAuthenticated && 
       !['login', 'register', 'landing'].includes(appState.currentPage)) {
@@ -3112,6 +3125,7 @@ function renderPageContent(container) {
           'subscriptionsniper': 'budgeting',
           'savingschallenges': 'saving',
           'wellnessscorecard': 'psychology',
+          'notificationsdemo': 'psychology',
           'debt': 'debt'
         };
         
