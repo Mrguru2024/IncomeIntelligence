@@ -411,7 +411,7 @@ export function renderMembershipUpgradePage(containerId = 'app', preselectedTier
   subtitle.style.color = '#6b7280';
   subtitle.style.maxWidth = '600px';
   subtitle.style.margin = '0 auto';
-  subtitle.textContent = 'Choose the plan that's right for you and take your financial journey to the next level.';
+  subtitle.textContent = 'Choose the plan that"s right for you and take your financial journey to the next level.';
   header.appendChild(subtitle);
   
   pageContainer.appendChild(header);
@@ -819,7 +819,7 @@ export function showUpgradeModal(tierId = 'pro', billingInterval = 'monthly') {
   featuresTitle.style.fontSize = '18px';
   featuresTitle.style.fontWeight = '600';
   featuresTitle.style.marginBottom = '16px';
-  featuresTitle.textContent = 'What's included:';
+  featuresTitle.textContent = 'What"s included:';
   featuresList.appendChild(featuresTitle);
   
   const list = document.createElement('ul');
@@ -887,7 +887,7 @@ export function showUpgradeModal(tierId = 'pro', billingInterval = 'monthly') {
       
       if (tier.id === 'free') {
         // Free downgrade process
-        const confirmed = confirm('Are you sure you want to downgrade to the Free tier? You'll lose access to premium features.');
+        const confirmed = confirm('Are you sure you want to downgrade to the Free tier? You"ll lose access to premium features.');
         if (confirmed) {
           createToast('Successfully downgraded to Free tier', 'success');
           setTimeout(() => location.reload(), 1000);
