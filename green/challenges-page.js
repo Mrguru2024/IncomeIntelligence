@@ -3,15 +3,232 @@
  * Provides UI for users to browse, select, and manage savings challenges
  */
 
-import { 
-  generateSavingsChallenge, 
-  getAvailableChallenges, 
-  updateChallenge, 
-  getChallengeStatistics,
-  getRecommendedChallenges,
-  calculateAchievementLevel,
-  generateLeaderboard
-} from './savings-challenges.js';
+// Implementing standalone functions instead of importing from savings-challenges.js
+
+/**
+ * Generate a new savings challenge
+ * @param {Object} options - Challenge options
+ * @returns {Object} - Challenge object
+ */
+function generateSavingsChallenge(options = {}) {
+  const defaultOptions = {
+    type: options.type || 'daily',
+    duration: options.duration || 30,
+    difficulty: options.difficulty || 'medium',
+    category: options.category || 'general',
+    targetAmount: options.targetAmount || 0
+  };
+  
+  const challenges = {
+    daily: [
+      { name: 'Coffee Skip', description: 'Skip your daily coffee purchase', amount: 5 },
+      { name: 'Lunch Saver', description: 'Bring lunch from home instead of eating out', amount: 12 },
+      { name: 'No-Spend Day', description: 'Challenge yourself to spend nothing for a day', amount: 25 },
+      { name: 'Commute Hack', description: 'Find a cheaper way to commute today', amount: 10 },
+      { name: 'Digital Detox', description: 'Avoid online shopping for the day', amount: 15 }
+    ],
+    weekly: [
+      { name: 'Grocery Budget', description: 'Reduce your grocery bill by 20% this week', amount: 30 },
+      { name: 'Entertainment Cut', description: 'Skip one paid entertainment expense this week', amount: 25 },
+      { name: 'Meal Prep Master', description: 'Prep all meals for the week to avoid takeout', amount: 60 },
+      { name: 'Service Audit', description: 'Review and cut one subscription service', amount: 15 },
+      { name: 'Side Hustle', description: 'Earn extra money through a side project', amount: 100 }
+    ],
+    monthly: [
+      { name: 'Bill Negotiator', description: 'Call and negotiate a lower rate on one monthly bill', amount: 50 },
+      { name: 'Automatic Saver', description: 'Set up an automatic transfer to savings', amount: 100 },
+      { name: 'Declutter Sale', description: 'Sell unused items around your home', amount: 150 },
+      { name: 'Dining Out Fast', description: 'Cook all meals at home for a month', amount: 300 },
+      { name: 'Impulse Purchase Block', description: 'Implement a 48-hour rule before purchases', amount: 200 }
+    ]
+  };
+  
+  // Select challenge type
+  const typeOptions = challenges[defaultOptions.type] || challenges.daily;
+  
+  // Adjust for difficulty
+  let multiplier = 1;
+  if (defaultOptions.difficulty === 'easy') multiplier = 0.7;
+  if (defaultOptions.difficulty === 'hard') multiplier = 1.5;
+  
+  // Select a random challenge or use targetAmount if specified
+  let challenge;
+  if (defaultOptions.targetAmount > 0) {
+    // Find challenge closest to target amount
+    challenge = [...typeOptions].sort((a, b) => 
+      Math.abs(a.amount - defaultOptions.targetAmount) - Math.abs(b.amount - defaultOptions.targetAmount)
+    )[0];
+  } else {
+    challenge = typeOptions[Math.floor(Math.random() * typeOptions.length)];
+  }
+  
+  // Create final challenge object
+  return {
+    id: `challenge-${Date.now()}`,
+    name: challenge.name,
+    description: challenge.description,
+    type: defaultOptions.type,
+    duration: defaultOptions.duration,
+    difficulty: defaultOptions.difficulty,
+    category: defaultOptions.category,
+    amount: Math.round(challenge.amount * multiplier),
+    startDate: new Date().toISOString(),
+    endDate: new Date(Date.now() + defaultOptions.duration * 24 * 60 * 60 * 1000).toISOString(),
+    progress: 0,
+    completed: false,
+    status: 'active'
+  };
+}
+
+/**
+ * Get available challenges for a user
+ * @param {number} userId - User ID
+ * @returns {Promise<Array>} - Array of available challenges
+ */
+async function getAvailableChallenges(userId) {
+  // In a real app, this would fetch from a database or API
+  return [
+    {
+      id: 'challenge-1',
+      name: 'Coffee Skip',
+      description: 'Skip your daily coffee purchase',
+      type: 'daily',
+      duration: 30,
+      difficulty: 'easy',
+      category: 'food',
+      amount: 5,
+      startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      endDate: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(),
+      progress: 25,
+      completed: false,
+      status: 'active'
+    },
+    {
+      id: 'challenge-2',
+      name: 'Meal Prep Master',
+      description: 'Prep all meals for the week to avoid takeout',
+      type: 'weekly',
+      duration: 4,
+      difficulty: 'medium',
+      category: 'food',
+      amount: 60,
+      startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      endDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
+      progress: 25,
+      completed: false,
+      status: 'active'
+    },
+    {
+      id: 'challenge-3',
+      name: 'Bill Negotiator',
+      description: 'Call and negotiate a lower rate on one monthly bill',
+      type: 'once',
+      duration: 1,
+      difficulty: 'hard',
+      category: 'bills',
+      amount: 50,
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      progress: 0,
+      completed: false,
+      status: 'not_started'
+    }
+  ];
+}
+
+/**
+ * Update a challenge's progress or status
+ * @param {number} userId - User ID
+ * @param {string} challengeId - Challenge ID
+ * @param {Object} updates - Updates to apply
+ * @returns {Promise<Object>} - Updated challenge
+ */
+async function updateChallenge(userId, challengeId, updates) {
+  console.log(`Updating challenge ${challengeId} for user ${userId} with:`, updates);
+  return { ...updates, id: challengeId };
+}
+
+/**
+ * Get challenge statistics for a user
+ * @param {number} userId - User ID
+ * @returns {Promise<Object>} - Challenge statistics
+ */
+async function getChallengeStatistics(userId) {
+  return {
+    totalChallenges: 15,
+    completedChallenges: 8,
+    activeChallenges: 3,
+    totalSaved: 520,
+    streakDays: 14,
+    achievementLevel: 3
+  };
+}
+
+/**
+ * Get recommended challenges for a user
+ * @param {number} userId - User ID
+ * @returns {Promise<Array>} - Array of recommended challenges
+ */
+async function getRecommendedChallenges(userId) {
+  // In a real app, this would use an algorithm based on user behavior
+  return [
+    {
+      id: 'rec-challenge-1',
+      name: 'Subscription Audit',
+      description: 'Review all your subscriptions and cancel unused ones',
+      type: 'once',
+      difficulty: 'medium',
+      category: 'subscriptions',
+      potentialSavings: 120
+    },
+    {
+      id: 'rec-challenge-2',
+      name: '30-Day No Eating Out',
+      description: 'Cook all meals at home for a month',
+      type: 'monthly',
+      difficulty: 'hard',
+      category: 'food',
+      potentialSavings: 300
+    }
+  ];
+}
+
+/**
+ * Calculate achievement level
+ * @param {Object} stats - User statistics
+ * @returns {number} - Achievement level
+ */
+function calculateAchievementLevel(stats) {
+  const { completedChallenges, totalSaved, streakDays } = stats;
+  
+  // Simple algorithm that factors in different metrics
+  const challengeScore = completedChallenges * 10;
+  const savingsScore = totalSaved / 100;
+  const streakScore = streakDays * 5;
+  
+  const totalScore = challengeScore + savingsScore + streakScore;
+  
+  // Map score to levels
+  if (totalScore < 50) return 1;
+  if (totalScore < 100) return 2;
+  if (totalScore < 200) return 3;
+  if (totalScore < 400) return 4;
+  return 5;
+}
+
+/**
+ * Generate leaderboard data
+ * @returns {Promise<Array>} - Leaderboard data
+ */
+async function generateLeaderboard() {
+  return [
+    { rank: 1, username: 'SavingQueen', points: 1240, avatar: '👑' },
+    { rank: 2, username: 'BudgetMaster', points: 980, avatar: '🌟' },
+    { rank: 3, username: 'FrugalFox', points: 875, avatar: '🦊' },
+    { rank: 4, username: 'WealthWizard', points: 720, avatar: '🧙' },
+    { rank: 5, username: 'MoneyMaker', points: 650, avatar: '💰' }
+  ];
+}
 
 /**
  * Render the Savings Challenge page

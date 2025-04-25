@@ -2,7 +2,235 @@
  * Financial Wellness Page
  * Renders a comprehensive financial wellness dashboard for users
  */
-import { renderWellnessScorecard, loadUserFinancialData, saveWellnessScore } from './wellness-scorecard.js';
+// Implementing standalone functions instead of importing from wellness-scorecard.js
+
+/**
+ * Load user financial data
+ * @param {number} userId - The user ID
+ * @returns {Promise<Object>} - User financial data
+ */
+async function loadUserFinancialData(userId) {
+  // Simulated API call with mock data
+  return {
+    incomeData: { 
+      sources: ['Primary Job', 'Side Gig'], 
+      allocation: { needs: 40, wants: 30, savings: 30 } 
+    },
+    savingsData: { 
+      rate: 15, 
+      totalSavings: 15000 
+    },
+    debtData: { 
+      totalDebt: 25000, 
+      monthlyPayments: 500, 
+      monthlyIncome: 4000 
+    },
+    emergencyFund: { 
+      months: 3 
+    },
+    investmentData: { 
+      growthRate: 5, 
+      diversification: 7 
+    },
+    goals: [
+      { name: 'Emergency Fund', target: 20000, current: 15000 },
+      { name: 'Retirement', target: 1000000, current: 50000 }
+    ]
+  };
+}
+
+/**
+ * Render wellness scorecard
+ * @param {Object} userData - User financial data
+ * @param {string} containerId - Container ID
+ */
+function renderWellnessScorecard(userData, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  // Create scorecard container
+  const scorecard = document.createElement('div');
+  scorecard.className = 'wellness-scorecard';
+  scorecard.style.backgroundColor = '#fff';
+  scorecard.style.borderRadius = '12px';
+  scorecard.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
+  scorecard.style.padding = '2rem';
+  scorecard.style.width = '100%';
+  scorecard.style.maxWidth = '800px';
+  scorecard.style.margin = '0 auto';
+  
+  // Create header with overall score
+  const scoreHeader = document.createElement('div');
+  scoreHeader.style.display = 'flex';
+  scoreHeader.style.alignItems = 'center';
+  scoreHeader.style.justifyContent = 'space-between';
+  scoreHeader.style.marginBottom = '2rem';
+  
+  // Calculate overall score
+  const score = calculateScore(userData).totalScore;
+  
+  // Score display
+  const scoreDisplay = document.createElement('div');
+  scoreDisplay.style.display = 'flex';
+  scoreDisplay.style.alignItems = 'center';
+  scoreDisplay.style.gap = '1rem';
+  
+  const scoreCircle = document.createElement('div');
+  scoreCircle.style.width = '80px';
+  scoreCircle.style.height = '80px';
+  scoreCircle.style.borderRadius = '50%';
+  scoreCircle.style.backgroundColor = getScoreColor(score);
+  scoreCircle.style.display = 'flex';
+  scoreCircle.style.alignItems = 'center';
+  scoreCircle.style.justifyContent = 'center';
+  scoreCircle.style.color = 'white';
+  
+  const scoreValue = document.createElement('span');
+  scoreValue.textContent = Math.round(score);
+  scoreValue.style.fontWeight = 'bold';
+  scoreValue.style.fontSize = '1.75rem';
+  
+  scoreCircle.appendChild(scoreValue);
+  
+  const scoreInfo = document.createElement('div');
+  const scoreLabel = document.createElement('h3');
+  scoreLabel.textContent = 'Overall Financial Wellness';
+  scoreLabel.style.fontSize = '1.25rem';
+  scoreLabel.style.margin = '0 0 0.5rem 0';
+  
+  const scoreDescription = document.createElement('p');
+  scoreDescription.textContent = getScoreDescription(score);
+  scoreDescription.style.fontSize = '0.875rem';
+  scoreDescription.style.margin = '0';
+  scoreDescription.style.color = '#666';
+  
+  scoreInfo.appendChild(scoreLabel);
+  scoreInfo.appendChild(scoreDescription);
+  
+  scoreDisplay.appendChild(scoreCircle);
+  scoreDisplay.appendChild(scoreInfo);
+  
+  scoreHeader.appendChild(scoreDisplay);
+  
+  // Create body with detailed scores
+  const scoreBody = document.createElement('div');
+  scoreBody.style.display = 'grid';
+  scoreBody.style.gridTemplateColumns = 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))';
+  scoreBody.style.gap = '1.5rem';
+  
+  // Create category scores
+  const categories = [
+    { name: 'Income', value: Math.min(userData.incomeData.sources.length * 5, 20), max: 20, icon: '💼' },
+    { name: 'Savings', value: Math.min(userData.savingsData.rate, 20), max: 20, icon: '💰' },
+    { name: 'Debt', value: Math.min(20, 20 * (1 - (userData.debtData.monthlyPayments / userData.debtData.monthlyIncome))), max: 20, icon: '📉' },
+    { name: 'Emergency Fund', value: Math.min(userData.emergencyFund.months * 3, 15), max: 15, icon: '🛡️' },
+    { name: 'Investments', value: Math.min(userData.investmentData.growthRate * 2, 15), max: 15, icon: '📈' },
+    { name: 'Goals', value: Math.min(userData.goals.length * 3, 10), max: 10, icon: '🎯' }
+  ];
+  
+  categories.forEach(category => {
+    const categoryCard = document.createElement('div');
+    categoryCard.style.backgroundColor = '#f9f9f9';
+    categoryCard.style.borderRadius = '8px';
+    categoryCard.style.padding = '1.5rem';
+    categoryCard.style.display = 'flex';
+    categoryCard.style.flexDirection = 'column';
+    categoryCard.style.gap = '0.5rem';
+    
+    const categoryHeader = document.createElement('div');
+    categoryHeader.style.display = 'flex';
+    categoryHeader.style.alignItems = 'center';
+    categoryHeader.style.gap = '0.75rem';
+    categoryHeader.style.marginBottom = '0.5rem';
+    
+    const categoryIcon = document.createElement('span');
+    categoryIcon.textContent = category.icon;
+    categoryIcon.style.fontSize = '1.5rem';
+    
+    const categoryName = document.createElement('h4');
+    categoryName.textContent = category.name;
+    categoryName.style.margin = '0';
+    categoryName.style.fontSize = '1.1rem';
+    
+    categoryHeader.appendChild(categoryIcon);
+    categoryHeader.appendChild(categoryName);
+    
+    const categoryScoreContainer = document.createElement('div');
+    categoryScoreContainer.style.display = 'flex';
+    categoryScoreContainer.style.alignItems = 'center';
+    categoryScoreContainer.style.justifyContent = 'space-between';
+    
+    const categoryScoreValue = document.createElement('span');
+    categoryScoreValue.textContent = `${Math.round(category.value)}/${category.max}`;
+    categoryScoreValue.style.fontWeight = 'bold';
+    
+    categoryScoreContainer.appendChild(categoryScoreValue);
+    
+    const progressBar = document.createElement('div');
+    progressBar.style.width = '100%';
+    progressBar.style.height = '8px';
+    progressBar.style.backgroundColor = '#e2e8f0';
+    progressBar.style.borderRadius = '4px';
+    progressBar.style.marginTop = '0.5rem';
+    
+    const progress = document.createElement('div');
+    progress.style.width = `${(category.value / category.max) * 100}%`;
+    progress.style.height = '100%';
+    progress.style.borderRadius = '4px';
+    progress.style.backgroundColor = getScoreColor(category.value / category.max * 100);
+    
+    progressBar.appendChild(progress);
+    
+    categoryCard.appendChild(categoryHeader);
+    categoryCard.appendChild(categoryScoreContainer);
+    categoryCard.appendChild(progressBar);
+    
+    scoreBody.appendChild(categoryCard);
+  });
+  
+  // Assemble scorecard
+  scorecard.appendChild(scoreHeader);
+  scorecard.appendChild(scoreBody);
+  
+  // Append to container
+  container.appendChild(scorecard);
+}
+
+/**
+ * Save wellness score
+ * @param {number} userId - User ID
+ * @param {Object} scoreData - Score data
+ * @returns {Promise<void>}
+ */
+async function saveWellnessScore(userId, scoreData) {
+  // In a real app, this would be an API call
+  console.log(`Saved score ${scoreData.totalScore} for user ${userId}`);
+  return Promise.resolve();
+}
+
+/**
+ * Get score color based on value
+ * @param {number} score - Score value
+ * @returns {string} - CSS color value
+ */
+function getScoreColor(score) {
+  if (score >= 80) return '#48bb78'; // Green
+  if (score >= 60) return '#4299e1'; // Blue
+  if (score >= 40) return '#ed8936'; // Orange
+  return '#e53e3e'; // Red
+}
+
+/**
+ * Get score description based on value
+ * @param {number} score - Score value
+ * @returns {string} - Score description
+ */
+function getScoreDescription(score) {
+  if (score >= 80) return 'Excellent financial health - you\'re on the right track!';
+  if (score >= 60) return 'Good financial standing - with a few improvements you can excel.';
+  if (score >= 40) return 'Fair financial condition - focus on key areas to improve.';
+  return 'Needs attention - consider working with a financial advisor.';
+}
 
 /**
  * Render the financial wellness page
