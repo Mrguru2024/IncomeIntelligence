@@ -957,9 +957,9 @@ function generateInsights(userData, categoryScores) {
 /**
  * Save personal financial assessment scorecard for a user
  * @param {string} userId - User ID
- * @param {Object} scorecard - Wellness scorecard data
+ * @param {Object} scorecard - Personal financial assessment scorecard data
  */
-function saveWellnessScorecard(userId, scorecard) {
+function savePersonalFinancialAssessmentScorecard(userId, scorecard) {
   try {
     // Get existing scorecards from localStorage
     const existingDataStr = localStorage.getItem('personal-financial-assessments') || '{}';
@@ -987,7 +987,7 @@ function saveWellnessScorecard(userId, scorecard) {
 /**
  * Notify user about their new scorecard
  * @param {string} userId - User ID
- * @param {Object} scorecard - Wellness scorecard data
+ * @param {Object} scorecard - Personal financial assessment scorecard data
  */
 function notifyUserAboutScorecard(userId, scorecard) {
   try {
@@ -1026,7 +1026,7 @@ function notifyUserAboutScorecard(userId, scorecard) {
  * @param {string} userId - User ID
  * @returns {Array} - Array of user's scorecards, newest first
  */
-export function getUserWellnessScorecard(userId) {
+export function getUserPersonalFinancialAssessmentScorecard(userId) {
   try {
     // Get scorecards from localStorage
     const existingDataStr = localStorage.getItem('personal-financial-assessments') || '{}';
@@ -1046,7 +1046,7 @@ export function getUserWellnessScorecard(userId) {
  * @returns {Object|null} - Latest personal financial assessment scorecard or null
  */
 export function getLatestPersonalFinancialAssessmentScorecard(userId) {
-  const scorecards = getUserWellnessScorecard(userId);
+  const scorecards = getUserPersonalFinancialAssessmentScorecard(userId);
   return scorecards.length > 0 ? scorecards[0] : null;
 }
 
@@ -1056,7 +1056,7 @@ export function getLatestPersonalFinancialAssessmentScorecard(userId) {
  * @returns {boolean} - True if it's time for a new scorecard
  */
 export function shouldGeneratePersonalFinancialAssessmentScorecard(userId) {
-  const scorecards = getUserWellnessScorecard(userId);
+  const scorecards = getUserPersonalFinancialAssessmentScorecard(userId);
   
   // If no scorecards, definitely generate one
   if (scorecards.length === 0) return true;
@@ -1156,7 +1156,7 @@ export async function renderPersonalFinancialAssessmentScorecardPage(userId) {
 
 /**
  * Create the scorecard content elements
- * @param {Object} scorecard - Wellness scorecard data
+ * @param {Object} scorecard - Personal financial assessment scorecard data
  * @returns {HTMLElement} - The scorecard content element
  */
 function createScorecardContent(scorecard) {
