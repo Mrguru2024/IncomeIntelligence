@@ -279,34 +279,34 @@ function createNotificationElements() {
   panelTitle.style.fontSize = '18px';
   panelTitle.style.fontWeight = '600';
   
-  const closeButton = document.createElement('button');
-  closeButton.innerHTML = '&times;';
-  closeButton.style.background = 'none';
-  closeButton.style.border = 'none';
-  closeButton.style.fontSize = '24px';
-  closeButton.style.cursor = 'pointer';
-  closeButton.style.color = '#666';
-  closeButton.style.width = '32px';
-  closeButton.style.height = '32px';
-  closeButton.style.display = 'flex';
-  closeButton.style.alignItems = 'center';
-  closeButton.style.justifyContent = 'center';
-  closeButton.style.borderRadius = '4px';
+  const closeButtonPanel = document.createElement('button');
+  closeButtonPanel.innerHTML = '&times;';
+  closeButtonPanel.style.background = 'none';
+  closeButtonPanel.style.border = 'none';
+  closeButtonPanel.style.fontSize = '24px';
+  closeButtonPanel.style.cursor = 'pointer';
+  closeButtonPanel.style.color = '#666';
+  closeButtonPanel.style.width = '32px';
+  closeButtonPanel.style.height = '32px';
+  closeButtonPanel.style.display = 'flex';
+  closeButtonPanel.style.alignItems = 'center';
+  closeButtonPanel.style.justifyContent = 'center';
+  closeButtonPanel.style.borderRadius = '4px';
   
-  closeButton.addEventListener('mouseover', () => {
-    closeButton.style.backgroundColor = '#f5f5f5';
+  closeButtonPanel.addEventListener('mouseover', () => {
+    closeButtonPanel.style.backgroundColor = '#f5f5f5';
   });
   
-  closeButton.addEventListener('mouseout', () => {
-    closeButton.style.backgroundColor = 'transparent';
+  closeButtonPanel.addEventListener('mouseout', () => {
+    closeButtonPanel.style.backgroundColor = 'transparent';
   });
   
-  closeButton.addEventListener('click', () => {
+  closeButtonPanel.addEventListener('click', () => {
     closeNotificationPanel();
   });
   
   panelHeader.appendChild(panelTitle);
-  panelHeader.appendChild(closeButton);
+  panelHeader.appendChild(closeButtonPanel);
   
   // Create panel actions
   const panelActions = document.createElement('div');
@@ -315,46 +315,46 @@ function createNotificationElements() {
   panelActions.style.display = 'flex';
   panelActions.style.gap = '8px';
   
-  const markAllReadBtn = document.createElement('button');
-  markAllReadBtn.textContent = 'Mark all as read';
-  markAllReadBtn.id = 'mark-all-read';
-  markAllReadBtn.style.fontSize = '14px';
-  markAllReadBtn.style.padding = '6px 12px';
-  markAllReadBtn.style.border = 'none';
-  markAllReadBtn.style.backgroundColor = 'transparent';
-  markAllReadBtn.style.color = 'var(--color-primary)';
-  markAllReadBtn.style.cursor = 'pointer';
-  markAllReadBtn.style.borderRadius = '4px';
+  const markAllReadBtnPanel = document.createElement('button');
+  markAllReadBtnPanel.textContent = 'Mark all as read';
+  markAllReadBtnPanel.id = 'mark-all-read-panel';
+  markAllReadBtnPanel.style.fontSize = '14px';
+  markAllReadBtnPanel.style.padding = '6px 12px';
+  markAllReadBtnPanel.style.border = 'none';
+  markAllReadBtnPanel.style.backgroundColor = 'transparent';
+  markAllReadBtnPanel.style.color = 'var(--color-primary)';
+  markAllReadBtnPanel.style.cursor = 'pointer';
+  markAllReadBtnPanel.style.borderRadius = '4px';
   
-  markAllReadBtn.addEventListener('mouseover', () => {
-    markAllReadBtn.style.backgroundColor = 'rgba(var(--color-primary-rgb), 0.1)';
+  markAllReadBtnPanel.addEventListener('mouseover', () => {
+    markAllReadBtnPanel.style.backgroundColor = 'rgba(var(--color-primary-rgb), 0.1)';
   });
   
-  markAllReadBtn.addEventListener('mouseout', () => {
-    markAllReadBtn.style.backgroundColor = 'transparent';
+  markAllReadBtnPanel.addEventListener('mouseout', () => {
+    markAllReadBtnPanel.style.backgroundColor = 'transparent';
   });
   
-  const clearAllBtn = document.createElement('button');
-  clearAllBtn.textContent = 'Clear all';
-  clearAllBtn.id = 'clear-all-notifications';
-  clearAllBtn.style.fontSize = '14px';
-  clearAllBtn.style.padding = '6px 12px';
-  clearAllBtn.style.border = 'none';
-  clearAllBtn.style.backgroundColor = 'transparent';
-  clearAllBtn.style.color = '#666';
-  clearAllBtn.style.cursor = 'pointer';
-  clearAllBtn.style.borderRadius = '4px';
+  const clearAllBtnPanel = document.createElement('button');
+  clearAllBtnPanel.textContent = 'Clear all';
+  clearAllBtnPanel.id = 'clear-all-notifications-panel';
+  clearAllBtnPanel.style.fontSize = '14px';
+  clearAllBtnPanel.style.padding = '6px 12px';
+  clearAllBtnPanel.style.border = 'none';
+  clearAllBtnPanel.style.backgroundColor = 'transparent';
+  clearAllBtnPanel.style.color = '#666';
+  clearAllBtnPanel.style.cursor = 'pointer';
+  clearAllBtnPanel.style.borderRadius = '4px';
   
-  clearAllBtn.addEventListener('mouseover', () => {
-    clearAllBtn.style.backgroundColor = '#f5f5f5';
+  clearAllBtnPanel.addEventListener('mouseover', () => {
+    clearAllBtnPanel.style.backgroundColor = '#f5f5f5';
   });
   
-  clearAllBtn.addEventListener('mouseout', () => {
-    clearAllBtn.style.backgroundColor = 'transparent';
+  clearAllBtnPanel.addEventListener('mouseout', () => {
+    clearAllBtnPanel.style.backgroundColor = 'transparent';
   });
   
-  panelActions.appendChild(markAllReadBtn);
-  panelActions.appendChild(clearAllBtn);
+  panelActions.appendChild(markAllReadBtnPanel);
+  panelActions.appendChild(clearAllBtnPanel);
   
   // Create notifications list container
   const notificationsList = document.createElement('div');
@@ -405,7 +405,7 @@ function createNotificationElements() {
   document.body.appendChild(notificationPanel);
   
   // Add event listeners to action buttons
-  markAllReadBtn.addEventListener('click', () => {
+  markAllReadBtnPanel.addEventListener('click', () => {
     const userId = window.appState?.user?.id;
     if (userId) {
       const count = markAllNotificationsAsRead(userId);
@@ -419,7 +419,7 @@ function createNotificationElements() {
     }
   });
   
-  clearAllBtn.addEventListener('click', () => {
+  clearAllBtnPanel.addEventListener('click', () => {
     const userId = window.appState?.user?.id;
     if (userId) {
       const count = clearAllNotifications(userId);
