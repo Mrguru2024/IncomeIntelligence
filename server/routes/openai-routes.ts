@@ -17,9 +17,36 @@ if (openaiApiKey) {
 }
 
 // Check if OpenAI API is configured
-router.get('/status', (req, res) => {
+router.get('/status', async (req, res) => {
+  const isConfigured = !!openaiApiKey;
+  let status = 'unconfigured';
+  
+  if (isConfigured && openaiClient) {
+    try {
+      // Make a small test request to check if the API key has quota
+      const testCompletion = await openaiClient.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [{ role: 'user', content: 'Hello' }],
+        max_tokens: 5,
+      });
+      
+      // If we get here, the API key is valid and has quota
+      status = 'active';
+    } catch (error: any) {
+      console.error('Error testing OpenAI API:', error);
+      
+      // Check for quota errors
+      if (error.code === 'insufficient_quota') {
+        status = 'quota_exceeded';
+      } else {
+        status = 'error';
+      }
+    }
+  }
+  
   res.json({
-    configured: !!openaiApiKey,
+    configured: isConfigured,
+    status: status,
     provider: 'openai'
   });
 });
@@ -41,26 +68,43 @@ router.post('/generate', async (req, res) => {
       });
     }
 
-    const completion = await openaiClient.chat.completions.create({
-      model,
-      messages: [{ role: 'user', content: prompt }],
-      temperature,
-      max_tokens: maxTokens,
-    });
+    try {
+      const completion = await openaiClient.chat.completions.create({
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature,
+        max_tokens: maxTokens,
+      });
 
-    // Extract the generated text from the response
-    const text = completion.choices[0]?.message?.content || '';
+      // Extract the generated text from the response
+      const text = completion.choices[0]?.message?.content || '';
 
-    res.json({
-      text,
-      model: completion.model,
-    });
+      res.json({
+        text,
+        model: completion.model,
+      });
+    } catch (apiError: any) {
+      console.error('OpenAI API error:', apiError);
+      
+      // Check for specific error types
+      if (apiError.code === 'insufficient_quota') {
+        // Handle quota errors gracefully
+        return res.status(402).json({
+          message: 'OpenAI API quota exceeded',
+          error: 'QUOTA_EXCEEDED',
+          suggestedResponse: 'Your financial journey requires consistent effort, but brings long-term rewards. Keep tracking your progress daily!'
+        });
+      } else {
+        throw apiError; // Re-throw for the outer catch
+      }
+    }
   } catch (error: any) {
     console.error('OpenAI API error:', error);
     
     res.status(500).json({
       message: error.message || 'Failed to generate text',
-      error: process.env.NODE_ENV === 'development' ? error : undefined
+      error: process.env.NODE_ENV === 'development' ? error : undefined,
+      suggestedResponse: 'Focus on small daily wins to build your financial future - consistency is key!'
     });
   }
 });

@@ -10,17 +10,26 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 /**
  * Check if OpenAI API key is configured
- * @returns {Promise<boolean>} - Whether the API key is configured
+ * @returns {Promise<{configured: boolean, status: string}>} - OpenAI configuration status
  */
 export async function checkOpenAIConfigured() {
   try {
     // Check if API key is configured on server-side
     const response = await fetch('/api/ai/status');
     const data = await response.json();
-    return data.configured === true;
+    
+    return {
+      configured: data.configured === true,
+      status: data.status || 'unknown',
+      provider: data.provider || 'openai'
+    };
   } catch (error) {
     console.error('Error checking OpenAI configuration:', error);
-    return false;
+    return {
+      configured: false,
+      status: 'error',
+      provider: 'openai'
+    };
   }
 }
 
@@ -42,11 +51,26 @@ export async function generateText(prompt, options = {}) {
   
   try {
     // First check if the API is configured
-    const isConfigured = await checkOpenAIConfigured();
-    if (!isConfigured) {
-      createToast('AI features require an API key in settings. Please add one or contact support.', 'error');
+    const configStatus = await checkOpenAIConfigured();
+    
+    if (!configStatus.configured) {
+      createToast('AI features require an API key. Using intelligent fallbacks instead.', 'warning');
       console.error('OpenAI API key not configured');
-      throw new Error('OpenAI API key not configured');
+      return getSmartFallbackResponse(prompt);
+    }
+    
+    // Check for quota exceeded status
+    if (configStatus.status === 'quota_exceeded') {
+      createToast('AI quota exceeded. Using intelligent fallbacks instead.', 'warning');
+      console.error('OpenAI API quota exceeded');
+      return getSmartFallbackResponse(prompt);
+    }
+    
+    // Check for other error status
+    if (configStatus.status !== 'active') {
+      createToast('AI service currently unavailable. Using intelligent fallbacks instead.', 'warning');
+      console.error(`OpenAI API status: ${configStatus.status}`);
+      return getSmartFallbackResponse(prompt);
     }
     
     // Call the server-side API proxy to avoid exposing API key
@@ -63,17 +87,54 @@ export async function generateText(prompt, options = {}) {
       })
     });
     
+    const data = await response.json();
+    
+    // If status is not 2xx, use the suggested response
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Error generating text');
+      if (data.error === 'QUOTA_EXCEEDED') {
+        createToast('AI quota exceeded. Using intelligent fallbacks instead.', 'warning');
+      }
+      
+      // Use the suggested response if provided, otherwise get a fallback
+      return data.suggestedResponse || getSmartFallbackResponse(prompt);
     }
     
-    const data = await response.json();
     return data.text;
   } catch (error) {
     console.error('Error generating text with OpenAI:', error);
-    throw error;
+    // Instead of throwing, return a fallback response
+    return getSmartFallbackResponse(prompt);
   }
+}
+
+// Smart fallback responses based on prompt context
+function getSmartFallbackResponse(prompt) {
+  // Detect the type of prompt to provide contextually relevant responses
+  const promptLower = prompt.toLowerCase();
+  
+  // Motivation fallbacks
+  if (promptLower.includes('motivation') || promptLower.includes('motivational')) {
+    const motivationResponses = [
+      "Your consistent financial habits today build your freedom tomorrow.",
+      "Small daily wins compound into significant financial growth over time.",
+      "Focus on progress, not perfection - every financial step matters.",
+      "Financial freedom isn't built in a day, but daily consistent actions."
+    ];
+    return motivationResponses[Math.floor(Math.random() * motivationResponses.length)];
+  }
+  
+  // Reflection fallbacks
+  if (promptLower.includes('reflect') || promptLower.includes('reflection')) {
+    return "This week, review your expense categories to identify one potential area for saving. Remember to celebrate your consistency in tracking - that's already a significant win!";
+  }
+  
+  // Summary fallbacks
+  if (promptLower.includes('summary') || promptLower.includes('summarize')) {
+    return "Your spending patterns show good discipline in most categories. Consider setting specific goals for your top spending areas to optimize further.";
+  }
+  
+  // General financial advice fallback
+  return "Focus on building consistent financial habits. Track expenses regularly, maintain emergency savings, and make intentional spending decisions aligned with your long-term goals.";
 }
 
 /**
