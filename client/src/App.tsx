@@ -25,6 +25,7 @@ import PricingPage from "@/pages/PricingPage";
 import StackrGigs from "@/pages/income/StackrGigs";
 import BlogEditorPage from "@/pages/BlogEditorPage";
 import BlogPage from "@/pages/BlogPage";
+import Guardrails from "@/pages/Guardrails";
 import Sidebar from "@/components/Sidebar";
 import VoiceCommandWidget from "@/components/VoiceCommandWidget";
 import AppTutorial from "@/components/AppTutorial";
@@ -55,6 +56,7 @@ function Router() {
       <ProtectedRoute path="/bank-connections" component={BankConnections} />
       <ProtectedRoute path="/goals" component={Goals} />
       <ProtectedRoute path="/budget-planner" component={BudgetPlanner} />
+      <ProtectedRoute path="/guardrails" component={Guardrails} />
       <ProtectedRoute path="/financial-advice" component={FinancialAdvice} />
       <ProtectedRoute path="/money-mentor" component={MoneyMentorPage} />
       <ProtectedRoute path="/profile" component={Profile} />

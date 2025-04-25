@@ -28,7 +28,8 @@ import {
   CircleDollarSign,
   Users,
   Brain,
-  Shield
+  Shield,
+  LightbulbIcon
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
@@ -79,6 +80,13 @@ const navigationStructure = [
         name: "Budget Planner",
         path: "/budget-planner",
         icon: <CalendarDays size={20} />,
+      },
+      {
+        name: "Guardrails",
+        path: "/guardrails",
+        icon: <Shield size={20} />,
+        badge: "New",
+        badgeColor: "bg-gradient-to-r from-purple-500 to-indigo-500",
       },
       {
         name: "Reminders",
