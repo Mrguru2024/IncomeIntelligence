@@ -1,0 +1,206 @@
+Here’s a professional and **Replit-ready instruction prompt** that integrates your **existing Stackr AI personalization system** with 3 new high-impact features:
+
+---
+
+## 🧠 Replit AI Agent Prompt: Add Daily Motivation, Lifecycle Tracking & Multi-User AI Summaries to Stackr
+
+---
+
+### 🎯 Objective:  
+Expand Stackr’s AI-powered personalization system by adding:
+
+1. **Daily Money Motivation** – Encouraging, user-specific insights  
+2. **Lifecycle Behavior Tracking** – Recognize long-term trends + habits  
+3. **Multi-User Summaries** – Personalized snapshots for teams/families  
+
+All features must **integrate cleanly** with the current AI prompt engine, user context model, and dashboard UX.
+
+---
+
+## ✅ Feature 1: Daily Money Motivation
+
+📍 **Use Case:**  
+Display a motivational message every 24 hours based on spending patterns, goals, or struggles.
+
+### Step-by-Step:
+
+📄 **routes/userContext.js**
+
+```js
+router.get("/api/motivation/daily", async (req, res) => {
+  const userId = req.query.userId;
+  const result = await db.query("SELECT * FROM user_context WHERE user_id = $1", [userId]);
+  const ctx = result.rows[0];
+
+  const prompt = `
+You're a money coach. This user is working toward: ${JSON.parse(ctx.goals || "[]").join(", ")}.
+They struggle with: ${JSON.parse(ctx.pain_points || "[]").join(", ")}.
+
+Give them one sentence of motivation for today to help them stay consistent.
+`;
+
+  const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": \`Bearer \${process.env.OPENAI_API_KEY}\`
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.75
+    })
+  });
+
+  const message = aiRes?.json()?.choices?.[0]?.message?.content;
+  res.json({ message });
+});
+```
+
+📄 **public/dashboard.html**
+
+```html
+<div id="daily-motivation" class="mt-4 text-green-600 font-semibold"></div>
+
+<script>
+  async function loadMotivation() {
+    const res = await fetch(`/api/motivation/daily?userId=${window.currentUser.id}`);
+    const data = await res.json();
+    document.getElementById("daily-motivation").innerText = data.message || "Keep making moves.";
+  }
+
+  loadMotivation();
+</script>
+```
+
+---
+
+## ✅ Feature 2: Lifecycle Behavior Tracker
+
+📍 **Use Case:**  
+Detect long-term habits (e.g. “User consistently overspends tools in month 3”)  
+Store and evaluate monthly summaries.
+
+### Step-by-Step:
+
+📄 **New SQL Table:**
+
+```sql
+CREATE TABLE behavior_history (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  month TEXT,
+  top_category TEXT,
+  overspend_category TEXT,
+  summary TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+📄 **New Endpoint: `/api/behavior/summary`**
+
+```js
+router.get("/api/behavior/summary", async (req, res) => {
+  const userId = req.query.userId;
+
+  const result = await db.query(`
+    SELECT top_category, overspend_category, summary FROM behavior_history
+    WHERE user_id = $1 ORDER BY created_at DESC LIMIT 3
+  `, [userId]);
+
+  res.json({ history: result.rows });
+});
+```
+
+📄 **Use AI in a backend cron to generate monthly summaries (optional):**
+
+```js
+// Run monthly with user transaction history
+// Example prompt for AI:
+const prompt = `
+Summarize the past month: user overspent on 'fuel' by $150, under budget on 'food' by $90.
+Give 1 key insight, 1 concern, and 1 win.
+`;
+```
+
+---
+
+## ✅ Feature 3: Multi-User Summaries for Teams or Families
+
+📍 **Use Case:**  
+For team/family accounts, generate a snapshot for each member's progress and struggles.
+
+### Step-by-Step:
+
+📄 **DB Assumption:**  
+You have a `team_members` or `linked_users` table. Use:
+
+```sql
+SELECT id FROM users WHERE team_id = $1;
+```
+
+📄 **Route: `/api/team/summary/:teamId`**
+
+```js
+router.get("/api/team/summary/:teamId", async (req, res) => {
+  const teamId = req.params.teamId;
+  const users = await db.query("SELECT id, name FROM users WHERE team_id = $1", [teamId]);
+
+  const summaries = [];
+
+  for (const user of users.rows) {
+    const context = await db.query("SELECT * FROM user_context WHERE user_id = $1", [user.id]);
+    const prompt = `
+This team member's name is ${user.name}.
+Their struggles are: ${JSON.parse(context.rows[0].pain_points || "[]").join(", ")}.
+Their goals are: ${JSON.parse(context.rows[0].goals || "[]").join(", ")}.
+
+Write a one-line summary of their financial behavior and encouragement.
+    `;
+
+    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": \`Bearer \${process.env.OPENAI_API_KEY}\`
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    const summary = (await aiRes.json()).choices?.[0]?.message?.content;
+    summaries.push({ user: user.name, summary });
+  }
+
+  res.json({ summaries });
+});
+```
+
+📄 **Frontend Display:**
+
+```js
+fetch(`/api/team/summary/${window.currentUser.teamId}`)
+  .then(res => res.json())
+  .then(data => {
+    const container = document.getElementById("team-summary");
+    container.innerHTML = data.summaries.map(s => `<p><strong>${s.user}:</strong> ${s.summary}</p>`).join("");
+  });
+```
+
+---
+
+### ✅ Summary:
+
+| Feature                  | Output |
+|--------------------------|--------|
+| Daily Motivation         | 1-sentence encouragement, daily |
+| Lifecycle Tracker        | Monthly summary of habits |
+| Multi-User Snapshot      | One-liner updates for each user in a team/family |
+
+🧠 All three use existing `user_context` and integrate into the same AI logic engine and front-end dashboard UI.
+
+---
+
+Let me know if you want this converted into `.js` modules, styled layouts, or an onboarding experience that configures these from the start. You're building Stackr into a **smart financial ecosystem** — tailored to real people, not just spreadsheets.

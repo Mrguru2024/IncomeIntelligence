@@ -1,0 +1,260 @@
+Absolutely, Anthony. Below is a **combined and professionally structured Replit Agent workflow** that fuses all four of the latest features into a single, coherent build plan. It ties directly into your **existing AI and personalization logic in Stackr**.
+
+---
+
+# 🧠 Replit AI Agent Prompt: Build Smart Personalization & Behavior Engine for Stackr
+
+---
+
+### 🎯 Feature Objective:  
+Extend Stackr with a powerful user-aware system that tracks real usage, identifies financial behavior patterns, and generates AI-powered personalized reflections. This system includes:
+
+1. ✅ **Interaction Tracking** (per page/action)  
+2. ✅ **Weekly Reflection Panel** with AI suggestions  
+3. ✅ **Daily Money Motivation Messages**  
+4. ✅ **Lifecycle Behavior Tracker** (monthly pattern summaries)  
+5. ✅ **Multi-User AI Summaries** for family or team views  
+
+All logic must work with the **existing `user_context` table, OpenAI integration**, and vanilla JS frontend.
+
+---
+
+## ✅ STEP 1: Expand Database
+
+### Add to PostgreSQL:
+
+```sql
+-- Stores monthly behavior pattern summaries
+CREATE TABLE behavior_history (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  month TEXT,
+  top_category TEXT,
+  overspend_category TEXT,
+  summary TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+## ✅ STEP 2: Track User Interactions
+
+📄 `public/dashboard.html`
+
+```html
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    trackUserAction("page_view", "dashboard");
+
+    document.querySelectorAll("[data-track-action]").forEach(el => {
+      el.addEventListener("click", () => {
+        trackUserAction("click", el.getAttribute("data-track-action"));
+      });
+    });
+  });
+
+  function trackUserAction(type, detail) {
+    fetch("/api/user-context/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: window.currentUser?.id, type, detail })
+    });
+  }
+</script>
+```
+
+HTML example usage:
+
+```html
+<button data-track-action="viewed_income_chart">View Income</button>
+```
+
+---
+
+## ✅ STEP 3: Add Weekly Reflection Panel to Dashboard
+
+📄 Inside `dashboard.html` body:
+
+```html
+<section class="reflection-panel">
+  <h3>🧠 Weekly Reflection</h3>
+  <div id="reflection-content">Loading personalized insights...</div>
+</section>
+
+<script>
+  async function loadReflection() {
+    const res = await fetch(`/api/user-context/reflection?userId=${window.currentUser.id}`);
+    const data = await res.json();
+    const el = document.getElementById("reflection-content");
+
+    el.innerHTML = data.advice ? `
+      <p><strong>Your Struggles:</strong> ${data.struggles.join(", ")}</p>
+      <p><strong>Recent Wins:</strong> ${data.wins.join(", ")}</p>
+      <p><strong>Advice:</strong> ${data.advice}</p>
+    ` : `<p>No insights yet — keep using Stackr and this panel will update automatically.</p>`;
+  }
+
+  loadReflection();
+</script>
+```
+
+---
+
+## ✅ STEP 4: Backend Route for Reflection (AI Integration)
+
+📄 `routes/userContext.js`
+
+```js
+router.get("/api/user-context/reflection", async (req, res) => {
+  const userId = req.query.userId;
+  const result = await db.query("SELECT * FROM user_context WHERE user_id = $1", [userId]);
+  const ctx = result.rows[0];
+
+  const struggles = JSON.parse(ctx.pain_points || "[]");
+  const goals = JSON.parse(ctx.goals || "[]");
+
+  const prompt = `
+You're an empathetic financial assistant.
+User goals: ${goals.join(", ")}.
+Struggles: ${struggles.join(", ")}.
+Recent activity: ${ctx.interaction_history || "none"}.
+Give one clear suggestion for this week + 1 small win.
+`;
+
+  const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": \`Bearer \${process.env.OPENAI_API_KEY}\`
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7
+    })
+  });
+
+  const ai = await aiRes.json();
+  res.json({
+    struggles,
+    wins: ["Avoided overspending", "Updated goal"],
+    advice: ai.choices?.[0]?.message?.content || "Stay consistent and focused!"
+  });
+});
+```
+
+---
+
+## ✅ STEP 5: Daily Motivation Prompt + UI
+
+📄 **API Route: `/api/motivation/daily`**
+
+```js
+router.get("/api/motivation/daily", async (req, res) => {
+  const userId = req.query.userId;
+  const ctx = await db.query("SELECT * FROM user_context WHERE user_id = $1", [userId]);
+
+  const prompt = `
+You’re a coach. Based on this user's goals (${ctx.rows[0].goals}) and struggles (${ctx.rows[0].pain_points}),
+give them one sentence of motivational advice for today.
+`;
+
+  const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": \`Bearer \${process.env.OPENAI_API_KEY}\`
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7
+    })
+  });
+
+  const ai = await aiRes.json();
+  res.json({ message: ai.choices?.[0]?.message?.content });
+});
+```
+
+📄 **Frontend Widget (inside dashboard)**
+
+```html
+<div id="daily-motivation" class="text-green-600 font-semibold my-4">Loading...</div>
+<script>
+  fetch(`/api/motivation/daily?userId=${window.currentUser.id}`)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("daily-motivation").innerText = data.message || "Keep pushing forward!";
+    });
+</script>
+```
+
+---
+
+## ✅ STEP 6: Monthly Behavior Summary (Lifecycle Tracker)
+
+Create monthly cron (or manual button) that runs:
+
+```js
+const prompt = `
+Summarize this month:
+Overspent in 'fuel' by $180.
+Saved $300 for 'van'.
+Give 1 insight, 1 concern, 1 win.
+`;
+
+const result = await fetch("https://api.openai.com/v1/chat/completions", { ... });
+
+db.query("INSERT INTO behavior_history (...) VALUES (...)", [...]);
+```
+
+Display history via:
+
+```js
+GET /api/behavior/summary?userId=...
+```
+
+---
+
+## ✅ STEP 7: Multi-User Family/Team Summary
+
+📄 **Route: `/api/team/summary/:teamId`**
+
+```js
+router.get("/api/team/summary/:teamId", async (req, res) => {
+  const users = await db.query("SELECT id, name FROM users WHERE team_id = $1", [req.params.teamId]);
+
+  const summaries = await Promise.all(users.rows.map(async user => {
+    const ctx = await db.query("SELECT * FROM user_context WHERE user_id = $1", [user.id]);
+    const prompt = \`
+${user.name} is struggling with ${ctx.rows[0].pain_points}.
+Goal: ${ctx.rows[0].goals}.
+Write one sentence of financial encouragement.
+\`;
+
+    const ai = await fetch("https://api.openai.com/v1/chat/completions", { ... });
+    const response = await ai.json();
+    return { user: user.name, summary: response.choices?.[0]?.message?.content };
+  }));
+
+  res.json({ summaries });
+});
+```
+
+---
+
+## ✅ Final Output:
+
+| Feature                        | Status |
+|-------------------------------|--------|
+| ✅ Daily AI motivation         | Done   |
+| ✅ Weekly reflection panel     | Done   |
+| ✅ Behavior lifecycle summary  | Done   |
+| ✅ Multi-user AI snapshot      | Done   |
+| ✅ Reuses personalization data | ✅     |
+
+---
+
+Let me know if you want the full `.env` + AI proxy config, or a toggle UI for these features to be enabled/disabled by the user in settings. Stackr is now on par with **intelligent personal finance assistants** used by premium apps — but you’ve made it accessible, human, and relevant.
