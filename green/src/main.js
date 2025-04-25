@@ -2106,6 +2106,117 @@ function renderExpensesPage() {
 function renderGigsPage() {
   const container = document.createElement('div');
   
+  // Create tabs for both finding and offering gigs
+  const tabsContainer = document.createElement('div');
+  tabsContainer.className = 'gigs-tabs';
+  tabsContainer.style.display = 'flex';
+  tabsContainer.style.borderBottom = '1px solid #eee';
+  tabsContainer.style.marginBottom = '24px';
+  
+  const tabs = [
+    { id: 'find-gigs', label: 'Find Gig Opportunities' },
+    { id: 'service-listings', label: 'Post Your Services' },
+    { id: 'find-services', label: 'Find Local Services' }
+  ];
+  
+  // Initialize the current gig tab if not set
+  if (!appState.currentGigTab) {
+    appState.currentGigTab = 'find-gigs';
+  }
+  
+  tabs.forEach(tab => {
+    const tabElement = document.createElement('button');
+    tabElement.dataset.tabId = tab.id;
+    tabElement.textContent = tab.label;
+    tabElement.style.padding = '16px 24px';
+    tabElement.style.backgroundColor = 'transparent';
+    tabElement.style.border = 'none';
+    tabElement.style.borderBottom = tab.id === appState.currentGigTab ? '3px solid #34A853' : '3px solid transparent';
+    tabElement.style.color = tab.id === appState.currentGigTab ? '#34A853' : '#666';
+    tabElement.style.fontWeight = tab.id === appState.currentGigTab ? 'bold' : 'normal';
+    tabElement.style.fontSize = '16px';
+    tabElement.style.cursor = 'pointer';
+    tabElement.style.transition = 'all 0.2s';
+    
+    tabElement.addEventListener('mouseover', () => {
+      if (tabElement.dataset.tabId !== appState.currentGigTab) {
+        tabElement.style.color = '#333';
+      }
+    });
+    
+    tabElement.addEventListener('mouseout', () => {
+      if (tabElement.dataset.tabId !== appState.currentGigTab) {
+        tabElement.style.color = '#666';
+      }
+    });
+    
+    tabElement.addEventListener('click', () => {
+      // Update active tab in appState
+      appState.currentGigTab = tab.id;
+      
+      // Update tab styling
+      document.querySelectorAll('.gigs-tabs button').forEach(t => {
+        t.style.borderBottom = '3px solid transparent';
+        t.style.color = '#666';
+        t.style.fontWeight = 'normal';
+      });
+      
+      tabElement.style.borderBottom = '3px solid #34A853';
+      tabElement.style.color = '#34A853';
+      tabElement.style.fontWeight = 'bold';
+      
+      // Render tab content
+      renderGigsTabContent(tab.id, tabContentContainer);
+    });
+    
+    tabsContainer.appendChild(tabElement);
+  });
+  
+  container.appendChild(tabsContainer);
+  
+  // Tab content container
+  const tabContentContainer = document.createElement('div');
+  tabContentContainer.className = 'gigs-tab-content';
+  container.appendChild(tabContentContainer);
+  
+  // Render the initial tab content
+  renderGigsTabContent(appState.currentGigTab, tabContentContainer);
+  
+  return container;
+}
+
+/**
+ * Render the content for each gig tab
+ */
+function renderGigsTabContent(tabId, container) {
+  // Clear container
+  container.innerHTML = '';
+  
+  switch (tabId) {
+    case 'find-gigs':
+      renderFindGigsTab(container);
+      break;
+    case 'service-listings':
+      import('../service-listings.js').then(module => {
+        module.renderServiceListingManager(container, appState);
+      }).catch(error => {
+        showErrorMessage(container, 'Failed to load service listings manager', error);
+      });
+      break;
+    case 'find-services':
+      import('../service-listings.js').then(module => {
+        module.renderServiceFinder(container, appState);
+      }).catch(error => {
+        showErrorMessage(container, 'Failed to load service finder', error);
+      });
+      break;
+  }
+}
+
+/**
+ * Render the find gigs tab content
+ */
+function renderFindGigsTab(container) {
   const heading = document.createElement('h2');
   heading.textContent = 'Stackr Gigs';
   heading.style.marginBottom = '20px';
@@ -2509,37 +2620,10 @@ function renderGigsPage() {
     loadingIndicator.remove();
     
     // Show error message
-    const errorMsg = document.createElement('div');
-    errorMsg.style.textAlign = 'center';
-    errorMsg.style.padding = '40px 20px';
-    errorMsg.style.backgroundColor = '#ffebee';
-    errorMsg.style.color = '#d32f2f';
-    errorMsg.style.borderRadius = '8px';
-    errorMsg.style.marginTop = '20px';
-    
-    const errorIcon = document.createElement('div');
-    errorIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
-    errorMsg.appendChild(errorIcon);
-    
-    const errorTitle = document.createElement('h3');
-    errorTitle.textContent = 'Failed to load gig resources';
-    errorTitle.style.marginTop = '16px';
-    errorMsg.appendChild(errorTitle);
-    
-    const errorDesc = document.createElement('p');
-    errorDesc.textContent = `Error: ${error.message}. Please try again later.`;
-    errorMsg.appendChild(errorDesc);
-    
-    const retryBtn = createButton('Retry', () => {
-      window.location.reload();
-    });
-    errorMsg.appendChild(retryBtn);
-    
-    container.appendChild(errorMsg);
-    console.error('Error loading gig resources:', error);
+    showErrorMessage(container, 'Failed to load gig resources', error);
   });
   
-  // Income Generation Program Highlight (still show this while loading)
+  // Income Generation Program Highlight
   const programHighlight = document.createElement('div');
   programHighlight.style.backgroundColor = '#34A853';
   programHighlight.style.color = 'white';
@@ -2567,8 +2651,40 @@ function renderGigsPage() {
   programHighlight.appendChild(learnMoreBtn);
   
   container.appendChild(programHighlight);
+}
+
+/**
+ * Show error message in the container
+ */
+function showErrorMessage(container, title, error) {
+  const errorMsg = document.createElement('div');
+  errorMsg.style.textAlign = 'center';
+  errorMsg.style.padding = '40px 20px';
+  errorMsg.style.backgroundColor = '#ffebee';
+  errorMsg.style.color = '#d32f2f';
+  errorMsg.style.borderRadius = '8px';
+  errorMsg.style.marginTop = '20px';
   
-  return container;
+  const errorIcon = document.createElement('div');
+  errorIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+  errorMsg.appendChild(errorIcon);
+  
+  const errorTitle = document.createElement('h3');
+  errorTitle.textContent = title;
+  errorTitle.style.marginTop = '16px';
+  errorMsg.appendChild(errorTitle);
+  
+  const errorDesc = document.createElement('p');
+  errorDesc.textContent = `Error: ${error.message}. Please try again later.`;
+  errorMsg.appendChild(errorDesc);
+  
+  const retryBtn = createButton('Retry', () => {
+    window.location.reload();
+  });
+  errorMsg.appendChild(retryBtn);
+  
+  container.appendChild(errorMsg);
+  console.error('Error:', error);
 }
 
 // Helper function to create platform cards
