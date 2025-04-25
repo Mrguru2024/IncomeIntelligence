@@ -3131,6 +3131,22 @@ function renderPageContent(container) {
       }).catch(error => {
         console.error('Error checking achievements:', error);
       });
+      
+      // Check spending against guardrails limits
+      if (appState.userData && appState.userData.spendingLimits &&
+          Array.isArray(appState.userData.spendingLimits) &&
+          appState.userData.spendingLimits.length > 0) {
+        
+        import('../guardrails-notifications.js').then(guardrailsModule => {
+          // Check all spending categories against limits
+          guardrailsModule.checkAllSpendingLimits(
+            appState.user.id, 
+            appState.userData.spendingLimits
+          );
+        }).catch(error => {
+          console.error('Error checking guardrails limits:', error);
+        });
+      }
     }).catch(error => {
       console.error('Error initializing notification system:', error);
     });

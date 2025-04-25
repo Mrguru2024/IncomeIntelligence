@@ -25,8 +25,9 @@ export function checkSpendingLimits(userId, transaction, spendingLimits) {
   // Calculate current spending for this period
   const currentSpending = calculateSpendingForPeriod(userId, matchingLimit.category, matchingLimit.period);
   
-  // Add the new transaction amount
-  const totalSpending = currentSpending + transaction.amount;
+  // Add the new transaction amount (use absolute value since expenses are stored as negative)
+  const transactionAmount = Math.abs(transaction.amount);
+  const totalSpending = currentSpending + transactionAmount;
   
   // Check against thresholds
   const limitAmount = parseFloat(matchingLimit.amount);
@@ -40,6 +41,45 @@ export function checkSpendingLimits(userId, transaction, spendingLimits) {
   if (totalSpending >= limitAmount) {
     createLimitExceededNotification(userId, transaction, matchingLimit, totalSpending);
   }
+}
+
+/**
+ * Check all spending categories against their limits
+ * @param {string} userId - User ID
+ * @param {Array} spendingLimits - User's spending limits
+ */
+export function checkAllSpendingLimits(userId, spendingLimits) {
+  if (!userId || !spendingLimits || !Array.isArray(spendingLimits)) {
+    return;
+  }
+  
+  // Process each spending limit
+  spendingLimits.forEach(limit => {
+    // Calculate current spending for this category/period
+    const totalSpending = calculateSpendingForPeriod(userId, limit.category, limit.period);
+    
+    // Check against thresholds
+    const limitAmount = parseFloat(limit.amount);
+    
+    // Create a "reference transaction" for notification purposes
+    const referenceTransaction = {
+      id: `ref-${Date.now()}`,
+      category: limit.category,
+      description: `${limit.category} spending`,
+      amount: -1, // Negative amount to represent an expense
+      date: new Date().toISOString()
+    };
+    
+    // Check if approaching limit (80% of limit)
+    if (totalSpending >= limitAmount * 0.8 && totalSpending < limitAmount) {
+      createApproachingLimitNotification(userId, referenceTransaction, limit, totalSpending);
+    }
+    
+    // Check if exceeded limit
+    if (totalSpending >= limitAmount) {
+      createLimitExceededNotification(userId, referenceTransaction, limit, totalSpending);
+    }
+  });
 }
 
 /**
@@ -100,43 +140,131 @@ function createLimitExceededNotification(userId, transaction, limit, totalSpendi
 
 /**
  * Calculate current spending for a category and period
- * This is a stub function that would be replaced with actual logic in a production app
  * @param {string} userId - User ID
  * @param {string} category - Spending category
  * @param {string} period - Period (weekly/monthly)
  * @returns {number} - Total spending amount
  */
 function calculateSpendingForPeriod(userId, category, period) {
-  // This would normally query the database for transactions in the current period
-  // For the GREEN version, we'll return a random amount between 0 and 500
-  return Math.random() * 500;
+  if (!userId || !category || !period) {
+    return 0;
+  }
+  
+  try {
+    // Get the current date and calculate the start date based on the period
+    const today = new Date();
+    let startDate;
+    
+    if (period.toLowerCase() === 'weekly') {
+      startDate = new Date(today);
+      startDate.setDate(today.getDate() - 7); // 7 days ago
+    } else if (period.toLowerCase() === 'monthly') {
+      startDate = new Date(today.getFullYear(), today.getMonth(), 1); // Start of current month
+    } else {
+      console.error(`Invalid period: ${period}`);
+      return 0;
+    }
+    
+    // Get user transactions
+    const transactions = fetchUserTransactions(userId, startDate, today);
+    
+    // Filter by category and sum the amounts
+    const categoryTransactions = transactions.filter(
+      transaction => transaction.category.toLowerCase() === category.toLowerCase()
+    );
+    
+    return categoryTransactions.reduce((total, transaction) => {
+      // Expenses are stored as negative values, so we use absolute
+      return total + Math.abs(transaction.amount);
+    }, 0);
+  } catch (error) {
+    console.error('Error calculating spending for period:', error);
+    return 0;
+  }
 }
 
 /**
- * Simulate a new transaction to test the notification system
+ * Fetch user transactions for a specific date range
  * @param {string} userId - User ID
+ * @param {Date} startDate - Start date
+ * @param {Date} endDate - End date
+ * @returns {Array} - Array of transaction objects
+ */
+function fetchUserTransactions(userId, startDate, endDate) {
+  // In a production app, this would query the database or transaction API
+  
+  // For the GREEN version, we'll try to get transactions from localStorage
+  // or return an empty array if none exist
+  try {
+    const transactionKey = `stackr_transactions_${userId}`;
+    const storedTransactions = localStorage.getItem(transactionKey);
+    
+    if (!storedTransactions) {
+      return [];
+    }
+    
+    const allTransactions = JSON.parse(storedTransactions);
+    
+    // Filter transactions by date range
+    return allTransactions.filter(transaction => {
+      const transactionDate = new Date(transaction.date);
+      return transactionDate >= startDate && transactionDate <= endDate;
+    });
+  } catch (error) {
+    console.error('Error fetching user transactions:', error);
+    return [];
+  }
+}
+
+/**
+ * Process a new transaction and check against guardrails limits
+ * @param {string} userId - User ID
+ * @param {Object} transaction - Transaction data
  * @param {Array} spendingLimits - User's spending limits
  */
-export function simulateTransaction(userId, spendingLimits) {
-  if (!spendingLimits || !Array.isArray(spendingLimits) || spendingLimits.length === 0) {
+export function processTransaction(userId, transaction, spendingLimits) {
+  if (!userId || !transaction || !spendingLimits || !Array.isArray(spendingLimits)) {
     return;
   }
   
-  // Randomly select a spending limit category
-  const randomIndex = Math.floor(Math.random() * spendingLimits.length);
-  const selectedLimit = spendingLimits[randomIndex];
-  
-  // Create a mock transaction
-  const transaction = {
-    id: `txn-${Date.now()}`,
-    category: selectedLimit.category,
-    description: `Test Transaction - ${selectedLimit.category}`,
-    amount: Math.random() * parseFloat(selectedLimit.amount) * 1.2, // Random amount up to 120% of limit
-    date: new Date().toISOString()
-  };
+  // Validate transaction data
+  if (!transaction.category || !transaction.amount || transaction.amount >= 0) {
+    return; // Only process expense transactions (negative amounts)
+  }
   
   // Check the transaction against spending limits
   checkSpendingLimits(userId, transaction, spendingLimits);
   
+  // Save the transaction to localStorage for future reference
+  saveTransaction(userId, transaction);
+  
   return transaction;
+}
+
+/**
+ * Save a transaction to localStorage
+ * @param {string} userId - User ID
+ * @param {Object} transaction - Transaction data
+ */
+function saveTransaction(userId, transaction) {
+  if (!userId || !transaction) return;
+  
+  try {
+    const transactionKey = `stackr_transactions_${userId}`;
+    let transactions = [];
+    
+    // Get existing transactions
+    const storedTransactions = localStorage.getItem(transactionKey);
+    if (storedTransactions) {
+      transactions = JSON.parse(storedTransactions);
+    }
+    
+    // Add new transaction
+    transactions.push(transaction);
+    
+    // Save back to localStorage
+    localStorage.setItem(transactionKey, JSON.stringify(transactions));
+  } catch (error) {
+    console.error('Error saving transaction:', error);
+  }
 }
