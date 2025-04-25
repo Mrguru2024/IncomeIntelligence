@@ -34,8 +34,6 @@
 - green/auth.js - Auth utilities
 
 ## RARELY USED / POTENTIAL CANDIDATES FOR ARCHIVAL
-- green/dashboard.js - Dashboard (may be used by main.js directly)
-- green/expenses.js - Expenses tracking
 - green/income.js - Income features (different from futuristic-income)
 - green/landing.js - Old landing page (replaced by landing-new)
 - green/receipt-scanner.js - Receipt scanning feature
