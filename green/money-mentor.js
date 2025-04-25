@@ -843,25 +843,43 @@ export async function renderMoneyMentorPage(userId) {
     proFeaturesList.appendChild(item);
   });
   
-  // Create a container for the upgrade button
-  const upgradeButtonContainer = document.createElement('div');
-  upgradeButtonContainer.style.marginTop = '16px';
+  // Create a simple upgrade button
+  const upgradeButton = document.createElement('button');
+  upgradeButton.className = 'upgrade-button';
+  upgradeButton.style.width = '100%';
+  upgradeButton.style.padding = '10px 0';
+  upgradeButton.style.background = 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)';
+  upgradeButton.style.color = 'white';
+  upgradeButton.style.border = 'none';
+  upgradeButton.style.borderRadius = '8px';
+  upgradeButton.style.fontSize = '15px';
+  upgradeButton.style.fontWeight = '600';
+  upgradeButton.style.cursor = 'pointer';
+  upgradeButton.style.boxShadow = '0 4px 10px rgba(99, 102, 241, 0.3)';
+  upgradeButton.style.transition = 'all 0.2s ease';
+  upgradeButton.style.marginTop = '16px';
+  upgradeButton.textContent = 'Upgrade to Pro';
   
-  // Use the renderQuickUpgradeButton function from membership-tiers.js to create a standardized upgrade button
-  renderQuickUpgradeButton(upgradeButtonContainer, 'pro', 'button', 'medium');
+  // Button hover effect
+  upgradeButton.addEventListener('mouseover', () => {
+    upgradeButton.style.transform = 'translateY(-2px)';
+    upgradeButton.style.boxShadow = '0 6px 15px rgba(99, 102, 241, 0.4)';
+  });
   
-  // Add click event handler to show upgrade modal when the button is clicked
-  const upgradeButton = upgradeButtonContainer.querySelector('button');
-  if (upgradeButton) {
-    upgradeButton.addEventListener('click', () => {
-      showUpgradeModal('pro');
-    });
-  }
+  upgradeButton.addEventListener('mouseout', () => {
+    upgradeButton.style.transform = 'translateY(0)';
+    upgradeButton.style.boxShadow = '0 4px 10px rgba(99, 102, 241, 0.3)';
+  });
+  
+  // Add click event handler to show upgrade modal
+  upgradeButton.addEventListener('click', () => {
+    showUpgradeModal('pro');
+  });
   
   proCard.appendChild(proBadgeContainer);
   proCard.appendChild(proDescription);
   proCard.appendChild(proFeaturesList);
-  proCard.appendChild(upgradeButtonContainer);
+  proCard.appendChild(upgradeButton);
   
   sidebar.appendChild(topicsCard);
   sidebar.appendChild(proCard);
