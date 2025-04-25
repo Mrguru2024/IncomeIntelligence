@@ -105,6 +105,13 @@ const navigationStructure = [
         badge: "New"
       },
       {
+        name: "Invoices",
+        path: "/invoices",
+        icon: <FileText size={20} />,
+        badge: "New",
+        badgeColor: "bg-gradient-to-r from-blue-500 to-cyan-500"
+      },
+      {
         name: "Stackr Gigs",
         path: "/income-hub/gigs",
         icon: <Briefcase size={20} />,

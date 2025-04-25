@@ -56,7 +56,7 @@ import { requireProSubscription } from "./middleware/proSubscriptionMiddleware";
 import { spendingPersonalityService } from "./spending-personality-service";
 import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import { registerOpenAIRoutes } from "./routes/openai-routes";
-import { sendEmail } from "./email-service";
+import { sendEmail, sendPaymentConfirmationEmail } from "./email-service";
 // Guardrails removed as requested
 import Stripe from "stripe";
 // Express already imported at top

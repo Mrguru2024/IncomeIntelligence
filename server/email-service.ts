@@ -1,55 +1,66 @@
 import { Resend } from 'resend';
 
-let resend: Resend;
-
-export function initializeEmailClient() {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn("RESEND_API_KEY environment variable is not set. Email notifications will not work.");
-    return;
-  }
-  resend = new Resend(process.env.RESEND_API_KEY);
+interface EmailAttachment {
+  filename: string;
+  content: string | Buffer;
+  type?: string;
+  disposition?: string;
 }
 
-// Application constants
-const APP_NAME = 'Stackr';
-const APP_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://stackr.financial' 
-  : 'http://localhost:5000';
-
-interface EmailParams {
-  to: string | string[];
+interface EmailOptions {
+  to: string;
   from: string;
   subject: string;
+  html: string;
   text?: string;
-  html?: string;
+  attachments?: EmailAttachment[];
 }
 
-export async function sendEmail(params: EmailParams): Promise<boolean> {
+// Initialize Resend if API key is available
+let resend: Resend | null = null;
+
+if (process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY);
+  console.log('Email client initialized');
+} else {
+  console.warn('WARNING: Missing RESEND_API_KEY environment variable. Email functionality will be disabled.');
+}
+
+/**
+ * Send an email using the configured email service
+ * @param options The email options
+ * @returns Promise<boolean> indicating success or failure
+ */
+export async function sendEmail(options: EmailOptions): Promise<boolean> {
+  if (!resend) {
+    console.warn('Email service not initialized. Unable to send email.');
+    return false;
+  }
+
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.error('Cannot send email: RESEND_API_KEY is not set');
+    const { to, from, subject, html, text, attachments } = options;
+    
+    const response = await resend.emails.send({
+      from,
+      to,
+      subject,
+      html,
+      text,
+      attachments: attachments?.map(attachment => ({
+        filename: attachment.filename,
+        content: attachment.content instanceof Buffer 
+          ? attachment.content 
+          : Buffer.from(attachment.content, 'base64'),
+        type: attachment.type || 'application/octet-stream',
+        disposition: attachment.disposition || 'attachment'
+      })),
+    });
+
+    if (response.error) {
+      console.error('Email sending failed:', response.error);
       return false;
     }
-    
-    // Fix for Resend API typing - handle optional fields properly
-    const emailData: any = {
-      from: params.from,
-      to: params.to,
-      subject: params.subject,
-    };
-    
-    // Only add text and html if they exist
-    if (params.text) emailData.text = params.text;
-    if (params.html) emailData.html = params.html;
-    
-    const { data, error } = await resend.emails.send(emailData);
-    
-    if (error) {
-      console.error('Resend email error:', error);
-      return false;
-    }
-    
-    console.log('Email sent successfully with ID:', data?.id);
+
     return true;
   } catch (error) {
     console.error('Error sending email:', error);
@@ -57,180 +68,100 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 }
 
-// Utility function for sending reminder emails
-export async function sendReminderEmail(
-  to: string,
-  title: string,
-  message: string,
-  reminderDate: Date
-): Promise<boolean> {
-  const formattedDate = reminderDate.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-  
-  const html = `
-  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-    <h2 style="color: #4f46e5; margin-bottom: 20px;">Financial Reminder</h2>
-    <h3 style="margin-bottom: 15px;">${title}</h3>
-    <p style="margin-bottom: 25px; color: #555;">${message}</p>
-    <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-      <p style="margin: 0; font-weight: bold;">Date: ${formattedDate}</p>
-    </div>
-    <p style="color: #666; font-size: 0.9em;">This is an automated reminder from your financial management application.</p>
-  </div>
-  `;
-  
+/**
+ * Send a test email to verify the email service is working
+ * @param to The recipient email address
+ * @returns Promise<boolean> indicating success or failure
+ */
+export async function sendTestEmail(to: string): Promise<boolean> {
   return sendEmail({
     to,
-    from: 'notifications@stackr.financial', // Replace with your verified domain in Resend
-    subject: `Reminder: ${title}`,
-    html,
-    text: `${title}\n\n${message}\n\nDate: ${formattedDate}\n\nThis is an automated reminder from your financial management application.`
+    from: 'noreply@stackr.finance',
+    subject: 'Stackr Finance - Email System Test',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #2c3e50;">Stackr Finance Email System</h1>
+        <p>This is a test email to verify that the email system is working correctly.</p>
+        <p>If you received this message, it means your email configuration is working properly.</p>
+        <p style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee; font-size: 12px; color: #777;">
+          This is an automated message from Stackr Finance. Please do not reply to this email.
+        </p>
+      </div>
+    `,
+    text: `
+Stackr Finance Email System
+
+This is a test email to verify that the email system is working correctly.
+If you received this message, it means your email configuration is working properly.
+
+This is an automated message from Stackr Finance. Please do not reply to this email.
+    `,
   });
 }
 
 /**
- * Send email verification link
+ * Send a payment confirmation email to a client
+ * @param options The email options including client details and payment information
+ * @returns Promise<boolean> indicating success or failure
  */
-export async function sendVerificationEmail(
-  email: string,
-  username: string,
-  verificationToken: string
-): Promise<boolean> {
-  const verificationUrl = `${APP_URL}/verify-email/${verificationToken}`;
-  
-  const subject = `${APP_NAME} - Verify Your Email Address`;
-  
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-      <h2 style="color: #4f46e5; margin-bottom: 20px;">Welcome to ${APP_NAME}!</h2>
-      <p>Hello ${username},</p>
-      <p>Thank you for creating an account with us. Please verify your email address by clicking the button below:</p>
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${verificationUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Verify Email Address</a>
-      </div>
-      <p>If you didn't create an account, you can safely ignore this email.</p>
-      <p>This link will expire in 24 hours.</p>
-      <p>If the button doesn't work, copy and paste the following link into your browser:</p>
-      <p style="word-break: break-all;">${verificationUrl}</p>
-      <p>Thank you,<br>${APP_NAME} Team</p>
-    </div>
-  `;
-  
-  const text = `
-    Welcome to ${APP_NAME}!
-    
-    Hello ${username},
-    
-    Thank you for creating an account with us. Please verify your email address by visiting the link below:
-    
-    ${verificationUrl}
-    
-    If you didn't create an account, you can safely ignore this email.
-    
-    This link will expire in 24 hours.
-    
-    Thank you,
-    ${APP_NAME} Team
-  `;
-  
-  return sendEmail({
-    to: email,
-    from: 'notifications@stackr.financial',
-    subject,
-    html,
-    text
-  });
-}
-
-/**
- * Send password reset link
- */
-export async function sendPasswordResetEmail(
-  email: string,
-  username: string,
-  resetToken: string
-): Promise<boolean> {
-  const resetUrl = `${APP_URL}/reset-password/${resetToken}`;
-  
-  const subject = `${APP_NAME} - Reset Your Password`;
-  
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-      <h2 style="color: #4f46e5; margin-bottom: 20px;">Reset Your Password</h2>
-      <p>Hello ${username},</p>
-      <p>We received a request to reset your password. Please click the button below to set a new password:</p>
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${resetUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Password</a>
-      </div>
-      <p>If you didn't request a password reset, you can safely ignore this email.</p>
-      <p>This link will expire in 1 hour.</p>
-      <p>If the button doesn't work, copy and paste the following link into your browser:</p>
-      <p style="word-break: break-all;">${resetUrl}</p>
-      <p>Thank you,<br>${APP_NAME} Team</p>
-    </div>
-  `;
-  
-  const text = `
-    Reset Your Password
-    
-    Hello ${username},
-    
-    We received a request to reset your password. Please visit the link below to set a new password:
-    
-    ${resetUrl}
-    
-    If you didn't request a password reset, you can safely ignore this email.
-    
-    This link will expire in 1 hour.
-    
-    Thank you,
-    ${APP_NAME} Team
-  `;
-  
-  return sendEmail({
-    to: email,
-    from: 'notifications@stackr.financial',
-    subject,
-    html,
-    text
-  });
-}
-
-// Utility function for sending general notifications
-export async function sendNotificationEmail(
-  to: string,
-  title: string,
-  message: string,
-  type: string = 'info'
-): Promise<boolean> {
-  // Define colors for different notification types
-  const colors = {
-    info: '#3b82f6',     // blue
-    success: '#10b981',  // green
-    warning: '#f59e0b',  // amber
-    reminder: '#8b5cf6'  // purple
-  };
-  
-  const typeColor = colors[type as keyof typeof colors] || colors.info;
-  
-  const html = `
-  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-    <h2 style="color: ${typeColor}; margin-bottom: 20px;">Financial Notification</h2>
-    <h3 style="margin-bottom: 15px;">${title}</h3>
-    <p style="margin-bottom: 25px; color: #555;">${message}</p>
-    <p style="color: #666; font-size: 0.9em;">This is an automated notification from your financial management application.</p>
-  </div>
-  `;
+export async function sendPaymentConfirmationEmail(options: {
+  to: string;
+  clientName: string;
+  invoiceNumber: string;
+  amount: string;
+  paymentDate: string;
+}): Promise<boolean> {
+  const { to, clientName, invoiceNumber, amount, paymentDate } = options;
   
   return sendEmail({
     to,
-    from: 'notifications@stackr.financial', // Replace with your verified domain in Resend
-    subject: `${title}`,
-    html,
-    text: `${title}\n\n${message}\n\nThis is an automated notification from your financial management application.`
+    from: 'payments@stackr.finance',
+    subject: `Payment Confirmation - Invoice #${invoiceNumber}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #2c3e50; margin-bottom: 20px;">Payment Confirmation</h2>
+        <p>Dear ${clientName},</p>
+        <p>Thank you for your payment of $${amount} for invoice #${invoiceNumber}.</p>
+        <p>Your payment was successfully processed on ${paymentDate}.</p>
+        
+        <div style="margin: 30px 0; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
+          <h3 style="margin-top: 0; color: #2c3e50;">Payment Details</h3>
+          <p><strong>Invoice Number:</strong> ${invoiceNumber}</p>
+          <p><strong>Amount Paid:</strong> $${amount}</p>
+          <p><strong>Payment Date:</strong> ${paymentDate}</p>
+        </div>
+        
+        <p>If you have any questions about this payment, please contact us at accounting@stackr.finance.</p>
+        <p>Thank you for your business!</p>
+        <p style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee; font-size: 12px; color: #777;">
+          Stackr Finance<br>
+          123 Finance Street<br>
+          New York, NY 10001<br>
+          accounting@stackr.finance
+        </p>
+      </div>
+    `,
+    text: `
+Payment Confirmation
+
+Dear ${clientName},
+
+Thank you for your payment of $${amount} for invoice #${invoiceNumber}.
+Your payment was successfully processed on ${paymentDate}.
+
+Payment Details:
+Invoice Number: ${invoiceNumber}
+Amount Paid: $${amount}
+Payment Date: ${paymentDate}
+
+If you have any questions about this payment, please contact us at accounting@stackr.finance.
+
+Thank you for your business!
+
+Stackr Finance
+123 Finance Street
+New York, NY 10001
+accounting@stackr.finance
+    `,
   });
 }
