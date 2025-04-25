@@ -31,6 +31,8 @@ function showLoadingState(containerId) {
 
 // Render the invoices page
 export function renderInvoicesPage(containerId = 'app-container') {
+  console.log("Invoices page rendering started with container ID:", containerId);
+  
   // Get container
   const container = document.getElementById(containerId);
   
@@ -38,6 +40,8 @@ export function renderInvoicesPage(containerId = 'app-container') {
     console.error(`Container with ID ${containerId} not found`);
     return;
   }
+  
+  console.log("Container found:", container);
   
   // Show loading state initially
   showLoadingState(containerId);

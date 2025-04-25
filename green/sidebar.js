@@ -9,6 +9,9 @@ import { showUpgradeModal, renderMembershipUpgradePage } from './membership-tier
 
 // Export navigateTo function so it can be used externally
 export function navigateTo(page) {
+  // Log navigation
+  console.log("Navigation requested to page:", page);
+  
   // If window is available, this will be imported and used by the src/main.js
   if (typeof window !== 'undefined' && window.navigateTo) {
     window.navigateTo(page);

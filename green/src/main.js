@@ -3613,14 +3613,17 @@ function renderPageContent(container) {
         });
         break;
       case 'invoices':
+        console.log("Invoices page case triggered in main.js");
         // Import the invoices page module
         import('../invoices.js').then(module => {
+          console.log("Invoices module imported successfully:", module);
           // Clear container first for clean rendering
           container.innerHTML = '';
           // Create app container for the invoices page
           const appContainer = document.createElement('div');
           appContainer.id = 'app-container';
           container.appendChild(appContainer);
+          console.log("Created app-container for invoices:", appContainer);
           // Render invoices in the container
           module.renderInvoicesPage('app-container');
         }).catch(error => {
