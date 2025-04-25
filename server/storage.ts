@@ -262,6 +262,16 @@ export interface IStorage {
   deleteInvoice(id: string): Promise<boolean>;
   markInvoiceAsPaid(id: string, paymentInfo: { paidAt: Date, stripePaymentIntent?: string }): Promise<Invoice | undefined>;
   getInvoiceSummary(userId: string): Promise<{ paymentMethod: string, totalInvoices: number, amountCollected: string, amountOutstanding: string }[]>;
+  
+  // Scheduled Exports methods
+  getScheduledExports(): Promise<ScheduledExport[]>;
+  getScheduledExportById(id: number): Promise<ScheduledExport | undefined>;
+  getScheduledExportsByUserId(userId: string | number): Promise<ScheduledExport[]>;
+  createScheduledExport(export_: InsertScheduledExport): Promise<ScheduledExport>;
+  updateScheduledExport(id: number, export_: Partial<InsertScheduledExport>): Promise<ScheduledExport | undefined>;
+  deleteScheduledExport(id: number): Promise<boolean>;
+  markScheduledExportSent(id: number, lastSentAt: Date, nextSendAt: Date): Promise<ScheduledExport | undefined>;
+  getDueScheduledExports(): Promise<ScheduledExport[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -289,6 +299,7 @@ export class MemStorage implements IStorage {
   private affiliatePrograms: Map<number, AffiliateProgram>;
   private userAffiliates: Map<number, UserAffiliate>;
   private invoices: Map<number, Invoice>;
+  private scheduledExports: Map<number, ScheduledExport>;
   
   private userCurrentId: number;
   private userProfileCurrentId: number;
@@ -314,6 +325,7 @@ export class MemStorage implements IStorage {
   private affiliateProgramCurrentId: number;
   private userAffiliateCurrentId: number;
   private invoiceCurrentId: number;
+  private scheduledExportCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -340,6 +352,7 @@ export class MemStorage implements IStorage {
     this.affiliatePrograms = new Map();
     this.userAffiliates = new Map();
     this.invoices = new Map();
+    this.scheduledExports = new Map();
     
     this.userCurrentId = 1;
     this.userProfileCurrentId = 1;
@@ -365,6 +378,7 @@ export class MemStorage implements IStorage {
     this.affiliateProgramCurrentId = 1;
     this.userAffiliateCurrentId = 1;
     this.invoiceCurrentId = 1;
+    this.scheduledExportCurrentId = 1;
     
     // Add some initial data
     this.setupInitialData();
@@ -1521,6 +1535,84 @@ export class MemStorage implements IStorage {
     }
     
     return result;
+  }
+
+  // Scheduled Exports methods implementation
+  async getScheduledExports(): Promise<ScheduledExport[]> {
+    return Array.from(this.scheduledExports.values());
+  }
+
+  async getScheduledExportById(id: number): Promise<ScheduledExport | undefined> {
+    return this.scheduledExports.get(id);
+  }
+
+  async getScheduledExportsByUserId(userId: string | number): Promise<ScheduledExport[]> {
+    const userIdStr = userId.toString();
+    return Array.from(this.scheduledExports.values()).filter(
+      export_ => export_.userId === userIdStr
+    );
+  }
+
+  async createScheduledExport(export_: InsertScheduledExport): Promise<ScheduledExport> {
+    const id = this.scheduledExportCurrentId++;
+    const now = new Date();
+    
+    const scheduledExportObj: ScheduledExport = {
+      id,
+      userId: export_.userId,
+      email: export_.email,
+      frequency: export_.frequency,
+      dataType: export_.dataType,
+      format: export_.format,
+      isActive: export_.isActive ?? true,
+      createdAt: now,
+      lastSentAt: export_.lastSentAt || null,
+      nextSendAt: export_.nextSendAt,
+      customTitle: export_.customTitle || null,
+      includeNotes: export_.includeNotes ?? true,
+      categories: export_.categories || null
+    };
+    
+    this.scheduledExports.set(id, scheduledExportObj);
+    return scheduledExportObj;
+  }
+
+  async updateScheduledExport(id: number, export_: Partial<InsertScheduledExport>): Promise<ScheduledExport | undefined> {
+    const existingExport = this.scheduledExports.get(id);
+    if (!existingExport) return undefined;
+    
+    const updatedExport: ScheduledExport = {
+      ...existingExport,
+      ...export_
+    };
+    
+    this.scheduledExports.set(id, updatedExport);
+    return updatedExport;
+  }
+
+  async deleteScheduledExport(id: number): Promise<boolean> {
+    return this.scheduledExports.delete(id);
+  }
+
+  async markScheduledExportSent(id: number, lastSentAt: Date, nextSendAt: Date): Promise<ScheduledExport | undefined> {
+    const existingExport = this.scheduledExports.get(id);
+    if (!existingExport) return undefined;
+    
+    const updatedExport: ScheduledExport = {
+      ...existingExport,
+      lastSentAt,
+      nextSendAt
+    };
+    
+    this.scheduledExports.set(id, updatedExport);
+    return updatedExport;
+  }
+
+  async getDueScheduledExports(): Promise<ScheduledExport[]> {
+    const now = new Date();
+    return Array.from(this.scheduledExports.values()).filter(
+      export_ => export_.isActive && export_.nextSendAt <= now
+    );
   }
 }
 
