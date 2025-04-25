@@ -52,7 +52,7 @@ export async function renderWellnessPage(userId) {
           animation: spin 1s linear infinite;
           margin: 2rem auto;
         "></div>
-        <p style="text-align: center;">Generating your financial wellness scorecard...</p>
+        <p style="text-align: center;">Generating your personal financial assessment...</p>
       `;
       container.appendChild(loadingElement);
       
@@ -73,7 +73,7 @@ export async function renderWellnessPage(userId) {
     
     return container;
   } catch (error) {
-    console.log('Error in wellness page:', error);
+    console.log('Error in personal financial assessment page:', error);
     
     // Create error message
     const errorElement = document.createElement('div');
@@ -90,8 +90,8 @@ export async function renderWellnessPage(userId) {
         <line x1="12" y1="8" x2="12" y2="12"></line>
         <line x1="12" y1="16" x2="12.01" y2="16"></line>
       </svg>
-      <h2 style="margin-bottom: 1rem;">Unable to Generate Scorecard</h2>
-      <p style="margin-bottom: 1.5rem;">We couldn't generate your financial wellness scorecard. This may be because we need more financial data to analyze.</p>
+      <h2 style="margin-bottom: 1rem;">Unable to Generate Assessment</h2>
+      <p style="margin-bottom: 1.5rem;">We couldn't generate your personal financial assessment. This may be because we need more financial data to analyze.</p>
       <button class="retry-button" style="
         background: var(--color-primary);
         color: white;
@@ -123,7 +123,7 @@ export async function renderWellnessPage(userId) {
             animation: spin 1s linear infinite;
             margin: 2rem auto;
           "></div>
-          <p style="text-align: center;">Generating your financial wellness scorecard...</p>
+          <p style="text-align: center;">Generating your personal financial assessment...</p>
         `;
         container.appendChild(loadingElement);
         
@@ -141,7 +141,7 @@ export async function renderWellnessPage(userId) {
         const explanationSection = createExplanationSection();
         container.appendChild(explanationSection);
       } catch (retryError) {
-        console.log('Error on retry:', retryError);
+        console.log('Error on personal financial assessment retry:', retryError);
         container.appendChild(errorElement);
       }
     });
@@ -165,15 +165,15 @@ function createExplanationSection() {
   section.style.boxShadow = 'var(--shadow-sm)';
   
   section.innerHTML = `
-    <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 600;">Understanding Your Financial Wellness Score</h2>
+    <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 600;">Understanding Your Personal Financial Assessment</h2>
     
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
       <div>
         <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--color-primary);">
-          What is the Financial Wellness Score?
+          What is the Personal Financial Assessment?
         </h3>
         <p style="color: var(--color-text);">
-          Your Financial Wellness Score evaluates your overall financial health across multiple dimensions, 
+          Your Personal Financial Assessment evaluates your overall financial health across multiple dimensions, 
           including income stability, savings ratio, investment health, debt management, and expense control.
         </p>
       </div>
@@ -190,17 +190,17 @@ function createExplanationSection() {
       
       <div>
         <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--color-primary);">
-          How to Improve Your Score
+          How to Improve Your Assessment
         </h3>
         <p style="color: var(--color-text);">
-          Focus on the recommendations provided in your scorecard. Prioritize the high-priority items first, 
+          Focus on the recommendations provided in your assessment. Prioritize the high-priority items first, 
           and use other Stackr tools like Guardrails and Goal Setting to make consistent improvements.
         </p>
       </div>
     </div>
     
     <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border);">
-      <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem;">Score Ranges</h3>
+      <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem;">Assessment Score Ranges</h3>
       
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
