@@ -33,8 +33,8 @@ export const MEMBERSHIP_TIERS = {
     color: '#6366F1', // indigo
     badge: 'Most Popular',
     description: 'Accelerate your financial growth with advanced tools',
-    monthlyPrice: 9.99,
-    yearlyPrice: 99.99, // Save ~$20/year
+    monthlyPrice: 7.99,
+    yearlyPrice: 84.99, // Save ~$11/year
     features: [
       'Everything in Free tier',
       'Unlimited bank account syncing',
@@ -54,7 +54,7 @@ export const MEMBERSHIP_TIERS = {
     color: '#8B5CF6', // purple
     badge: 'Best Value',
     description: 'Invest once in your financial future, benefit forever',
-    oneTimePrice: 299.99, // ~2.5 years of Pro subscription
+    oneTimePrice: 249.99, // ~2.5 years of Pro subscription
     features: [
       'All Pro tier features forever',
       'One-time payment, never pay again',
