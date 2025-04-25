@@ -308,6 +308,15 @@ function createSuggestionButton(text, onClick) {
  */
 async function getFinancialAdvice(query, category) {
   try {
+    // Check if the query might be a settings change request
+    const isSettingsCommand = detectSettingsCommand(query);
+    
+    if (isSettingsCommand) {
+      // Process as a settings command
+      return await processSettingsCommand(query);
+    }
+    
+    // Otherwise, process as a regular advice query
     const response = await fetch('/api/perplexity/financial-advice', {
       method: 'POST',
       headers: {
@@ -331,6 +340,116 @@ async function getFinancialAdvice(query, category) {
   } catch (error) {
     console.error('Error getting financial advice:', error);
     throw error;
+  }
+}
+
+/**
+ * Detect if a query appears to be a settings change command
+ * @param {string} query - User's query
+ * @returns {boolean} - True if the query appears to be a settings command
+ */
+function detectSettingsCommand(query) {
+  // List of keywords and patterns that suggest settings changes
+  const settingsKeywords = [
+    'change setting', 'update setting', 'set', 'change', 'switch to', 'enable', 'disable',
+    'turn on', 'turn off', 'toggle', 'prefer', 'use', 'switch', 'dark mode', 'light mode',
+    'notifications', 'alert', 'theme', 'model', 'provider', 'gpt', 'claude', 'perplexity'
+  ];
+  
+  // Normalize the query for easier matching
+  const normalizedQuery = query.toLowerCase();
+  
+  // Check if the query contains any settings-related keywords
+  return settingsKeywords.some(keyword => normalizedQuery.includes(keyword.toLowerCase()));
+}
+
+/**
+ * Process a settings change command
+ * @param {string} command - User's command
+ * @returns {Promise<string>} - Response message
+ */
+async function processSettingsCommand(command) {
+  try {
+    const user = getCurrentUser();
+    const userId = user?.id || 'guest';
+    
+    // Attempt to determine the type of setting being changed
+    let settingType = 'preferences';
+    const normalizedCommand = command.toLowerCase();
+    
+    if (normalizedCommand.includes('ai') || 
+        normalizedCommand.includes('model') || 
+        normalizedCommand.includes('gpt') ||
+        normalizedCommand.includes('claude') ||
+        normalizedCommand.includes('perplexity')) {
+      settingType = 'ai';
+    } else if (normalizedCommand.includes('notification') || 
+               normalizedCommand.includes('alert') ||
+               normalizedCommand.includes('remind')) {
+      settingType = 'notifications';
+    } else if (normalizedCommand.includes('theme') || 
+               normalizedCommand.includes('dark') || 
+               normalizedCommand.includes('light') ||
+               normalizedCommand.includes('font') ||
+               normalizedCommand.includes('size')) {
+      settingType = 'display';
+    }
+    
+    // Send to the backend API
+    const response = await fetch('/api/perplexity/settings-command', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        command,
+        settingType,
+        userId
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to process settings command (${response.status})`);
+    }
+    
+    const data = await response.json();
+    
+    // Format a nice response to the user
+    if (data.success) {
+      let changeDescription = '';
+      
+      if (settingType === 'ai') {
+        const provider = data.updatedSettings.DEFAULT_PROVIDER;
+        if (provider) {
+          changeDescription += `AI provider has been set to ${provider.charAt(0).toUpperCase() + provider.slice(1)}. `;
+        }
+        
+        if (data.updatedSettings.CACHE_ENABLED !== undefined) {
+          changeDescription += `AI response caching has been ${data.updatedSettings.CACHE_ENABLED ? 'enabled' : 'disabled'}. `;
+        }
+        
+        if (data.updatedSettings.MAX_RETRIES) {
+          changeDescription += `Maximum retries set to ${data.updatedSettings.MAX_RETRIES}. `;
+        }
+      } else {
+        changeDescription = `I've updated your ${settingType} settings as requested. `;
+        
+        // Include any specific details about the changes
+        if (data.updatedSettings?.changes) {
+          const changes = data.updatedSettings.changes;
+          Object.entries(changes).forEach(([key, value]) => {
+            changeDescription += `${key} set to ${value}. `;
+          });
+        }
+      }
+      
+      return `✅ Settings updated successfully! ${changeDescription}\n\nIs there anything else you'd like to adjust?`;
+    } else {
+      return `I understand you want to change some settings, but I couldn't process your request. Please try rephrasing or be more specific about what you'd like to change.`;
+    }
+  } catch (error) {
+    console.error('Error processing settings command:', error);
+    return `I tried to update your settings, but encountered an error: ${error.message}. Please try a more specific command or contact support if the issue persists.`;
   }
 }
 

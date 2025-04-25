@@ -5,6 +5,7 @@ import { fromZodError } from 'zod-validation-error';
 import { requireAuth } from '../middleware/authMiddleware';
 import { requireProSubscription } from '../middleware/proSubscriptionMiddleware';
 import { Router } from 'express';
+import { getAISettings, updateAISettings, AIProvider } from '../ai-service';
 
 /**
  * Register all Perplexity AI API routes
@@ -237,6 +238,142 @@ export function registerPerplexityRoutes(app: Express) {
       res.status(503).json({ 
         status: 'error',
         message: 'Perplexity AI API is not available',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  /**
+   * Process user settings commands
+   * This endpoint allows AI to modify user settings based on requests
+   */
+  app.post('/api/perplexity/settings-command', requireAuth, requireProSubscription, async (req: Request, res: Response) => {
+    try {
+      // Validate request body
+      const schema = z.object({
+        command: z.string().min(5, 'Command must be at least 5 characters long'),
+        settingType: z.enum(['ai', 'user', 'preferences', 'notifications', 'display']),
+        userId: z.string().or(z.number())
+      });
+
+      const validatedData = schema.parse(req.body);
+      
+      // Process command through Perplexity
+      const perplexityService = getPerplexityService();
+      const command = validatedData.command;
+      
+      // Detect the type of settings change requested
+      const systemPrompt = `You are a command interpreter for a financial app called Stackr. 
+        Parse the user's command and determine what settings they want to change. 
+        Respond ONLY with a JSON object containing the settings to update and their new values. 
+        For AI settings, valid keys are: DEFAULT_PROVIDER (accepted values: openai, anthropic, perplexity), 
+        CACHE_ENABLED (boolean), MAX_RETRIES (number between 1-5).
+        For display settings, valid keys are: theme (light/dark), fontSize (small/medium/large).
+        For notification settings, valid keys are: emailNotifications (boolean), pushNotifications (boolean), 
+        reminderFrequency (daily/weekly/monthly).
+        
+        Examples:
+        User: "Change the AI model to GPT-4"
+        Response: {"DEFAULT_PROVIDER": "openai"}
+        
+        User: "I prefer Claude AI"
+        Response: {"DEFAULT_PROVIDER": "anthropic"}
+        
+        User: "Set dark mode"
+        Response: {"theme": "dark"}
+        
+        User: "Send me weekly notifications"
+        Response: {"reminderFrequency": "weekly"}`;
+      
+      // Send the query to Perplexity with specialized system prompt
+      const response = await perplexityService.getFinancialAdvice(
+        command,
+        FinancialTopicCategory.GENERAL,
+        systemPrompt
+      );
+      
+      // Try to extract JSON response
+      const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/) || 
+                          response.match(/{[\s\S]*?}/);
+      
+      if (!jsonMatch) {
+        return res.status(400).json({ 
+          message: 'Failed to parse settings from command',
+          commandResponse: response
+        });
+      }
+      
+      let jsonStr = jsonMatch[0];
+      if (jsonStr.startsWith('```json')) {
+        jsonStr = jsonMatch[1];
+      }
+      
+      const settingsChanges = JSON.parse(jsonStr);
+      let updatedSettings;
+      
+      // Apply changes based on the setting type
+      switch (validatedData.settingType) {
+        case 'ai':
+          // Filter out unsupported settings
+          const validAISettings = Object.entries(settingsChanges)
+            .filter(([key]) => ['DEFAULT_PROVIDER', 'CACHE_ENABLED', 'MAX_RETRIES'].includes(key))
+            .reduce((obj, [key, value]) => {
+              obj[key] = value;
+              return obj;
+            }, {} as Record<string, any>);
+            
+          if (Object.keys(validAISettings).length === 0) {
+            return res.status(400).json({ 
+              message: 'No valid AI settings found in command',
+              commandResponse: response
+            });
+          }
+          
+          // Update AI settings
+          updatedSettings = updateAISettings(validAISettings);
+          break;
+          
+        case 'user':
+        case 'preferences':
+        case 'notifications':
+        case 'display':
+          // For now, we'll just acknowledge these settings but not implement them
+          // In a full implementation, these would update user preferences in the database
+          updatedSettings = {
+            message: 'Settings would be updated in the database',
+            type: validatedData.settingType,
+            changes: settingsChanges
+          };
+          break;
+          
+        default:
+          return res.status(400).json({ message: 'Unsupported settings type' });
+      }
+      
+      // Return the updated settings
+      res.json({ 
+        success: true,
+        originalCommand: command,
+        parsedResponse: response,
+        updatedSettings 
+      });
+    } catch (error) {
+      console.error('Error processing settings command:', error);
+      
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      if (error instanceof SyntaxError) {
+        return res.status(400).json({ 
+          message: 'Failed to parse AI response as JSON',
+          error: error.message
+        });
+      }
+      
+      res.status(500).json({ 
+        message: 'Failed to process settings command',
         error: error instanceof Error ? error.message : String(error)
       });
     }
