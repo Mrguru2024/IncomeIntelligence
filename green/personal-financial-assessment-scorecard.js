@@ -996,11 +996,11 @@ function notifyUserAboutScorecard(userId, scorecard) {
     let message = '';
     
     if (scorecard.overallScore >= 80) {
-      message = `Great job! Your financial personal financial assessment score is ${scorecard.overallScore}. You're making excellent financial choices.`;
+      message = `Great job! Your personal financial assessment score is ${scorecard.overallScore}. You're making excellent financial choices.`;
     } else if (scorecard.overallScore >= 60) {
-      message = `Your financial personal financial assessment score is ${scorecard.overallScore}. You've made good progress with some areas for improvement.`;
+      message = `Your personal financial assessment score is ${scorecard.overallScore}. You've made good progress with some areas for improvement.`;
     } else {
-      message = `Your financial personal financial assessment score is ${scorecard.overallScore}. Check your assessment for important recommendations.`;
+      message = `Your personal financial assessment score is ${scorecard.overallScore}. Check your assessment for important recommendations.`;
     }
     
     // Add notification with specific type identifier

@@ -485,3 +485,181 @@ export function scheduleMonthlySummary(userId, getFinancialDataCallback) {
     return generateMonthlySummary(userId, financialData);
   };
 }
+
+/**
+ * Get financial insights for the personal financial assessment
+ * @param {string} userId - User ID
+ * @returns {Object} - User's financial data and insights
+ */
+export async function getFinancialInsights(userId) {
+  // In a real app, this would fetch comprehensive financial data
+  // For the GREEN version, we'll build a simplified dataset
+  
+  try {
+    // Get current transactions
+    const today = new Date();
+    const sixMonthsAgo = new Date(today);
+    sixMonthsAgo.setMonth(today.getMonth() - 6);
+    
+    // Fetch transactions for the past 6 months
+    const transactions = fetchUserTransactions(userId, sixMonthsAgo, today);
+    
+    // Get income data
+    const incomeTransactions = transactions.filter(transaction => transaction.amount > 0);
+    const income = incomeTransactions.map(transaction => ({
+      amount: transaction.amount,
+      date: transaction.date,
+      source: transaction.category || 'Other',
+      description: transaction.description
+    }));
+    
+    // Get expense data
+    const expenseTransactions = transactions.filter(transaction => transaction.amount < 0);
+    const expenses = expenseTransactions.map(transaction => ({
+      amount: Math.abs(transaction.amount),
+      date: transaction.date,
+      category: transaction.category || 'Other',
+      description: transaction.description
+    }));
+    
+    // Get budget data
+    const budgets = getUserBudgets(userId);
+    
+    // Get goals data
+    const goals = fetchUserGoals(userId);
+    
+    // Get investment data
+    const investments = getUserInvestments(userId);
+    
+    // Get debt data
+    const debt = getUserDebt(userId);
+    
+    // Get guardrails (spending limits) data
+    const spendingLimits = getUserSpendingLimits(userId);
+    
+    // Get income split config
+    const incomeSplit = getUserIncomeSplit(userId) || { needs: 40, wants: 30, savings: 30 };
+    
+    // Compile all data
+    return {
+      userData: {
+        income,
+        expenses,
+        budgets,
+        goals,
+        investments,
+        debt,
+        spendingLimits,
+        incomeSplit
+      }
+    };
+  } catch (error) {
+    console.error('Error getting financial insights:', error);
+    return { userData: {} };
+  }
+}
+
+/**
+ * Get user's budgets
+ * @param {string} userId - User ID
+ * @returns {Array} - Array of budget objects
+ */
+function getUserBudgets(userId) {
+  try {
+    const budgetsKey = `stackr_budgets_${userId}`;
+    const storedBudgets = localStorage.getItem(budgetsKey);
+    
+    if (!storedBudgets) {
+      return [];
+    }
+    
+    return JSON.parse(storedBudgets);
+  } catch (error) {
+    console.error('Error fetching user budgets:', error);
+    return [];
+  }
+}
+
+/**
+ * Get user's investments
+ * @param {string} userId - User ID
+ * @returns {Array} - Array of investment objects
+ */
+function getUserInvestments(userId) {
+  try {
+    const investmentsKey = `stackr_investments_${userId}`;
+    const storedInvestments = localStorage.getItem(investmentsKey);
+    
+    if (!storedInvestments) {
+      return [];
+    }
+    
+    return JSON.parse(storedInvestments);
+  } catch (error) {
+    console.error('Error fetching user investments:', error);
+    return [];
+  }
+}
+
+/**
+ * Get user's debt information
+ * @param {string} userId - User ID
+ * @returns {Array} - Array of debt objects
+ */
+function getUserDebt(userId) {
+  try {
+    const debtKey = `stackr_debt_${userId}`;
+    const storedDebt = localStorage.getItem(debtKey);
+    
+    if (!storedDebt) {
+      return [];
+    }
+    
+    return JSON.parse(storedDebt);
+  } catch (error) {
+    console.error('Error fetching user debt:', error);
+    return [];
+  }
+}
+
+/**
+ * Get user's spending limits (guardrails)
+ * @param {string} userId - User ID
+ * @returns {Array} - Array of spending limit objects
+ */
+function getUserSpendingLimits(userId) {
+  try {
+    const limitsKey = `stackr_spending_limits_${userId}`;
+    const storedLimits = localStorage.getItem(limitsKey);
+    
+    if (!storedLimits) {
+      return [];
+    }
+    
+    return JSON.parse(storedLimits);
+  } catch (error) {
+    console.error('Error fetching user spending limits:', error);
+    return [];
+  }
+}
+
+/**
+ * Get user's income split configuration
+ * @param {string} userId - User ID
+ * @returns {Object} - Income split configuration
+ */
+function getUserIncomeSplit(userId) {
+  try {
+    const splitKey = `stackr_income_split_${userId}`;
+    const storedSplit = localStorage.getItem(splitKey);
+    
+    if (!storedSplit) {
+      return null;
+    }
+    
+    return JSON.parse(storedSplit);
+  } catch (error) {
+    console.error('Error fetching user income split:', error);
+    return null;
+  }
+}
