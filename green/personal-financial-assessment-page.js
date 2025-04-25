@@ -4,10 +4,10 @@
  */
 
 import { 
-  renderWellnessScorecardPage, 
-  calculateWellnessScore,
-  getLatestWellnessScorecard,
-  shouldGenerateWellnessScorecard
+  renderPersonalFinancialAssessmentScorecardPage, 
+  calculatePersonalFinancialAssessmentScore,
+  getLatestPersonalFinancialAssessmentScorecard,
+  shouldGeneratePersonalFinancialAssessmentScorecard
 } from './personal-financial-assessment-scorecard.js';
 
 /**
@@ -38,7 +38,7 @@ export async function renderPersonalFinancialAssessmentPage(userId) {
   
   try {
     // Check if we need to generate a new scorecard
-    if (shouldGenerateWellnessScorecard(userId)) {
+    if (shouldGeneratePersonalFinancialAssessmentScorecard(userId)) {
       // Add loading indicator
       const loadingElement = document.createElement('div');
       loadingElement.className = 'personal-financial-assessment-loading';
@@ -57,7 +57,7 @@ export async function renderPersonalFinancialAssessmentPage(userId) {
       container.appendChild(loadingElement);
       
       // Calculate new personal-financial-assessment score
-      await calculateWellnessScore(userId);
+      await calculatePersonalFinancialAssessmentScore(userId);
       
       // Remove loading indicator
       container.removeChild(loadingElement);
@@ -128,7 +128,7 @@ export async function renderPersonalFinancialAssessmentPage(userId) {
         container.appendChild(loadingElement);
         
         // Force recalculation
-        await calculateWellnessScore(userId);
+        await calculatePersonalFinancialAssessmentScore(userId);
         
         // Remove loading indicator
         container.removeChild(loadingElement);

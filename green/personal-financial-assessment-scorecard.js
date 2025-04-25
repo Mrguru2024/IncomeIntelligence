@@ -6,7 +6,7 @@
  */
 
 import { getFinancialInsights } from './financial-summary.js';
-import { addNotification, NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from './notification-service.js';
+import { createNotification, NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from './notification-service.js';
 
 // Categories and maximum points for each
 const WELLNESS_CATEGORIES = {
@@ -1004,10 +1004,10 @@ function notifyUserAboutScorecard(userId, scorecard) {
     }
     
     // Add notification with specific type identifier
-    addNotification(userId, {
+    createNotification(userId, {
       title,
       message,
-      type: NOTIFICATION_TYPES.WELLNESS_SCORECARD,
+      type: NOTIFICATION_TYPES.FINANCIAL_SUMMARY, // Using available type that best matches
       priority: NOTIFICATION_PRIORITIES.MEDIUM,
       data: {
         scoreId: scorecard.generatedAt.getTime(),
