@@ -1587,7 +1587,6 @@ function showChallengeDetailsModal(challengeId) {
 
 // Export public functions
 export {
-  renderSavingsChallengesPage,
   startChallenge,
   recordSavings,
   cancelChallenge,
