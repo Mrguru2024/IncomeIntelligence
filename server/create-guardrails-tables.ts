@@ -1,61 +1,76 @@
-import { pool, db } from './db';
-import { sql } from 'drizzle-orm';
+import { pool } from './db';
 
+/**
+ * Create the Guardrails feature database tables
+ * This script creates the spending_limits and spending_logs tables
+ * for the Stackr Guardrails feature
+ */
 async function createGuardrailsTables() {
+  const client = await pool.connect();
+  
   try {
-    console.log('Creating Guardrails tables...');
+    console.log('Creating Guardrails database tables...');
     
-    // Create the spending_limits table
-    await db.execute(sql`
+    // Begin transaction
+    await client.query('BEGIN');
+    
+    // Create spending_limits table
+    await client.query(`
       CREATE TABLE IF NOT EXISTS spending_limits (
         id SERIAL PRIMARY KEY,
         user_id TEXT NOT NULL,
-        category TEXT NOT NULL,
+        category VARCHAR(100) NOT NULL,
         limit_amount NUMERIC NOT NULL,
-        cycle TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW(),
-        is_active BOOLEAN DEFAULT TRUE
+        cycle VARCHAR(20) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        is_active BOOLEAN DEFAULT TRUE,
+        FOREIGN KEY (user_id) REFERENCES users(id)
       )
     `);
-    console.log('Created spending_limits table');
     
-    // Create the spending_logs table
-    await db.execute(sql`
+    // Create spending_logs table
+    await client.query(`
       CREATE TABLE IF NOT EXISTS spending_logs (
         id SERIAL PRIMARY KEY,
         user_id TEXT NOT NULL,
-        category TEXT NOT NULL,
+        category VARCHAR(100) NOT NULL,
         amount_spent NUMERIC NOT NULL,
         description TEXT,
         source TEXT,
-        timestamp TIMESTAMP DEFAULT NOW(),
-        created_at TIMESTAMP DEFAULT NOW()
+        timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        FOREIGN KEY (user_id) REFERENCES users(id)
       )
     `);
-    console.log('Created spending_logs table');
     
-    // Create the spending_reflections table
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS spending_reflections (
-        id SERIAL PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        week_start_date DATE NOT NULL,
-        week_end_date DATE NOT NULL,
-        overall_status TEXT,
-        category_summary JSONB,
-        ai_suggestion TEXT,
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    console.log('Created spending_reflections table');
+    // Commit transaction
+    await client.query('COMMIT');
     
-    console.log('All Guardrails tables created successfully');
+    console.log('Guardrails tables created successfully!');
   } catch (error) {
+    // Rollback in case of error
+    await client.query('ROLLBACK');
     console.error('Error creating Guardrails tables:', error);
+    throw error;
   } finally {
-    await pool.end();
+    client.release();
   }
 }
 
-createGuardrailsTables();
+// Run the function directly if this file is executed
+// Use import.meta.url to check if we're the main module
+const isMainModule = import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ''));
+if (isMainModule) {
+  createGuardrailsTables()
+    .then(() => {
+      console.log('Database setup completed');
+      process.exit(0);
+    })
+    .catch(err => {
+      console.error('Database setup failed:', err);
+      process.exit(1);
+    });
+}
+
+export { createGuardrailsTables };
