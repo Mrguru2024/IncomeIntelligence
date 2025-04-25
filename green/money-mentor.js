@@ -7,6 +7,7 @@
 import { isAuthenticated, getCurrentUser, getUserSubscriptionTier } from './auth.js';
 import { createToast } from './components/toast.js';
 import { renderSidebar } from './sidebar.js';
+import { showUpgradeModal, renderQuickUpgradeButton } from './membership-tiers.js';
 
 /**
  * Enum for financial topic categories
@@ -871,6 +872,11 @@ export async function renderMoneyMentorPage(userId) {
   upgradeButtonInner.addEventListener('mouseout', () => {
     upgradeButtonInner.style.transform = 'translateY(0)';
     upgradeButtonInner.style.boxShadow = '0 4px 10px rgba(99, 102, 241, 0.3)';
+  });
+  
+  // Add click event handler to show upgrade modal
+  upgradeButtonInner.addEventListener('click', () => {
+    showUpgradeModal('pro');
   });
   
   upgradeButton.appendChild(upgradeButtonInner);
