@@ -3,9 +3,6 @@
  * This file handles the invoice creation, management, and PDF generation functionality
  */
 
-// Import toast notifications
-import { showToast } from './components/toast.js';
-
 // Display loading state on page
 function showLoadingState(containerId) {
   const container = document.getElementById(containerId);
@@ -229,44 +226,27 @@ function renderInvoiceUI(container, invoices) {
 
 // Open invoice creation modal
 function openCreateInvoiceModal() {
-  // Show toast notification for now
-  showToast({
-    title: 'Coming Soon!',
-    description: 'Invoice creation functionality will be available in the next update.',
-    type: 'info',
-    duration: 5000
-  });
+  // Show an alert message for now
+  alert('Coming Soon! Invoice creation functionality will be available in the next update.');
   
   // In a future update, we would implement a proper modal here
 }
 
 // View invoice details
 function viewInvoice(invoiceId) {
-  // For now, just show a toast notification
-  showToast({
-    title: 'Coming Soon!',
-    description: 'Invoice details view will be available in the next update.',
-    type: 'info',
-    duration: 5000
-  });
+  // Show an alert message for now
+  alert('Coming Soon! Invoice details view will be available in the next update.');
   
   // In a future update, we would implement a detail view
 }
 
 // Download invoice as PDF
 function downloadInvoicePdf(invoiceId) {
-  // For now, just show a toast notification
-  showToast({
-    title: 'Coming Soon!',
-    description: 'PDF download functionality will be available in the next update.',
-    type: 'info',
-    duration: 5000
-  });
+  // Show an alert message for now
+  alert('Coming Soon! PDF download functionality will be available in the next update.');
   
   // In a future update, we would implement PDF generation
 }
 
-// Export functions
-export default {
-  renderInvoicesPage
-};
+// No need for export default
+// We're already using the named export for renderInvoicesPage at line 30
