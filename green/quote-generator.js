@@ -412,6 +412,7 @@ function showToast(message, type = 'success') {
 function loadGooglePlacesAPI(callback) {
   // Flag to track if we've already set up the fallback
   let fallbackInitialized = false;
+  let googlePlacesInitialized = false;
   
   // Function to initialize our own basic address validation as fallback
   function setupAddressValidationFallback() {
@@ -449,11 +450,33 @@ function loadGooglePlacesAPI(callback) {
     if (callback) callback(new Error('Using fallback address validation'));
   }
   
+  // Function to initialize all autocomplete fields
+  function initializeGooglePlaces() {
+    if (googlePlacesInitialized) return;
+    
+    if (!window.google || !window.google.maps || !window.google.maps.places) {
+      console.error('Google Maps API not available yet');
+      return;
+    }
+    
+    googlePlacesInitialized = true;
+    console.log('Initializing Google Places autocomplete fields');
+    
+    try {
+      // Initialize all input fields that need autocomplete
+      initializeAutocompleteFields();
+      showToast('Address autocomplete ready', 'success');
+      if (callback) callback(null);
+    } catch (error) {
+      console.error('Error initializing Google Places autocomplete:', error);
+      setupAddressValidationFallback();
+    }
+  }
+  
   // If we already have the script, use it
   if (window.google && window.google.maps && window.google.maps.places) {
     console.log('Google Places API already loaded');
-    initializeAutocompleteFields();
-    if (callback) callback(null);
+    initializeGooglePlaces();
     return;
   }
   
@@ -466,10 +489,9 @@ function loadGooglePlacesAPI(callback) {
   
   // Define a global callback that Google will call when API is loaded
   window.initGooglePlacesAPI = function() {
+    clearTimeout(globalTimeoutId);
     console.log('Google Places API loaded successfully via callback');
-    // Initialize all input fields that need autocomplete
-    initializeAutocompleteFields();
-    if (callback) callback(null);
+    initializeGooglePlaces();
   };
   
   // Function to handle errors with API loading
@@ -482,7 +504,7 @@ function loadGooglePlacesAPI(callback) {
   const globalTimeoutId = setTimeout(() => {
     console.warn('Google Places API loading process timed out completely');
     setupAddressValidationFallback();
-  }, 12000);
+  }, 15000); // 15 second timeout
   
   // Fetch API key from server environment variable (more secure than hardcoding)
   fetch('/api/google-maps-key')
@@ -502,6 +524,13 @@ function loadGooglePlacesAPI(callback) {
       console.log('Successfully retrieved Maps API key, initializing Google Places API');
       
       try {
+        // Remove any existing script elements to avoid conflicts
+        const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
+        if (existingScript) {
+          existingScript.remove();
+          console.log('Removed existing Google Maps script');
+        }
+        
         // Create the script element with error handling
         const script = document.createElement('script');
         
@@ -517,28 +546,32 @@ function loadGooglePlacesAPI(callback) {
           handleApiError(e);
         };
         
-        // Set a timeout in case the callback is never called
-        const timeoutId = setTimeout(() => {
-          console.error('Google Places API load timed out');
-          handleApiError(new Error('API load timeout'));
-        }, 10000); // 10 second timeout
-        
-        // Override the global callback to clear both timeouts
-        const originalCallback = window.initGooglePlacesAPI;
-        window.initGooglePlacesAPI = function() {
-          clearTimeout(timeoutId);
-          clearTimeout(globalTimeoutId);
-          console.log('Google Places API callback triggered successfully');
-          if (originalCallback) originalCallback();
-        };
-        
-        // Success handler to clear global timeout
+        // Success handler
         script.onload = () => {
           console.log('Google Places API script loaded, waiting for initialization');
+          
+          // Additional backup - sometimes the callback isn't triggered
+          // Check periodically if Google Maps is available
+          const checkInterval = setInterval(() => {
+            if (window.google && window.google.maps && window.google.maps.places) {
+              clearInterval(checkInterval);
+              
+              if (!googlePlacesInitialized) {
+                console.log('Google Maps API detected, manually initializing');
+                initializeGooglePlaces();
+              }
+            }
+          }, 1000); // Check every second
+          
+          // Stop checking after 10 seconds regardless
+          setTimeout(() => {
+            clearInterval(checkInterval);
+          }, 10000);
         };
         
         // Add the script to the document
         document.head.appendChild(script);
+        console.log('Google Maps script added to page');
       } catch (err) {
         console.error('Error setting up Google Places API:', err);
         handleApiError(err);
@@ -602,7 +635,52 @@ function initializeAutocompleteFields() {
       });
     }
     
-    // Add more autocomplete field initializations as needed for other forms
+    // Initialize Automotive Quote Form address input
+    const autoAddressInput = document.getElementById('auto-address-input');
+    if (autoAddressInput) {
+      console.log('Initializing autocomplete for automotive quote address field');
+      const autoAutocomplete = new google.maps.places.Autocomplete(autoAddressInput, {
+        types: ['address'],
+        componentRestrictions: { country: 'us' }
+      });
+      
+      autoAutocomplete.addListener('place_changed', () => {
+        const place = autoAutocomplete.getPlace();
+        
+        if (!place.geometry) {
+          console.warn('No geometry returned for auto place:', place);
+          return;
+        }
+        
+        if (place.formatted_address) {
+          autoAddressInput.value = place.formatted_address;
+          
+          // Extract state from address_components
+          let state = '';
+          if (place.address_components) {
+            for (let component of place.address_components) {
+              if (component.types.includes('administrative_area_level_1')) {
+                state = component.short_name;
+                break;
+              }
+            }
+          }
+          
+          // Extract additional data for distance calculations
+          let latitude = place.geometry.location.lat();
+          let longitude = place.geometry.location.lng();
+          
+          // Store location data in hidden field for later use
+          const placeDataElement = document.getElementById('auto-address-place-data');
+          if (placeDataElement) {
+            placeDataElement.dataset.state = state || '';
+            placeDataElement.dataset.lat = latitude || '';
+            placeDataElement.dataset.lng = longitude || '';
+            console.log('Google Places found state for automotive quote:', state);
+          }
+        }
+      });
+    }
     
   } catch (error) {
     console.error('Error initializing autocomplete fields:', error);
