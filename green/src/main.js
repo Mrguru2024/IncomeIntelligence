@@ -236,7 +236,8 @@ window.addEventListener('popstate', () => {
 
 // Create responsive layout elements using the sidebar
 function createLayout() {
-  const width = window.innerWidth;
+  // Get viewport dimensions from the updateViewportClasses function
+  const { width } = updateViewportClasses();
   const isMobile = width < 768;
   
   // Create layout container with sidebar and main content
@@ -340,7 +341,8 @@ function createLayout() {
     
     // Handle window resize
     window.addEventListener('resize', () => {
-      const newWidth = window.innerWidth;
+      // Get updated viewport dimensions
+      const { width: newWidth } = updateViewportClasses();
       const newIsMobile = newWidth < 768;
       
       // Update sidebar and main content based on screen size
@@ -393,7 +395,8 @@ function createLayout() {
 
 // Fallback header in case the sidebar fails to load
 function createFallbackHeader() {
-  const width = window.innerWidth;
+  // Get viewport dimensions from the updateViewportClasses function
+  const { width } = updateViewportClasses();
   const isMobile = width < 768;
   
   const header = document.createElement('header');
@@ -452,7 +455,8 @@ function createFallbackHeader() {
 
 // Original header function (kept for reference)
 function createHeader() {
-  const width = window.innerWidth;
+  // Get viewport dimensions from the updateViewportClasses function
+  const { width } = updateViewportClasses();
   const isMobile = width < 640;
   
   const header = document.createElement('header');
