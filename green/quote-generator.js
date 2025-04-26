@@ -674,6 +674,18 @@ function loadGooglePlacesAPI(callback) {
   
   // Function to load our fallback implementation
   function loadFallbackImplementation() {
+    // Check if fallback script is already added
+    if (document.getElementById('google-maps-fallback-script')) {
+      console.log('Fallback Maps implementation already loaded, skipping duplicate load');
+      return;
+    }
+    
+    // Check if Google Maps is already available through original loading
+    if (window.google && window.google.maps && window.google.maps.places && !window.google.maps.places._isShim) {
+      console.log('Original Google Maps API loaded successfully, no need for fallback');
+      return;
+    }
+    
     console.log('Loading fallback Google Maps implementation');
     
     // Use our dedicated fallback endpoint
@@ -686,6 +698,12 @@ function loadGooglePlacesAPI(callback) {
       })
       .then(scriptContent => {
         try {
+          // Check again if script was added while we were fetching
+          if (document.getElementById('google-maps-fallback-script')) {
+            console.log('Fallback script already added while we were fetching');
+            return;
+          }
+          
           // Create a new script element
           const fallbackScript = document.createElement('script');
           fallbackScript.id = 'google-maps-fallback-script';

@@ -263,65 +263,113 @@
     // Save the error message globally
     window.googleMapsError = message;
     
-    // Create an error notification
-    const notificationContainer = document.createElement('div');
-    notificationContainer.style.position = 'fixed';
-    notificationContainer.style.bottom = '20px';
-    notificationContainer.style.right = '20px';
-    notificationContainer.style.backgroundColor = '#FEE2E2';
-    notificationContainer.style.color = '#B91C1C';
-    notificationContainer.style.padding = '12px 16px';
-    notificationContainer.style.borderRadius = '6px';
-    notificationContainer.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-    notificationContainer.style.zIndex = '1000';
-    notificationContainer.style.maxWidth = '400px';
-    notificationContainer.style.fontSize = '14px';
-    notificationContainer.style.animation = 'fadeIn 0.3s ease';
+    // First, load our fallback implementation immediately
+    // Don't wait to show an error message first
+    loadFallbackImplementation();
     
-    // Add animation keyframes
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+    // Define a function to create the error notification
+    // We will only call this if our fallback check fails
+    function createErrorNotification() {
+      // Check if the fallback is working - if window.google.maps.places._isShim is true,
+      // our fallback implementation is working and we don't need to show an error
+      if (window.google && window.google.maps && window.google.maps.places && window.google.maps.places._isShim) {
+        console.log('Maps fallback is working, not showing error notification');
+        return;
       }
-    `;
-    document.head.appendChild(style);
-    
-    // Add content
-    const title = document.createElement('h3');
-    title.textContent = 'Google Maps API Issue';
-    title.style.marginBottom = '8px';
-    title.style.fontWeight = 'bold';
-    
-    const content = document.createElement('p');
-    content.textContent = message;
-    content.style.marginBottom = '8px';
-    
-    // Add close button
-    const closeButton = document.createElement('button');
-    closeButton.textContent = 'Dismiss';
-    closeButton.style.backgroundColor = '#B91C1C';
-    closeButton.style.color = 'white';
-    closeButton.style.border = 'none';
-    closeButton.style.padding = '6px 12px';
-    closeButton.style.borderRadius = '4px';
-    closeButton.style.cursor = 'pointer';
-    closeButton.style.marginTop = '8px';
-    
-    closeButton.addEventListener('click', () => {
-      document.body.removeChild(notificationContainer);
-    });
-    
-    // Assemble and add to page
-    notificationContainer.appendChild(title);
-    notificationContainer.appendChild(content);
-    notificationContainer.appendChild(closeButton);
-    
-    // Add to page after a short delay
-    setTimeout(() => {
+      
+      // Create an error notification
+      const notificationContainer = document.createElement('div');
+      notificationContainer.style.position = 'fixed';
+      notificationContainer.style.bottom = '20px';
+      notificationContainer.style.right = '20px';
+      notificationContainer.style.backgroundColor = '#FEE2E2';
+      notificationContainer.style.color = '#B91C1C';
+      notificationContainer.style.padding = '12px 16px';
+      notificationContainer.style.borderRadius = '6px';
+      notificationContainer.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+      notificationContainer.style.zIndex = '1000';
+      notificationContainer.style.maxWidth = '400px';
+      notificationContainer.style.fontSize = '14px';
+      notificationContainer.style.animation = 'fadeIn 0.3s ease';
+      
+      // Add animation keyframes
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // Add content
+      const title = document.createElement('h3');
+      title.textContent = 'Google Maps API Issue';
+      title.style.marginBottom = '8px';
+      title.style.fontWeight = 'bold';
+      
+      const content = document.createElement('p');
+      content.textContent = message;
+      content.style.marginBottom = '8px';
+      
+      // Add close button
+      const closeButton = document.createElement('button');
+      closeButton.textContent = 'Dismiss';
+      closeButton.style.backgroundColor = '#B91C1C';
+      closeButton.style.color = 'white';
+      closeButton.style.border = 'none';
+      closeButton.style.padding = '6px 12px';
+      closeButton.style.borderRadius = '4px';
+      closeButton.style.cursor = 'pointer';
+      closeButton.style.marginTop = '8px';
+      
+      closeButton.addEventListener('click', () => {
+        document.body.removeChild(notificationContainer);
+      });
+      
+      // Assemble and add to page
+      notificationContainer.appendChild(title);
+      notificationContainer.appendChild(content);
+      notificationContainer.appendChild(closeButton);
+      
       document.body.appendChild(notificationContainer);
-    }, 2000);
+    }
+    
+    // Wait a bit longer before showing the error to give the fallback time to initialize
+    setTimeout(() => {
+      createErrorNotification();
+    }, 3000);
+  }
+  
+  // Function to load our fallback implementation
+  function loadFallbackImplementation() {
+    console.log('Loading fallback Google Maps implementation from index.html');
+    
+    // Use our dedicated fallback endpoint
+    fetch('/api/google-maps-fallback')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch fallback implementation');
+        }
+        return response.text();
+      })
+      .then(scriptContent => {
+        try {
+          // Create a new script element
+          const fallbackScript = document.createElement('script');
+          fallbackScript.id = 'google-maps-fallback-script';
+          fallbackScript.textContent = scriptContent;
+          
+          // Add to page
+          document.head.appendChild(fallbackScript);
+          console.log('Fallback Google Maps implementation added to page');
+        } catch (err) {
+          console.error('Error adding fallback script to page:', err);
+        }
+      })
+      .catch(error => {
+        console.error('Failed to fetch fallback script:', error);
+      });
   }
 
   // Global callback function that will be called by Google Maps when loaded
