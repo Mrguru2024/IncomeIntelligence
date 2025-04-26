@@ -595,63 +595,130 @@ function loadGooglePlacesAPI(callback) {
     setupAddressValidationFallback();
   }, 15000); // 15 second timeout
   
-  // IMPROVED APPROACH: Use the server-provided Google Maps shim
-  // This completely bypasses the need to load external scripts
-  console.log('Using server-provided Google Maps shim');
+  // Add global callback function for Google Maps API
+  window.initGooglePlacesAPI = function() {
+    console.log('Google Maps API callback triggered');
+    // Clear the global timeout since the API loaded
+    clearTimeout(globalTimeoutId);
+    
+    // Call our existing initialization function
+    if (typeof initializeGooglePlaces === 'function') {
+      initializeGooglePlaces();
+    } else {
+      console.error('initializeGooglePlaces function not found');
+      // Fallback to direct autocomplete initialization
+      if (window.google && window.google.maps && window.google.maps.places) {
+        initializeAutocompleteFields();
+        googlePlacesInitialized = true;
+        window.googlePlacesInitialized = true;
+      }
+    }
+  };
   
-  // Load our fallback implementation directly from the server
-  fetch('/api/google-maps-script')
+  // IMPROVED APPROACH: Try loading Google Maps directly first, then fall back if needed
+  console.log('Attempting to load Google Maps API with multi-stage loading...');
+  
+  // First try to get the direct script URL
+  fetch('/api/google-maps-direct')
     .then(response => {
       if (!response.ok) {
-        throw new Error(`Failed to fetch Google Maps shim from server: ${response.status} ${response.statusText}`);
+        throw new Error(`Direct URL fetch failed: ${response.status}`);
       }
-      return response.text();
+      return response.json();
     })
-    .then(scriptContent => {
-      try {
-        // Clean up any existing script tags
-        const existingScript = document.querySelector('script[id="google-maps-script"]');
-        if (existingScript) {
-          existingScript.remove();
-          console.log('Removed existing Google Maps script');
-        }
-        
-        // Create a new script element and inject the script content
-        const script = document.createElement('script');
-        script.id = 'google-maps-script';
-        script.textContent = scriptContent;
-        
-        // Add error handlers
-        script.onerror = (error) => {
-          console.error('Error executing Google Maps shim script:', error);
-          handleApiError(error);
-        };
-        
-        // Add the script to the page - this will execute immediately
-        document.head.appendChild(script);
-        console.log('Google Maps shim script added to page');
-        
-        // In case the callback wasn't triggered by the shim, we'll initialize manually
-        setTimeout(() => {
-          if (!googlePlacesInitialized && !window.googlePlacesInitialized) {
-            console.log('Manually initializing Google Places API via shim');
-            initGooglePlacesAPI(); // Call the init function directly
-          }
-        }, 1000);
-        
-      } catch (err) {
-        console.error('Error injecting Google Maps shim script:', err);
-        handleApiError(err);
-        // Always fall back to manual address input
-        setupAddressValidationFallback();
+    .then(data => {
+      if (!data.scriptUrl) {
+        throw new Error('No script URL returned from server');
       }
+      
+      console.log('Got Google Maps direct script URL, attempting to load');
+      
+      // Add with a timeout to detect loading failures
+      const directLoadTimeout = setTimeout(() => {
+        console.warn('Direct Google Maps load timed out, switching to fallback');
+        loadFallbackImplementation();
+      }, 5000);
+      
+      // Function to clean up after script loads or fails
+      function cleanupDirectLoad() {
+        clearTimeout(directLoadTimeout);
+      }
+      
+      // Try loading the script directly
+      const script = document.createElement('script');
+      script.id = 'google-maps-api-script';
+      script.src = data.scriptUrl;
+      script.async = true;
+      
+      // Handle load success
+      script.onload = () => {
+        console.log('Google Maps API loaded successfully via direct script');
+        cleanupDirectLoad();
+      };
+      
+      // Handle load error
+      script.onerror = (error) => {
+        console.error('Error loading Google Maps directly:', error);
+        script.remove();
+        cleanupDirectLoad();
+        loadFallbackImplementation();
+      };
+      
+      document.head.appendChild(script);
     })
     .catch(error => {
-      console.error('Failed to fetch Google Maps shim from server:', error);
-      handleApiError(error);
-      // Always fall back to manual address input
-      setupAddressValidationFallback();
+      console.error('Error with direct Maps loading:', error);
+      // Fall back to our server-side implementation
+      loadFallbackImplementation();
     });
+  
+  // Function to load our fallback implementation
+  function loadFallbackImplementation() {
+    console.log('Loading fallback Google Maps implementation');
+    
+    // Use our dedicated fallback endpoint
+    fetch('/api/google-maps-fallback')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Fallback script fetch failed: ${response.status}`);
+        }
+        return response.text();
+      })
+      .then(scriptContent => {
+        try {
+          // Create a new script element
+          const fallbackScript = document.createElement('script');
+          fallbackScript.id = 'google-maps-fallback-script';
+          fallbackScript.textContent = scriptContent;
+          
+          // Add to page
+          document.head.appendChild(fallbackScript);
+          console.log('Fallback Google Maps implementation added to page');
+          
+          // Manual initialization as a backup
+          setTimeout(() => {
+            if (!googlePlacesInitialized && !window.googlePlacesInitialized) {
+              console.log('Manual initialization from fallback timeout');
+              try {
+                if (typeof initializeGooglePlaces === 'function') {
+                  initializeGooglePlaces();
+                }
+              } catch (e) {
+                console.error('Error in manual initialization:', e);
+                setupAddressValidationFallback();
+              }
+            }
+          }, 1000);
+        } catch (err) {
+          console.error('Error adding fallback script to page:', err);
+          setupAddressValidationFallback();
+        }
+      })
+      .catch(error => {
+        console.error('Failed to fetch fallback script:', error);
+        setupAddressValidationFallback();
+      });
+  }
 }
 
 /**

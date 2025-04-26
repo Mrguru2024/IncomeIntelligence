@@ -5228,153 +5228,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Server-side proxy for Google Maps script to avoid CORS/connectivity issues
-  app.get('/api/google-maps-script', async (req, res) => {
+  // Direct Google Maps API script snippet endpoint
+  app.get('/api/google-maps-direct', async (req, res) => {
     try {
       const apiKey = process.env.GOOGLE_MAPS_API_KEY;
       
       if (!apiKey) {
         console.error('GOOGLE_MAPS_API_KEY is not set in environment variables');
-        return res.status(500).send(`console.error('Google Maps API key is not configured on the server');`);
+        return res.status(500).json({ error: 'API key not configured' });
       }
       
       // Validate the API key first
       const validationResult = await validateGoogleMapsApiKey();
       if (!validationResult.isValid) {
         console.error('Google Maps API key validation failed:', validationResult.errorMessage);
-        return res.status(403).send(`console.error('Invalid Google Maps API key: ${validationResult.errorMessage || "Unknown error"}');`);
+        return res.status(403).json({ error: 'Invalid API key' });
       }
       
-      // New approach: Create inline script with a pre-loaded Places API
-      // This approach uses a small shim to mimic the Google Maps API
-      // Since this is just helping the app function, we'll mock the basic functionality needed
+      // Return the script URL - client will load it directly
+      res.json({
+        scriptUrl: `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGooglePlacesAPI`
+      });
+      
+      console.log('Successfully served direct Google Maps script URL');
+      
+    } catch (error) {
+      console.error('Error in Google Maps direct endpoint:', error);
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+  
+  // Fallback implementation for address validation
+  app.get('/api/google-maps-fallback', async (req, res) => {
+    try {
+      // Return a simple JavaScript that implements basic address handling
       const scriptContent = `
-        // Server-provided Google Maps shim
-        console.log('Initializing server-provided Google Maps fallback');
+        console.log('Loading Google Maps lightweight fallback');
         
-        // Create global google object if it doesn't exist
+        // Create needed objects
         window.google = window.google || {};
-        
-        // Create the maps namespace
         window.google.maps = window.google.maps || {};
-        
-        // Create places API with basic functionality
         window.google.maps.places = {
-          // Basic Autocomplete implementation
-          Autocomplete: function(input, options) {
-            console.log('Created Google Places Autocomplete shim for input:', input.id);
+          Autocomplete: function(input) {
+            console.log('Creating autocomplete for input:', input.id);
+            this.input = input;
+            this.listeners = {};
             
-            // Store options for reference
-            this._options = options || {};
-            this._input = input;
-            this._listeners = {};
-            
-            // Add a basic change handler that will look up addresses
+            // Add basic event handling
             input.addEventListener('change', () => {
-              const address = input.value;
-              if (address && address.length > 5) {
-                // For any substantial address input, simulate a place result
-                const simulatedPlace = this._createSimulatedPlace(address);
-                
-                // Notify listeners of place_changed event
-                if (this._listeners['place_changed']) {
-                  this._listeners['place_changed'].forEach(callback => callback(simulatedPlace));
-                }
-              }
-            });
-            
-            // Also handle blur events
-            input.addEventListener('blur', () => {
-              const address = input.value;
-              if (address && address.length > 5) {
-                const simulatedPlace = this._createSimulatedPlace(address);
-                
-                if (this._listeners['place_changed']) {
-                  this._listeners['place_changed'].forEach(callback => callback(simulatedPlace));
-                }
+              if (this.listeners['place_changed']) {
+                this.listeners['place_changed'].forEach(fn => fn());
               }
             });
           }
         };
         
-        // Add methods to Autocomplete prototype
+        // Add methods
         window.google.maps.places.Autocomplete.prototype = {
-          // Implementation for addListener
           addListener: function(event, callback) {
-            console.log('Adding listener for event:', event);
-            this._listeners = this._listeners || {};
-            this._listeners[event] = this._listeners[event] || [];
-            this._listeners[event].push(callback);
-            return { remove: () => {} }; // Return dummy event binding
+            console.log('Adding listener for', event);
+            this.listeners = this.listeners || {};
+            this.listeners[event] = this.listeners[event] || [];
+            this.listeners[event].push(callback);
+            return { remove: function() {} };
           },
           
-          // Implementation for getPlace
           getPlace: function() {
-            const address = this._input.value;
-            return this._createSimulatedPlace(address);
-          },
-          
-          // Helper to create a simulated place object
-          _createSimulatedPlace: function(address) {
-            // Extract state from address if possible
+            const address = this.input.value;
             let state = '';
+            
+            // Try to extract state from format like "City, STATE zip"
             if (address.includes(',')) {
               const parts = address.split(',');
               if (parts.length >= 2) {
-                // Try to extract state from address format like "City, STATE zip"
-                const lastPart = parts[parts.length - 1].trim();
-                const stateParts = lastPart.split(' ');
-                if (stateParts.length >= 1) {
-                  state = stateParts[0].trim();
-                  // Clean up the state (only keep alpha characters)
-                  state = state.replace(/[^a-zA-Z]/g, '');
-                  // Only keep if it looks like a state code (2 chars)
-                  state = (state.length === 2) ? state.toUpperCase() : '';
+                const statePart = parts[1].trim().split(' ')[0].trim();
+                if (statePart.length === 2) {
+                  state = statePart.toUpperCase();
                 }
               }
             }
             
-            console.log('Created simulated place for address:', address, 'State:', state || 'unknown');
+            console.log('Fallback returning place data for address:', address);
             
             return {
               formatted_address: address,
-              name: address,
               geometry: {
-                location: {
-                  lat: () => 37.0902, // Default to US center point  
-                  lng: () => -95.7129
+                location: { 
+                  lat: () => 0, 
+                  lng: () => 0 
                 }
               },
               address_components: [
-                { types: ['street_number'], long_name: '', short_name: '' },
-                { types: ['route'], long_name: '', short_name: '' },
-                { types: ['locality'], long_name: '', short_name: '' },
-                { types: ['administrative_area_level_1'], long_name: state, short_name: state },
-                { types: ['country'], long_name: 'United States', short_name: 'US' }
+                { types: ['administrative_area_level_1'], short_name: state, long_name: state }
               ]
             };
           }
         };
         
-        // Call the initialization callback to signal that "Google Maps" is ready
-        console.log('Google Maps fallback initialized successfully');
+        window.google.maps.places._isShim = true;
+        
+        // Call initialization function
         if (typeof initGooglePlacesAPI === 'function') {
-          console.log('Calling initGooglePlacesAPI with fallback implementation');
+          console.log('Calling initGooglePlacesAPI from fallback');
           initGooglePlacesAPI();
+        } else if (typeof initializeGooglePlaces === 'function') {
+          console.log('Calling initializeGooglePlaces from fallback');
+          initializeGooglePlaces();
         } else {
-          console.warn('initGooglePlacesAPI function not found');
+          console.error('No Maps initialization function found');
         }
       `;
       
-      // Set the correct content type and send the script
       res.setHeader('Content-Type', 'application/javascript');
       res.send(scriptContent);
-      console.log('Successfully served Google Maps fallback script via server proxy');
+      console.log('Served Maps fallback script');
       
     } catch (error) {
-      console.error('Error in Google Maps script proxy endpoint:', error);
-      res.status(500).setHeader('Content-Type', 'application/javascript');
-      res.send(`console.error('Server error loading Google Maps script: ${error.message}');`);
+      console.error('Error in Maps fallback endpoint:', error);
+      res.status(500).json({ error: 'Server error' });
     }
   });
 
