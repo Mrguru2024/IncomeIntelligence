@@ -392,6 +392,11 @@ export function createSidebar(appState) {
       title: 'SAVINGS & GROWTH',
       items: [
         {
+          id: 'financial-journey',
+          label: 'Financial Journey',
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V8"></path><path d="m5 12-2 2 2 2"></path><path d="m19 18 2-2-2-2"></path><path d="M5 16h14"></path><path d="m5 8 2 2 2-2"></path><path d="M9 8h12"></path></svg>'
+        },
+        {
           id: 'personal-financial-assessment',
           label: 'Personal Financial Assessment',
           icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>'

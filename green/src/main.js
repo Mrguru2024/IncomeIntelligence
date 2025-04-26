@@ -3603,6 +3603,20 @@ function renderPageContent(container) {
       case 'gigs':
         container.appendChild(renderGigsPage());
         break;
+      case 'financial-journey':
+        // Import the Financial Journey module
+        import('../financial-journey.js').then(module => {
+          const appContainer = document.createElement('div');
+          appContainer.id = 'financial-journey-container';
+          container.appendChild(appContainer);
+          console.log("Created container for financial journey:", appContainer);
+          // Render the financial journey page
+          module.renderFinancialJourneyPage('financial-journey-container');
+        }).catch(error => {
+          console.error('Error loading financial journey module:', error);
+          container.appendChild(createErrorMessage('Failed to load financial journey module'));
+        });
+        break;
       case 'affiliates':
         // Import the affiliates hub page module
         import('../affiliates-hub.js').then(module => {

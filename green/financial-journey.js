@@ -181,10 +181,15 @@ export function renderFinancialJourneyPage(containerId) {
   // Clear the container
   container.innerHTML = '';
   
+  // Check if this is a mobile or foldable device
+  const isMobile = window.innerWidth < 768;
+  const isFoldable = /SM-F9/.test(navigator.userAgent);
+  const isFolded = isFoldable && window.innerWidth < 600;
+  
   // Create the page container
   const pageContainer = document.createElement('div');
   pageContainer.className = 'financial-journey-container';
-  pageContainer.style.padding = '20px';
+  pageContainer.style.padding = isMobile ? '16px' : '20px';
   
   // Initialize journey data with the current user ID
   // In a real app, you would get this from the authentication system
@@ -197,7 +202,7 @@ export function renderFinancialJourneyPage(containerId) {
   
   const pageTitle = document.createElement('h1');
   pageTitle.textContent = 'Your Financial Journey';
-  pageTitle.style.fontSize = '28px';
+  pageTitle.style.fontSize = isMobile ? '24px' : '28px';
   pageTitle.style.fontWeight = 'bold';
   pageTitle.style.marginBottom = '10px';
   pageTitle.style.color = 'var(--color-heading)';
@@ -231,6 +236,18 @@ export function renderFinancialJourneyPage(containerId) {
   
   // Apply responsive styles for mobile/foldable devices
   applyResponsiveStyles();
+  
+  // Add window resize listener to adjust the layout when device folds/unfolds
+  window.addEventListener('resize', applyResponsiveStyles);
+  
+  // Log viewport information for debugging on foldable devices
+  console.log("Financial Journey viewport:", {
+    width: window.innerWidth,
+    height: window.innerHeight,
+    isMobile,
+    isFoldable,
+    isFolded
+  });
 }
 
 /**
