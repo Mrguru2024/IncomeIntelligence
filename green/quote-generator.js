@@ -419,8 +419,7 @@ export function renderQuoteGeneratorPage(containerId) {
   // Clear container
   container.innerHTML = '';
   
-  // Display page title
-  displayPageTitle('Professional Quote Generator');
+  // Page title is set in main.js
   
   // Create page container
   const pageContainer = document.createElement('div');
