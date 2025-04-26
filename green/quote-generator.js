@@ -1297,23 +1297,84 @@ function displayQuoteResult(quoteResult) {
   // Save quote button
   const saveButton = createButton('Save Quote', () => saveQuote(quoteResult), 'primary');
   
-  // Print quote buttons (both service provider and customer versions)
-  const printButtonsRow = document.createElement('div');
-  printButtonsRow.style.display = 'flex';
-  printButtonsRow.style.gap = '4px';
-  printButtonsRow.style.flexDirection = 'column';
+  // Create dropdown section for print options
+  const printContainer = document.createElement('div');
+  printContainer.style.position = 'relative';
+  printContainer.style.display = 'inline-block';
   
-  const printButton = createButton('Print Quote (Service Provider View)', () => printQuote(quoteResult, false), 'secondary');
-  const printCustomerButton = createButton('Print Quote (Customer View)', () => printQuote(quoteResult, true), 'secondary');
+  const printButton = createButton('Print Options ▼', () => {
+    const menu = printContainer.querySelector('.print-dropdown');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+  }, 'secondary');
   
-  printButtonsRow.appendChild(printButton);
-  printButtonsRow.appendChild(printCustomerButton);
+  // Create dropdown menu
+  const printDropdown = document.createElement('div');
+  printDropdown.className = 'print-dropdown';
+  printDropdown.style.display = 'none';
+  printDropdown.style.position = 'absolute';
+  printDropdown.style.backgroundColor = 'var(--color-card-bg)';
+  printDropdown.style.minWidth = '200px';
+  printDropdown.style.boxShadow = '0px 8px 16px 0px rgba(0,0,0,0.2)';
+  printDropdown.style.zIndex = '1';
+  printDropdown.style.borderRadius = '8px';
+  printDropdown.style.padding = '8px 0';
+  printDropdown.style.marginTop = '5px';
+  
+  // Provider version option
+  const providerOption = document.createElement('a');
+  providerOption.textContent = 'Print Service Provider View';
+  providerOption.style.padding = '12px 16px';
+  providerOption.style.textDecoration = 'none';
+  providerOption.style.display = 'block';
+  providerOption.style.color = 'var(--color-text)';
+  providerOption.style.cursor = 'pointer';
+  providerOption.addEventListener('mouseenter', () => {
+    providerOption.style.backgroundColor = 'var(--color-bg-secondary)';
+  });
+  providerOption.addEventListener('mouseleave', () => {
+    providerOption.style.backgroundColor = 'transparent';
+  });
+  providerOption.addEventListener('click', () => {
+    printQuote(quoteResult, false);
+    printDropdown.style.display = 'none';
+  });
+  
+  // Customer version option
+  const customerOption = document.createElement('a');
+  customerOption.textContent = 'Print Customer View';
+  customerOption.style.padding = '12px 16px';
+  customerOption.style.textDecoration = 'none';
+  customerOption.style.display = 'block';
+  customerOption.style.color = 'var(--color-text)';
+  customerOption.style.cursor = 'pointer';
+  customerOption.addEventListener('mouseenter', () => {
+    customerOption.style.backgroundColor = 'var(--color-bg-secondary)';
+  });
+  customerOption.addEventListener('mouseleave', () => {
+    customerOption.style.backgroundColor = 'transparent';
+  });
+  customerOption.addEventListener('click', () => {
+    printQuote(quoteResult, true);
+    printDropdown.style.display = 'none';
+  });
+  
+  printDropdown.appendChild(providerOption);
+  printDropdown.appendChild(customerOption);
+  printContainer.appendChild(printButton);
+  printContainer.appendChild(printDropdown);
+  
+  // Hide dropdown when clicking outside
+  document.addEventListener('click', (event) => {
+    if (!printContainer.contains(event.target)) {
+      printDropdown.style.display = 'none';
+    }
+  });
   
   // Create invoice button
   const invoiceButton = createButton('Create Invoice', () => createInvoiceFromQuote(quoteResult), 'secondary');
   
   actionsRow.appendChild(saveButton);
-  actionsRow.appendChild(printButton);
+  actionsRow.appendChild(printContainer);
   actionsRow.appendChild(invoiceButton);
   resultContainer.appendChild(actionsRow);
   
@@ -2327,14 +2388,84 @@ function displayAutoQuoteResult(quoteResult) {
   // Save quote button
   const saveButton = createButton('Save Quote', () => saveAutoQuote(quoteResult), 'primary');
   
-  // Print quote button
-  const printButton = createButton('Print Quote', () => printAutoQuote(quoteResult), 'secondary');
+  // Create dropdown section for print options
+  const printContainer = document.createElement('div');
+  printContainer.style.position = 'relative';
+  printContainer.style.display = 'inline-block';
+  
+  const printButton = createButton('Print Options ▼', () => {
+    const menu = printContainer.querySelector('.print-dropdown');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+  }, 'secondary');
+  
+  // Create dropdown menu
+  const printDropdown = document.createElement('div');
+  printDropdown.className = 'print-dropdown';
+  printDropdown.style.display = 'none';
+  printDropdown.style.position = 'absolute';
+  printDropdown.style.backgroundColor = 'var(--color-card-bg)';
+  printDropdown.style.minWidth = '200px';
+  printDropdown.style.boxShadow = '0px 8px 16px 0px rgba(0,0,0,0.2)';
+  printDropdown.style.zIndex = '1';
+  printDropdown.style.borderRadius = '8px';
+  printDropdown.style.padding = '8px 0';
+  printDropdown.style.marginTop = '5px';
+  
+  // Provider version option
+  const providerOption = document.createElement('a');
+  providerOption.textContent = 'Print Service Provider View';
+  providerOption.style.padding = '12px 16px';
+  providerOption.style.textDecoration = 'none';
+  providerOption.style.display = 'block';
+  providerOption.style.color = 'var(--color-text)';
+  providerOption.style.cursor = 'pointer';
+  providerOption.addEventListener('mouseenter', () => {
+    providerOption.style.backgroundColor = 'var(--color-bg-secondary)';
+  });
+  providerOption.addEventListener('mouseleave', () => {
+    providerOption.style.backgroundColor = 'transparent';
+  });
+  providerOption.addEventListener('click', () => {
+    printAutoQuote(quoteResult, false);
+    printDropdown.style.display = 'none';
+  });
+  
+  // Customer version option
+  const customerOption = document.createElement('a');
+  customerOption.textContent = 'Print Customer View';
+  customerOption.style.padding = '12px 16px';
+  customerOption.style.textDecoration = 'none';
+  customerOption.style.display = 'block';
+  customerOption.style.color = 'var(--color-text)';
+  customerOption.style.cursor = 'pointer';
+  customerOption.addEventListener('mouseenter', () => {
+    customerOption.style.backgroundColor = 'var(--color-bg-secondary)';
+  });
+  customerOption.addEventListener('mouseleave', () => {
+    customerOption.style.backgroundColor = 'transparent';
+  });
+  customerOption.addEventListener('click', () => {
+    printAutoQuote(quoteResult, true);
+    printDropdown.style.display = 'none';
+  });
+  
+  printDropdown.appendChild(providerOption);
+  printDropdown.appendChild(customerOption);
+  printContainer.appendChild(printButton);
+  printContainer.appendChild(printDropdown);
+  
+  // Hide dropdown when clicking outside
+  document.addEventListener('click', (event) => {
+    if (!printContainer.contains(event.target)) {
+      printDropdown.style.display = 'none';
+    }
+  });
   
   // Create invoice button
   const invoiceButton = createButton('Create Invoice', () => createInvoiceFromAutoQuote(quoteResult), 'secondary');
   
   actionsRow.appendChild(saveButton);
-  actionsRow.appendChild(printButton);
+  actionsRow.appendChild(printContainer);
   actionsRow.appendChild(invoiceButton);
   resultContainer.appendChild(actionsRow);
   
