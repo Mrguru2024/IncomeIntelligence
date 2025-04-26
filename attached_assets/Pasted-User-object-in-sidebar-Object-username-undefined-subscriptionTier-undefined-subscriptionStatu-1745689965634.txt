@@ -1,0 +1,40 @@
+User object in sidebar: 
+Object {username: undefined, subscriptionTier: undefined, subscriptionStatus: "pro", subscription: undefined}
+Sidebar displaying subscription tier: pro
+Notification system initialized successfully
+Quote Generator module initialized
+Created app-container for quote generator: 
+<div id="app-container">…</div>
+Found existing Google Maps script tag - removing and reinitializing with fresh API key
+Attempting to load Google Maps API with multi-stage loading...
+Quote Generator page rendered successfully
+Got Google Maps direct script URL, attempting to load
+Error loading Google Maps directly: 
+Event {isTrusted: true}
+
+at t.value (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Loading fallback Google Maps implementation
+Loading Google Maps enhanced fallback implementation
+Calling initGooglePlacesAPI from enhanced fallback
+Google Maps API callback triggered
+Successfully initializing Google Places autocomplete fields
+Setting up autocomplete for address fields
+Creating autocomplete for input: general-location-input
+Adding listener for place_changed
+Initializing autocomplete for automotive quote address field
+Creating autocomplete for input: auto-address-input
+Adding listener for place_changed
+Fallback Google Maps implementation added to page
+Initializing Places Autocomplete for general-location-input
+Creating autocomplete for input: general-location-input
+Adding listener for place_changed
+Initializing Places Autocomplete for auto-address-input
+Creating autocomplete for input: auto-address-input
+Adding listener for place_changed
+Google Places Autocomplete initialized successfully
+Initializing Places Autocomplete for destination-input
+Creating autocomplete for input: destination-input
+Adding listener for place_changed

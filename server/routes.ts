@@ -5316,7 +5316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             suggestionsEl.className = 'maps-autocomplete-suggestions';
             suggestionsEl.style.display = 'none';
             suggestionsEl.style.position = 'absolute';
-            suggestionsEl.style.zIndex = '1000';
+            suggestionsEl.style.zIndex = '9999';
             suggestionsEl.style.backgroundColor = 'white';
             suggestionsEl.style.border = '1px solid #ccc';
             suggestionsEl.style.borderRadius = '4px';
@@ -5327,29 +5327,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Position the suggestions element below the input
             const inputRect = input.getBoundingClientRect();
-            suggestionsEl.style.left = input.offsetLeft + 'px';
-            suggestionsEl.style.top = (input.offsetTop + input.offsetHeight) + 'px';
             
-            // Add the suggestions element to the document
-            input.parentNode.style.position = 'relative';
-            input.parentNode.appendChild(suggestionsEl);
+            // Add the suggestions element directly to the body for better positioning
+            document.body.appendChild(suggestionsEl);
+            
+            // Position it absolutely based on the input's position in the viewport
+            this._repositionSuggestions();
+            
+            // Add window resize listener to ensure proper positioning when window size changes
+            window.addEventListener('resize', () => {
+              this._repositionSuggestions();
+            });
             
             this._suggestionsEl = suggestionsEl;
+            
+            // Add a debug element to show what's happening
+            this._debugElement = document.createElement('div');
+            this._debugElement.style.position = 'fixed';
+            this._debugElement.style.top = '10px';
+            this._debugElement.style.right = '10px';
+            this._debugElement.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            this._debugElement.style.color = 'white';
+            this._debugElement.style.padding = '10px';
+            this._debugElement.style.borderRadius = '5px';
+            this._debugElement.style.fontSize = '12px';
+            this._debugElement.style.zIndex = '10000';
+            this._debugElement.style.display = 'none';
+            document.body.appendChild(this._debugElement);
+          },
+          
+          // Helper to reposition the suggestions dropdown based on input position
+          _repositionSuggestions: function() {
+            if (!this._suggestionsEl || !this.input) return;
+            
+            const inputRect = this.input.getBoundingClientRect();
+            
+            // Position relative to viewport, accounting for scroll
+            this._suggestionsEl.style.position = 'fixed';
+            this._suggestionsEl.style.width = inputRect.width + 'px';
+            this._suggestionsEl.style.left = inputRect.left + 'px';
+            this._suggestionsEl.style.top = (inputRect.bottom + 2) + 'px';
+            
+            // Log positioning for debugging
+            this._logDebug("Positioned dropdown at: " + inputRect.left + "px, " + inputRect.bottom + "px, width: " + inputRect.width + "px");
+          },
+          
+          // Helper to log debug information
+          _logDebug: function(message) {
+            console.log("[Maps Autocomplete] " + message);
+            
+            // Update debug element
+            if (this._debugElement) {
+              const timestamp = new Date().toLocaleTimeString();
+              this._debugElement.innerHTML += timestamp + ": " + message + "<br>";
+              this._debugElement.style.display = 'block';
+              
+              // Scroll to bottom
+              this._debugElement.scrollTop = this._debugElement.scrollHeight;
+              
+              // Remove old messages to avoid too much content
+              if (this._debugElement.innerHTML.split('<br>').length > 10) {
+                const lines = this._debugElement.innerHTML.split('<br>');
+                this._debugElement.innerHTML = lines.slice(lines.length - 10).join('<br>');
+              }
+            }
           },
           
           // Fetch address suggestions from the server
           _fetchSuggestions: function(query) {
+            // Log the query
+            this._logDebug("Fetching suggestions for: '" + query + "'");
+            
+            // Reposition dropdown in case the input has moved
+            this._repositionSuggestions();
+            
             // Make API call to our server proxy endpoint which will return address suggestions
             fetch('/api/address-suggestions?query=' + encodeURIComponent(query))
               .then(response => response.json())
               .then(data => {
                 if (data.predictions && data.predictions.length > 0) {
+                  this._logDebug("Received " + data.predictions.length + " suggestions");
+                  
+                  // Log the first few predictions for debugging
+                  if (data.predictions.length > 0) {
+                    this._logDebug("First suggestion: '" + data.predictions[0].description + "'");
+                  }
+                  
+                  // Show the suggestions and update positioning
                   this._showSuggestions(data.predictions);
+                  this._repositionSuggestions();
                 } else {
+                  this._logDebug('No suggestions found');
                   this._hideSuggestions();
                 }
               })
               .catch(err => {
+                this._logDebug("Error fetching suggestions: " + (err.message || "Unknown error"));
                 console.error('Error fetching address suggestions:', err);
                 // Fallback to local suggestions using basic pattern matching
                 this._showLocalSuggestions(query);
