@@ -149,13 +149,30 @@ const stateTaxRates = {
 function createFormGroup(labelText, inputElement) {
   const formGroup = document.createElement('div');
   formGroup.classList.add('form-group');
-  formGroup.style.marginBottom = '16px';
+  
+  // Check if we're on a foldable device
+  const isFoldableDevice = window.innerWidth < 400;
+  
+  // Adjust margin and spacing for screen size
+  if (isFoldableDevice) {
+    formGroup.style.marginBottom = '12px'; // Smaller margin on small screens
+  } else {
+    formGroup.style.marginBottom = '16px';
+  }
   
   const label = document.createElement('label');
   label.textContent = labelText;
   label.style.display = 'block';
-  label.style.marginBottom = '8px';
-  label.style.fontSize = '14px';
+  
+  // Adjust font size and spacing for screen size
+  if (isFoldableDevice) {
+    label.style.marginBottom = '6px';
+    label.style.fontSize = '13px';
+  } else {
+    label.style.marginBottom = '8px';
+    label.style.fontSize = '14px';
+  }
+  
   label.style.fontWeight = '500';
   
   formGroup.appendChild(label);
@@ -217,11 +234,22 @@ function createInput(type, name, value = '', placeholder = '', min = '', max = '
   input.value = value;
   input.placeholder = placeholder;
   input.style.width = '100%';
-  input.style.padding = '10px';
+  
+  // Check if we're on a foldable device
+  const isFoldableDevice = window.innerWidth < 400;
+  
+  // Adjust padding and font size for screen size
+  if (isFoldableDevice) {
+    input.style.padding = '8px';
+    input.style.fontSize = '13px';
+  } else {
+    input.style.padding = '10px';
+    input.style.fontSize = '14px';
+  }
+  
   input.style.borderRadius = '6px';
   input.style.border = '1px solid var(--color-border)';
   input.style.backgroundColor = 'var(--color-input-bg)';
-  input.style.fontSize = '14px';
   
   if (min) input.min = min;
   if (max) input.max = max;
@@ -241,12 +269,24 @@ function createTextarea(name, placeholder = '') {
   textarea.name = name;
   textarea.placeholder = placeholder;
   textarea.style.width = '100%';
-  textarea.style.padding = '10px';
+  
+  // Check if we're on a foldable device
+  const isFoldableDevice = window.innerWidth < 400;
+  
+  // Adjust sizes for screen size
+  if (isFoldableDevice) {
+    textarea.style.padding = '8px';
+    textarea.style.fontSize = '13px';
+    textarea.style.minHeight = '80px'; // Smaller height on small screens
+  } else {
+    textarea.style.padding = '10px';
+    textarea.style.fontSize = '14px';
+    textarea.style.minHeight = '100px';
+  }
+  
   textarea.style.borderRadius = '6px';
   textarea.style.border = '1px solid var(--color-border)';
   textarea.style.backgroundColor = 'var(--color-input-bg)';
-  textarea.style.fontSize = '14px';
-  textarea.style.minHeight = '100px';
   textarea.style.resize = 'vertical';
   
   return textarea;
@@ -306,17 +346,41 @@ function createButton(text, onClick, type = 'primary') {
  */
 function createSectionHeader(title, subtitle) {
   const header = document.createElement('div');
-  header.style.marginBottom = '24px';
+  
+  // Check if we're on a foldable device
+  const isFoldableDevice = window.innerWidth < 400;
+  
+  // Adjust margin for screen size
+  if (isFoldableDevice) {
+    header.style.marginBottom = '16px';
+  } else {
+    header.style.marginBottom = '24px';
+  }
   
   const titleElement = document.createElement('h2');
   titleElement.textContent = title;
-  titleElement.style.fontSize = '20px';
+  
+  // Adjust font size for screen size
+  if (isFoldableDevice) {
+    titleElement.style.fontSize = '18px';
+    titleElement.style.marginBottom = '6px';
+  } else {
+    titleElement.style.fontSize = '20px';
+    titleElement.style.marginBottom = '8px';
+  }
+  
   titleElement.style.fontWeight = 'bold';
-  titleElement.style.marginBottom = '8px';
   
   const subtitleElement = document.createElement('p');
   subtitleElement.textContent = subtitle;
-  subtitleElement.style.fontSize = '14px';
+  
+  // Adjust font size for screen size
+  if (isFoldableDevice) {
+    subtitleElement.style.fontSize = '13px';
+  } else {
+    subtitleElement.style.fontSize = '14px';
+  }
+  
   subtitleElement.style.color = 'var(--color-text-secondary)';
   subtitleElement.style.lineHeight = '1.5';
   
