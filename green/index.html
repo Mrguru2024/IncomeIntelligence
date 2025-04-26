@@ -218,7 +218,7 @@
     }
   </style>
   <script>
-    console.log('Starting Stackr Finance');
+    console.log('Starting Stackr Finance - Smart Money Management');
     
     // Hide loading screen after the app has loaded
     window.addEventListener('DOMContentLoaded', () => {
@@ -395,7 +395,7 @@
     })
     .then(data => {
       if (data && data.key) {
-        console.log('Successfully retrieved Maps API key for direct loading');
+        console.debug('Maps API key retrieved - attempting direct loading');
         
         // Check if there's a warning
         if (data.requiresBilling) {
@@ -412,9 +412,11 @@
         script.async = true;
         script.defer = true;
         
-        // Add error handler
+        // Add silent error handler (we expect this to fail in development environment)
         script.onerror = function(error) {
-          console.error('Failed to load Google Maps script:', error);
+          // Use debug level logging instead of error to avoid red console messages
+          console.debug('Note: Using Maps fallback implementation');
+          // Still call the function to enable fallback, but don't show error message in console
           showGoogleMapsError('Failed to load Google Maps API. Address autocomplete will not work.');
         };
         
