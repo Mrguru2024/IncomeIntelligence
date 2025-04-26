@@ -915,8 +915,6 @@ function displayQuoteResult(quoteResult) {
  * @returns {HTMLElement} The breakdown item
  */
 // createBreakdownItem function is already defined above
-  return item;
-}
 
 /**
  * Save quote to local storage
@@ -1282,10 +1280,39 @@ function createButton(text, onClick) {
   button.style.transition = 'all 0.2s';
   button.style.flex = '1';
   
-// createTextarea function is already defined above
   button.addEventListener('mouseover', () => {
     button.style.backgroundColor = 'var(--color-border)';
   });
+  
+  button.addEventListener('mouseout', () => {
+    button.style.backgroundColor = 'var(--color-card-bg)';
+  });
+  
+  return button;
+}
+
+/**
+ * Create a toast notification
+ * @param {string} message - The message to show
+ * @param {string} type - The type of toast (success, error)
+ */
+function showToast(message, type = 'success') {
+  // Ensure we have a toast container
+  let toastContainer = document.getElementById('toast-container');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    toastContainer.style.position = 'fixed';
+    toastContainer.style.bottom = '20px';
+    toastContainer.style.right = '20px';
+    toastContainer.style.zIndex = '1000';
+    document.body.appendChild(toastContainer);
+  }
+  
+  // Create the toast element
+  const toast = document.createElement('div');
+  toast.style.backgroundColor = type === 'error' ? '#FEE2E2' : '#ECFDF5';
+  toast.style.color = type === 'error' ? '#B91C1C' : '#047857';
   toast.style.padding = '12px 16px';
   toast.style.borderRadius = '6px';
   toast.style.marginBottom = '8px';
@@ -1303,7 +1330,6 @@ function createButton(text, onClick) {
   
   // Toast close button
   const closeButton = document.createElement('button');
-// createSelect function is already defined above
   closeButton.innerHTML = '&times;';
   closeButton.style.background = 'transparent';
   closeButton.style.border = 'none';
