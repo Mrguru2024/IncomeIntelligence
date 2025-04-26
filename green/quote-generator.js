@@ -914,27 +914,6 @@ function displayQuoteResult(quoteResult) {
  * @param {boolean} highlight - Whether to highlight the item
  * @returns {HTMLElement} The breakdown item
  */
-function createBreakdownItem(label, amount, highlight = false) {
-  const item = document.createElement('li');
-  item.style.display = 'flex';
-  item.style.justifyContent = 'space-between';
-  item.style.padding = '8px 0';
-  item.style.borderBottom = '1px solid var(--color-border)';
-  
-  if (highlight) {
-    item.style.fontWeight = '600';
-    item.style.fontSize = '16px';
-  }
-  
-  const labelSpan = document.createElement('span');
-  labelSpan.textContent = label;
-  
-  const amountSpan = document.createElement('span');
-  amountSpan.textContent = `$${amount.toFixed(2)}`;
-  
-  item.appendChild(labelSpan);
-  item.appendChild(amountSpan);
-  
   return item;
 }
 
@@ -1247,27 +1226,6 @@ function createFormGroup(labelText, inputElement) {
 /**
  * Create an input element
  * @param {string} type - Input type
- * @param {string} name - Input name
- * @param {string} value - Input value
- * @param {string} placeholder - Input placeholder
- * @param {string} min - Minimum value (for number inputs)
- * @param {string} max - Maximum value (for number inputs)
- * @param {string} step - Step value (for number inputs)
- * @returns {HTMLElement} Input element
- */
-function createInput(type, name, value, placeholder, min, max, step) {
-  const input = document.createElement('input');
-  input.type = type;
-  input.name = name;
-  input.value = value;
-  input.placeholder = placeholder;
-  input.style.width = '100%';
-  input.style.padding = '10px 12px';
-  input.style.border = '1px solid var(--color-border)';
-  input.style.borderRadius = '6px';
-  input.style.fontSize = '14px';
-  
-  if (type === 'number') {
     if (min !== undefined) input.min = min;
     if (max !== undefined) input.max = max;
     if (step !== undefined) input.step = step;
@@ -1297,27 +1255,6 @@ function createTextarea(name, placeholder) {
   return textarea;
 }
 
-/**
- * Create a select element
- * @param {string} name - Select name
- * @param {Array} options - Array of option objects with value and label properties
- * @returns {HTMLElement} Select element
- */
-function createSelect(name, options) {
-  const select = document.createElement('select');
-  select.name = name;
-  select.style.width = '100%';
-  select.style.padding = '10px 12px';
-  select.style.border = '1px solid var(--color-border)';
-  select.style.borderRadius = '6px';
-  select.style.fontSize = '14px';
-  select.style.backgroundColor = 'var(--color-card-bg)';
-  
-  options.forEach(option => {
-    const optionElement = document.createElement('option');
-    optionElement.value = option.value;
-    optionElement.textContent = option.label;
-    select.appendChild(optionElement);
   });
   
   return select;
