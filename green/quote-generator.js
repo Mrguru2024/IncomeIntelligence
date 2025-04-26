@@ -749,11 +749,46 @@ function initializeAutocompleteFields() {
       return;
     }
     
+    // Add CSS to ensure autocomplete suggestions are visible
+    const style = document.createElement('style');
+    style.textContent = `
+      .pac-container {
+        z-index: 10000 !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 4px !important;
+        position: fixed !important;
+        width: auto !important;
+        min-width: 300px !important;
+      }
+      .pac-item {
+        padding: 8px 10px !important;
+        cursor: pointer !important;
+      }
+      .pac-item:hover {
+        background-color: #f5f5f5 !important;
+      }
+      .pac-item-query {
+        font-size: 14px !important;
+        font-weight: 500 !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
     console.log('Setting up autocomplete for address fields');
     
     // Initialize General Quote Form location input
     const generalLocationInput = document.getElementById('general-location-input');
     if (generalLocationInput) {
+      console.log('Configuring autocomplete for general-location-input');
+      
+      // Add input event listener for manual lookup if needed
+      generalLocationInput.addEventListener('input', function() {
+        if (generalLocationInput.value.length >= 3) {
+          // Log the query attempt for debugging
+          console.log('Address input changed, could fetch suggestions for:', generalLocationInput.value);
+        }
+      });
+      
       const generalAutocomplete = new google.maps.places.Autocomplete(generalLocationInput, {
         types: ['address'],
         componentRestrictions: { country: 'us' }
@@ -795,6 +830,15 @@ function initializeAutocompleteFields() {
     const autoAddressInput = document.getElementById('auto-address-input');
     if (autoAddressInput) {
       console.log('Initializing autocomplete for automotive quote start address field');
+      
+      // Add input event listener for manual lookup if needed
+      autoAddressInput.addEventListener('input', function() {
+        if (autoAddressInput.value.length >= 3) {
+          // Log the query attempt for debugging
+          console.log('Auto start address input changed, could fetch suggestions for:', autoAddressInput.value);
+        }
+      });
+      
       const autoAutocomplete = new google.maps.places.Autocomplete(autoAddressInput, {
         types: ['address'],
         componentRestrictions: { country: 'us' }
