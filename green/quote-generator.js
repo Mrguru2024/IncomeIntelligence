@@ -452,15 +452,18 @@ function loadGooglePlacesAPI(callback) {
   
   // Function to initialize all autocomplete fields
   function initializeGooglePlaces() {
-    if (googlePlacesInitialized) return;
+    // Make sure we don't double-initialize
+    if (googlePlacesInitialized || window.googlePlacesInitialized) return;
     
     if (!window.google || !window.google.maps || !window.google.maps.places) {
-      console.error('Google Maps API not available yet');
+      console.error('Google Maps API not available yet, aborting initialization');
       return;
     }
     
+    // Set the initialization flag in both local and window scope
     googlePlacesInitialized = true;
-    console.log('Initializing Google Places autocomplete fields');
+    window.googlePlacesInitialized = true;
+    console.log('Successfully initializing Google Places autocomplete fields');
     
     try {
       // Initialize all input fields that need autocomplete
@@ -489,9 +492,24 @@ function loadGooglePlacesAPI(callback) {
   
   // Define a global callback that Google will call when API is loaded
   window.initGooglePlacesAPI = function() {
+    if (window.googlePlacesInitialized) return; // Prevent double initialization
+    
     clearTimeout(globalTimeoutId);
     console.log('Google Places API loaded successfully via callback');
-    initializeGooglePlaces();
+    
+    try {
+      // Verify Google Maps is actually available before proceeding
+      if (window.google && window.google.maps && window.google.maps.places) {
+        window.googlePlacesInitialized = true;
+        initializeGooglePlaces();
+      } else {
+        console.warn('Google Maps callback triggered but API not fully available');
+        setupAddressValidationFallback();
+      }
+    } catch (err) {
+      console.error('Error in initGooglePlacesAPI callback:', err);
+      setupAddressValidationFallback();
+    }
   };
   
   // Function to handle errors with API loading
@@ -534,16 +552,20 @@ function loadGooglePlacesAPI(callback) {
         // Create the script element with error handling
         const script = document.createElement('script');
         
-        // Load Google Places API with the provided key and callback
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places&callback=initGooglePlacesAPI`;
+        // Make sure we set up CORS correctly for the Google Maps API
+        const googleMapsUrl = new URL('https://maps.googleapis.com/maps/api/js');
+        googleMapsUrl.searchParams.append('key', data.key);
+        googleMapsUrl.searchParams.append('libraries', 'places');
+        googleMapsUrl.searchParams.append('callback', 'initGooglePlacesAPI');
         
+        script.src = googleMapsUrl.toString();
         script.async = true;
         script.defer = true;
         
         // Error handler
         script.onerror = (e) => {
           console.error('Failed to load Google Places API script:', e);
-          handleApiError(e);
+          handleApiError(new Error('Failed to load script. Network error or CORS issue.'));
         };
         
         // Success handler
@@ -553,19 +575,27 @@ function loadGooglePlacesAPI(callback) {
           // Additional backup - sometimes the callback isn't triggered
           // Check periodically if Google Maps is available
           const checkInterval = setInterval(() => {
-            if (window.google && window.google.maps && window.google.maps.places) {
-              clearInterval(checkInterval);
-              
-              if (!googlePlacesInitialized) {
-                console.log('Google Maps API detected, manually initializing');
-                initializeGooglePlaces();
+            try {
+              if (window.google && window.google.maps && window.google.maps.places) {
+                clearInterval(checkInterval);
+                
+                if (!googlePlacesInitialized && !window.googlePlacesInitialized) {
+                  console.log('Google Maps API detected, manually initializing');
+                  initializeGooglePlaces();
+                }
               }
+            } catch (err) {
+              console.warn('Error checking for Google Maps API:', err);
             }
           }, 1000); // Check every second
           
           // Stop checking after 10 seconds regardless
           setTimeout(() => {
             clearInterval(checkInterval);
+            if (!googlePlacesInitialized) {
+              console.warn('Google Places initialization timed out');
+              handleApiError(new Error('Google Maps initialization timeout'));
+            }
           }, 10000);
         };
         
