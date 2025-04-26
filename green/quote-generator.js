@@ -624,20 +624,35 @@ function loadGooglePlacesAPI(callback) {
         // Create the script element with error handling
         const script = document.createElement('script');
         
-        // Try a completely different approach - create the script element dynamically
-        // with a specific CORS attribute to see if it helps
-        script.crossOrigin = "anonymous";  // Add CORS attribute
-        script.integrity = "";  // Empty integrity to allow loading
+        // Google Maps API doesn't require CORS attributes and uses its own authentication
+        // Remove any CORS/integrity attributes that might be causing issues
         script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places&callback=initGooglePlacesAPI`;
         
-        // Don't load async to ensure proper loading order
-        script.async = false;
-        script.defer = false;
+        // Set to async for better loading performance
+        script.async = true;
+        script.defer = true;
         
-        // Error handler
+        // Enhanced error handler with more details
         script.onerror = (e) => {
           console.error('Failed to load Google Places API script:', e);
-          handleApiError(new Error('Failed to load script. Network error or CORS issue.'));
+          console.error('Script URL:', script.src);
+          
+          // Make a test request to maps.googleapis.com to check connectivity
+          fetch('https://maps.googleapis.com/maps/api/js?libraries=places')
+            .then(response => {
+              console.log('Network connectivity test to Google Maps API:', response.status);
+              if (response.ok) {
+                console.log('Network connectivity is fine, might be an API key issue');
+                handleApiError(new Error('API key validation failed.'));
+              } else {
+                console.log('Network connectivity issue detected:', response.status);
+                handleApiError(new Error('Network connectivity issue with Google Maps. Status: ' + response.status));
+              }
+            })
+            .catch(error => {
+              console.error('Network connectivity test failed:', error);
+              handleApiError(new Error('Complete network failure with Google Maps API.'));
+            });
         };
         
         // Success handler
