@@ -6,6 +6,9 @@
  * market rates, and other factors.
  */
 
+// Add debugging
+console.log('Quote Generator module initialized');
+
 // Market labor rates - can be expanded with more job types and regions
 const marketRates = {
   "locksmith": {
@@ -172,6 +175,35 @@ export function renderQuoteGeneratorPage(containerId) {
   
   quoteContainer.appendChild(formResultContainer);
   container.appendChild(quoteContainer);
+}
+
+/**
+ * Create a section header with title and subtitle
+ * @param {string} title - The section title
+ * @param {string} subtitle - The section subtitle
+ * @returns {HTMLElement} The section header element
+ */
+function createSectionHeader(title, subtitle) {
+  const headerSection = document.createElement('div');
+  headerSection.style.marginBottom = '24px';
+  
+  const headerTitle = document.createElement('h2');
+  headerTitle.textContent = title;
+  headerTitle.style.fontSize = '24px';
+  headerTitle.style.fontWeight = '700';
+  headerTitle.style.color = 'var(--color-primary)';
+  headerTitle.style.marginBottom = '8px';
+  
+  const headerSubtitle = document.createElement('p');
+  headerSubtitle.textContent = subtitle;
+  headerSubtitle.style.fontSize = '16px';
+  headerSubtitle.style.color = 'var(--color-text-secondary)';
+  headerSubtitle.style.lineHeight = '1.5';
+  
+  headerSection.appendChild(headerTitle);
+  headerSection.appendChild(headerSubtitle);
+  
+  return headerSection;
 }
 
 /**
