@@ -101,7 +101,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('GOOGLE_MAPS_API_KEY is not set in environment variables');
       return res.status(500).json({ 
         error: 'Maps API key is not configured',
-        message: 'The Google Maps API key is missing from server configuration'
+        message: 'The Google Maps API key is missing from server configuration',
+        missingKey: true,
+        requiresSetup: true
       });
     }
     
@@ -121,6 +123,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Check for billing-related errors
         if (validationResult.requiresBilling) {
           errorMessage = 'The Google Maps API requires billing to be enabled on the Google Cloud Project. Please enable billing at https://console.cloud.google.com/project/_/billing/enable';
+          
+          // Still return the key in this case since the key itself is valid, just needs billing
+          return res.status(401).json({
+            key: apiKey,  // Include the key even though it needs billing
+            error: 'Invalid API key',
+            message: errorMessage,
+            details: validationResult.errorMessage,
+            requiresBilling: true,
+            apiResponse: validationResult.apiResponse
+          });
         }
         
         console.error('Google Maps API key validation failed:', validationResult.errorMessage);
