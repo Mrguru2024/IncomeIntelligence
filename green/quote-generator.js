@@ -1751,11 +1751,7 @@ function createQuoteForm() {
     return false;
   });
   
-  locationInput.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    return false;
-  });
+  // Removed problematic click handler on locationInput that was preventing interaction
   
   // Add small info icon to indicate autocomplete functionality
   const infoIcon = document.createElement('span');
@@ -1894,16 +1890,9 @@ function createQuoteForm() {
   destinationInput.setAttribute('autocomplete', 'off');
   
   // Prevent default behavior that causes page refresh on mobile
-  destinationInput.addEventListener('focus', function(e) {
-    e.preventDefault();
-    return false;
-  });
+  // Removed problematic focus handler on destinationInput that was preventing interaction
   
-  destinationInput.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    return false;
-  });
+  // Removed problematic click handler on destinationInput that was preventing interaction
   
   // Add info icon
   const destInfoIcon = document.createElement('span');
