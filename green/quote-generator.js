@@ -2402,103 +2402,121 @@ function createAutomotiveQuoteForm() {
   const serviceSelect = createSelect('service_type', serviceOptions);
   form.appendChild(createFormGroup('Service Type', serviceSelect));
   
-  // Location for tax - with Google Places autocomplete
-  const addressContainer = document.createElement('div');
-  addressContainer.style.position = 'relative';
+  // Location section title
+  const locationSection = createSectionHeader('Service Locations', 'Enter starting and destination addresses to calculate distance');
+  form.appendChild(locationSection);
   
-  const addressInput = createInput('text', 'address', '', 'Full address for tax calculation');
-  addressInput.id = 'auto-address-input';
-  addressInput.setAttribute('autocomplete', 'off');
+  // Start address (for tax calculation and distance starting point)
+  const startAddressContainer = document.createElement('div');
+  startAddressContainer.style.position = 'relative';
+  
+  const startAddressInput = createInput('text', 'address', '', 'Your business or starting location');
+  startAddressInput.id = 'auto-address-input';
+  startAddressInput.setAttribute('autocomplete', 'off');
   
   // Add small info icon to indicate autocomplete functionality
-  const infoIcon = document.createElement('span');
-  infoIcon.innerHTML = '&#9432;'; // Info icon
-  infoIcon.style.position = 'absolute';
-  infoIcon.style.right = '10px';
-  infoIcon.style.top = '50%';
-  infoIcon.style.transform = 'translateY(-50%)';
-  infoIcon.style.color = 'var(--color-text-secondary)';
-  infoIcon.style.cursor = 'pointer';
-  infoIcon.title = 'Start typing for address suggestions';
+  const startInfoIcon = document.createElement('span');
+  startInfoIcon.innerHTML = '&#9432;'; // Info icon
+  startInfoIcon.style.position = 'absolute';
+  startInfoIcon.style.right = '10px';
+  startInfoIcon.style.top = '50%';
+  startInfoIcon.style.transform = 'translateY(-50%)';
+  startInfoIcon.style.color = 'var(--color-text-secondary)';
+  startInfoIcon.style.cursor = 'pointer';
+  startInfoIcon.title = 'Start typing for address suggestions';
   
-  addressContainer.appendChild(addressInput);
-  addressContainer.appendChild(infoIcon);
+  startAddressContainer.appendChild(startAddressInput);
+  startAddressContainer.appendChild(startInfoIcon);
   
-  // Add clear button
-  const clearBtn = document.createElement('button');
-  clearBtn.type = 'button';
-  clearBtn.textContent = '×';
-  clearBtn.style.position = 'absolute';
-  clearBtn.style.right = '30px';
-  clearBtn.style.top = '50%';
-  clearBtn.style.transform = 'translateY(-50%)';
-  clearBtn.style.background = 'none';
-  clearBtn.style.border = 'none';
-  clearBtn.style.fontSize = '18px';
-  clearBtn.style.cursor = 'pointer';
-  clearBtn.style.color = 'var(--color-text-secondary)';
-  clearBtn.style.display = 'none';
-  clearBtn.onclick = () => {
-    addressInput.value = '';
-    clearBtn.style.display = 'none';
+  // Add clear button for start address
+  const startClearBtn = document.createElement('button');
+  startClearBtn.type = 'button';
+  startClearBtn.textContent = '×';
+  startClearBtn.style.position = 'absolute';
+  startClearBtn.style.right = '30px';
+  startClearBtn.style.top = '50%';
+  startClearBtn.style.transform = 'translateY(-50%)';
+  startClearBtn.style.background = 'none';
+  startClearBtn.style.border = 'none';
+  startClearBtn.style.fontSize = '18px';
+  startClearBtn.style.cursor = 'pointer';
+  startClearBtn.style.color = 'var(--color-text-secondary)';
+  startClearBtn.style.display = 'none';
+  startClearBtn.onclick = () => {
+    startAddressInput.value = '';
+    startClearBtn.style.display = 'none';
   };
   
-  addressContainer.appendChild(clearBtn);
+  startAddressContainer.appendChild(startClearBtn);
   
   // Show/hide clear button based on input value
-  addressInput.addEventListener('input', () => {
-    clearBtn.style.display = addressInput.value ? 'block' : 'none';
+  startAddressInput.addEventListener('input', () => {
+    startClearBtn.style.display = startAddressInput.value ? 'block' : 'none';
   });
   
   // Add hidden element to store place data
   const placeDataElement = document.createElement('div');
   placeDataElement.id = 'auto-address-place-data';
   placeDataElement.style.display = 'none';
-  addressContainer.appendChild(placeDataElement);
+  startAddressContainer.appendChild(placeDataElement);
   
-  // Initialize Google Places Autocomplete
-  setTimeout(() => {
-    if (window.google && window.google.maps && window.google.maps.places) {
-      console.log('Initializing Places Autocomplete for auto-address-input');
-      const autocomplete = new google.maps.places.Autocomplete(addressInput, {
-        types: ['address'],
-        componentRestrictions: { country: 'us' }
-      });
-      
-      autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace();
-        
-        if (place.formatted_address) {
-          addressInput.value = place.formatted_address;
-          clearBtn.style.display = 'block';
-          
-          // Extract state from address_components
-          let state = '';
-          if (place.address_components) {
-            for (let component of place.address_components) {
-              // Look for the administrative_area_level_1 type (which is the state)
-              if (component.types.includes('administrative_area_level_1')) {
-                state = component.short_name; // Get the state code (e.g., "CA", "NY")
-                break;
-              }
-            }
-          }
-          
-          // Store state in data attribute for later use
-          if (state) {
-            placeDataElement.dataset.state = state;
-            console.log('Google Places found state:', state);
-          }
-        }
-      });
-      
-      console.log('Google Places Autocomplete initialized successfully');
-    } else {
-      console.log('Google Places API not available, using fallback address validation');
-    }
-  }, 2000);
+  form.appendChild(createFormGroup('Start Address', startAddressContainer));
   
-  form.appendChild(createFormGroup('Service Address', addressContainer));
+  // Destination address (for service location and distance calculation)
+  const destAddressContainer = document.createElement('div');
+  destAddressContainer.style.position = 'relative';
+  
+  const destAddressInput = createInput('text', 'destination_address', '', 'Customer or service location');
+  destAddressInput.id = 'destination-input';
+  destAddressInput.setAttribute('autocomplete', 'off');
+  
+  // Add small info icon for destination address
+  const destInfoIcon = document.createElement('span');
+  destInfoIcon.innerHTML = '&#9432;'; // Info icon
+  destInfoIcon.style.position = 'absolute';
+  destInfoIcon.style.right = '10px';
+  destInfoIcon.style.top = '50%';
+  destInfoIcon.style.transform = 'translateY(-50%)';
+  destInfoIcon.style.color = 'var(--color-text-secondary)';
+  destInfoIcon.style.cursor = 'pointer';
+  destInfoIcon.title = 'Start typing for address suggestions';
+  
+  destAddressContainer.appendChild(destAddressInput);
+  destAddressContainer.appendChild(destInfoIcon);
+  
+  // Add clear button for destination address
+  const destClearBtn = document.createElement('button');
+  destClearBtn.type = 'button';
+  destClearBtn.textContent = '×';
+  destClearBtn.style.position = 'absolute';
+  destClearBtn.style.right = '30px';
+  destClearBtn.style.top = '50%';
+  destClearBtn.style.transform = 'translateY(-50%)';
+  destClearBtn.style.background = 'none';
+  destClearBtn.style.border = 'none';
+  destClearBtn.style.fontSize = '18px';
+  destClearBtn.style.cursor = 'pointer';
+  destClearBtn.style.color = 'var(--color-text-secondary)';
+  destClearBtn.style.display = 'none';
+  destClearBtn.onclick = () => {
+    destAddressInput.value = '';
+    destClearBtn.style.display = 'none';
+  };
+  
+  destAddressContainer.appendChild(destClearBtn);
+  
+  // Show/hide clear button based on input value
+  destAddressInput.addEventListener('input', () => {
+    destClearBtn.style.display = destAddressInput.value ? 'block' : 'none';
+  });
+  
+  // Add hidden element to store destination place data
+  const destPlaceDataElement = document.createElement('div');
+  destPlaceDataElement.id = 'destination-place-data';
+  destPlaceDataElement.style.display = 'none';
+  destAddressContainer.appendChild(destPlaceDataElement);
+  
+  form.appendChild(createFormGroup('Destination Address', destAddressContainer));
   
   // Options section
   const optionsSection = createSectionHeader('Additional Options', 'Customize your quote settings');
@@ -2585,9 +2603,10 @@ function handleAutoQuoteFormSubmit(e) {
   const model = formData.get('vehicle_model');
   const year = formData.get('vehicle_year');
   const serviceType = formData.get('service_type');
-  const address = formData.get('address');
+  const startAddress = formData.get('address');
+  const destinationAddress = formData.get('destination_address');
   
-  if (!make || !model || !year || !serviceType || !address) {
+  if (!make || !model || !year || !serviceType || !startAddress || !destinationAddress) {
     showToast('Please fill in all required fields', 'error');
     return;
   }
@@ -2597,13 +2616,26 @@ function handleAutoQuoteFormSubmit(e) {
   resultSection.innerHTML = '<div style="text-align: center; padding: 20px;">Generating automotive quote...</div>';
   
   try {
+    // Get location data for distance calculation
+    const startPlaceData = document.getElementById('auto-address-place-data').dataset;
+    const destPlaceData = document.getElementById('destination-place-data').dataset;
+    
     // Transform form data into object
     const quoteData = {
       vehicle_make: make,
       vehicle_model: model,
       vehicle_year: parseInt(year),
       service_type: serviceType,
-      address: address,
+      address: startAddress,
+      destination_address: destinationAddress,
+      startLatLng: {
+        lat: startPlaceData.lat ? parseFloat(startPlaceData.lat) : null,
+        lng: startPlaceData.lng ? parseFloat(startPlaceData.lng) : null
+      },
+      destLatLng: {
+        lat: destPlaceData.lat ? parseFloat(destPlaceData.lat) : null,
+        lng: destPlaceData.lng ? parseFloat(destPlaceData.lng) : null
+      },
       labor_adjustment: parseInt(formData.get('labor_adjustment') || '0'),
       emergency: formData.get('emergency') === 'on'
     };
@@ -2634,19 +2666,22 @@ function generateAutoQuote(quoteData) {
     vehicle_year,
     service_type,
     address,
+    destination_address,
+    startLatLng,
+    destLatLng,
     labor_adjustment,
     emergency
   } = quoteData;
   
-  // Get state and tax rate
-  const state = validateAddressGetState(address);
+  // Get state and tax rate based on the service address (destination)
+  const state = validateAddressGetState(destination_address || address);
   const taxRate = getStateTaxRateByState(state);
   
   // Get base labor hours for this service type
   const baseLaborHours = autoLaborHours[service_type] || 2;
   
   // Get market rate for this location
-  const marketRate = getAutoMarketRate(address);
+  const marketRate = getAutoMarketRate(destination_address || address);
   
   // Apply experience adjustment to labor rate based on years of experience
   // Convert years to a percentage adjustment (0 years: -15%, 20 years: +25%)
@@ -2672,8 +2707,46 @@ function generateAutoQuote(quoteData) {
     keycodeCost = keycodePrices[normalizedMake] || 50; // Default to $50 if not found
   }
   
-  // Calculate subtotal
-  const subtotal = laborCost + partsCost + keycodeCost;
+  // Calculate distance and travel costs if we have both addresses
+  let travelDistance = 0;
+  let travelCost = 0;
+  let fuelCost = 0;
+  let travelServiceFee = 0;
+  let gasPrice = 3.89; // Default gas price if we can't determine it
+
+  // Only calculate travel costs if we have different addresses
+  if (address && destination_address && address !== destination_address) {
+    // Try to calculate using coordinates if available
+    if (startLatLng?.lat && startLatLng?.lng && destLatLng?.lat && destLatLng?.lng) {
+      travelDistance = calculateDistance(
+        startLatLng.lat, 
+        startLatLng.lng, 
+        destLatLng.lat, 
+        destLatLng.lng
+      );
+    } else {
+      // Fallback to a rough estimate based on zip codes or city names
+      travelDistance = estimateDistanceFromAddresses(address, destination_address);
+    }
+    
+    // Get current gas price for the state
+    gasPrice = getGasPriceForState(state);
+    
+    // Calculate travel costs (assume 25 mpg and round-trip)
+    const roundTripDistance = travelDistance * 2;
+    fuelCost = (roundTripDistance / 25) * gasPrice;
+    
+    // Add service fee for travel time (based on adjusted labor rate)
+    // Assume average speed of 30 mph in city, so hours = distance / 30
+    const travelTimeHours = roundTripDistance / 30;
+    travelServiceFee = travelTimeHours * (adjustedLaborRate * 0.75); // 75% of regular rate for travel time
+    
+    // Total travel cost
+    travelCost = fuelCost + travelServiceFee;
+  }
+  
+  // Calculate subtotal including travel costs
+  const subtotal = laborCost + partsCost + keycodeCost + travelCost;
   
   // Calculate tax (applied to parts only)
   const taxAmount = partsCost * taxRate;
@@ -2681,13 +2754,41 @@ function generateAutoQuote(quoteData) {
   // Calculate total
   const total = subtotal + taxAmount;
   
-  // Return quote result
+  // Calculate profit margins for business analysis
+  const costs = {
+    materials: partsCost * 0.7, // Assuming 30% markup on parts
+    keycode: keycodeCost * 0.9, // Assuming 10% markup on keycode service
+    labor: baseLaborHours * 25, // Assuming $25/hr base cost for technician
+    travel: fuelCost, // Just the fuel cost (not the service fee)
+  };
+  
+  const totalCost = Object.values(costs).reduce((sum, val) => sum + val, 0);
+  const profit = total - totalCost - taxAmount;
+  const profitMargin = (profit / total) * 100;
+  
+  // Target profit margin is 30%
+  const targetMargin = 30;
+  
+  // Generate profit assessment text
+  let profitAssessment = '';
+  if (profitMargin < 15) {
+    profitAssessment = 'Warning: This quote has a very low profit margin. Consider adjusting pricing.';
+  } else if (profitMargin < 25) {
+    profitAssessment = 'This quote has a below-target profit margin. Additional services could improve profitability.';
+  } else if (profitMargin < 35) {
+    profitAssessment = 'This quote has a healthy profit margin within the target range.';
+  } else {
+    profitAssessment = 'This quote has an excellent profit margin above the target. Good job!';
+  }
+  
+  // Return quote result with all the calculated values
   return {
     vehicle_make,
     vehicle_model,
     vehicle_year,
     service_type,
     address,
+    destination_address,
     state,
     baseLaborHours,
     adjustedLaborRate,
@@ -2697,10 +2798,121 @@ function generateAutoQuote(quoteData) {
     emergency,
     taxRate,
     taxAmount,
+    travelDistance,
+    travelCost,
+    fuelCost,
+    travelServiceFee,
+    gasPrice,
     subtotal,
     total,
+    profit,
+    profitMargin,
+    targetMargin,
+    profitAssessment,
     labor_adjustment // Include years of experience in the result
   };
+}
+
+/**
+ * Calculate the distance between two points using the Haversine formula
+ * @param {number} lat1 - Starting point latitude
+ * @param {number} lon1 - Starting point longitude
+ * @param {number} lat2 - Ending point latitude
+ * @param {number} lon2 - Ending point longitude
+ * @returns {number} Distance in miles
+ */
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  // Earth's radius in miles
+  const R = 3958.8;
+  
+  // Convert degrees to radians
+  const toRad = (degrees) => degrees * Math.PI / 180;
+  
+  // Calculate differences
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  
+  // Haversine formula
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+  
+  return Math.round(distance * 10) / 10; // Round to 1 decimal place
+}
+
+/**
+ * Estimate distance between two addresses using a simplified approach
+ * @param {string} address1 - First address
+ * @param {string} address2 - Second address
+ * @returns {number} Estimated distance in miles
+ */
+function estimateDistanceFromAddresses(address1, address2) {
+  // Extract zip codes if possible
+  const zip1 = extractZipCode(address1);
+  const zip2 = extractZipCode(address2);
+  
+  if (zip1 && zip2) {
+    // If same zip, return a minimum distance (1-3 miles)
+    if (zip1 === zip2) {
+      return 2;
+    }
+    
+    // If first 3 digits match, they're in the same region (5-15 miles)
+    if (zip1.substring(0, 3) === zip2.substring(0, 3)) {
+      return 10;
+    }
+    
+    // Different regions but perhaps same state (15-50 miles)
+    if (zip1.substring(0, 1) === zip2.substring(0, 1)) {
+      return 30;
+    }
+    
+    // Different states (50+ miles)
+    return 50;
+  }
+  
+  // If no zip codes, use a default distance
+  return 15;
+}
+
+/**
+ * Extract ZIP code from an address string
+ * @param {string} address - Address string
+ * @returns {string|null} ZIP code or null if not found
+ */
+function extractZipCode(address) {
+  // Try to match a 5-digit ZIP code
+  const zipMatch = address.match(/\b\d{5}\b/);
+  return zipMatch ? zipMatch[0] : null;
+}
+
+/**
+ * Get current gas price for a state
+ * @param {string} state - State code (e.g., "CA", "NY")
+ * @returns {number} Gas price per gallon
+ */
+function getGasPriceForState(state) {
+  // Gas price data by state (as of April 2024)
+  const gasPrices = {
+    'AL': 3.19, 'AK': 3.94, 'AZ': 3.59, 'AR': 3.17, 'CA': 4.87,
+    'CO': 3.41, 'CT': 3.44, 'DE': 3.28, 'FL': 3.38, 'GA': 3.29,
+    'HI': 4.69, 'ID': 3.49, 'IL': 3.69, 'IN': 3.42, 'IA': 3.25,
+    'KS': 3.17, 'KY': 3.19, 'LA': 3.19, 'ME': 3.39, 'MD': 3.37,
+    'MA': 3.38, 'MI': 3.47, 'MN': 3.28, 'MS': 3.08, 'MO': 3.22,
+    'MT': 3.42, 'NE': 3.24, 'NV': 4.09, 'NH': 3.29, 'NJ': 3.37,
+    'NM': 3.29, 'NY': 3.58, 'NC': 3.32, 'ND': 3.33, 'OH': 3.33,
+    'OK': 3.16, 'OR': 3.81, 'PA': 3.54, 'RI': 3.38, 'SC': 3.19,
+    'SD': 3.31, 'TN': 3.23, 'TX': 3.15, 'UT': 3.58, 'VT': 3.45,
+    'VA': 3.29, 'WA': 4.12, 'WV': 3.34, 'WI': 3.32, 'WY': 3.39,
+    'DC': 3.59
+  };
+  
+  // Return the gas price for the state or a default value
+  return gasPrices[state] || 3.50;
 }
 
 /**
@@ -2770,13 +2982,39 @@ function displayAutoQuoteResult(quoteResult) {
     quoteResult.laborCost
   ));
   
-  // Parts
-  breakdownList.appendChild(createBreakdownItem('Parts', quoteResult.partsCost));
+  // Parts and Keycode Section - Grouped but clearly described
+  const partsKeycodeContainer = document.createElement('div');
+  partsKeycodeContainer.style.marginBottom = '8px';
   
-  // Keycode if applicable
+  // Parts Row
+  const partsRow = createBreakdownItem('Parts & Materials', quoteResult.partsCost);
+  partsKeycodeContainer.appendChild(partsRow);
+  
+  // If keycode is applicable, add details beneath parts
   if (quoteResult.keycodeCost > 0) {
-    breakdownList.appendChild(createBreakdownItem('Keycode', quoteResult.keycodeCost));
+    // Create detailed description row for keycode (without amount)
+    const keycodeDetail = document.createElement('div');
+    keycodeDetail.style.fontSize = '13px';
+    keycodeDetail.style.color = 'var(--color-text-secondary)';
+    keycodeDetail.style.marginLeft = '20px';
+    keycodeDetail.style.paddingTop = '4px';
+    keycodeDetail.style.paddingBottom = '4px';
+    keycodeDetail.style.display = 'flex';
+    keycodeDetail.style.justifyContent = 'space-between';
+    
+    const keycodeDetailLabel = document.createElement('div');
+    keycodeDetailLabel.textContent = `• Keycode Lookup (${quoteResult.vehicle_make} ${quoteResult.vehicle_model})`;
+    
+    const keycodeDetailAmount = document.createElement('div');
+    keycodeDetailAmount.textContent = `$${quoteResult.keycodeCost.toFixed(2)}`;
+    
+    keycodeDetail.appendChild(keycodeDetailLabel);
+    keycodeDetail.appendChild(keycodeDetailAmount);
+    partsKeycodeContainer.appendChild(keycodeDetail);
   }
+  
+  // Add the container to the breakdown list
+  breakdownList.appendChild(partsKeycodeContainer);
   
   // Subtotal
   breakdownList.appendChild(createBreakdownItem('Subtotal', quoteResult.subtotal));
