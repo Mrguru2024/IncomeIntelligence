@@ -5354,3 +5354,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   return httpServer;
 }
 
+// Helper function to validate Google Maps API key
+async function validateGoogleMapsApiKey(): Promise<{ isValid: boolean; errorMessage?: string }> {
+  try {
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    
+    if (!apiKey) {
+      return { isValid: false, errorMessage: 'API key is not configured' };
+    }
+    
+    // Do a simple API call to validate the key
+    // Using the Geocoding API as it's one of the simplest to test
+    const testUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=${apiKey}`;
+    
+    const response = await fetch(testUrl);
+    const data = await response.json();
+    
+    // Check if the response indicates a valid key
+    if (data.status === 'REQUEST_DENIED') {
+      return { 
+        isValid: false, 
+        errorMessage: data.error_message || 'API key validation failed' 
+      };
+    }
+    
+    if (data.status === 'OK' || data.status === 'ZERO_RESULTS') {
+      console.log('Successfully validated Google Maps API key');
+      return { isValid: true };
+    }
+    
+    // Any other status is considered an error
+    return { 
+      isValid: false, 
+      errorMessage: `Unexpected API response: ${data.status}` 
+    };
+    
+  } catch (error) {
+    console.error('Error validating Google Maps API key:', error);
+    return { 
+      isValid: false, 
+      errorMessage: error.message || 'Network error during validation'
+    };
+  }
+}
