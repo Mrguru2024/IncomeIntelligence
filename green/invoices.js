@@ -3,6 +3,127 @@
  * This file handles the invoice creation, management, and PDF generation functionality
  */
 
+// Cache for invoices data to avoid unnecessary API calls
+let invoicesCache = null;
+
+// Format currency
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(amount);
+};
+
+// Format date
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric'
+  }).format(date);
+};
+
+// Helper for showing notifications
+function showNotification(message, type = 'success') {
+  // Simple notification implementation with vanilla JS
+  const notification = document.createElement('div');
+  notification.style.position = 'fixed';
+  notification.style.top = '20px';
+  notification.style.right = '20px';
+  notification.style.padding = '12px 16px';
+  notification.style.borderRadius = '6px';
+  notification.style.maxWidth = '300px';
+  notification.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+  notification.style.zIndex = '9999';
+  notification.style.display = 'flex';
+  notification.style.alignItems = 'center';
+  notification.style.gap = '8px';
+  notification.style.animation = 'slide-in 0.3s ease-out forwards';
+  
+  // Set colors based on notification type
+  if (type === 'success') {
+    notification.style.backgroundColor = '#10B981';
+    notification.style.color = 'white';
+  } else if (type === 'error') {
+    notification.style.backgroundColor = '#EF4444';
+    notification.style.color = 'white';
+  } else if (type === 'warning') {
+    notification.style.backgroundColor = '#F59E0B';
+    notification.style.color = 'white';
+  } else {
+    notification.style.backgroundColor = '#3B82F6';
+    notification.style.color = 'white';
+  }
+  
+  // Add icon based on type
+  let iconSvg = '';
+  if (type === 'success') {
+    iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+  } else if (type === 'error') {
+    iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+  } else if (type === 'warning') {
+    iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+  } else {
+    iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+  }
+  
+  const icon = document.createElement('div');
+  icon.innerHTML = iconSvg;
+  
+  const text = document.createElement('div');
+  text.textContent = message;
+  text.style.flex = '1';
+  
+  notification.appendChild(icon);
+  notification.appendChild(text);
+  
+  // Add close button
+  const closeBtn = document.createElement('button');
+  closeBtn.style.background = 'transparent';
+  closeBtn.style.border = 'none';
+  closeBtn.style.color = 'inherit';
+  closeBtn.style.cursor = 'pointer';
+  closeBtn.style.padding = '0';
+  closeBtn.style.marginLeft = '8px';
+  closeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+  
+  closeBtn.addEventListener('click', () => {
+    notification.style.animation = 'slide-out 0.3s ease-in forwards';
+    setTimeout(() => {
+      document.body.removeChild(notification);
+    }, 300);
+  });
+  
+  notification.appendChild(closeBtn);
+  
+  // Auto-dismiss after 5 seconds
+  setTimeout(() => {
+    notification.style.animation = 'slide-out 0.3s ease-in forwards';
+    setTimeout(() => {
+      if (document.body.contains(notification)) {
+        document.body.removeChild(notification);
+      }
+    }, 300);
+  }, 5000);
+  
+  // Add animations
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slide-in {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slide-out {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  document.body.appendChild(notification);
+}
+
 // Display loading state on page
 function showLoadingState(containerId) {
   const container = document.getElementById(containerId);
@@ -162,18 +283,36 @@ function renderInvoiceUI(container, invoices) {
                   <td style="padding: 16px; color: var(--color-text-secondary);">${formatDate(invoice.issuedDate)}</td>
                   <td style="padding: 16px;">${getStatusBadge(invoice.status)}</td>
                   <td style="padding: 16px;">
-                    <div style="display: flex; gap: 8px;">
-                      <button class="view-invoice-btn" data-id="${invoice.id}" style="padding: 6px; background: transparent; border: none; color: var(--color-primary); cursor: pointer;">
+                    <div class="action-buttons" style="display: flex; gap: 8px; flex-wrap: nowrap;">
+                      <button class="view-invoice-btn" data-id="${invoice.id}" style="padding: 6px; background: transparent; border: none; color: var(--color-primary); cursor: pointer;" title="View Invoice">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                           <circle cx="12" cy="12" r="3"></circle>
                         </svg>
                       </button>
-                      <button class="download-invoice-btn" data-id="${invoice.id}" style="padding: 6px; background: transparent; border: none; color: var(--color-primary); cursor: pointer;">
+                      <button class="edit-invoice-btn" data-id="${invoice.id}" style="padding: 6px; background: transparent; border: none; color: var(--color-primary); cursor: pointer;" title="Edit Invoice">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                      <button class="send-invoice-btn" data-id="${invoice.id}" style="padding: 6px; background: transparent; border: none; color: var(--color-primary); cursor: pointer;" title="Send Invoice">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="22" y1="2" x2="11" y2="13"></line>
+                          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                      </button>
+                      <button class="download-invoice-btn" data-id="${invoice.id}" style="padding: 6px; background: transparent; border: none; color: var(--color-primary); cursor: pointer;" title="Download Invoice">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                           <polyline points="7 10 12 15 17 10"></polyline>
                           <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                      </button>
+                      <button class="delete-invoice-btn" data-id="${invoice.id}" style="padding: 6px; background: transparent; border: none; color: #EF4444; cursor: pointer;" title="Delete Invoice">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                         </svg>
                       </button>
                     </div>
@@ -204,15 +343,32 @@ function renderInvoiceUI(container, invoices) {
     </div>
   `;
   
+  // Save the invoices data for later use
+  invoicesCache = invoices;
+  
   // Add event listeners
   document.getElementById('create-invoice-btn')?.addEventListener('click', openCreateInvoiceModal);
   document.getElementById('empty-create-invoice-btn')?.addEventListener('click', openCreateInvoiceModal);
   
-  // Add event listeners to view and download buttons
+  // Add event listeners to all buttons
   document.querySelectorAll('.view-invoice-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const invoiceId = e.currentTarget.getAttribute('data-id');
       viewInvoice(invoiceId);
+    });
+  });
+  
+  document.querySelectorAll('.edit-invoice-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const invoiceId = e.currentTarget.getAttribute('data-id');
+      editInvoice(invoiceId);
+    });
+  });
+  
+  document.querySelectorAll('.send-invoice-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const invoiceId = e.currentTarget.getAttribute('data-id');
+      sendInvoice(invoiceId);
     });
   });
   
@@ -222,30 +378,884 @@ function renderInvoiceUI(container, invoices) {
       downloadInvoicePdf(invoiceId);
     });
   });
+  
+  document.querySelectorAll('.delete-invoice-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const invoiceId = e.currentTarget.getAttribute('data-id');
+      deleteInvoice(invoiceId);
+    });
+  });
+  
+  // Make the table responsive
+  makeTableResponsive();
+}
+
+// Helper function to ensure table is responsive on mobile
+function makeTableResponsive() {
+  // Only apply these changes on mobile
+  const isMobile = window.innerWidth < 768;
+  
+  if (isMobile) {
+    // Get the table
+    const table = document.querySelector('.invoices-container table');
+    if (!table) return;
+    
+    // Add responsive styles
+    table.style.display = 'block';
+    table.style.overflowX = 'auto';
+    
+    // Handle column visibility for small screens
+    const allRows = table.querySelectorAll('tr');
+    allRows.forEach(row => {
+      // Hide the date column (4th column) on mobile
+      const dateCell = row.children[3];
+      if (dateCell) {
+        dateCell.style.display = 'none';
+      }
+    });
+    
+    // Make action buttons scrollable in their cell
+    const actionCells = table.querySelectorAll('td:last-child');
+    actionCells.forEach(cell => {
+      cell.style.maxWidth = '100px';
+      cell.style.overflow = 'auto';
+    });
+  }
 }
 
 // Open invoice creation modal
 function openCreateInvoiceModal() {
-  // Show an alert message for now
-  alert('Coming Soon! Invoice creation functionality will be available in the next update.');
+  // Create the modal element
+  const modal = document.createElement('div');
+  modal.className = 'invoice-modal';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modal.style.display = 'flex';
+  modal.style.justifyContent = 'center';
+  modal.style.alignItems = 'center';
+  modal.style.zIndex = '9999';
+  modal.style.padding = '20px';
   
-  // In a future update, we would implement a proper modal here
+  // Create the modal content
+  const modalContent = document.createElement('div');
+  modalContent.style.backgroundColor = 'white';
+  modalContent.style.borderRadius = '8px';
+  modalContent.style.maxWidth = '600px';
+  modalContent.style.width = '100%';
+  modalContent.style.maxHeight = '90vh';
+  modalContent.style.overflow = 'auto';
+  modalContent.style.position = 'relative';
+  modalContent.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+  
+  // Add heading and close button
+  modalContent.innerHTML = `
+    <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #111827;">Create New Invoice</h2>
+        <button class="close-modal" style="background: transparent; border: none; cursor: pointer;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <form id="create-invoice-form" style="padding: 20px;">
+      <div style="margin-bottom: 16px;">
+        <label for="client-name" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Client Name</label>
+        <input type="text" id="client-name" name="clientName" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;" required>
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <label for="client-email" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Client Email</label>
+        <input type="email" id="client-email" name="clientEmail" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;" required>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label for="issue-date" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Issue Date</label>
+          <input type="date" id="issue-date" name="issuedDate" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;" required>
+        </div>
+        <div>
+          <label for="due-date" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Due Date</label>
+          <input type="date" id="due-date" name="dueDate" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;" required>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Invoice Items</label>
+        <div id="invoice-items" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+          <div class="invoice-item" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+              <input type="text" name="description[]" placeholder="Description" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+              <input type="number" name="quantity[]" placeholder="Quantity" min="1" value="1" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+              <input type="number" name="price[]" placeholder="Price" min="0" step="0.01" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+            </div>
+          </div>
+        </div>
+        <button type="button" id="add-item-btn" style="width: 100%; padding: 8px; background-color: #f3f4f6; border: 1px dashed #d1d5db; border-radius: 6px; color: #6b7280; cursor: pointer;">
+          + Add Another Item
+        </button>
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <label for="invoice-notes" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Notes</label>
+        <textarea id="invoice-notes" name="notes" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; min-height: 80px;"></textarea>
+      </div>
+      
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+        <button type="button" class="cancel-btn" style="padding: 8px 16px; background-color: white; border: 1px solid #d1d5db; border-radius: 6px; color: #4b5563;">Cancel</button>
+        <button type="submit" style="padding: 8px 16px; background-color: var(--color-primary); border: none; border-radius: 6px; color: white; font-weight: 500;">Create Invoice</button>
+      </div>
+    </form>
+  `;
+  
+  // Add the modal to the DOM
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+  
+  // Set default dates
+  const today = new Date();
+  const dueDate = new Date();
+  dueDate.setDate(today.getDate() + 14); // Set due date to 14 days from now
+  
+  document.getElementById('issue-date').valueAsDate = today;
+  document.getElementById('due-date').valueAsDate = dueDate;
+  
+  // Add event listeners
+  document.querySelector('.close-modal').addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  document.querySelector('.cancel-btn').addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  document.getElementById('add-item-btn').addEventListener('click', () => {
+    const itemsContainer = document.getElementById('invoice-items');
+    const newItem = document.createElement('div');
+    newItem.className = 'invoice-item';
+    newItem.style.marginBottom = '12px';
+    newItem.style.paddingBottom = '12px';
+    newItem.style.borderBottom = '1px solid #e5e7eb';
+    
+    newItem.innerHTML = `
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; margin-bottom: 8px;">
+        <input type="text" name="description[]" placeholder="Description" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+        <input type="number" name="quantity[]" placeholder="Quantity" min="1" value="1" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+        <input type="number" name="price[]" placeholder="Price" min="0" step="0.01" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+        <button type="button" class="remove-item" style="padding: 4px; background: transparent; border: none; color: #EF4444; cursor: pointer;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        </button>
+      </div>
+    `;
+    
+    itemsContainer.appendChild(newItem);
+    
+    // Add remove item event listener
+    newItem.querySelector('.remove-item').addEventListener('click', () => {
+      itemsContainer.removeChild(newItem);
+    });
+  });
+  
+  // Handle form submission
+  document.getElementById('create-invoice-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // Show processing state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating...';
+    
+    // Get form data
+    const formData = new FormData(e.target);
+    
+    // Prepare invoice data
+    const invoiceData = {
+      clientName: formData.get('clientName'),
+      clientEmail: formData.get('clientEmail'),
+      issuedDate: formData.get('issuedDate'),
+      dueDate: formData.get('dueDate'),
+      notes: formData.get('notes'),
+      status: 'draft',
+      items: [],
+    };
+    
+    // Get all descriptions, quantities, and prices
+    const descriptions = formData.getAll('description[]');
+    const quantities = formData.getAll('quantity[]');
+    const prices = formData.getAll('price[]');
+    
+    // Calculate total amount and create items array
+    let totalAmount = 0;
+    for (let i = 0; i < descriptions.length; i++) {
+      const quantity = parseInt(quantities[i], 10);
+      const price = parseFloat(prices[i]);
+      const amount = quantity * price;
+      
+      invoiceData.items.push({
+        description: descriptions[i],
+        quantity,
+        price,
+        amount
+      });
+      
+      totalAmount += amount;
+    }
+    
+    invoiceData.totalAmount = totalAmount;
+    
+    // Create the invoice
+    fetch('/api/invoices', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(invoiceData)
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to create invoice');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Close the modal
+        document.body.removeChild(modal);
+        
+        // Show success notification
+        showNotification('Invoice created successfully', 'success');
+        
+        // Refresh the invoices list
+        renderInvoicesPage();
+      })
+      .catch(error => {
+        console.error('Error creating invoice:', error);
+        
+        // Show error notification
+        showNotification('Failed to create invoice: ' + error.message, 'error');
+        
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      });
+  });
 }
 
 // View invoice details
 function viewInvoice(invoiceId) {
-  // Show an alert message for now
-  alert('Coming Soon! Invoice details view will be available in the next update.');
+  // Find the invoice in the cache
+  const invoice = invoicesCache.find(inv => inv.id === invoiceId);
   
-  // In a future update, we would implement a detail view
+  if (!invoice) {
+    showNotification('Invoice not found', 'error');
+    return;
+  }
+  
+  // Create the modal element
+  const modal = document.createElement('div');
+  modal.className = 'invoice-modal';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modal.style.display = 'flex';
+  modal.style.justifyContent = 'center';
+  modal.style.alignItems = 'center';
+  modal.style.zIndex = '9999';
+  modal.style.padding = '20px';
+  
+  // Create the modal content
+  const modalContent = document.createElement('div');
+  modalContent.style.backgroundColor = 'white';
+  modalContent.style.borderRadius = '8px';
+  modalContent.style.maxWidth = '800px';
+  modalContent.style.width = '100%';
+  modalContent.style.maxHeight = '90vh';
+  modalContent.style.overflow = 'auto';
+  modalContent.style.position = 'relative';
+  modalContent.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+  
+  // Calculate total items and amount
+  const totalItems = invoice.items ? invoice.items.length : 0;
+  
+  // Format dates
+  const issuedDate = formatDate(invoice.issuedDate);
+  const dueDate = formatDate(invoice.dueDate);
+  
+  // Add heading and close button
+  modalContent.innerHTML = `
+    <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #111827;">Invoice #${invoice.invoiceNumber || invoice.id}</h2>
+        <button class="close-modal" style="background: transparent; border: none; cursor: pointer;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <div style="padding: 20px;">
+      <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px; margin-bottom: 30px;">
+        <div>
+          <h3 style="font-size: 16px; color: #4b5563; margin-bottom: 8px;">From</h3>
+          <p style="font-size: 16px; font-weight: 600; color: #111827; margin-bottom: 4px;">Your Company Name</p>
+          <p style="color: #6b7280; margin-bottom: 4px;">your-email@example.com</p>
+        </div>
+        
+        <div>
+          <h3 style="font-size: 16px; color: #4b5563; margin-bottom: 8px;">To</h3>
+          <p style="font-size: 16px; font-weight: 600; color: #111827; margin-bottom: 4px;">${invoice.clientName}</p>
+          <p style="color: #6b7280; margin-bottom: 4px;">${invoice.clientEmail || 'No email provided'}</p>
+        </div>
+        
+        <div>
+          <h3 style="font-size: 16px; color: #4b5563; margin-bottom: 8px;">Invoice Details</h3>
+          <div style="display: flex; gap: 20px;">
+            <div>
+              <p style="color: #6b7280; margin-bottom: 4px;">Date Issued:</p>
+              <p style="color: #6b7280; margin-bottom: 4px;">Due Date:</p>
+              <p style="color: #6b7280; margin-bottom: 4px;">Status:</p>
+            </div>
+            <div>
+              <p style="font-weight: 500; color: #111827; margin-bottom: 4px;">${issuedDate}</p>
+              <p style="font-weight: 500; color: #111827; margin-bottom: 4px;">${dueDate}</p>
+              <p style="margin-bottom: 4px;">
+                <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 12px; font-weight: 500; 
+                  background-color: ${invoice.status.toLowerCase() === 'paid' ? '#DCFCE7' : 
+                                      invoice.status.toLowerCase() === 'pending' ? '#FEF3C7' :
+                                      invoice.status.toLowerCase() === 'overdue' ? '#FEE2E2' : '#F3F4F6'}; 
+                  color: ${invoice.status.toLowerCase() === 'paid' ? '#166534' : 
+                          invoice.status.toLowerCase() === 'pending' ? '#92400E' :
+                          invoice.status.toLowerCase() === 'overdue' ? '#B91C1C' : '#4B5563'};">
+                  ${invoice.status}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 30px;">
+        <h3 style="font-size: 16px; color: #4b5563; margin-bottom: 12px;">Invoice Items</h3>
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background-color: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                <th style="text-align: left; padding: 12px 16px; font-weight: 500; color: #6b7280;">Description</th>
+                <th style="text-align: right; padding: 12px 16px; font-weight: 500; color: #6b7280;">Quantity</th>
+                <th style="text-align: right; padding: 12px 16px; font-weight: 500; color: #6b7280;">Price</th>
+                <th style="text-align: right; padding: 12px 16px; font-weight: 500; color: #6b7280;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${invoice.items ? invoice.items.map(item => `
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                  <td style="padding: 12px 16px; color: #111827;">${item.description}</td>
+                  <td style="text-align: right; padding: 12px 16px; color: #111827;">${item.quantity}</td>
+                  <td style="text-align: right; padding: 12px 16px; color: #111827;">${formatCurrency(item.price)}</td>
+                  <td style="text-align: right; padding: 12px 16px; color: #111827; font-weight: 500;">${formatCurrency(item.amount)}</td>
+                </tr>
+              `).join('') : `
+                <tr>
+                  <td colspan="4" style="padding: 12px 16px; color: #6b7280; text-align: center;">No items</td>
+                </tr>
+              `}
+            </tbody>
+            <tfoot>
+              <tr style="background-color: #f9fafb;">
+                <td colspan="3" style="padding: 12px 16px; text-align: right; font-weight: 500; color: #111827;">Total:</td>
+                <td style="padding: 12px 16px; text-align: right; font-weight: 600; color: #111827; font-size: 16px;">${formatCurrency(invoice.totalAmount)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      
+      ${invoice.notes ? `
+        <div style="margin-bottom: 30px;">
+          <h3 style="font-size: 16px; color: #4b5563; margin-bottom: 8px;">Notes</h3>
+          <p style="color: #6b7280; white-space: pre-line;">${invoice.notes}</p>
+        </div>
+      ` : ''}
+      
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+        <button type="button" class="edit-invoice-btn" data-id="${invoice.id}" style="padding: 8px 16px; background-color: white; border: 1px solid #d1d5db; border-radius: 6px; color: #4b5563; display: flex; align-items: center; gap: 6px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Edit
+        </button>
+        
+        <button type="button" class="download-pdf-btn" data-id="${invoice.id}" style="padding: 8px 16px; background-color: white; border: 1px solid #d1d5db; border-radius: 6px; color: #4b5563; display: flex; align-items: center; gap: 6px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download
+        </button>
+        
+        <button type="button" class="send-email-btn" data-id="${invoice.id}" style="padding: 8px 16px; background-color: var(--color-primary); border: none; border-radius: 6px; color: white; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+          Send Invoice
+        </button>
+      </div>
+    </div>
+  `;
+  
+  // Add the modal to the DOM
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+  
+  // Add event listeners
+  document.querySelector('.close-modal').addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  // Edit invoice button
+  document.querySelector('.edit-invoice-btn').addEventListener('click', (e) => {
+    document.body.removeChild(modal);
+    editInvoice(invoiceId);
+  });
+  
+  // Download PDF button
+  document.querySelector('.download-pdf-btn').addEventListener('click', (e) => {
+    downloadInvoicePdf(invoiceId);
+  });
+  
+  // Send email button
+  document.querySelector('.send-email-btn').addEventListener('click', (e) => {
+    sendInvoice(invoiceId);
+  });
+}
+
+// Edit invoice
+function editInvoice(invoiceId) {
+  // Find the invoice in the cache
+  const invoice = invoicesCache.find(inv => inv.id === invoiceId);
+  
+  if (!invoice) {
+    showNotification('Invoice not found', 'error');
+    return;
+  }
+  
+  // Create the modal element
+  const modal = document.createElement('div');
+  modal.className = 'invoice-modal';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modal.style.display = 'flex';
+  modal.style.justifyContent = 'center';
+  modal.style.alignItems = 'center';
+  modal.style.zIndex = '9999';
+  modal.style.padding = '20px';
+  
+  // Create the modal content
+  const modalContent = document.createElement('div');
+  modalContent.style.backgroundColor = 'white';
+  modalContent.style.borderRadius = '8px';
+  modalContent.style.maxWidth = '600px';
+  modalContent.style.width = '100%';
+  modalContent.style.maxHeight = '90vh';
+  modalContent.style.overflow = 'auto';
+  modalContent.style.position = 'relative';
+  modalContent.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+  
+  // Format dates for input
+  const formatDateForInput = (dateString) => {
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+  };
+  
+  // Add heading and close button
+  modalContent.innerHTML = `
+    <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #111827;">Edit Invoice #${invoice.invoiceNumber || invoice.id}</h2>
+        <button class="close-modal" style="background: transparent; border: none; cursor: pointer;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <form id="edit-invoice-form" style="padding: 20px;">
+      <div style="margin-bottom: 16px;">
+        <label for="client-name" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Client Name</label>
+        <input type="text" id="client-name" name="clientName" value="${invoice.clientName}" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;" required>
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <label for="client-email" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Client Email</label>
+        <input type="email" id="client-email" name="clientEmail" value="${invoice.clientEmail || ''}" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;" required>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label for="issue-date" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Issue Date</label>
+          <input type="date" id="issue-date" name="issuedDate" value="${formatDateForInput(invoice.issuedDate)}" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;" required>
+        </div>
+        <div>
+          <label for="due-date" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Due Date</label>
+          <input type="date" id="due-date" name="dueDate" value="${formatDateForInput(invoice.dueDate)}" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;" required>
+        </div>
+        <div>
+          <label for="status" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Status</label>
+          <select id="status" name="status" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; background-color: white;" required>
+            <option value="draft" ${invoice.status === 'draft' ? 'selected' : ''}>Draft</option>
+            <option value="pending" ${invoice.status === 'pending' ? 'selected' : ''}>Pending</option>
+            <option value="paid" ${invoice.status === 'paid' ? 'selected' : ''}>Paid</option>
+            <option value="overdue" ${invoice.status === 'overdue' ? 'selected' : ''}>Overdue</option>
+          </select>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Invoice Items</label>
+        <div id="invoice-items" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+          ${invoice.items && invoice.items.length > 0 ? invoice.items.map((item, index) => `
+            <div class="invoice-item" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+              <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; margin-bottom: 8px;">
+                <input type="text" name="description[]" value="${item.description}" placeholder="Description" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+                <input type="number" name="quantity[]" value="${item.quantity}" placeholder="Quantity" min="1" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+                <input type="number" name="price[]" value="${item.price}" placeholder="Price" min="0" step="0.01" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+                ${index > 0 ? `
+                  <button type="button" class="remove-item" style="padding: 4px; background: transparent; border: none; color: #EF4444; cursor: pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="15" y1="9" x2="9" y2="15"></line>
+                      <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                  </button>
+                ` : '<div></div>'}
+              </div>
+            </div>
+          `).join('') : `
+            <div class="invoice-item" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+              <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <input type="text" name="description[]" placeholder="Description" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+                <input type="number" name="quantity[]" placeholder="Quantity" min="1" value="1" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+                <input type="number" name="price[]" placeholder="Price" min="0" step="0.01" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+              </div>
+            </div>
+          `}
+        </div>
+        <button type="button" id="add-item-btn" style="width: 100%; padding: 8px; background-color: #f3f4f6; border: 1px dashed #d1d5db; border-radius: 6px; color: #6b7280; cursor: pointer;">
+          + Add Another Item
+        </button>
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <label for="invoice-notes" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Notes</label>
+        <textarea id="invoice-notes" name="notes" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; min-height: 80px;">${invoice.notes || ''}</textarea>
+      </div>
+      
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+        <button type="button" class="cancel-btn" style="padding: 8px 16px; background-color: white; border: 1px solid #d1d5db; border-radius: 6px; color: #4b5563;">Cancel</button>
+        <button type="submit" style="padding: 8px 16px; background-color: var(--color-primary); border: none; border-radius: 6px; color: white; font-weight: 500;">Save Changes</button>
+      </div>
+    </form>
+  `;
+  
+  // Add the modal to the DOM
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+  
+  // Add event listeners
+  document.querySelector('.close-modal').addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  document.querySelector('.cancel-btn').addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  // Add remove item event listeners
+  document.querySelectorAll('.remove-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const itemElement = btn.closest('.invoice-item');
+      if (itemElement) {
+        itemElement.parentElement.removeChild(itemElement);
+      }
+    });
+  });
+  
+  document.getElementById('add-item-btn').addEventListener('click', () => {
+    const itemsContainer = document.getElementById('invoice-items');
+    const newItem = document.createElement('div');
+    newItem.className = 'invoice-item';
+    newItem.style.marginBottom = '12px';
+    newItem.style.paddingBottom = '12px';
+    newItem.style.borderBottom = '1px solid #e5e7eb';
+    
+    newItem.innerHTML = `
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; margin-bottom: 8px;">
+        <input type="text" name="description[]" placeholder="Description" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+        <input type="number" name="quantity[]" placeholder="Quantity" min="1" value="1" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+        <input type="number" name="price[]" placeholder="Price" min="0" step="0.01" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+        <button type="button" class="remove-item" style="padding: 4px; background: transparent; border: none; color: #EF4444; cursor: pointer;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        </button>
+      </div>
+    `;
+    
+    itemsContainer.appendChild(newItem);
+    
+    // Add remove item event listener
+    newItem.querySelector('.remove-item').addEventListener('click', () => {
+      itemsContainer.removeChild(newItem);
+    });
+  });
+  
+  // Handle form submission
+  document.getElementById('edit-invoice-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // Show processing state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+    
+    // Get form data
+    const formData = new FormData(e.target);
+    
+    // Prepare invoice data
+    const invoiceData = {
+      id: invoice.id,
+      clientName: formData.get('clientName'),
+      clientEmail: formData.get('clientEmail'),
+      issuedDate: formData.get('issuedDate'),
+      dueDate: formData.get('dueDate'),
+      status: formData.get('status'),
+      notes: formData.get('notes'),
+      items: [],
+    };
+    
+    // Get all descriptions, quantities, and prices
+    const descriptions = formData.getAll('description[]');
+    const quantities = formData.getAll('quantity[]');
+    const prices = formData.getAll('price[]');
+    
+    // Calculate total amount and create items array
+    let totalAmount = 0;
+    for (let i = 0; i < descriptions.length; i++) {
+      const quantity = parseInt(quantities[i], 10);
+      const price = parseFloat(prices[i]);
+      const amount = quantity * price;
+      
+      invoiceData.items.push({
+        description: descriptions[i],
+        quantity,
+        price,
+        amount
+      });
+      
+      totalAmount += amount;
+    }
+    
+    invoiceData.totalAmount = totalAmount;
+    
+    // Update the invoice
+    fetch(`/api/invoices/${invoice.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(invoiceData)
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to update invoice');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Close the modal
+        document.body.removeChild(modal);
+        
+        // Show success notification
+        showNotification('Invoice updated successfully', 'success');
+        
+        // Refresh the invoices list
+        renderInvoicesPage();
+      })
+      .catch(error => {
+        console.error('Error updating invoice:', error);
+        
+        // Show error notification
+        showNotification('Failed to update invoice: ' + error.message, 'error');
+        
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      });
+  });
+}
+
+// Send invoice email
+function sendInvoice(invoiceId) {
+  // Find the invoice in the cache
+  const invoice = invoicesCache.find(inv => inv.id === invoiceId);
+  
+  if (!invoice) {
+    showNotification('Invoice not found', 'error');
+    return;
+  }
+  
+  // Check if invoice has an email
+  if (!invoice.clientEmail) {
+    showNotification('This invoice has no client email. Please edit the invoice and add an email address.', 'warning');
+    return;
+  }
+  
+  // Show confirmation dialog
+  if (!confirm(`Send invoice #${invoice.invoiceNumber || invoice.id} to ${invoice.clientEmail}?`)) {
+    return;
+  }
+  
+  // Send the invoice
+  showNotification('Sending invoice...', 'info');
+  
+  fetch(`/api/invoices/${invoice.id}/send`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to send invoice');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Show success notification
+      showNotification(`Invoice sent successfully to ${invoice.clientEmail}`, 'success');
+      
+      // Refresh the invoices list
+      renderInvoicesPage();
+    })
+    .catch(error => {
+      console.error('Error sending invoice:', error);
+      
+      // Show error notification
+      showNotification('Failed to send invoice: ' + error.message, 'error');
+    });
+}
+
+// Delete invoice
+function deleteInvoice(invoiceId) {
+  // Find the invoice in the cache
+  const invoice = invoicesCache.find(inv => inv.id === invoiceId);
+  
+  if (!invoice) {
+    showNotification('Invoice not found', 'error');
+    return;
+  }
+  
+  // Show confirmation dialog
+  if (!confirm(`Are you sure you want to delete invoice #${invoice.invoiceNumber || invoice.id}? This action cannot be undone.`)) {
+    return;
+  }
+  
+  // Delete the invoice
+  fetch(`/api/invoices/${invoice.id}`, {
+    method: 'DELETE'
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to delete invoice');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Show success notification
+      showNotification('Invoice deleted successfully', 'success');
+      
+      // Refresh the invoices list
+      renderInvoicesPage();
+    })
+    .catch(error => {
+      console.error('Error deleting invoice:', error);
+      
+      // Show error notification
+      showNotification('Failed to delete invoice: ' + error.message, 'error');
+    });
 }
 
 // Download invoice as PDF
 function downloadInvoicePdf(invoiceId) {
-  // Show an alert message for now
-  alert('Coming Soon! PDF download functionality will be available in the next update.');
+  // Show notification
+  showNotification('Generating PDF...', 'info');
   
-  // In a future update, we would implement PDF generation
+  // Send request to download PDF
+  fetch(`/api/invoices/${invoiceId}/pdf`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+      return response.blob();
+    })
+    .then(blob => {
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a link element
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice-${invoiceId}.pdf`;
+      
+      // Append the link to the body
+      document.body.appendChild(a);
+      
+      // Click the link to start the download
+      a.click();
+      
+      // Remove the link from the DOM
+      document.body.removeChild(a);
+      
+      // Release the URL object
+      window.URL.revokeObjectURL(url);
+      
+      // Show success notification
+      showNotification('PDF downloaded successfully', 'success');
+    })
+    .catch(error => {
+      console.error('Error downloading PDF:', error);
+      
+      // Show error notification
+      showNotification('Failed to download PDF: ' + error.message, 'error');
+    });
 }
 
 // No need for export default
