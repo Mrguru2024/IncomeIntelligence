@@ -519,10 +519,8 @@ function loadGooglePlacesAPI(callback) {
         
         // Set a timeout in case the callback is never called
         const timeoutId = setTimeout(() => {
-          if (typeof window.initGooglePlacesAPI === 'function') {
-            console.error('Google Places API load timed out');
-            handleApiError(new Error('API load timeout'));
-          }
+          console.error('Google Places API load timed out');
+          handleApiError(new Error('API load timeout'));
         }, 10000); // 10 second timeout
         
         // Override the global callback to clear both timeouts
@@ -530,6 +528,7 @@ function loadGooglePlacesAPI(callback) {
         window.initGooglePlacesAPI = function() {
           clearTimeout(timeoutId);
           clearTimeout(globalTimeoutId);
+          console.log('Google Places API callback triggered successfully');
           if (originalCallback) originalCallback();
         };
         
