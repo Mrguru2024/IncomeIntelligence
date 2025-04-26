@@ -12,11 +12,28 @@ console.log('Quote Generator module initialized');
 // Import necessary utility functions
 import { updateViewportClasses } from './src/main.js';
 
+// Safe wrapper for viewport detection to prevent form reset issues
+function getViewportData() {
+  try {
+    return updateViewportClasses();
+  } catch (error) {
+    console.error("Error getting viewport data:", error);
+    // Fallback if function fails
+    return { 
+      width: window.innerWidth, 
+      height: window.innerHeight,
+      aspectRatio: window.innerWidth / window.innerHeight,
+      isFoldableClosed: window.innerWidth < 400 && (window.innerWidth / window.innerHeight) < 0.7,
+      isFoldableOpen: window.innerWidth >= 500 && window.innerWidth < 840 && (window.innerWidth / window.innerHeight) > 0.9
+    };
+  }
+}
+
 // Add special handling for ZFold and other foldable devices
 // This is a global fix for form submission issues on foldable devices
 window.addEventListener('DOMContentLoaded', () => {
-  // Check if this is a foldable device using the viewport utility function
-  const { width, isFoldableClosed } = updateViewportClasses();
+  // Check if this is a foldable device using our safe viewport helper
+  const { width, isFoldableClosed } = getViewportData();
   const isFoldableDevice = width < 400 || isFoldableClosed;
   
   if (isFoldableDevice) {
@@ -148,8 +165,8 @@ function createFormGroup(labelText, inputElement) {
   const formGroup = document.createElement('div');
   formGroup.classList.add('form-group');
   
-  // Check if we're on a foldable device using the viewport utility function
-  const { width, isFoldableClosed } = updateViewportClasses();
+  // Check if we're on a foldable device using our safe viewport helper
+  const { width, isFoldableClosed } = getViewportData();
   const isFoldableDevice = width < 400 || isFoldableClosed;
   
   // Adjust margin and spacing for screen size
@@ -234,8 +251,8 @@ function createInput(type, name, value = '', placeholder = '', min = '', max = '
   input.placeholder = placeholder;
   input.style.width = '100%';
   
-  // Check if we're on a foldable device using the viewport utility function
-  const { width, isFoldableClosed } = updateViewportClasses();
+  // Check if we're on a foldable device using our safe viewport helper
+  const { width, isFoldableClosed } = getViewportData();
   const isFoldableDevice = width < 400 || isFoldableClosed;
   
   // Adjust padding and font size for screen size
@@ -270,8 +287,8 @@ function createTextarea(name, placeholder = '') {
   textarea.placeholder = placeholder;
   textarea.style.width = '100%';
   
-  // Check if we're on a foldable device using the viewport utility function
-  const { width, isFoldableClosed } = updateViewportClasses();
+  // Check if we're on a foldable device using our safe viewport helper
+  const { width, isFoldableClosed } = getViewportData();
   const isFoldableDevice = width < 400 || isFoldableClosed;
   
   // Adjust sizes for screen size
@@ -348,8 +365,8 @@ function createButton(text, onClick, type = 'primary') {
 function createSectionHeader(title, subtitle) {
   const header = document.createElement('div');
   
-  // Check if we're on a foldable device using the viewport utility function
-  const { width, isFoldableClosed } = updateViewportClasses();
+  // Check if we're on a foldable device using our safe viewport helper
+  const { width, isFoldableClosed } = getViewportData();
   const isFoldableDevice = width < 400 || isFoldableClosed;
   
   // Adjust margin for screen size
