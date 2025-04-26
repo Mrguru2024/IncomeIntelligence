@@ -2537,7 +2537,7 @@ function createAutomotiveQuoteForm() {
   destAddressContainer.style.position = 'relative';
   
   const destAddressInput = createInput('text', 'destination_address', '', 'Customer or service location');
-  destAddressInput.id = 'destination-input';
+  destAddressInput.id = 'destination-address-input';
   destAddressInput.setAttribute('autocomplete', 'off');
   
   // Add small info icon for destination address
