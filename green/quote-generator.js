@@ -3165,6 +3165,18 @@ function createAutomotiveQuoteForm() {
   destAddressInput.id = 'destination-input'; // Changed ID to match what autocomplete initialization expects
   destAddressInput.setAttribute('autocomplete', 'off');
   
+  // Prevent default behavior that causes page refresh on mobile
+  destAddressInput.addEventListener('focus', function(e) {
+    e.preventDefault();
+    return false;
+  });
+  
+  destAddressInput.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  });
+  
   // Create the input field first, but don't add it to the container yet
   // We'll ensure everything is properly set up before we add elements to the DOM
   
