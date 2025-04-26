@@ -90,6 +90,10 @@ if (stripeSecretKey) {
 // JWT Authentication is now handled by the auth middleware
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Provide Google Maps API key securely
+  app.get('/api/google-maps-key', (req, res) => {
+    res.json({ key: process.env.GOOGLE_MAPS_API_KEY || '' });
+  });
   // Note: We've removed all static HTML serving routes in favor of the dynamic React application
   // The Vite dev server will handle serving the React application at the root route
   

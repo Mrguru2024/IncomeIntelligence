@@ -416,30 +416,40 @@ function loadGooglePlacesAPI(callback) {
     return;
   }
   
-  // Create the script element
-  const script = document.createElement('script');
-  
-  // Use the Google API key provided by the user
-  const placesApiKey = 'AIzaSyAyyCDAADKc-15-FmUKGL-ykbmg-sxIleE';
-  
-  // Load Google Places API with the provided key
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${placesApiKey}&libraries=places`;
-  
-  script.async = true;
-  script.defer = true;
-  
-  // Set callback for when script loads
-  script.onload = () => {
-    console.log('Google Places API loaded successfully');
-    if (callback) callback();
-  };
-  
-  script.onerror = () => {
-    console.error('Failed to load Google Places API');
-  };
-  
-  // Add the script to the document
-  document.head.appendChild(script);
+  // Fetch API key from server environment variable (more secure than hardcoding)
+  fetch('/api/google-maps-key')
+    .then(response => response.json())
+    .then(data => {
+      if (!data.key) {
+        console.error('Google Maps API key is not configured on the server');
+        return;
+      }
+      
+      // Create the script element
+      const script = document.createElement('script');
+      
+      // Load Google Places API with the provided key
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places`;
+      
+      script.async = true;
+      script.defer = true;
+      
+      // Set callback for when script loads
+      script.onload = () => {
+        console.log('Google Places API loaded successfully');
+        if (callback) callback();
+      };
+      
+      script.onerror = () => {
+        console.error('Failed to load Google Places API');
+      };
+      
+      // Add the script to the document
+      document.head.appendChild(script);
+    })
+    .catch(error => {
+      console.error('Failed to fetch Google Maps API key:', error);
+    });
 }
 
 /**
