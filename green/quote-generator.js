@@ -3110,6 +3110,123 @@ function createAutomotiveQuoteForm() {
   destAddressInput.id = 'destination-input'; // Changed ID to match what autocomplete initialization expects
   destAddressInput.setAttribute('autocomplete', 'off');
   
+  // Create autocomplete wrapper if it doesn't exist
+  let wrapper = destAddressInput.parentElement;
+  if (!wrapper.classList.contains('stackr-autocomplete-wrapper')) {
+    wrapper = document.createElement('div');
+    wrapper.className = 'stackr-autocomplete-wrapper';
+    wrapper.style.position = 'relative';
+    wrapper.style.width = '100%';
+    destAddressInput.parentNode.insertBefore(wrapper, destAddressInput);
+    wrapper.appendChild(destAddressInput);
+  }
+  
+  // Create dropdown container if it doesn't exist
+  const dropdownId = `destination-input-dropdown`;
+  let dropdown = document.getElementById(dropdownId);
+  if (!dropdown) {
+    console.log('DIRECT DEBUG: Creating new dropdown container for destination address');
+    dropdown = document.createElement('div');
+    dropdown.className = 'stackr-autocomplete-container';
+    dropdown.id = dropdownId;
+    dropdown.style.position = 'absolute';
+    dropdown.style.zIndex = '1000';
+    dropdown.style.backgroundColor = 'white';
+    dropdown.style.width = '100%';
+    dropdown.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.2)';
+    dropdown.style.borderRadius = '4px';
+    dropdown.style.marginTop = '2px';
+    dropdown.style.display = 'none';
+    dropdown.style.maxHeight = '300px';
+    dropdown.style.overflowY = 'auto';
+    wrapper.appendChild(dropdown);
+  }
+  
+  // Add direct input handler for debugging
+  destAddressInput.addEventListener('input', (e) => {
+    console.log(`DIRECT DEBUG: Destination input value changed: "${e.target.value}"`);
+    
+    // Try to trigger the API call directly when we type at least 3 characters
+    if (e.target.value.trim().length >= 3) {
+      console.log(`DIRECT DEBUG: Trying to fetch suggestions for "${e.target.value}"`);
+      
+      // Make the fetch request directly
+      fetch(`/api/address-suggestions?query=${encodeURIComponent(e.target.value.trim())}`)
+        .then(response => {
+          console.log(`DIRECT DEBUG: Got response status ${response.status}`);
+          return response.json();
+        })
+        .then(data => {
+          console.log(`DIRECT DEBUG: Received ${data.predictions?.length || 0} suggestions`);
+          
+          // Get dropdown reference again to be sure
+          const dropdown = document.getElementById(dropdownId);
+          
+          if (dropdown && data.predictions && data.predictions.length > 0) {
+            console.log(`DIRECT DEBUG: Attempting to show dropdown`, dropdown);
+            dropdown.innerHTML = '';
+            
+            data.predictions.forEach((suggestion) => {
+              const item = document.createElement('div');
+              item.className = 'stackr-autocomplete-item';
+              item.style.padding = '10px';
+              item.style.cursor = 'pointer';
+              item.style.borderBottom = '1px solid #eee';
+              
+              const mainPart = suggestion.structured_formatting?.main_text || 
+                             suggestion.description.split(',')[0];
+              
+              const secondaryPart = suggestion.structured_formatting?.secondary_text || 
+                                  suggestion.description.split(',').slice(1).join(',');
+              
+              item.innerHTML = `
+                <div class="stackr-autocomplete-primary" style="font-weight: bold; color: #333;">${mainPart}</div>
+                <div class="stackr-autocomplete-secondary" style="font-size: 12px; color: #666; margin-top: 4px;">${secondaryPart}</div>
+              `;
+              
+              item.addEventListener('click', () => {
+                destAddressInput.value = suggestion.description;
+                dropdown.style.display = 'none';
+                console.log(`DIRECT DEBUG: Selected "${suggestion.description}" from suggestions`);
+                
+                // Store place data
+                const placeDataElement = document.getElementById('destination-place-data');
+                if (placeDataElement) {
+                  placeDataElement.dataset.placeId = suggestion.place_id || '';
+                  placeDataElement.dataset.fullText = suggestion.description || '';
+                  
+                  // Try to extract lat/lng from suggestion if available
+                  if (suggestion.geometry && suggestion.geometry.location) {
+                    placeDataElement.dataset.lat = suggestion.geometry.location.lat;
+                    placeDataElement.dataset.lng = suggestion.geometry.location.lng;
+                  }
+                }
+                
+                // Trigger change event
+                const event = new Event('change', { bubbles: true });
+                destAddressInput.dispatchEvent(event);
+              });
+              
+              dropdown.appendChild(item);
+            });
+            
+            dropdown.style.display = 'block';
+          } else if (dropdown) {
+            dropdown.style.display = 'none';
+          }
+        })
+        .catch(err => {
+          console.error('DIRECT DEBUG: Error fetching suggestions:', err);
+        });
+    } else if (e.target.value.trim().length === 0) {
+      // Hide dropdown when input is empty
+      const dropdown = document.getElementById(dropdownId);
+      if (dropdown) {
+        dropdown.style.display = 'none';
+      }
+    }
+  });
+  
   // Add small info icon for destination address
   const destInfoIcon = document.createElement('span');
   destInfoIcon.innerHTML = '&#9432;'; // Info icon
