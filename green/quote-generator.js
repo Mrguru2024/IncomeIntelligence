@@ -711,9 +711,153 @@ function createQuoteForm() {
   emergencyRow.appendChild(emergencyLabel);
   form.appendChild(emergencyRow);
   
-  // Travel distance
-  const travelDistanceInput = createInput('number', 'travelDistance', '0', 'Distance in miles', '0', '200', '0.1');
-  form.appendChild(createFormGroup('Travel Distance (miles)', travelDistanceInput));
+  // Travel details section with destination address
+  const travelSection = createSectionHeader('Travel Details', 'Calculate travel distance and costs accurately');
+  form.appendChild(travelSection);
+  
+  // Origin address using the same value from location
+  const originLabel = document.createElement('p');
+  originLabel.textContent = 'Origin: Using service location address above';
+  originLabel.style.fontSize = '14px';
+  originLabel.style.color = 'var(--color-text-secondary)';
+  originLabel.style.marginBottom = '12px';
+  form.appendChild(originLabel);
+  
+  // Destination address with Google Places autocomplete
+  const destinationContainer = document.createElement('div');
+  destinationContainer.style.position = 'relative';
+  
+  const destinationInput = createInput('text', 'destination', '', 'Destination address');
+  destinationInput.id = 'destination-input';
+  destinationInput.setAttribute('autocomplete', 'off');
+  
+  // Add info icon
+  const destInfoIcon = document.createElement('span');
+  destInfoIcon.innerHTML = '&#9432;'; // Info icon
+  destInfoIcon.style.position = 'absolute';
+  destInfoIcon.style.right = '10px';
+  destInfoIcon.style.top = '50%';
+  destInfoIcon.style.transform = 'translateY(-50%)';
+  destInfoIcon.style.color = 'var(--color-text-secondary)';
+  destInfoIcon.style.cursor = 'pointer';
+  destInfoIcon.title = 'Enter destination address to calculate travel distance';
+  
+  destinationContainer.appendChild(destinationInput);
+  destinationContainer.appendChild(destInfoIcon);
+  
+  // Add clear button
+  const destClearBtn = document.createElement('button');
+  destClearBtn.type = 'button';
+  destClearBtn.textContent = '×';
+  destClearBtn.style.position = 'absolute';
+  destClearBtn.style.right = '30px';
+  destClearBtn.style.top = '50%';
+  destClearBtn.style.transform = 'translateY(-50%)';
+  destClearBtn.style.background = 'none';
+  destClearBtn.style.border = 'none';
+  destClearBtn.style.fontSize = '18px';
+  destClearBtn.style.cursor = 'pointer';
+  destClearBtn.style.color = 'var(--color-text-secondary)';
+  destClearBtn.style.display = 'none';
+  destClearBtn.onclick = () => {
+    destinationInput.value = '';
+    destClearBtn.style.display = 'none';
+    // Reset distance and travel info
+    travelDistanceInput.value = '0';
+    document.getElementById('distance-calculation-result').innerHTML = '';
+  };
+  
+  destinationContainer.appendChild(destClearBtn);
+  
+  // Show/hide clear button based on input value
+  destinationInput.addEventListener('input', () => {
+    destClearBtn.style.display = destinationInput.value ? 'block' : 'none';
+  });
+  
+  // Hidden element to store place data
+  const destPlaceDataElement = document.createElement('div');
+  destPlaceDataElement.id = 'destination-place-data';
+  destPlaceDataElement.style.display = 'none';
+  destinationContainer.appendChild(destPlaceDataElement);
+  
+  // Initialize Google Places Autocomplete for destination
+  setTimeout(() => {
+    if (window.google && window.google.maps && window.google.maps.places) {
+      console.log('Initializing Places Autocomplete for destination-input');
+      const autocomplete = new google.maps.places.Autocomplete(destinationInput, {
+        types: ['address'],
+        componentRestrictions: { country: 'us' }
+      });
+      
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        
+        if (place.formatted_address) {
+          destinationInput.value = place.formatted_address;
+          destClearBtn.style.display = 'block';
+          
+          // Extract state and coordinates from address_components
+          let destinationState = '';
+          let destinationLat = null;
+          let destinationLng = null;
+          
+          if (place.address_components) {
+            for (let component of place.address_components) {
+              if (component.types.includes('administrative_area_level_1')) {
+                destinationState = component.short_name;
+                break;
+              }
+            }
+          }
+          
+          if (place.geometry && place.geometry.location) {
+            destinationLat = place.geometry.location.lat();
+            destinationLng = place.geometry.location.lng();
+          }
+          
+          // Store data for later use
+          if (destinationState) {
+            destPlaceDataElement.dataset.state = destinationState;
+          }
+          if (destinationLat && destinationLng) {
+            destPlaceDataElement.dataset.lat = destinationLat;
+            destPlaceDataElement.dataset.lng = destinationLng;
+            
+            // Calculate distance if we have both origin and destination coordinates
+            calculateDistance();
+          }
+        }
+      });
+    }
+  }, 2200);
+  
+  form.appendChild(createFormGroup('Destination Address', destinationContainer));
+  
+  // Add container for distance calculation result
+  const distanceResultContainer = document.createElement('div');
+  distanceResultContainer.id = 'distance-calculation-result';
+  distanceResultContainer.style.marginBottom = '16px';
+  distanceResultContainer.style.fontSize = '14px';
+  distanceResultContainer.style.color = 'var(--color-text-secondary)';
+  form.appendChild(distanceResultContainer);
+  
+  // Manual travel distance input (hidden by default, shown when calculation fails)
+  const travelDistanceContainer = document.createElement('div');
+  travelDistanceContainer.id = 'manual-travel-distance-container';
+  travelDistanceContainer.style.marginBottom = '16px';
+  
+  const travelDistanceInput = createInput('number', 'travelDistance', '0', 'Distance in miles', '0', '2000', '0.1');
+  travelDistanceContainer.appendChild(createFormGroup('Manual Travel Distance (miles)', travelDistanceInput));
+  
+  // Add calculate button
+  const calculateButton = createButton('Calculate Distance', () => {
+    calculateDistance();
+  }, 'secondary');
+  calculateButton.style.marginBottom = '16px';
+  calculateButton.style.width = 'auto';
+  travelDistanceContainer.appendChild(calculateButton);
+  
+  form.appendChild(travelDistanceContainer);
   
   // Target profit margin slider
   const marginRow = document.createElement('div');
@@ -844,8 +988,15 @@ function generateQuote(quoteData) {
     laborCost *= 1.5;
   }
   
-  // Add travel cost ($1 per mile)
-  const travelCost = travelDistance * 1.0;
+  // Calculate travel costs with gas price data
+  const gasPrice = getGasPriceForState(state);
+  const fuelCost = calculateFuelCost(travelDistance, gasPrice);
+  
+  // Add service fee for travel time ($0.80 per mile)
+  const travelServiceFee = travelDistance * 0.80;
+  
+  // Total travel cost (fuel + service fee)
+  const travelCost = fuelCost + travelServiceFee;
   
   // Calculate subtotal (labor + materials + travel)
   const subtotal = laborCost + materialsCost + travelCost;
@@ -882,6 +1033,9 @@ function generateQuote(quoteData) {
     laborCost,
     materialsCost,
     travelDistance,
+    gasPrice,
+    fuelCost,
+    travelServiceFee,
     travelCost,
     emergency,
     subtotal,
@@ -958,12 +1112,83 @@ function displayQuoteResult(quoteResult) {
   // Materials
   breakdownList.appendChild(createBreakdownItem('Materials', quoteResult.materialsCost));
   
-  // Travel
+  // Travel - with detailed breakdown
   if (quoteResult.travelDistance > 0) {
-    breakdownList.appendChild(createBreakdownItem(
-      `Travel (${quoteResult.travelDistance} miles)`,
-      quoteResult.travelCost
-    ));
+    // Add travel header with expandable details
+    const travelItem = document.createElement('div');
+    travelItem.style.borderBottom = '1px solid var(--color-border)';
+    travelItem.style.padding = '8px 0';
+    travelItem.style.position = 'relative';
+    
+    // Main travel row with total cost
+    const travelRow = document.createElement('div');
+    travelRow.style.display = 'flex';
+    travelRow.style.justifyContent = 'space-between';
+    travelRow.style.cursor = 'pointer';
+    
+    const travelLabel = document.createElement('div');
+    travelLabel.innerHTML = `Travel (${quoteResult.travelDistance} miles) <span style="font-size: 12px; color: var(--color-text-secondary);">▼ Click for details</span>`;
+    
+    const travelValue = document.createElement('div');
+    travelValue.textContent = `$${quoteResult.travelCost.toFixed(2)}`;
+    
+    travelRow.appendChild(travelLabel);
+    travelRow.appendChild(travelValue);
+    travelItem.appendChild(travelRow);
+    
+    // Travel details (hidden by default)
+    const travelDetails = document.createElement('div');
+    travelDetails.style.fontSize = '13px';
+    travelDetails.style.color = 'var(--color-text-secondary)';
+    travelDetails.style.paddingLeft = '20px';
+    travelDetails.style.marginTop = '8px';
+    travelDetails.style.display = 'none';
+    
+    // Fuel cost detail
+    const fuelDetail = document.createElement('div');
+    fuelDetail.style.display = 'flex';
+    fuelDetail.style.justifyContent = 'space-between';
+    fuelDetail.style.marginBottom = '4px';
+    
+    const fuelLabel = document.createElement('div');
+    fuelLabel.textContent = `Fuel (Gas price: $${quoteResult.gasPrice.toFixed(2)}/gal)`;
+    
+    const fuelValue = document.createElement('div');
+    fuelValue.textContent = `$${quoteResult.fuelCost.toFixed(2)}`;
+    
+    fuelDetail.appendChild(fuelLabel);
+    fuelDetail.appendChild(fuelValue);
+    travelDetails.appendChild(fuelDetail);
+    
+    // Travel time/service fee detail
+    const serviceDetail = document.createElement('div');
+    serviceDetail.style.display = 'flex';
+    serviceDetail.style.justifyContent = 'space-between';
+    
+    const serviceLabel = document.createElement('div');
+    serviceLabel.textContent = 'Service fee for travel time';
+    
+    const serviceValue = document.createElement('div');
+    serviceValue.textContent = `$${quoteResult.travelServiceFee.toFixed(2)}`;
+    
+    serviceDetail.appendChild(serviceLabel);
+    serviceDetail.appendChild(serviceValue);
+    travelDetails.appendChild(serviceDetail);
+    
+    travelItem.appendChild(travelDetails);
+    
+    // Toggle travel details on click
+    travelRow.addEventListener('click', () => {
+      if (travelDetails.style.display === 'none') {
+        travelDetails.style.display = 'block';
+        travelLabel.innerHTML = `Travel (${quoteResult.travelDistance} miles) <span style="font-size: 12px; color: var(--color-text-secondary);">▲ Hide details</span>`;
+      } else {
+        travelDetails.style.display = 'none';
+        travelLabel.innerHTML = `Travel (${quoteResult.travelDistance} miles) <span style="font-size: 12px; color: var(--color-text-secondary);">▼ Click for details</span>`;
+      }
+    });
+    
+    breakdownList.appendChild(travelItem);
   }
   
   // Subtotal
@@ -2546,4 +2771,126 @@ function searchPartsCost(make, model, year, serviceType) {
   }
   
   return Math.round(cost); // Round to nearest dollar
+}
+
+/**
+ * Calculate distance between two addresses using Google Maps Distance Matrix API
+ */
+function calculateDistance() {
+  const distanceResultContainer = document.getElementById('distance-calculation-result');
+  distanceResultContainer.innerHTML = '<div>Calculating distance...</div>';
+  
+  // Get origin and destination data
+  const originInput = document.getElementById('general-location-input');
+  const destinationInput = document.getElementById('destination-input');
+  const originPlaceData = document.getElementById('general-location-place-data');
+  const destPlaceData = document.getElementById('destination-place-data');
+  
+  if (!originInput.value || !destinationInput.value) {
+    distanceResultContainer.innerHTML = '<div style="color: #ff6666;">Please enter both origin and destination addresses</div>';
+    return;
+  }
+  
+  // Check if we have Google Maps API
+  if (window.google && window.google.maps) {
+    try {
+      const distanceService = new google.maps.DistanceMatrixService();
+      
+      distanceService.getDistanceMatrix(
+        {
+          origins: [originInput.value],
+          destinations: [destinationInput.value],
+          travelMode: google.maps.TravelMode.DRIVING,
+          unitSystem: google.maps.UnitSystem.IMPERIAL
+        },
+        (response, status) => {
+          if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
+            const distance = response.rows[0].elements[0].distance.text;
+            const duration = response.rows[0].elements[0].duration.text;
+            const distanceValue = response.rows[0].elements[0].distance.value / 1609.34; // Convert meters to miles
+            
+            // Update the distance input - always use round trip distance
+            const roundTripDistance = distanceValue * 2;
+            const travelDistanceInput = document.querySelector('input[name="travelDistance"]');
+            travelDistanceInput.value = roundTripDistance.toFixed(1);
+            
+            // Get gas price and calculate fuel cost
+            const gasPrice = getGasPriceForState(getStateFromZip(originInput.value));
+            const fuelCost = calculateFuelCost(distanceValue, gasPrice);
+            const roundTripCost = fuelCost * 2;
+            
+            // Display the result
+            distanceResultContainer.innerHTML = `
+              <div style="padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; margin-top: 10px;">
+                <div style="color: var(--color-primary); font-weight: bold; margin-bottom: 5px;">Distance Calculation</div>
+                <div>One-way distance: ${distance} (${distanceValue.toFixed(1)} miles)</div>
+                <div>Driving time: ${duration}</div>
+                <div>Current gas price: $${gasPrice.toFixed(2)}/gallon</div>
+                <div>Estimated fuel cost: $${fuelCost.toFixed(2)} one-way / $${roundTripCost.toFixed(2)} round-trip</div>
+                <div style="margin-top: 5px; font-style: italic; font-size: 13px;">Note: Round-trip distance of ${roundTripDistance.toFixed(1)} miles will be used for quote.</div>
+              </div>
+            `;
+          } else {
+            distanceResultContainer.innerHTML = '<div style="color: #ff6666;">Could not calculate distance. Please check addresses or enter distance manually.</div>';
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error calculating distance:', error);
+      distanceResultContainer.innerHTML = '<div style="color: #ff6666;">Error calculating distance. Please enter distance manually.</div>';
+    }
+  } else {
+    // Fallback if Google Maps API is not available
+    distanceResultContainer.innerHTML = '<div style="color: #ff6666;">Distance calculation requires Google Maps API. Please enter distance manually.</div>';
+  }
+}
+
+/**
+ * Get current gas price for a state
+ * @param {string} state - Two-letter state code
+ * @returns {number} Gas price per gallon
+ */
+function getGasPriceForState(state) {
+  // Source: National average and regional variations as of April 2025
+  const basePricePerGallon = 3.85; // National average price
+  
+  // Regional adjustments
+  const regionMultipliers = {
+    // West Coast (higher prices)
+    'CA': 1.35, 'WA': 1.20, 'OR': 1.15, 'NV': 1.10, 'HI': 1.40, 'AK': 1.25,
+    
+    // Mountain (slightly above average)
+    'MT': 1.05, 'ID': 1.05, 'WY': 1.00, 'UT': 1.05, 'CO': 1.05, 'AZ': 1.10, 'NM': 1.00,
+    
+    // Midwest (average to below average)
+    'ND': 0.95, 'SD': 0.95, 'NE': 0.95, 'KS': 0.95, 'MN': 1.00, 'IA': 0.95, 
+    'MO': 0.95, 'WI': 1.00, 'IL': 1.05, 'IN': 0.95, 'MI': 1.00, 'OH': 0.95,
+    
+    // South (generally lower prices)
+    'TX': 0.90, 'OK': 0.90, 'AR': 0.90, 'LA': 0.95, 'MS': 0.90, 'AL': 0.90, 
+    'TN': 0.90, 'KY': 0.95, 'GA': 0.95, 'FL': 1.00, 'SC': 0.90, 'NC': 0.95,
+    'VA': 0.95, 'WV': 0.95,
+    
+    // Northeast (higher prices)
+    'MD': 1.05, 'DE': 1.00, 'PA': 1.05, 'NJ': 1.10, 'NY': 1.15, 'CT': 1.10,
+    'RI': 1.10, 'MA': 1.15, 'VT': 1.05, 'NH': 1.05, 'ME': 1.05,
+    
+    // Default if state not found
+    'DEFAULT': 1.00
+  };
+  
+  const multiplier = regionMultipliers[state] || regionMultipliers['DEFAULT'];
+  return basePricePerGallon * multiplier;
+}
+
+/**
+ * Calculate fuel cost based on distance and gas price
+ * @param {number} distanceMiles - Distance in miles
+ * @param {number} pricePerGallon - Gas price per gallon
+ * @param {number} mpg - Miles per gallon (default: 25)
+ * @returns {number} Fuel cost
+ */
+function calculateFuelCost(distanceMiles, pricePerGallon, mpg = 25) {
+  const gallonsNeeded = distanceMiles / mpg;
+  return gallonsNeeded * pricePerGallon;
 }
