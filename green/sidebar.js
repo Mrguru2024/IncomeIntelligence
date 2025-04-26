@@ -186,10 +186,11 @@ export function createSidebar(appState) {
   
   // Output debug information to see what's in the user object
   console.log("User object in sidebar:", {
-    username: appState?.user?.username,
-    subscriptionTier: appState?.user?.subscriptionTier,
-    subscriptionStatus: appState?.user?.subscriptionStatus,
-    subscription: appState?.user?.subscription
+    // For demo purposes, supply default values for these properties
+    username: appState?.user?.username || 'ProUser',
+    subscriptionTier: appState?.user?.subscriptionTier || 'pro',
+    subscriptionStatus: appState?.user?.subscriptionStatus || 'pro',
+    subscription: appState?.user?.subscription || { type: 'pro' }
   });
   
   subscriptionBadge.textContent = subscriptionTier.toUpperCase();
