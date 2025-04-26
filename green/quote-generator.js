@@ -1609,6 +1609,12 @@ function createQuoteForm() {
   form.style.borderRadius = '12px';
   form.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
   
+  // Prevent form submission which causes page refresh on mobile
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    return false;
+  });
+  
   // Job details section
   const jobDetailsSection = createSectionHeader('Job Details', 'Provide information about the job to get an accurate quote');
   form.appendChild(jobDetailsSection);
@@ -1953,6 +1959,10 @@ function createQuoteForm() {
  * @param {Event} e - Form submission event
  */
 function handleQuoteFormSubmit(e) {
+  // Prevent form submission which causes page refresh
+  if (e && e.preventDefault) {
+    e.preventDefault();
+  }
   e.preventDefault();
   
   // Get form data
