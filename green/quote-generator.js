@@ -9,11 +9,15 @@
 // Add debugging
 console.log('Quote Generator module initialized');
 
+// Import necessary utility functions
+import { updateViewportClasses } from './src/main.js';
+
 // Add special handling for ZFold and other foldable devices
 // This is a global fix for form submission issues on foldable devices
 window.addEventListener('DOMContentLoaded', () => {
-  // Check if this is a foldable device (using screen width as heuristic)
-  const isFoldableDevice = window.innerWidth < 400;
+  // Check if this is a foldable device using the viewport utility function
+  const { width, isFoldableClosed } = updateViewportClasses();
+  const isFoldableDevice = width < 400 || isFoldableClosed;
   
   if (isFoldableDevice) {
     console.log('Foldable device detected - applying special form handling');
@@ -144,8 +148,9 @@ function createFormGroup(labelText, inputElement) {
   const formGroup = document.createElement('div');
   formGroup.classList.add('form-group');
   
-  // Check if we're on a foldable device
-  const isFoldableDevice = window.innerWidth < 400;
+  // Check if we're on a foldable device using the viewport utility function
+  const { width, isFoldableClosed } = updateViewportClasses();
+  const isFoldableDevice = width < 400 || isFoldableClosed;
   
   // Adjust margin and spacing for screen size
   if (isFoldableDevice) {
@@ -229,8 +234,9 @@ function createInput(type, name, value = '', placeholder = '', min = '', max = '
   input.placeholder = placeholder;
   input.style.width = '100%';
   
-  // Check if we're on a foldable device
-  const isFoldableDevice = window.innerWidth < 400;
+  // Check if we're on a foldable device using the viewport utility function
+  const { width, isFoldableClosed } = updateViewportClasses();
+  const isFoldableDevice = width < 400 || isFoldableClosed;
   
   // Adjust padding and font size for screen size
   if (isFoldableDevice) {
@@ -264,8 +270,9 @@ function createTextarea(name, placeholder = '') {
   textarea.placeholder = placeholder;
   textarea.style.width = '100%';
   
-  // Check if we're on a foldable device
-  const isFoldableDevice = window.innerWidth < 400;
+  // Check if we're on a foldable device using the viewport utility function
+  const { width, isFoldableClosed } = updateViewportClasses();
+  const isFoldableDevice = width < 400 || isFoldableClosed;
   
   // Adjust sizes for screen size
   if (isFoldableDevice) {
@@ -341,8 +348,9 @@ function createButton(text, onClick, type = 'primary') {
 function createSectionHeader(title, subtitle) {
   const header = document.createElement('div');
   
-  // Check if we're on a foldable device
-  const isFoldableDevice = window.innerWidth < 400;
+  // Check if we're on a foldable device using the viewport utility function
+  const { width, isFoldableClosed } = updateViewportClasses();
+  const isFoldableDevice = width < 400 || isFoldableClosed;
   
   // Adjust margin for screen size
   if (isFoldableDevice) {
@@ -3168,7 +3176,10 @@ function createAutomotiveQuoteForm() {
   form.setAttribute('onsubmit', 'event.preventDefault(); event.stopPropagation(); return false;');
   
   // Triple protection against form submission for ZFold devices
-  const isFoldable = window.innerWidth < 400;
+  // Check if we're on a foldable device using the viewport utility function
+  const { width, isFoldableClosed } = updateViewportClasses();
+  const isFoldable = width < 400 || isFoldableClosed;
+  
   if (isFoldable) {
     console.log("ZFold device detected - applying enhanced form protection");
     form.id = 'auto-quote-form-zfold'; // Special ID to avoid form finder conflicts
@@ -3234,8 +3245,13 @@ function createAutomotiveQuoteForm() {
   startAddressInput.addEventListener('focus', function(e) {
     e.preventDefault();
     e.stopImmediatePropagation();
+    
+    // Use viewport utility function to detect foldable devices
+    const { width, isFoldableClosed } = updateViewportClasses();
+    const isFoldable = width < 400 || isFoldableClosed;
+    
     // Detect if we're on a foldable device in folded mode
-    if (window.innerWidth < 400) {
+    if (isFoldable) {
       console.log("Folded device detected - using special handling");
       // For folded devices, use this special handling
       setTimeout(() => {
@@ -3321,8 +3337,13 @@ function createAutomotiveQuoteForm() {
   destAddressInput.addEventListener('focus', function(e) {
     e.preventDefault();
     e.stopImmediatePropagation();
+    
+    // Use viewport utility function to detect foldable devices
+    const { width, isFoldableClosed } = updateViewportClasses();
+    const isFoldable = width < 400 || isFoldableClosed;
+    
     // Detect if we're on a foldable device in folded mode
-    if (window.innerWidth < 400) {
+    if (isFoldable) {
       console.log("Folded device detected - using special handling for destination");
       // For folded devices, use this special handling
       setTimeout(() => {
@@ -3589,8 +3610,9 @@ function handleAutoQuoteFormSubmit(e) {
     e.stopImmediatePropagation();
   }
   
-  // Check if we're on a foldable device
-  const isFoldable = window.innerWidth < 400;
+  // Check if we're on a foldable device using the viewport utility function
+  const { width, isFoldableClosed } = updateViewportClasses();
+  const isFoldable = width < 400 || isFoldableClosed;
   
   // Look for the form using multiple IDs since we renamed it for foldable devices
   let form = document.getElementById('auto-quote-form');
