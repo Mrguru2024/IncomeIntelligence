@@ -914,6 +914,7 @@ function displayQuoteResult(quoteResult) {
  * @param {boolean} highlight - Whether to highlight the item
  * @returns {HTMLElement} The breakdown item
  */
+// createBreakdownItem function is already defined above
   return item;
 }
 
@@ -1225,6 +1226,7 @@ function createFormGroup(labelText, inputElement) {
 
 /**
  * Create an input element
+// createFormGroup function is already defined above
  * @param {string} type - Input type
     if (min !== undefined) input.min = min;
     if (max !== undefined) input.max = max;
@@ -1253,6 +1255,7 @@ function createTextarea(name, placeholder) {
   textarea.style.resize = 'vertical';
   
   return textarea;
+// createInput function is already defined above
 }
 
   });
@@ -1279,51 +1282,10 @@ function createButton(text, onClick) {
   button.style.transition = 'all 0.2s';
   button.style.flex = '1';
   
+// createTextarea function is already defined above
   button.addEventListener('mouseover', () => {
     button.style.backgroundColor = 'var(--color-border)';
   });
-  
-  button.addEventListener('mouseout', () => {
-    button.style.backgroundColor = 'var(--color-card-bg)';
-  });
-  
-  return button;
-}
-
-/**
- * Create section header component
- * @param {string} title - Section title
- * @param {string} subtitle - Section subtitle
- * @returns {HTMLElement} Section header element
-// createSectionHeader function is already defined above
- */
-}
-
-/**
- * Show a toast notification
- * @param {string} message - Message to display
- * @param {string} type - Type of toast (success, error, info)
- */
-function showToast(message, type = 'success') {
-  // Check if toast container exists
-  let toastContainer = document.getElementById('toast-container');
-  
-  // Create toast container if it doesn't exist
-  if (!toastContainer) {
-    toastContainer = document.createElement('div');
-    toastContainer.id = 'toast-container';
-    toastContainer.style.position = 'fixed';
-    toastContainer.style.bottom = '20px';
-    toastContainer.style.right = '20px';
-    toastContainer.style.zIndex = '9999';
-    document.body.appendChild(toastContainer);
-  }
-  
-  // Create toast element
-  const toast = document.createElement('div');
-  toast.classList.add('toast');
-  toast.style.backgroundColor = type === 'error' ? '#FEE2E2' : '#ECFDF5';
-  toast.style.color = type === 'error' ? '#B91C1C' : '#047857';
   toast.style.padding = '12px 16px';
   toast.style.borderRadius = '6px';
   toast.style.marginBottom = '8px';
@@ -1341,6 +1303,7 @@ function showToast(message, type = 'success') {
   
   // Toast close button
   const closeButton = document.createElement('button');
+// createSelect function is already defined above
   closeButton.innerHTML = '&times;';
   closeButton.style.background = 'transparent';
   closeButton.style.border = 'none';
