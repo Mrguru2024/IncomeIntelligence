@@ -252,6 +252,43 @@
   <!-- App root -->
   <div id="root"></div>
   
-  <script type="module" src="/green/src/main.js"></script>
+  <!-- Direct Google Maps integration to avoid dynamic loading issues -->
+<script>
+  // This will track when the API is ready to use
+  window.googleMapsLoaded = false;
+
+  // Global callback function that will be called by Google Maps when loaded
+  window.initGoogleMapsDirectly = function() {
+    console.log('Google Maps API loaded directly from HTML');
+    window.googleMapsLoaded = true;
+    window.googlePlacesInitialized = true; // For compatibility with existing code
+    
+    // Dispatch an event so other scripts can react to this
+    const event = new CustomEvent('google-maps-loaded');
+    window.dispatchEvent(event);
+  };
+
+  // Fetch Google Maps API key from server
+  fetch('/api/google-maps-key')
+    .then(response => response.json())
+    .then(data => {
+      if (data && data.key) {
+        console.log('Successfully retrieved Maps API key for direct loading');
+        
+        // Create a script element to load Google Maps API
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places&callback=initGoogleMapsDirectly`;
+        script.async = true;
+        script.defer = true;
+        
+        document.head.appendChild(script);
+      }
+    })
+    .catch(error => {
+      console.error('Failed to fetch Google Maps API key for direct loading:', error);
+    });
+</script>
+
+<script type="module" src="/green/src/main.js"></script>
 </body>
 </html>
