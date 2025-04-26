@@ -3414,6 +3414,11 @@ function handleAutoQuoteFormSubmit(e) {
  * @param {Object} quoteData - The automotive quote data
  * @returns {Object} The generated quote result with tiered options
  */
+/**
+ * Generate an automotive quote with tiered pricing options
+ * @param {Object} quoteData - The automotive quote data
+ * @returns {Object} The generated quote result with tiered options
+ */
 function generateAutoQuote(quoteData) {
   // Extract data
   const {
@@ -3928,34 +3933,26 @@ function displayAutoQuoteResult(quoteResult) {
   resultContainer.style.padding = '24px';
   resultContainer.style.marginTop = '32px';
   
-  // Quote header
-  const quoteHeader = document.createElement('div');
-  quoteHeader.style.marginBottom = '20px';
-  quoteHeader.style.borderBottom = '1px solid var(--color-border)';
-  quoteHeader.style.paddingBottom = '16px';
+  // Header with title and description
+  const header = document.createElement('div');
+  header.style.marginBottom = '24px';
+  header.style.textAlign = 'center';
   
-  const quoteTitle = document.createElement('h2');
-  quoteTitle.textContent = 'Automotive Locksmith Quote';
-  quoteTitle.style.fontSize = '20px';
-  quoteTitle.style.fontWeight = 'bold';
-  quoteTitle.style.marginBottom = '8px';
+  const headerTitle = document.createElement('h2');
+  headerTitle.textContent = 'Quote Options';
+  headerTitle.style.fontSize = '24px';
+  headerTitle.style.fontWeight = '700';
+  headerTitle.style.marginBottom = '8px';
+  headerTitle.style.color = 'var(--color-text-primary)';
   
-  const serviceMap = {
-    'all_keys_lost': 'All Keys Lost',
-    'duplicate_key': 'Duplicate Key',
-    'ignition_repair': 'Ignition Repair',
-    'lock_rekey': 'Lock Rekey',
-    'ecu_reflash': 'ECU Reflash'
-  };
+  const headerSubtitle = document.createElement('p');
+  headerSubtitle.textContent = 'Select the service level that best fits your needs and budget.';
+  headerSubtitle.style.fontSize = '16px';
+  headerSubtitle.style.color = 'var(--color-text-secondary)';
   
-  const quoteSubtitle = document.createElement('p');
-  quoteSubtitle.textContent = `${quoteResult.vehicle_year} ${quoteResult.vehicle_make} ${quoteResult.vehicle_model} - ${serviceMap[quoteResult.service_type] || quoteResult.service_type}`;
-  quoteSubtitle.style.fontSize = '14px';
-  quoteSubtitle.style.color = 'var(--color-text-secondary)';
-  
-  quoteHeader.appendChild(quoteTitle);
-  quoteHeader.appendChild(quoteSubtitle);
-  resultContainer.appendChild(quoteHeader);
+  header.appendChild(headerTitle);
+  header.appendChild(headerSubtitle);
+  resultContainer.appendChild(header);
   
   // Cost breakdown
   const breakdownSection = document.createElement('div');
