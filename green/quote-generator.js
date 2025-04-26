@@ -9,6 +9,27 @@
 // Add debugging
 console.log('Quote Generator module initialized');
 
+// Define stateToRegion object 
+const stateToRegion = {
+  "ME": "northeast", "NH": "northeast", "VT": "northeast", "MA": "northeast", 
+  "RI": "northeast", "CT": "northeast", "NY": "northeast", "NJ": "northeast", 
+  "PA": "northeast", "DE": "northeast", "MD": "northeast", "DC": "northeast",
+  
+  "OH": "midwest", "MI": "midwest", "IN": "midwest", "WI": "midwest", 
+  "IL": "midwest", "MN": "midwest", "IA": "midwest", "MO": "midwest", 
+  "ND": "midwest", "SD": "midwest", "NE": "midwest", "KS": "midwest",
+  
+  "VA": "south", "WV": "south", "KY": "south", "TN": "south", "NC": "south", 
+  "SC": "south", "GA": "south", "FL": "south", "AL": "south", "MS": "south", 
+  "AR": "south", "LA": "south", "TX": "south", "OK": "south",
+  
+  "MT": "west", "ID": "west", "WY": "west", "CO": "west", "NM": "west", 
+  "AZ": "west", "UT": "west", "NV": "west", "CA": "west", "OR": "west", 
+  "WA": "west", "AK": "west", "HI": "west",
+  
+  "default": "default"
+};
+
 /**
  * Create a form group with label and input
  * @param {string} labelText - The label text
