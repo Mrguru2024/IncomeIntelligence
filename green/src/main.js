@@ -4156,7 +4156,8 @@ function renderApp() {
 }
 
 // Function to update viewport classes without full app re-render
-function updateViewportClasses() {
+// Export the viewport utility function so it can be used by other modules
+export function updateViewportClasses() {
   const width = window.innerWidth;
   const height = window.innerHeight;
   const aspectRatio = width / height;
