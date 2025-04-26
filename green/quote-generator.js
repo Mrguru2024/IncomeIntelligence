@@ -38,16 +38,10 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     }, true); // Use capture to ensure this runs first
     
-    // Additional fix for foldable device input fields
-    document.addEventListener('focus', function(e) {
-      if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
-        console.log('ZFold protection: Handling input focus event');
-        e.preventDefault();
-        e.stopImmediatePropagation();
-      }
-    }, true);
+    // Remove the problematic focus event handler that was preventing input field interaction
+    // The original code was preventing users from interacting with form fields
     
-    console.log('ZFold protections applied');
+    console.log('ZFold protections applied (input field blocking removed)');
   }
 });
 
