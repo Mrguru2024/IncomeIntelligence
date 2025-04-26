@@ -617,19 +617,15 @@ function loadGooglePlacesAPI(callback) {
     // Make sure we don't double-initialize
     if (googlePlacesInitialized || window.googlePlacesInitialized) return;
     
-    if (!window.google || !window.google.maps || !window.google.maps.places) {
-      console.error('Google Maps API not available yet, aborting initialization');
-      return;
-    }
-    
     // Set the initialization flag in both local and window scope
     googlePlacesInitialized = true;
     window.googlePlacesInitialized = true;
-    console.log('Successfully initializing Google Places autocomplete fields');
     
     try {
-      // Initialize all input fields that need autocomplete
-      initializeAutocompleteFields();
+      // Initialize our custom autocomplete implementation
+      setupCustomAutocomplete();
+      
+      console.log('Successfully initializing custom autocomplete fields');
       
       // Clear any warning messages that might have been displayed
       const helpMessage = document.querySelector('.help-message');
@@ -638,13 +634,277 @@ function loadGooglePlacesAPI(callback) {
       }
       
       // Show a success toast
-      showToast('Enhanced address lookup is now available!', 'success');
+      showToast('Address lookup is now available!', 'success');
       
       if (callback) callback(null);
     } catch (error) {
-      console.error('Error initializing Google Places autocomplete:', error);
+      console.error('Error initializing autocomplete:', error);
       setupAddressValidationFallback();
     }
+  }
+  
+  /**
+   * Setup custom autocomplete for address inputs
+   * This is a completely separate implementation that works without Google Maps API
+   */
+  function setupCustomAutocomplete() {
+    console.log('Setting up custom autocomplete for address fields');
+    
+    // Add CSS for our custom autocomplete dropdown
+    const styleId = 'stackr-autocomplete-styles';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        .stackr-autocomplete-wrapper {
+          position: relative;
+          width: 100%;
+        }
+        .stackr-autocomplete-container {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          width: 100%;
+          background: white;
+          border: 1px solid #ccc;
+          border-top: none;
+          border-radius: 0 0 4px 4px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          z-index: 1000;
+          max-height: 250px;
+          overflow-y: auto;
+          display: none;
+        }
+        .stackr-autocomplete-item {
+          padding: 12px 16px;
+          cursor: pointer;
+          border-bottom: 1px solid #eee;
+        }
+        .stackr-autocomplete-item:hover,
+        .stackr-autocomplete-item.selected {
+          background-color: #f8f8f8;
+        }
+        .stackr-autocomplete-primary {
+          font-weight: bold;
+          color: #333;
+        }
+        .stackr-autocomplete-secondary {
+          font-size: 12px;
+          color: #666;
+          margin-top: 4px;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    // Setup autocomplete functionality for a specific input
+    function setupInputAutocomplete(inputId, dataElementId) {
+      const inputElement = document.getElementById(inputId);
+      if (!inputElement) {
+        console.warn(`Input element ${inputId} not found`);
+        return;
+      }
+      
+      // Create wrapper if needed
+      let wrapper = inputElement.parentElement;
+      if (!wrapper.classList.contains('stackr-autocomplete-wrapper')) {
+        wrapper = document.createElement('div');
+        wrapper.className = 'stackr-autocomplete-wrapper';
+        inputElement.parentNode.insertBefore(wrapper, inputElement);
+        wrapper.appendChild(inputElement);
+      }
+      
+      // Create dropdown container
+      const dropdownId = `${inputId}-dropdown`;
+      let dropdown = document.getElementById(dropdownId);
+      
+      if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.className = 'stackr-autocomplete-container';
+        dropdown.id = dropdownId;
+        wrapper.appendChild(dropdown);
+      }
+      
+      // Variables to track state
+      let selectedIndex = -1;
+      let suggestions = [];
+      let debounceTimer;
+      
+      // Fetch suggestions from server
+      async function fetchSuggestions(query) {
+        if (!query || query.length < 3) {
+          dropdown.style.display = 'none';
+          return;
+        }
+        
+        try {
+          const response = await fetch(`/api/address-suggestions?query=${encodeURIComponent(query)}`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch suggestions: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          console.log(`Received ${data.predictions?.length || 0} suggestions for "${query}"`);
+          
+          if (data.predictions && data.predictions.length > 0) {
+            suggestions = data.predictions;
+            renderSuggestions();
+            dropdown.style.display = 'block';
+          } else {
+            suggestions = [];
+            dropdown.style.display = 'none';
+          }
+        } catch (error) {
+          console.error('Error fetching address suggestions:', error);
+          dropdown.style.display = 'none';
+        }
+      }
+      
+      // Render suggestions in dropdown
+      function renderSuggestions() {
+        dropdown.innerHTML = '';
+        
+        suggestions.forEach((suggestion, index) => {
+          const item = document.createElement('div');
+          item.className = 'stackr-autocomplete-item';
+          if (index === selectedIndex) {
+            item.classList.add('selected');
+          }
+          
+          const mainPart = suggestion.structured_formatting?.main_text || 
+                          suggestion.description.split(',')[0];
+          
+          const secondaryPart = suggestion.structured_formatting?.secondary_text || 
+                               suggestion.description.split(',').slice(1).join(',');
+          
+          item.innerHTML = `
+            <div class="stackr-autocomplete-primary">${mainPart}</div>
+            <div class="stackr-autocomplete-secondary">${secondaryPart}</div>
+          `;
+          
+          item.addEventListener('click', () => {
+            selectSuggestion(suggestion);
+          });
+          
+          dropdown.appendChild(item);
+        });
+      }
+      
+      // Select a suggestion
+      function selectSuggestion(suggestion) {
+        // Update the input value
+        inputElement.value = suggestion.description;
+        
+        // Store data in data element if available
+        const dataElement = document.getElementById(dataElementId);
+        if (dataElement) {
+          // Try to extract state from the description
+          let state = '';
+          const parts = suggestion.description.split(',');
+          for (let i = 0; i < parts.length; i++) {
+            const part = parts[i].trim();
+            if (part.length === 2 && part.toUpperCase() === part) {
+              state = part;
+              break;
+            }
+          }
+          
+          // Store place data
+          if (suggestion.place_id) {
+            dataElement.dataset.placeId = suggestion.place_id;
+          }
+          
+          if (state) {
+            dataElement.dataset.state = state;
+          }
+          
+          if (suggestion.geometry?.location) {
+            dataElement.dataset.lat = suggestion.geometry.location.lat;
+            dataElement.dataset.lng = suggestion.geometry.location.lng;
+          }
+          
+          console.log(`Selected address: "${suggestion.description}", State: ${state || 'unknown'}`);
+        }
+        
+        // Hide dropdown
+        dropdown.style.display = 'none';
+        selectedIndex = -1;
+        
+        // Trigger change event on the input
+        const event = new Event('change', { bubbles: true });
+        inputElement.dispatchEvent(event);
+      }
+      
+      // Input event handler with debounce
+      inputElement.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        
+        debounceTimer = setTimeout(() => {
+          const query = inputElement.value.trim();
+          if (query.length >= 3) {
+            console.log(`Fetching suggestions for "${query}" from ${inputId}`);
+            fetchSuggestions(query);
+          } else {
+            dropdown.style.display = 'none';
+          }
+        }, 300);
+      });
+      
+      // Handle keyboard navigation
+      inputElement.addEventListener('keydown', (e) => {
+        if (suggestions.length === 0 || dropdown.style.display !== 'block') {
+          return;
+        }
+        
+        switch (e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            selectedIndex = Math.min(selectedIndex + 1, suggestions.length - 1);
+            renderSuggestions();
+            break;
+            
+          case 'ArrowUp':
+            e.preventDefault();
+            selectedIndex = Math.max(selectedIndex - 1, 0);
+            renderSuggestions();
+            break;
+            
+          case 'Enter':
+            e.preventDefault();
+            if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+              selectSuggestion(suggestions[selectedIndex]);
+            }
+            break;
+            
+          case 'Escape':
+            e.preventDefault();
+            dropdown.style.display = 'none';
+            selectedIndex = -1;
+            break;
+        }
+      });
+      
+      // Hide dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!inputElement.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
+      });
+      
+      // When the input is focused, show suggestions if there's already text
+      inputElement.addEventListener('focus', () => {
+        const query = inputElement.value.trim();
+        if (query.length >= 3) {
+          fetchSuggestions(query);
+        }
+      });
+    }
+    
+    // Apply to all address inputs
+    setupInputAutocomplete('general-location-input', 'general-location-place-data');
+    setupInputAutocomplete('auto-address-input', 'auto-address-place-data');
+    setupInputAutocomplete('destination-input', 'destination-place-data');
   }
   
   // If we already have the script, use it
