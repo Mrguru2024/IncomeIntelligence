@@ -864,13 +864,27 @@ function initializeAutocompleteFields() {
         z-index: 10000 !important;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
         border-radius: 4px !important;
-        position: fixed !important;
+        position: absolute !important;
         width: auto !important;
         min-width: 300px !important;
+        margin-top: 2px !important;
+        background-color: white !important;
+        border: 1px solid #d4d4d4 !important;
+        font-family: inherit !important;
+        font-size: 14px !important;
+        overflow: hidden !important;
+        display: block !important;
+      }
+      .pac-container:empty {
+        display: none !important;
       }
       .pac-item {
         padding: 8px 10px !important;
         cursor: pointer !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        border-bottom: 1px solid #e6e6e6 !important;
       }
       .pac-item:hover {
         background-color: #f5f5f5 !important;
@@ -878,6 +892,16 @@ function initializeAutocompleteFields() {
       .pac-item-query {
         font-size: 14px !important;
         font-weight: 500 !important;
+        color: #333 !important;
+      }
+      .pac-icon {
+        display: none !important;
+      }
+      .pac-item-selected, .pac-item-selected:hover {
+        background-color: #f0f0f0 !important;
+      }
+      input:focus + .pac-container {
+        display: block !important;
       }
     `;
     document.head.appendChild(style);
@@ -2707,7 +2731,7 @@ function createAutomotiveQuoteForm() {
   destAddressContainer.style.position = 'relative';
   
   const destAddressInput = createInput('text', 'destination_address', '', 'Customer or service location');
-  destAddressInput.id = 'destination-address-input';
+  destAddressInput.id = 'destination-input'; // Changed ID to match what autocomplete initialization expects
   destAddressInput.setAttribute('autocomplete', 'off');
   
   // Add small info icon for destination address
