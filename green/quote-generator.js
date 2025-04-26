@@ -419,18 +419,11 @@ function loadGooglePlacesAPI(callback) {
   // Create the script element
   const script = document.createElement('script');
   
-  // Look for API key in environment or use a demo key
-  // In a real implementation, this would use an environment variable
-  // In this demo version, we use a restricted demo key or try to work without a key
-  let placesApiKey = '';
+  // Use the Google API key provided by the user
+  const placesApiKey = 'AIzaSyAyyCDAADKc-15-FmUKGL-ykbmg-sxIleE';
   
-  // If we have a key, use it, otherwise load without a key (limited functionality)
-  if (placesApiKey) {
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${placesApiKey}&libraries=places`;
-  } else {
-    // Fallback to no key - will have limited functionality but still provides basic autocomplete UI
-    script.src = "https://maps.googleapis.com/maps/api/js?libraries=places";
-  }
+  // Load Google Places API with the provided key
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${placesApiKey}&libraries=places`;
   
   script.async = true;
   script.defer = true;
@@ -651,6 +644,7 @@ function createQuoteForm() {
   // Initialize Google Places Autocomplete when API is loaded
   setTimeout(() => {
     if (window.google && window.google.maps && window.google.maps.places) {
+      console.log('Initializing Places Autocomplete for general-location-input');
       const autocomplete = new google.maps.places.Autocomplete(locationInput, {
         types: ['address'],
         componentRestrictions: { country: 'us' }
@@ -683,7 +677,7 @@ function createQuoteForm() {
         }
       });
     }
-  }, 1200);
+  }, 2000);
   
   form.appendChild(createFormGroup('Location', locationContainer));
   
@@ -1672,6 +1666,7 @@ function createAutomotiveQuoteForm() {
   // Initialize Google Places Autocomplete
   setTimeout(() => {
     if (window.google && window.google.maps && window.google.maps.places) {
+      console.log('Initializing Places Autocomplete for auto-address-input');
       const autocomplete = new google.maps.places.Autocomplete(addressInput, {
         types: ['address'],
         componentRestrictions: { country: 'us' }
@@ -1708,7 +1703,7 @@ function createAutomotiveQuoteForm() {
     } else {
       console.log('Google Places API not available, using fallback address validation');
     }
-  }, 1000);
+  }, 2000);
   
   form.appendChild(createFormGroup('Service Address', addressContainer));
   
