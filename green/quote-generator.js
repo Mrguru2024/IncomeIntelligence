@@ -410,9 +410,57 @@ function showToast(message, type = 'success') {
  * @param {Function} callback - Callback function to run after script is loaded
  */
 function loadGooglePlacesAPI(callback) {
-  // Check if script already exists
+  // Flag to track if we've already set up the fallback
+  let fallbackInitialized = false;
+  
+  // Function to initialize our own basic address validation as fallback
+  function setupAddressValidationFallback() {
+    if (fallbackInitialized) return;
+    fallbackInitialized = true;
+    
+    console.log("Setting up fallback address validation");
+    showToast('Using simplified address validation', 'info');
+    
+    // Helper function to add validation to an input field
+    function setupBasicAddressField(inputId) {
+      const inputField = document.getElementById(inputId);
+      if (!inputField) return;
+      
+      // Add basic validation for US address format
+      inputField.addEventListener('blur', function() {
+        const value = inputField.value.trim();
+        if (value) {
+          // Very basic validation - check for a pattern like "123 Main St, City, ST" or a ZIP code
+          const hasStreetNumber = /^\d+\s+\w+/.test(value);
+          const hasZipCode = /\d{5}(-\d{4})?$/.test(value);
+          const hasStateCode = /\b[A-Z]{2}\b/.test(value);
+          
+          if (!hasStreetNumber && !hasZipCode && !hasStateCode) {
+            showToast('Please enter a valid US address or ZIP code', 'warning');
+          }
+        }
+      });
+    }
+    
+    // Apply to our known address fields
+    setupBasicAddressField('general-location-input');
+    
+    // If the callback was provided, call it with an error
+    if (callback) callback(new Error('Using fallback address validation'));
+  }
+  
+  // If we already have the script, use it
+  if (window.google && window.google.maps && window.google.maps.places) {
+    console.log('Google Places API already loaded');
+    initializeAutocompleteFields();
+    if (callback) callback(null);
+    return;
+  }
+  
+  // If the script tag exists but API failed to load properly
   if (document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
-    if (callback) callback();
+    console.log('Google Maps script tag exists but API not available - using fallback');
+    setupAddressValidationFallback();
     return;
   }
   
@@ -421,15 +469,20 @@ function loadGooglePlacesAPI(callback) {
     console.log('Google Places API loaded successfully via callback');
     // Initialize all input fields that need autocomplete
     initializeAutocompleteFields();
-    if (callback) callback();
+    if (callback) callback(null);
   };
   
   // Function to handle errors with API loading
   function handleApiError(error) {
     console.error('Failed to load Google Places API:', error);
-    showToast('Address autocomplete may not work correctly', 'warning');
-    // We'll still try to continue, using fallback validation
+    setupAddressValidationFallback();
   }
+  
+  // Set a backup timeout in case the entire loading process fails
+  const globalTimeoutId = setTimeout(() => {
+    console.warn('Google Places API loading process timed out completely');
+    setupAddressValidationFallback();
+  }, 12000);
   
   // Fetch API key from server environment variable (more secure than hardcoding)
   fetch('/api/google-maps-key')
@@ -472,11 +525,17 @@ function loadGooglePlacesAPI(callback) {
           }
         }, 10000); // 10 second timeout
         
-        // Override the global callback to clear the timeout
+        // Override the global callback to clear both timeouts
         const originalCallback = window.initGooglePlacesAPI;
         window.initGooglePlacesAPI = function() {
           clearTimeout(timeoutId);
+          clearTimeout(globalTimeoutId);
           if (originalCallback) originalCallback();
+        };
+        
+        // Success handler to clear global timeout
+        script.onload = () => {
+          console.log('Google Places API script loaded, waiting for initialization');
         };
         
         // Add the script to the document
