@@ -3360,6 +3360,10 @@ function createAutomotiveQuoteForm() {
  * @param {Event} e - Form submission event
  */
 function handleAutoQuoteFormSubmit(e) {
+  // Prevent form submission which causes page refresh on mobile
+  if (e && e.preventDefault) {
+    e.preventDefault();
+  }
   e.preventDefault();
   
   // Get form data from the auto-quote-form
