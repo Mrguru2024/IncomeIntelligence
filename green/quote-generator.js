@@ -545,8 +545,8 @@ function createQuoteForm() {
   buttonsRow.style.marginTop = '24px';
   
   // Generate quote button
-  const generateButton = createButton('Generate Quote', async (e) => {
-    await handleQuoteFormSubmit(e);
+  const generateButton = createButton('Generate Quote', (e) => {
+    handleQuoteFormSubmit(e);
   }, 'primary');
   
   // Reset form button
@@ -567,7 +567,7 @@ function createQuoteForm() {
  * Handle form submission to generate a quote
  * @param {Event} e - Form submission event
  */
-async function handleQuoteFormSubmit(e) {
+function handleQuoteFormSubmit(e) {
   e.preventDefault();
   
   // Get form data
@@ -602,7 +602,7 @@ async function handleQuoteFormSubmit(e) {
     };
     
     // Generate quote
-    const quoteResult = await generateQuote(quoteData);
+    const quoteResult = generateQuote(quoteData);
     
     // Display results
     displayQuoteResult(quoteResult);
