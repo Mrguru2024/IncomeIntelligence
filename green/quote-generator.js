@@ -3110,16 +3110,11 @@ function createAutomotiveQuoteForm() {
   destAddressInput.id = 'destination-input'; // Changed ID to match what autocomplete initialization expects
   destAddressInput.setAttribute('autocomplete', 'off');
   
-  // Create autocomplete wrapper if it doesn't exist
-  let wrapper = destAddressInput.parentElement;
-  if (!wrapper.classList.contains('stackr-autocomplete-wrapper')) {
-    wrapper = document.createElement('div');
-    wrapper.className = 'stackr-autocomplete-wrapper';
-    wrapper.style.position = 'relative';
-    wrapper.style.width = '100%';
-    destAddressInput.parentNode.insertBefore(wrapper, destAddressInput);
-    wrapper.appendChild(destAddressInput);
-  }
+  // Note: We need to ensure the destAddressContainer is properly set up first
+  // since the autocomplete system will need to append to it directly
+
+  // No need to create an additional wrapper as destAddressContainer already acts as the wrapper
+  // The input is directly inside destAddressContainer already
   
   // Create dropdown container if it doesn't exist
   const dropdownId = `destination-input-dropdown`;
@@ -3139,7 +3134,7 @@ function createAutomotiveQuoteForm() {
     dropdown.style.display = 'none';
     dropdown.style.maxHeight = '300px';
     dropdown.style.overflowY = 'auto';
-    wrapper.appendChild(dropdown);
+    destAddressContainer.appendChild(dropdown);
   }
   
   // Add direct input handler for debugging
@@ -3373,18 +3368,25 @@ function handleAutoQuoteFormSubmit(e) {
   resultSection.innerHTML = '<div style="text-align: center; padding: 20px;">Generating automotive quote...</div>';
   
   try {
-    // Get location data for distance calculation
-    const startPlaceData = document.getElementById('auto-address-place-data').dataset;
-    const destPlaceData = document.getElementById('destination-place-data').dataset;
+    // Get location data for distance calculation with safe access
+    const startPlaceDataEl = document.getElementById('auto-address-place-data');
+    const destPlaceDataEl = document.getElementById('destination-place-data');
     
-    // Transform form data into object
+    // Use empty objects as fallbacks if elements don't exist
+    const startPlaceData = startPlaceDataEl ? startPlaceDataEl.dataset : {};
+    const destPlaceData = destPlaceDataEl ? destPlaceDataEl.dataset : {};
+    
+    console.log('QUOTE FORM DEBUG: Start place data:', startPlaceData);
+    console.log('QUOTE FORM DEBUG: Destination place data:', destPlaceData);
+    
+    // Transform form data into object with defensive coding
     const quoteData = {
       vehicle_make: make,
       vehicle_model: model,
-      vehicle_year: parseInt(year),
-      service_type: serviceType,
-      address: startAddress,
-      destination_address: destinationAddress,
+      vehicle_year: parseInt(year || '0'),
+      service_type: serviceType || 'standard',
+      address: startAddress || '',
+      destination_address: destinationAddress || '',
       startLatLng: {
         lat: startPlaceData.lat ? parseFloat(startPlaceData.lat) : null,
         lng: startPlaceData.lng ? parseFloat(startPlaceData.lng) : null
