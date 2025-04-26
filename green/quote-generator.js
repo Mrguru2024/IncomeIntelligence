@@ -791,10 +791,10 @@ function initializeAutocompleteFields() {
       });
     }
     
-    // Initialize Automotive Quote Form address input
+    // Initialize Automotive Quote Form start address input
     const autoAddressInput = document.getElementById('auto-address-input');
     if (autoAddressInput) {
-      console.log('Initializing autocomplete for automotive quote address field');
+      console.log('Initializing autocomplete for automotive quote start address field');
       const autoAutocomplete = new google.maps.places.Autocomplete(autoAddressInput, {
         types: ['address'],
         componentRestrictions: { country: 'us' }
@@ -832,7 +832,77 @@ function initializeAutocompleteFields() {
             placeDataElement.dataset.state = state || '';
             placeDataElement.dataset.lat = latitude || '';
             placeDataElement.dataset.lng = longitude || '';
-            console.log('Google Places found state for automotive quote:', state);
+            console.log('Google Places found start location data:', state, latitude, longitude);
+          }
+        }
+      });
+    }
+    
+    // Initialize Automotive Quote Form destination address input
+    const destAddressInput = document.getElementById('destination-address-input');
+    if (destAddressInput) {
+      console.log('Initializing autocomplete for automotive quote destination address field');
+      const destAutocomplete = new google.maps.places.Autocomplete(destAddressInput, {
+        types: ['address'],
+        componentRestrictions: { country: 'us' }
+      });
+      
+      destAutocomplete.addListener('place_changed', () => {
+        const place = destAutocomplete.getPlace();
+        
+        if (!place.geometry) {
+          console.warn('No geometry returned for destination place:', place);
+          return;
+        }
+        
+        if (place.formatted_address) {
+          destAddressInput.value = place.formatted_address;
+          
+          // Extract state from address_components
+          let state = '';
+          if (place.address_components) {
+            for (let component of place.address_components) {
+              if (component.types.includes('administrative_area_level_1')) {
+                state = component.short_name;
+                break;
+              }
+            }
+          }
+          
+          // Extract additional data for distance calculations
+          let latitude = place.geometry.location.lat();
+          let longitude = place.geometry.location.lng();
+          
+          // Store location data in hidden field for later use
+          const placeDataElement = document.getElementById('destination-place-data');
+          if (placeDataElement) {
+            placeDataElement.dataset.state = state || '';
+            placeDataElement.dataset.lat = latitude || '';
+            placeDataElement.dataset.lng = longitude || '';
+            console.log('Google Places found destination location data:', state, latitude, longitude);
+            
+            // Calculate and display distance if both locations are available
+            const startPlaceData = document.getElementById('auto-address-place-data').dataset;
+            if (startPlaceData && startPlaceData.lat && startPlaceData.lng) {
+              const distance = calculateDistance(
+                parseFloat(startPlaceData.lat),
+                parseFloat(startPlaceData.lng),
+                latitude,
+                longitude
+              );
+              
+              // Show a distance message near the input field
+              const distanceMsg = document.getElementById('distance-message') || document.createElement('div');
+              distanceMsg.id = 'distance-message';
+              distanceMsg.style.fontSize = '13px';
+              distanceMsg.style.color = 'var(--color-text-secondary)';
+              distanceMsg.style.marginTop = '4px';
+              distanceMsg.textContent = `Distance: ${distance.toFixed(1)} miles`;
+              
+              if (!document.getElementById('distance-message')) {
+                destAddressInput.parentNode.appendChild(distanceMsg);
+              }
+            }
           }
         }
       });
@@ -2916,6 +2986,44 @@ function getGasPriceForState(state) {
 }
 
 /**
+ * Shorten an address for display purposes
+ * @param {string} address - Full address
+ * @returns {string} Shortened address
+ */
+function shortenAddress(address) {
+  if (!address) return 'Unknown location';
+  
+  // Extract key parts of the address - try to keep just street number, name and city
+  const parts = address.split(',').map(part => part.trim());
+  
+  if (parts.length <= 2) {
+    // If it's already short, return as is
+    return address;
+  }
+  
+  // Try to get street address and city
+  const streetAddress = parts[0];
+  let city = '';
+  
+  // Look for the city part (usually second or third element)
+  for (let i = 1; i < parts.length; i++) {
+    const part = parts[i];
+    // Skip state+zip part which often has numbers
+    if (!part.match(/\d{5}/) && part.length > 2) {
+      city = part;
+      break;
+    }
+  }
+  
+  if (city) {
+    return `${streetAddress}, ${city}`;
+  }
+  
+  // Fallback - just keep first two parts
+  return `${parts[0]}, ${parts[1]}`;
+}
+
+/**
  * Display the auto quote result
  * @param {Object} quoteResult - The auto quote result
  */
@@ -3015,6 +3123,70 @@ function displayAutoQuoteResult(quoteResult) {
   
   // Add the container to the breakdown list
   breakdownList.appendChild(partsKeycodeContainer);
+  
+  // Travel costs if applicable
+  if (quoteResult.travelDistance > 0) {
+    const travelContainer = document.createElement('div');
+    travelContainer.style.marginBottom = '8px';
+    
+    // Main travel cost row
+    const travelRow = createBreakdownItem(`Travel (${quoteResult.travelDistance} miles)`, quoteResult.travelCost);
+    travelContainer.appendChild(travelRow);
+    
+    // Travel cost details
+    const fuelDetail = document.createElement('div');
+    fuelDetail.style.fontSize = '13px';
+    fuelDetail.style.color = 'var(--color-text-secondary)';
+    fuelDetail.style.marginLeft = '20px';
+    fuelDetail.style.paddingTop = '4px';
+    fuelDetail.style.paddingBottom = '4px';
+    fuelDetail.style.display = 'flex';
+    fuelDetail.style.justifyContent = 'space-between';
+    
+    const fuelLabel = document.createElement('div');
+    fuelLabel.textContent = `• Fuel cost (${quoteResult.gasPrice.toFixed(2)}/gallon)`;
+    
+    const fuelAmount = document.createElement('div');
+    fuelAmount.textContent = `$${quoteResult.fuelCost.toFixed(2)}`;
+    
+    fuelDetail.appendChild(fuelLabel);
+    fuelDetail.appendChild(fuelAmount);
+    travelContainer.appendChild(fuelDetail);
+    
+    // Service fee for travel time
+    const travelTimeDetail = document.createElement('div');
+    travelTimeDetail.style.fontSize = '13px';
+    travelTimeDetail.style.color = 'var(--color-text-secondary)';
+    travelTimeDetail.style.marginLeft = '20px';
+    travelTimeDetail.style.paddingTop = '4px';
+    travelTimeDetail.style.paddingBottom = '4px';
+    travelTimeDetail.style.display = 'flex';
+    travelTimeDetail.style.justifyContent = 'space-between';
+    
+    const travelTimeLabel = document.createElement('div');
+    travelTimeLabel.textContent = `• Service fee for travel time`;
+    
+    const travelTimeAmount = document.createElement('div');
+    travelTimeAmount.textContent = `$${quoteResult.travelServiceFee.toFixed(2)}`;
+    
+    travelTimeDetail.appendChild(travelTimeLabel);
+    travelTimeDetail.appendChild(travelTimeAmount);
+    travelContainer.appendChild(travelTimeDetail);
+    
+    // Add location info
+    const locationDetail = document.createElement('div');
+    locationDetail.style.fontSize = '13px';
+    locationDetail.style.color = 'var(--color-text-secondary)';
+    locationDetail.style.marginLeft = '20px';
+    locationDetail.style.paddingTop = '4px';
+    locationDetail.style.paddingBottom = '0px';
+    
+    locationDetail.textContent = `• Round-trip from ${shortenAddress(quoteResult.address)} to ${shortenAddress(quoteResult.destination_address)}`;
+    travelContainer.appendChild(locationDetail);
+    
+    // Add travel container to breakdown
+    breakdownList.appendChild(travelContainer);
+  }
   
   // Subtotal
   breakdownList.appendChild(createBreakdownItem('Subtotal', quoteResult.subtotal));
