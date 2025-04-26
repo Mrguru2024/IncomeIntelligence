@@ -406,10 +406,56 @@ function showToast(message, type = 'success') {
 }
 
 /**
+ * Load Google Places API script
+ * @param {Function} callback - Callback function to run after script is loaded
+ */
+function loadGooglePlacesAPI(callback) {
+  // Check if script already exists
+  if (document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
+    if (callback) callback();
+    return;
+  }
+  
+  // Create the script element
+  const script = document.createElement('script');
+  
+  // Look for API key in environment or use a demo key
+  // In a real implementation, this would use an environment variable
+  // In this demo version, we use a restricted demo key or try to work without a key
+  let placesApiKey = '';
+  
+  // If we have a key, use it, otherwise load without a key (limited functionality)
+  if (placesApiKey) {
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${placesApiKey}&libraries=places`;
+  } else {
+    // Fallback to no key - will have limited functionality but still provides basic autocomplete UI
+    script.src = "https://maps.googleapis.com/maps/api/js?libraries=places";
+  }
+  
+  script.async = true;
+  script.defer = true;
+  
+  // Set callback for when script loads
+  script.onload = () => {
+    console.log('Google Places API loaded successfully');
+    if (callback) callback();
+  };
+  
+  script.onerror = () => {
+    console.error('Failed to load Google Places API');
+  };
+  
+  // Add the script to the document
+  document.head.appendChild(script);
+}
+
+/**
  * Main function to render the quote generator page
  * @param {string} containerId - The ID of the container to render the page in
  */
 export function renderQuoteGeneratorPage(containerId) {
+  // Load Google Places API for address autocomplete
+  loadGooglePlacesAPI();
   const container = document.getElementById(containerId);
   if (!container) {
     console.error(`Container with ID '${containerId}' not found`);
@@ -548,9 +594,98 @@ function createQuoteForm() {
   const jobDescriptionInput = createTextarea('jobDescription', 'Describe the job in detail...');
   form.appendChild(createFormGroup('Job Description', jobDescriptionInput));
   
-  // Location
+  // Location with Google Places autocomplete
+  const locationContainer = document.createElement('div');
+  locationContainer.style.position = 'relative';
+  
   const locationInput = createInput('text', 'location', '', 'ZIP code or City, State');
-  form.appendChild(createFormGroup('Location', locationInput));
+  locationInput.id = 'general-location-input';
+  locationInput.setAttribute('autocomplete', 'off');
+  
+  // Add small info icon to indicate autocomplete functionality
+  const infoIcon = document.createElement('span');
+  infoIcon.innerHTML = '&#9432;'; // Info icon
+  infoIcon.style.position = 'absolute';
+  infoIcon.style.right = '10px';
+  infoIcon.style.top = '50%';
+  infoIcon.style.transform = 'translateY(-50%)';
+  infoIcon.style.color = 'var(--color-text-secondary)';
+  infoIcon.style.cursor = 'pointer';
+  infoIcon.title = 'Start typing for address suggestions';
+  
+  locationContainer.appendChild(locationInput);
+  locationContainer.appendChild(infoIcon);
+  
+  // Add clear button
+  const clearBtn = document.createElement('button');
+  clearBtn.type = 'button';
+  clearBtn.textContent = '×';
+  clearBtn.style.position = 'absolute';
+  clearBtn.style.right = '30px';
+  clearBtn.style.top = '50%';
+  clearBtn.style.transform = 'translateY(-50%)';
+  clearBtn.style.background = 'none';
+  clearBtn.style.border = 'none';
+  clearBtn.style.fontSize = '18px';
+  clearBtn.style.cursor = 'pointer';
+  clearBtn.style.color = 'var(--color-text-secondary)';
+  clearBtn.style.display = 'none';
+  clearBtn.onclick = () => {
+    locationInput.value = '';
+    clearBtn.style.display = 'none';
+  };
+  
+  locationContainer.appendChild(clearBtn);
+  
+  // Show/hide clear button based on input value
+  locationInput.addEventListener('input', () => {
+    clearBtn.style.display = locationInput.value ? 'block' : 'none';
+  });
+  
+  // Add hidden element to store place data
+  const placeDataElement = document.createElement('div');
+  placeDataElement.id = 'general-location-place-data';
+  placeDataElement.style.display = 'none';
+  locationContainer.appendChild(placeDataElement);
+  
+  // Initialize Google Places Autocomplete when API is loaded
+  setTimeout(() => {
+    if (window.google && window.google.maps && window.google.maps.places) {
+      const autocomplete = new google.maps.places.Autocomplete(locationInput, {
+        types: ['address'],
+        componentRestrictions: { country: 'us' }
+      });
+      
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        
+        if (place.formatted_address) {
+          locationInput.value = place.formatted_address;
+          clearBtn.style.display = 'block';
+          
+          // Extract state from address_components
+          let state = '';
+          if (place.address_components) {
+            for (let component of place.address_components) {
+              // Look for the administrative_area_level_1 type (which is the state)
+              if (component.types.includes('administrative_area_level_1')) {
+                state = component.short_name; // Get the state code (e.g., "CA", "NY")
+                break;
+              }
+            }
+          }
+          
+          // Store state in data attribute for later use
+          if (state) {
+            placeDataElement.dataset.state = state;
+            console.log('Google Places found state for general quote:', state);
+          }
+        }
+      });
+    }
+  }, 1200);
+  
+  form.appendChild(createFormGroup('Location', locationContainer));
   
   // Labor hours
   const laborHoursInput = createInput('number', 'laborHours', '1', 'Estimated hours', '0.5', '100', '0.5');
@@ -1280,6 +1415,13 @@ function createInvoiceFromQuote(quoteResult) {
  * @returns {string} The two-letter state code
  */
 function getStateFromZip(location) {
+  // Check if we have a Google Places geocoded result for this location
+  const placeResultElement = document.getElementById('general-location-place-data');
+  if (placeResultElement && placeResultElement.dataset.state) {
+    console.log('Using Google Places geocoded state for general quote:', placeResultElement.dataset.state);
+    return placeResultElement.dataset.state;
+  }
+  
   // For simplicity, this is a synchronous function in this example
   // In a real app, this might be an API call to get state from ZIP
   
@@ -1473,9 +1615,102 @@ function createAutomotiveQuoteForm() {
   const serviceSelect = createSelect('service_type', serviceOptions);
   form.appendChild(createFormGroup('Service Type', serviceSelect));
   
-  // Location for tax
+  // Location for tax - with Google Places autocomplete
+  const addressContainer = document.createElement('div');
+  addressContainer.style.position = 'relative';
+  
   const addressInput = createInput('text', 'address', '', 'Full address for tax calculation');
-  form.appendChild(createFormGroup('Service Address', addressInput));
+  addressInput.id = 'auto-address-input';
+  addressInput.setAttribute('autocomplete', 'off');
+  
+  // Add small info icon to indicate autocomplete functionality
+  const infoIcon = document.createElement('span');
+  infoIcon.innerHTML = '&#9432;'; // Info icon
+  infoIcon.style.position = 'absolute';
+  infoIcon.style.right = '10px';
+  infoIcon.style.top = '50%';
+  infoIcon.style.transform = 'translateY(-50%)';
+  infoIcon.style.color = 'var(--color-text-secondary)';
+  infoIcon.style.cursor = 'pointer';
+  infoIcon.title = 'Start typing for address suggestions';
+  
+  addressContainer.appendChild(addressInput);
+  addressContainer.appendChild(infoIcon);
+  
+  // Add clear button
+  const clearBtn = document.createElement('button');
+  clearBtn.type = 'button';
+  clearBtn.textContent = '×';
+  clearBtn.style.position = 'absolute';
+  clearBtn.style.right = '30px';
+  clearBtn.style.top = '50%';
+  clearBtn.style.transform = 'translateY(-50%)';
+  clearBtn.style.background = 'none';
+  clearBtn.style.border = 'none';
+  clearBtn.style.fontSize = '18px';
+  clearBtn.style.cursor = 'pointer';
+  clearBtn.style.color = 'var(--color-text-secondary)';
+  clearBtn.style.display = 'none';
+  clearBtn.onclick = () => {
+    addressInput.value = '';
+    clearBtn.style.display = 'none';
+  };
+  
+  addressContainer.appendChild(clearBtn);
+  
+  // Show/hide clear button based on input value
+  addressInput.addEventListener('input', () => {
+    clearBtn.style.display = addressInput.value ? 'block' : 'none';
+  });
+  
+  // Add hidden element to store place data
+  const placeDataElement = document.createElement('div');
+  placeDataElement.id = 'auto-address-place-data';
+  placeDataElement.style.display = 'none';
+  addressContainer.appendChild(placeDataElement);
+  
+  // Initialize Google Places Autocomplete
+  setTimeout(() => {
+    if (window.google && window.google.maps && window.google.maps.places) {
+      const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+        types: ['address'],
+        componentRestrictions: { country: 'us' }
+      });
+      
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        
+        if (place.formatted_address) {
+          addressInput.value = place.formatted_address;
+          clearBtn.style.display = 'block';
+          
+          // Extract state from address_components
+          let state = '';
+          if (place.address_components) {
+            for (let component of place.address_components) {
+              // Look for the administrative_area_level_1 type (which is the state)
+              if (component.types.includes('administrative_area_level_1')) {
+                state = component.short_name; // Get the state code (e.g., "CA", "NY")
+                break;
+              }
+            }
+          }
+          
+          // Store state in data attribute for later use
+          if (state) {
+            placeDataElement.dataset.state = state;
+            console.log('Google Places found state:', state);
+          }
+        }
+      });
+      
+      console.log('Google Places Autocomplete initialized successfully');
+    } else {
+      console.log('Google Places API not available, using fallback address validation');
+    }
+  }, 1000);
+  
+  form.appendChild(createFormGroup('Service Address', addressContainer));
   
   // Options section
   const optionsSection = createSectionHeader('Additional Options', 'Customize your quote settings');
@@ -2154,8 +2389,12 @@ const autoParts = {
  * @returns {string} Two-letter state code
  */
 function validateAddressGetState(address) {
-  // In a real implementation, this would use Google Places API
-  // For now, use a simple regex to extract state code
+  // Check if we have a Google Places geocoded result
+  const placeResultElement = document.getElementById('auto-address-place-data');
+  if (placeResultElement && placeResultElement.dataset.state) {
+    console.log('Using Google Places geocoded state:', placeResultElement.dataset.state);
+    return placeResultElement.dataset.state;
+  }
   
   // Check if address already has a state code format (e.g., TX, CA)
   const stateCodeMatch = address.match(/\b([A-Z]{2})\b/);
@@ -2182,6 +2421,32 @@ function validateAddressGetState(address) {
   for (const [stateName, stateCode] of Object.entries(stateMap)) {
     if (lowercaseAddress.includes(stateName)) {
       return stateCode;
+    }
+  }
+  
+  // Try to extract from ZIP code patterns
+  const zipMatch = address.match(/\b\d{5}(?:-\d{4})?\b/);
+  if (zipMatch) {
+    const zip = zipMatch[0].substring(0, 5);
+    const firstDigit = parseInt(zip.charAt(0));
+    
+    // Very rough approximation of ZIP code to state
+    // This is a simplified mapping and not 100% accurate
+    const zipStateMap = {
+      0: 'MA', // New England
+      1: 'NY', // NY, NJ area
+      2: 'VA', // Mid-Atlantic
+      3: 'FL', // Southeast
+      4: 'IN', // Midwest
+      5: 'MO', // Central
+      6: 'TX', // South Central
+      7: 'TX', // South Central
+      8: 'CO', // Mountain
+      9: 'CA'  // West Coast
+    };
+    
+    if (zipStateMap[firstDigit]) {
+      return zipStateMap[firstDigit];
     }
   }
   
