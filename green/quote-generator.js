@@ -421,6 +421,32 @@ function loadGooglePlacesAPI(callback) {
     
     console.log("Setting up fallback address validation");
     
+    // Add CSS to ensure our fallback UI works properly
+    const fallbackStyle = document.createElement('style');
+    fallbackStyle.textContent = `
+      .address-suggestions {
+        position: absolute;
+        z-index: 10000;
+        background: white;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        margin-top: 2px;
+      }
+      .address-suggestion-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+      }
+      .address-suggestion-item:hover {
+        background-color: #f5f5f5;
+      }
+    `;
+    document.head.appendChild(fallbackStyle);
+    
     // Clear any existing alert message first
     const existingMessage = document.querySelector('.maps-status-message');
     if (existingMessage) {
@@ -476,10 +502,90 @@ function loadGooglePlacesAPI(callback) {
       }
     }, 500);
     
-    // Helper function to add validation to an input field
+    // Helper function to add validation and suggestions to an input field
     function setupBasicAddressField(inputId) {
       const inputField = document.getElementById(inputId);
       if (!inputField) return;
+      
+      console.log(`Setting up enhanced fallback for address field: ${inputId}`);
+      
+      // Create a suggestions container
+      const suggestionsContainer = document.createElement('div');
+      suggestionsContainer.className = 'address-suggestions';
+      suggestionsContainer.style.display = 'none';
+      
+      // Add the suggestions container after the input field
+      inputField.parentNode.insertBefore(suggestionsContainer, inputField.nextSibling);
+      
+      // Add input event listener for address suggestions
+      let debounceTimer;
+      inputField.addEventListener('input', function() {
+        const value = inputField.value.trim();
+        
+        // Clear existing timer to prevent multiple requests
+        clearTimeout(debounceTimer);
+        
+        // Hide suggestions if input is too short
+        if (value.length < 3) {
+          suggestionsContainer.style.display = 'none';
+          return;
+        }
+        
+        // Debounce the API call
+        debounceTimer = setTimeout(() => {
+          console.log(`Fetching address suggestions for: ${value}`);
+          
+          // Fetch suggestions from our backend endpoint
+          fetch(`/api/address-suggestions?query=${encodeURIComponent(value)}`)
+            .then(response => response.json())
+            .then(data => {
+              // Clear previous suggestions
+              suggestionsContainer.innerHTML = '';
+              
+              if (data.predictions && data.predictions.length > 0) {
+                console.log(`Got ${data.predictions.length} address suggestions`);
+                
+                // Add each suggestion as a clickable item
+                data.predictions.forEach(prediction => {
+                  const item = document.createElement('div');
+                  item.className = 'address-suggestion-item';
+                  item.textContent = prediction.description;
+                  
+                  item.addEventListener('click', () => {
+                    inputField.value = prediction.description;
+                    suggestionsContainer.style.display = 'none';
+                    
+                    // If this is a valid selection, store the state in data attribute if available
+                    if (prediction.state) {
+                      const dataElement = document.getElementById(`${inputId.replace('-input', '')}-place-data`);
+                      if (dataElement) {
+                        dataElement.dataset.state = prediction.state;
+                      }
+                    }
+                  });
+                  
+                  suggestionsContainer.appendChild(item);
+                });
+                
+                // Show the suggestions
+                suggestionsContainer.style.display = 'block';
+              } else {
+                suggestionsContainer.style.display = 'none';
+              }
+            })
+            .catch(error => {
+              console.error('Error fetching address suggestions:', error);
+              suggestionsContainer.style.display = 'none';
+            });
+        }, 500); // 500ms debounce
+      });
+      
+      // Hide suggestions when clicking outside
+      document.addEventListener('click', function(event) {
+        if (event.target !== inputField && event.target !== suggestionsContainer) {
+          suggestionsContainer.style.display = 'none';
+        }
+      });
       
       // Add basic validation for US address format
       inputField.addEventListener('blur', function() {
@@ -499,6 +605,8 @@ function loadGooglePlacesAPI(callback) {
     
     // Apply to our known address fields
     setupBasicAddressField('general-location-input');
+    setupBasicAddressField('auto-address-input');
+    setupBasicAddressField('destination-address-input');
     
     // If the callback was provided, call it with an error
     if (callback) callback(new Error('Using fallback address validation'));
@@ -886,6 +994,15 @@ function initializeAutocompleteFields() {
     const destAddressInput = document.getElementById('destination-address-input');
     if (destAddressInput) {
       console.log('Initializing autocomplete for automotive quote destination address field');
+      
+      // Add input event listener for manual lookup if needed
+      destAddressInput.addEventListener('input', function() {
+        if (destAddressInput.value.length >= 3) {
+          // Log the query attempt for debugging
+          console.log('Destination address input changed, could fetch suggestions for:', destAddressInput.value);
+        }
+      });
+      
       const destAutocomplete = new google.maps.places.Autocomplete(destAddressInput, {
         types: ['address'],
         componentRestrictions: { country: 'us' }
@@ -962,29 +1079,17 @@ function initializeAutocompleteFields() {
  * @param {string} containerId - The ID of the container to render the page in
  */
 export function renderQuoteGeneratorPage(containerId) {
-  // Add CSS to fix Google Places Autocomplete dropdown visibility
-  const autocompleteStyle = document.createElement('style');
-  autocompleteStyle.textContent = `
-    .pac-container {
-      z-index: 9999 !important;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
-      border-radius: 4px !important;
-    }
-    .pac-item {
-      padding: 8px 10px !important;
-      cursor: pointer !important;
-    }
-    .pac-item:hover {
-      background-color: #f5f5f5 !important;
-    }
-    .pac-item-query {
-      font-size: 14px !important;
-    }
-  `;
-  document.head.appendChild(autocompleteStyle);
+  // Autocomplete CSS is now added in the initializeAutocompleteFields function
   
   // Load Google Places API for address autocomplete
   loadGooglePlacesAPI();
+  
+  // Add debug logging for diagnosing Google Maps API issues
+  console.log('Checking Google Maps API status at render time:');
+  console.log('- window.google exists:', !!window.google);
+  console.log('- window.google.maps exists:', window.google && !!window.google.maps);
+  console.log('- window.google.maps.places exists:', window.google && window.google.maps && !!window.google.maps.places);
+  
   const container = document.getElementById(containerId);
   if (!container) {
     console.error(`Container with ID '${containerId}' not found`);
