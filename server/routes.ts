@@ -88,9 +88,12 @@ if (stripeSecretKey) {
 }
 
 // JWT Authentication is now handled by the auth middleware
+import { validateGoogleMapsApiKey, resetGoogleMapsApiKeyValidation } from './services/google-maps-service';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Provide Google Maps API key securely
+  
+  // Provide Google Maps API key with validation
   app.get('/api/google-maps-key', async (req, res) => {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     
@@ -103,49 +106,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      // Validate the API key with a basic test request to the Google Maps API
-      // This is a lightweight request just to verify the key works
-      const testUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=test&key=${apiKey}`;
+      // Check if force refresh parameter is provided
+      if (req.query.refresh === 'true') {
+        console.log('Forcibly refreshing Google Maps API key validation cache');
+        resetGoogleMapsApiKeyValidation();
+      }
       
-      const response = await fetch(testUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      });
+      // Use our dedicated service to validate the key
+      const validationResult = await validateGoogleMapsApiKey();
       
-      const data = await response.json();
-      
-      // Check for API key validity
-      if (data.error_message && (data.error_message.includes('API key') || data.status === 'REQUEST_DENIED')) {
-        console.error('Google Maps API key validation failed:', data.error_message);
-        
+      if (!validationResult.isValid) {
         let errorMessage = 'The Google Maps API key is invalid or restricted';
         
-        // Check for common billing-related errors
-        if (data.error_message.includes('billing')) {
+        // Check for billing-related errors
+        if (validationResult.requiresBilling) {
           errorMessage = 'The Google Maps API requires billing to be enabled on the Google Cloud Project. Please enable billing at https://console.cloud.google.com/project/_/billing/enable';
         }
+        
+        console.error('Google Maps API key validation failed:', validationResult.errorMessage);
         
         return res.status(401).json({
           error: 'Invalid API key',
           message: errorMessage,
-          details: data.error_message,
-          requiresBilling: data.error_message.includes('billing')
+          details: validationResult.errorMessage,
+          requiresBilling: validationResult.requiresBilling,
+          apiResponse: validationResult.apiResponse
         });
       }
       
       console.log('Successfully validated Google Maps API key');
       console.log('Serving Google Maps API key to client');
-      res.json({ key: apiKey });
+      res.json({ 
+        key: apiKey,
+        status: 'valid',
+        lastValidated: new Date().toISOString()
+      });
     } catch (error) {
       console.error('Error validating Google Maps API key:', error);
       // Still provide the key even if validation fails
       // This allows the client to attempt to use the key directly
       res.json({ 
         key: apiKey,
-        warning: 'API key validation failed, but key is being provided'
+        warning: 'API key validation failed, but key is being provided',
+        status: 'unknown'
       });
     }
   });

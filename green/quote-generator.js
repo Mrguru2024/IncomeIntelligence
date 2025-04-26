@@ -420,7 +420,40 @@ function loadGooglePlacesAPI(callback) {
     fallbackInitialized = true;
     
     console.log("Setting up fallback address validation");
-    showToast('Using simplified address validation', 'info');
+    
+    // Check if we have a specific Google API error
+    const apiErrorMessage = window.googleMapsError || '';
+    if (apiErrorMessage.includes('billing')) {
+      showToast('Google Maps requires billing to be enabled. Using manual address entry for now.', 'warning');
+      
+      // Create a more detailed help message element
+      const helpMessage = document.createElement('div');
+      helpMessage.className = 'help-message';
+      helpMessage.style.marginBottom = '20px';
+      helpMessage.style.padding = '12px';
+      helpMessage.style.borderRadius = '6px';
+      helpMessage.style.backgroundColor = '#FEF3C7';
+      helpMessage.style.color = '#92400E';
+      helpMessage.style.fontSize = '14px';
+      helpMessage.style.lineHeight = '1.5';
+      
+      helpMessage.innerHTML = `
+        <h3 style="margin-top: 0; font-weight: 600; font-size: 16px;">Google Maps API - Billing Required</h3>
+        <p>Address autocomplete is unavailable because the Google Maps API requires billing to be enabled.</p>
+        <p>After enabling billing in the Google Cloud Console, it may take 5-15 minutes to propagate.</p>
+        <p>You can still enter addresses manually in the meantime.</p>
+      `;
+      
+      // Insert it after the location input
+      setTimeout(() => {
+        const locationInput = document.getElementById('general-location-input');
+        if (locationInput && locationInput.parentNode) {
+          locationInput.parentNode.insertAdjacentElement('afterend', helpMessage);
+        }
+      }, 1000);
+    } else {
+      showToast('Using simplified address validation', 'info');
+    }
     
     // Helper function to add validation to an input field
     function setupBasicAddressField(inputId) {
