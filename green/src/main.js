@@ -3655,6 +3655,15 @@ function renderPageContent(container) {
         import('../quote-generator.js').then(module => {
           displayPageTitle('Quote Generator');
           try {
+            // Clear container first for clean rendering
+            container.innerHTML = '';
+            // Create app container for the quote generator page
+            const appContainer = document.createElement('div');
+            appContainer.id = 'app-container';
+            container.appendChild(appContainer);
+            console.log("Created app-container for quote generator:", appContainer);
+            
+            // Render quote generator in the container
             module.renderQuoteGeneratorPage('app-container');
             console.log('Quote Generator page rendered successfully');
           } catch (error) {
