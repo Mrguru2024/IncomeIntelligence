@@ -1295,7 +1295,7 @@ function createQuoteForm() {
             destPlaceDataElement.dataset.lng = destinationLng;
             
             // Calculate distance if we have both origin and destination coordinates
-            calculateDistance();
+            calculateAddressDistance();
           }
         }
       });
@@ -1322,7 +1322,7 @@ function createQuoteForm() {
   
   // Add calculate button
   const calculateButton = createButton('Calculate Distance', () => {
-    calculateDistance();
+    calculateAddressDistance();
   }, 'secondary');
   calculateButton.style.marginBottom = '16px';
   calculateButton.style.width = 'auto';
@@ -3889,7 +3889,7 @@ function searchPartsCost(make, model, year, serviceType) {
 /**
  * Calculate distance between two addresses using Google Maps Distance Matrix API
  */
-function calculateDistance() {
+function calculateAddressDistance() {
   const distanceResultContainer = document.getElementById('distance-calculation-result');
   distanceResultContainer.innerHTML = '<div>Calculating distance...</div>';
   
