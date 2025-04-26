@@ -619,7 +619,7 @@ async function handleQuoteFormSubmit(e) {
  * @param {Object} quoteData - The data for generating the quote
  * @returns {Object} The generated quote result
  */
-async function generateQuote(quoteData) {
+function generateQuote(quoteData) {
   // Extract data
   const { 
     jobType, 
@@ -633,11 +633,11 @@ async function generateQuote(quoteData) {
   } = quoteData;
   
   // Get state and tax rate
-  const state = await getStateFromZip(location);
+  const state = getStateFromZip(location);
   const taxRate = getTaxRate(state);
   
   // Get market rate for this job type and region
-  const hourlyRate = await getMarketRate(jobType, state);
+  const hourlyRate = getMarketRate(jobType, state);
   
   // Calculate base labor cost
   let laborCost = hourlyRate * laborHours;
@@ -1319,7 +1319,7 @@ function getTaxRate(state) {
  * @param {string} state - Two-letter state code
  * @returns {number} The hourly market rate
  */
-async function getMarketRate(jobType, state) {
+function getMarketRate(jobType, state) {
   // Get the region for this state
   const region = stateToRegion[state] || 'northeast';
   
