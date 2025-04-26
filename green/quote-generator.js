@@ -1297,8 +1297,17 @@ function displayQuoteResult(quoteResult) {
   // Save quote button
   const saveButton = createButton('Save Quote', () => saveQuote(quoteResult), 'primary');
   
-  // Print quote button
-  const printButton = createButton('Print Quote', () => printQuote(quoteResult), 'secondary');
+  // Print quote buttons (both service provider and customer versions)
+  const printButtonsRow = document.createElement('div');
+  printButtonsRow.style.display = 'flex';
+  printButtonsRow.style.gap = '4px';
+  printButtonsRow.style.flexDirection = 'column';
+  
+  const printButton = createButton('Print Quote (Service Provider View)', () => printQuote(quoteResult, false), 'secondary');
+  const printCustomerButton = createButton('Print Quote (Customer View)', () => printQuote(quoteResult, true), 'secondary');
+  
+  printButtonsRow.appendChild(printButton);
+  printButtonsRow.appendChild(printCustomerButton);
   
   // Create invoice button
   const invoiceButton = createButton('Create Invoice', () => createInvoiceFromQuote(quoteResult), 'secondary');
@@ -1347,8 +1356,9 @@ function saveQuote(quoteResult) {
 /**
  * Print the quote
  * @param {Object} quoteResult - The quote result to print
+ * @param {boolean} isCustomerVersion - Whether to print a customer-friendly version
  */
-function printQuote(quoteResult) {
+function printQuote(quoteResult, isCustomerVersion = false) {
   // Create a new window for printing
   const printWindow = window.open('', '_blank');
   
@@ -1360,12 +1370,101 @@ function printQuote(quoteResult) {
   // Get job type display name
   const jobTypeDisplayName = document.querySelector(`#quote-form select[name="jobType"] option[value="${quoteResult.jobType}"]`).textContent;
   
+  // Format the current date
+  const currentDate = new Date().toLocaleDateString();
+  const quoteNumber = `Q-${Date.now().toString().substring(6)}`;
+  
+  // Create travel section content based on version
+  let travelSection = '';
+  if (quoteResult.travelDistance > 0) {
+    if (isCustomerVersion) {
+      // Customer version shows less detail about travel costs, but includes gas prices info
+      travelSection = `
+        <div class="breakdown-item">
+          <div>Travel (${quoteResult.travelDistance} miles)</div>
+          <div>$${quoteResult.travelCost.toFixed(2)}</div>
+        </div>
+        <div style="font-size: 13px; color: #666; margin-left: 20px; margin-bottom: 8px;">
+          <div>• Current gas price in your area: $${quoteResult.gasPrice.toFixed(2)}/gallon</div>
+          <div>• Includes round-trip travel and service time</div>
+        </div>
+      `;
+    } else {
+      // Service provider version shows detailed breakdown
+      travelSection = `
+        <div class="breakdown-item">
+          <div>Travel (${quoteResult.travelDistance} miles)</div>
+          <div>$${quoteResult.travelCost.toFixed(2)}</div>
+        </div>
+        <div style="font-size: 13px; color: #666; margin-left: 20px; margin-bottom: 8px;">
+          <div style="display: flex; justify-content: space-between;">
+            <div>• Fuel cost ($${quoteResult.gasPrice.toFixed(2)}/gal)</div>
+            <div>$${quoteResult.fuelCost.toFixed(2)}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <div>• Service fee for travel time</div>
+            <div>$${quoteResult.travelServiceFee.toFixed(2)}</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+  
+  // Create profit analysis section (only for service provider version)
+  const profitAnalysisSection = !isCustomerVersion ? `
+    <div class="profit-analysis" style="margin-top: 30px; padding: 15px; background-color: #f0f7ff; border-radius: 4px;">
+      <div class="section-title">Profit Analysis</div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div>Target Profit Margin:</div>
+        <div>${quoteResult.targetMargin}%</div>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div>Actual Profit Margin:</div>
+        <div style="font-weight: bold; color: ${quoteResult.profitMargin < 15 ? '#B91C1C' : quoteResult.profitMargin < 25 ? '#D97706' : '#047857'}">
+          ${quoteResult.profitMargin.toFixed(1)}%
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div>Estimated Profit:</div>
+        <div style="font-weight: bold;">$${quoteResult.profit.toFixed(2)}</div>
+      </div>
+      <div style="margin-top: 12px; padding: 8px; border-radius: 4px; font-size: 14px; 
+                  background-color: ${quoteResult.profitMargin < 15 ? '#FEE2E2' : quoteResult.profitMargin < 25 ? '#FEF3C7' : '#ECFDF5'}">
+        ${quoteResult.profitAssessment}
+      </div>
+    </div>
+  ` : '';
+  
+  // Create notes section with different content based on version
+  const notesSection = isCustomerVersion ? `
+    <div class="notes">
+      <div class="section-title">Notes</div>
+      <div>
+        <p>This quote is valid for 30 days from the date of issue.</p>
+        <p>Payment terms: 50% deposit required before work begins, remaining balance due upon completion.</p>
+        <p>Please contact us if you have any questions about this quote.</p>
+      </div>
+    </div>
+  ` : `
+    <div class="notes">
+      <div class="section-title">Notes</div>
+      <div>
+        <p>This quote is valid for 30 days from the date of issue.</p>
+        <p>Payment terms: 50% deposit required before work begins, remaining balance due upon completion.</p>
+        <p>For internal use: Profit margin is ${quoteResult.profitMargin.toFixed(1)}% (target: ${quoteResult.targetMargin}%)</p>
+      </div>
+    </div>
+  `;
+  
+  // Create title based on version
+  const pageTitle = isCustomerVersion ? `Customer Quote - ${jobTypeDisplayName}` : `Quote - ${jobTypeDisplayName}`;
+  
   // Create print content
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Quote - ${jobTypeDisplayName}</title>
+      <title>${pageTitle}</title>
       <style>
         body {
           font-family: Arial, sans-serif;
@@ -1451,11 +1550,11 @@ function printQuote(quoteResult) {
           <div class="section-title">Quote Information</div>
           <div class="quote-info-row">
             <div><strong>Date:</strong></div>
-            <div>${new Date().toLocaleDateString()}</div>
+            <div>${currentDate}</div>
           </div>
           <div class="quote-info-row">
             <div><strong>Quote Number:</strong></div>
-            <div>Q-${Date.now().toString().substring(6)}</div>
+            <div>${quoteNumber}</div>
           </div>
           <div class="quote-info-row">
             <div><strong>Service:</strong></div>
@@ -1479,12 +1578,7 @@ function printQuote(quoteResult) {
           <div>Materials</div>
           <div>$${quoteResult.materialsCost.toFixed(2)}</div>
         </div>
-        ${quoteResult.travelDistance > 0 ? `
-        <div class="breakdown-item">
-          <div>Travel (${quoteResult.travelDistance} miles)</div>
-          <div>$${quoteResult.travelCost.toFixed(2)}</div>
-        </div>
-        ` : ''}
+        ${travelSection}
         <div class="breakdown-item">
           <div>Subtotal</div>
           <div>$${quoteResult.subtotal.toFixed(2)}</div>
@@ -1498,14 +1592,9 @@ function printQuote(quoteResult) {
           <div>$${quoteResult.total.toFixed(2)}</div>
         </div>
         
-        <div class="notes">
-          <div class="section-title">Notes</div>
-          <div>
-            <p>This quote is valid for 30 days from the date of issue.</p>
-            <p>Payment terms: 50% deposit required before work begins, remaining balance due upon completion.</p>
-            <p>Please contact us if you have any questions about this quote.</p>
-          </div>
-        </div>
+        ${profitAnalysisSection}
+        
+        ${notesSection}
         
         <div class="footer">
           <p>Thank you for your business!</p>
@@ -1583,12 +1672,20 @@ function createInvoiceFromQuote(quoteResult) {
     
     // Add travel as an item if applicable
     if (quoteResult.travelDistance > 0) {
+      // Create a detailed travel description that includes gas price info for customer visibility
+      const travelDescription = `Travel (${quoteResult.travelDistance} miles) - Gas price: $${quoteResult.gasPrice.toFixed(2)}/gal`;
+      
       invoiceData.items.push({
-        description: 'Travel',
+        description: travelDescription,
         quantity: quoteResult.travelDistance,
         unit: 'miles',
-        unitPrice: 1.0,
-        amount: quoteResult.travelCost
+        unitPrice: quoteResult.travelCost / quoteResult.travelDistance, // Calculate per-mile rate
+        amount: quoteResult.travelCost,
+        metadata: {
+          gasPrice: quoteResult.gasPrice,
+          fuelCost: quoteResult.fuelCost,
+          travelServiceFee: quoteResult.travelServiceFee
+        }
       });
     }
     
