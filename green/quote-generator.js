@@ -595,107 +595,70 @@ function loadGooglePlacesAPI(callback) {
     setupAddressValidationFallback();
   }, 15000); // 15 second timeout
   
-  // Fetch API key from server environment variable (more secure than hardcoding)
-  // Include refresh=true to force backend validation refresh
-  fetch('/api/google-maps-key?refresh=true')
+  // NEW APPROACH: Use the server as a proxy to load the Google Maps script
+  // This avoids CORS issues by having the server load and inject the script
+  console.log('Using server-side proxy to load Google Maps API script');
+  
+  // Load the Google Maps script from our server-side proxy endpoint
+  fetch('/api/google-maps-script')
     .then(response => {
       if (!response.ok) {
-        throw new Error(`Failed to fetch API key: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch Google Maps script from server: ${response.status} ${response.statusText}`);
       }
-      return response.json();
+      return response.text();
     })
-    .then(data => {
-      if (!data.key) {
-        console.error('Google Maps API key is not configured on the server');
-        handleApiError(new Error('API key not configured'));
-        return;
-      }
-      
-      console.log('Successfully retrieved Maps API key, initializing Google Places API');
-      
+    .then(scriptContent => {
       try {
-        // Remove any existing script elements to avoid conflicts
-        const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
+        // Clean up any existing script tags
+        const existingScript = document.querySelector('script[id="google-maps-script"]');
         if (existingScript) {
           existingScript.remove();
           console.log('Removed existing Google Maps script');
         }
         
-        // Create the script element with error handling
+        // Create a new script element and inject the script content from the server
         const script = document.createElement('script');
+        script.id = 'google-maps-script';
+        script.textContent = scriptContent;
         
-        // Google Maps API doesn't require CORS attributes and uses its own authentication
-        // Remove any CORS/integrity attributes that might be causing issues
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places&callback=initGooglePlacesAPI`;
-        
-        // Set to async for better loading performance
-        script.async = true;
-        script.defer = true;
-        
-        // Enhanced error handler with more details
-        script.onerror = (e) => {
-          console.error('Failed to load Google Places API script:', e);
-          console.error('Script URL:', script.src);
-          
-          // Make a test request to maps.googleapis.com to check connectivity
-          fetch('https://maps.googleapis.com/maps/api/js?libraries=places')
-            .then(response => {
-              console.log('Network connectivity test to Google Maps API:', response.status);
-              if (response.ok) {
-                console.log('Network connectivity is fine, might be an API key issue');
-                handleApiError(new Error('API key validation failed.'));
-              } else {
-                console.log('Network connectivity issue detected:', response.status);
-                handleApiError(new Error('Network connectivity issue with Google Maps. Status: ' + response.status));
-              }
-            })
-            .catch(error => {
-              console.error('Network connectivity test failed:', error);
-              handleApiError(new Error('Complete network failure with Google Maps API.'));
-            });
+        // Add error handlers
+        script.onerror = (error) => {
+          console.error('Error executing Google Maps script from server proxy:', error);
+          handleApiError(error);
         };
         
-        // Success handler
-        script.onload = () => {
-          console.log('Google Places API script loaded, waiting for initialization');
-          
-          // Additional backup - sometimes the callback isn't triggered
-          // Check periodically if Google Maps is available
-          const checkInterval = setInterval(() => {
-            try {
-              if (window.google && window.google.maps && window.google.maps.places) {
-                clearInterval(checkInterval);
-                
-                if (!googlePlacesInitialized && !window.googlePlacesInitialized) {
-                  console.log('Google Maps API detected, manually initializing');
-                  initializeGooglePlaces();
-                }
-              }
-            } catch (err) {
-              console.warn('Error checking for Google Maps API:', err);
-            }
-          }, 1000); // Check every second
-          
-          // Stop checking after 10 seconds regardless
-          setTimeout(() => {
-            clearInterval(checkInterval);
-            if (!googlePlacesInitialized) {
-              console.warn('Google Places initialization timed out');
-              handleApiError(new Error('Google Maps initialization timeout'));
-            }
-          }, 10000);
-        };
-        
-        // Add the script to the document
+        // Add the script to the page
         document.head.appendChild(script);
-        console.log('Google Maps script added to page');
+        console.log('Google Maps script from server proxy added to page');
+        
+        // Start a check interval to see if the script initializes properly
+        const checkInterval = setInterval(() => {
+          if (window.google && window.google.maps && window.google.maps.places) {
+            clearInterval(checkInterval);
+            console.log('Google Maps API available after server proxy script injection');
+            
+            if (!googlePlacesInitialized && !window.googlePlacesInitialized) {
+              initializeGooglePlaces();
+            }
+          }
+        }, 1000);
+        
+        // Set a timeout to stop checking
+        setTimeout(() => {
+          clearInterval(checkInterval);
+          if (!googlePlacesInitialized && !window.googlePlacesInitialized) {
+            console.warn('Google Maps initialization timed out after proxy script injection');
+            handleApiError(new Error('Maps initialization timeout after server proxy'));
+          }
+        }, 10000);
+        
       } catch (err) {
-        console.error('Error setting up Google Places API:', err);
+        console.error('Error injecting Google Maps script from server:', err);
         handleApiError(err);
       }
     })
     .catch(error => {
-      console.error('Failed to fetch Google Maps API key:', error);
+      console.error('Failed to fetch Google Maps script from server proxy:', error);
       handleApiError(error);
     });
 }
