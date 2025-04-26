@@ -3615,8 +3615,8 @@ function renderPageContent(container) {
       case 'invoices':
         console.log("Invoices page case triggered in main.js");
         // Import the invoices page module
-        import('../invoices.js').then(module => {
-          console.log("Invoices module imported successfully:", module);
+        import('../invoices.js').then(({renderInvoicesPage}) => {
+          console.log("Invoices module imported successfully");
           // Clear container first for clean rendering
           container.innerHTML = '';
           // Create app container for the invoices page
@@ -3625,7 +3625,7 @@ function renderPageContent(container) {
           container.appendChild(appContainer);
           console.log("Created app-container for invoices:", appContainer);
           // Render invoices in the container
-          module.renderInvoicesPage('app-container');
+          renderInvoicesPage('app-container');
         }).catch(error => {
           console.error('Error loading invoices module:', error);
           container.appendChild(createErrorMessage('Failed to load invoices module'));

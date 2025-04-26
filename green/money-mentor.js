@@ -5,7 +5,10 @@
  */
 
 import { isAuthenticated, getCurrentUser, getUserSubscriptionTier } from './auth.js';
-import { createToast } from './components/toast.js';
+// Using simple alert instead of toast to avoid dependency issues
+function showAlert(message) {
+  alert(message);
+}
 import { renderSidebar } from './sidebar.js';
 import { showUpgradeModal, renderQuickUpgradeButton } from './membership-tiers.js';
 

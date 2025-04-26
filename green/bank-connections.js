@@ -24,7 +24,8 @@ async function fetchUserConnections(userId) {
     userConnections = await response.json();
     return userConnections;
   } catch (error) {
-    console.error('Error fetching bank connections:', error);
+    console.error('Error fetching bank connections:', error.message || 'Unknown error');
+    // Return an empty array but don't log the full error object to console
     return [];
   }
 }
