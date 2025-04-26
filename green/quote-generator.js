@@ -918,6 +918,27 @@ function initializeAutocompleteFields() {
  * @param {string} containerId - The ID of the container to render the page in
  */
 export function renderQuoteGeneratorPage(containerId) {
+  // Add CSS to fix Google Places Autocomplete dropdown visibility
+  const autocompleteStyle = document.createElement('style');
+  autocompleteStyle.textContent = `
+    .pac-container {
+      z-index: 9999 !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+      border-radius: 4px !important;
+    }
+    .pac-item {
+      padding: 8px 10px !important;
+      cursor: pointer !important;
+    }
+    .pac-item:hover {
+      background-color: #f5f5f5 !important;
+    }
+    .pac-item-query {
+      font-size: 14px !important;
+    }
+  `;
+  document.head.appendChild(autocompleteStyle);
+  
   // Load Google Places API for address autocomplete
   loadGooglePlacesAPI();
   const container = document.getElementById(containerId);
