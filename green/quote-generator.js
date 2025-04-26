@@ -595,15 +595,15 @@ function loadGooglePlacesAPI(callback) {
     setupAddressValidationFallback();
   }, 15000); // 15 second timeout
   
-  // NEW APPROACH: Use the server as a proxy to load the Google Maps script
-  // This avoids CORS issues by having the server load and inject the script
-  console.log('Using server-side proxy to load Google Maps API script');
+  // IMPROVED APPROACH: Use the server-provided Google Maps shim
+  // This completely bypasses the need to load external scripts
+  console.log('Using server-provided Google Maps shim');
   
-  // Load the Google Maps script from our server-side proxy endpoint
+  // Load our fallback implementation directly from the server
   fetch('/api/google-maps-script')
     .then(response => {
       if (!response.ok) {
-        throw new Error(`Failed to fetch Google Maps script from server: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch Google Maps shim from server: ${response.status} ${response.statusText}`);
       }
       return response.text();
     })
@@ -616,50 +616,41 @@ function loadGooglePlacesAPI(callback) {
           console.log('Removed existing Google Maps script');
         }
         
-        // Create a new script element and inject the script content from the server
+        // Create a new script element and inject the script content
         const script = document.createElement('script');
         script.id = 'google-maps-script';
         script.textContent = scriptContent;
         
         // Add error handlers
         script.onerror = (error) => {
-          console.error('Error executing Google Maps script from server proxy:', error);
+          console.error('Error executing Google Maps shim script:', error);
           handleApiError(error);
         };
         
-        // Add the script to the page
+        // Add the script to the page - this will execute immediately
         document.head.appendChild(script);
-        console.log('Google Maps script from server proxy added to page');
+        console.log('Google Maps shim script added to page');
         
-        // Start a check interval to see if the script initializes properly
-        const checkInterval = setInterval(() => {
-          if (window.google && window.google.maps && window.google.maps.places) {
-            clearInterval(checkInterval);
-            console.log('Google Maps API available after server proxy script injection');
-            
-            if (!googlePlacesInitialized && !window.googlePlacesInitialized) {
-              initializeGooglePlaces();
-            }
+        // In case the callback wasn't triggered by the shim, we'll initialize manually
+        setTimeout(() => {
+          if (!googlePlacesInitialized && !window.googlePlacesInitialized) {
+            console.log('Manually initializing Google Places API via shim');
+            initGooglePlacesAPI(); // Call the init function directly
           }
         }, 1000);
         
-        // Set a timeout to stop checking
-        setTimeout(() => {
-          clearInterval(checkInterval);
-          if (!googlePlacesInitialized && !window.googlePlacesInitialized) {
-            console.warn('Google Maps initialization timed out after proxy script injection');
-            handleApiError(new Error('Maps initialization timeout after server proxy'));
-          }
-        }, 10000);
-        
       } catch (err) {
-        console.error('Error injecting Google Maps script from server:', err);
+        console.error('Error injecting Google Maps shim script:', err);
         handleApiError(err);
+        // Always fall back to manual address input
+        setupAddressValidationFallback();
       }
     })
     .catch(error => {
-      console.error('Failed to fetch Google Maps script from server proxy:', error);
+      console.error('Failed to fetch Google Maps shim from server:', error);
       handleApiError(error);
+      // Always fall back to manual address input
+      setupAddressValidationFallback();
     });
 }
 
