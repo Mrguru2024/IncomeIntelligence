@@ -3410,9 +3410,9 @@ function handleAutoQuoteFormSubmit(e) {
 }
 
 /**
- * Generate an automotive quote
+ * Generate an automotive quote with tiered pricing options
  * @param {Object} quoteData - The automotive quote data
- * @returns {Object} The generated quote result
+ * @returns {Object} The generated quote result with tiered options
  */
 function generateAutoQuote(quoteData) {
   // Extract data
@@ -3444,13 +3444,14 @@ function generateAutoQuote(quoteData) {
   const experiencePercentage = (labor_adjustment / 20) * 40 - 15; 
   const adjustedLaborRate = marketRate * (1 + (experiencePercentage / 100));
   
-  // Calculate labor cost
-  let laborCost = baseLaborHours * adjustedLaborRate;
+  // Emergency service fee is now a flat $50 as specified
+  const emergencyFee = emergency ? 50 : 0;
   
-  // Apply emergency surcharge if needed (50% increase)
-  if (emergency) {
-    laborCost *= 1.5;
-  }
+  // Calculate labor cost
+  let baseLaborCost = baseLaborHours * adjustedLaborRate;
+  
+  // Apply emergency surcharge if needed (50% increase) - now using flat fee instead
+  let laborCost = baseLaborCost;
   
   // Get parts cost based on service type and vehicle
   const partsCost = searchPartsCost(vehicle_make, vehicle_model, vehicle_year, service_type);
@@ -3465,7 +3466,6 @@ function generateAutoQuote(quoteData) {
   
   // Calculate distance and travel costs if we have both addresses
   let travelDistance = 0;
-  let travelCost = 0;
   let fuelCost = 0;
   let travelServiceFee = 0;
   let gasPrice = 3.89; // Default gas price if we can't determine it
@@ -3496,48 +3496,78 @@ function generateAutoQuote(quoteData) {
     // Assume average speed of 30 mph in city, so hours = distance / 30
     const travelTimeHours = roundTripDistance / 30;
     travelServiceFee = travelTimeHours * (adjustedLaborRate * 0.75); // 75% of regular rate for travel time
-    
-    // Total travel cost
-    travelCost = fuelCost + travelServiceFee;
   }
   
-  // Calculate subtotal including travel costs
-  const subtotal = laborCost + partsCost + keycodeCost + travelCost;
+  // Calculate base travel cost
+  const baseTravelCost = fuelCost + travelServiceFee;
   
-  // Calculate tax (applied to parts only)
-  const taxAmount = partsCost * taxRate;
+  // Generate tiered quote options
+  // TIER 1: STANDARD - Basic service with standard parts and no extras
+  const tierStandard = generateTierQuote({
+    name: "Standard Service",
+    description: "Basic service package with essential parts and standard labor.",
+    laborMultiplier: 1.0,     // Standard labor rate
+    partsMultiplier: 1.0,     // Standard parts cost
+    warrantyMonths: 3,        // 3-month parts warranty
+    extraServices: [],
+    laborCost,
+    partsCost,
+    keycodeCost,
+    baseTravelCost,
+    emergencyFee,
+    taxRate,
+    targetMargin: 30          // 30% target margin for standard tier
+  });
   
-  // Calculate total
-  const total = subtotal + taxAmount;
+  // TIER 2: PREMIUM - Enhanced service with better parts and some value-adds
+  const tierPremium = generateTierQuote({
+    name: "Premium Service",
+    description: "Enhanced service with premium parts, extended warranty, and complimentary inspection.",
+    laborMultiplier: 1.15,    // 15% labor premium for enhanced service
+    partsMultiplier: 1.2,     // 20% parts upgrade
+    warrantyMonths: 6,        // 6-month parts warranty
+    extraServices: [
+      { name: "Complimentary 27-point inspection", cost: 0 },
+      { name: "Premium parts upgrade", cost: partsCost * 0.2 }
+    ],
+    laborCost,
+    partsCost,
+    keycodeCost,
+    baseTravelCost,
+    emergencyFee,
+    taxRate,
+    targetMargin: 45          // 45% target margin for premium tier
+  });
   
-  // Calculate profit margins for business analysis
-  const costs = {
-    materials: partsCost * 0.7, // Assuming 30% markup on parts
-    keycode: keycodeCost * 0.9, // Assuming 10% markup on keycode service
-    labor: baseLaborHours * 25, // Assuming $25/hr base cost for technician
-    travel: fuelCost, // Just the fuel cost (not the service fee)
-  };
+  // TIER 3: ULTIMATE - Top-tier service with premium parts, extensive value-adds
+  const tierUltimate = generateTierQuote({
+    name: "Ultimate Service",
+    description: "Comprehensive service with top-tier parts, extended warranty, and priority scheduling.",
+    laborMultiplier: 1.3,     // 30% labor premium for premium service
+    partsMultiplier: 1.4,     // 40% parts upgrade to premium components
+    warrantyMonths: 12,       // 12-month extended warranty
+    extraServices: [
+      { name: "Complimentary 27-point inspection", cost: 0 },
+      { name: "Premium parts upgrade", cost: partsCost * 0.3 },
+      { name: "Priority scheduling", cost: 25 },
+      { name: "90-day follow-up service", cost: 35 }
+    ],
+    laborCost,
+    partsCost,
+    keycodeCost,
+    baseTravelCost,
+    emergencyFee,
+    taxRate,
+    targetMargin: 65          // 65% target margin for ultimate tier
+  });
   
-  const totalCost = Object.values(costs).reduce((sum, val) => sum + val, 0);
-  const profit = total - totalCost - taxAmount;
-  const profitMargin = (profit / total) * 100;
+  // Find appropriate service tier recommendations based on the service type
+  const tierRecommendations = getTierRecommendations(service_type);
   
-  // Target profit margin is 30%
-  const targetMargin = 30;
+  // Calculate service-specific value propositions
+  const valueProps = getValuePropositions(service_type);
   
-  // Generate profit assessment text
-  let profitAssessment = '';
-  if (profitMargin < 15) {
-    profitAssessment = 'Warning: This quote has a very low profit margin. Consider adjusting pricing.';
-  } else if (profitMargin < 25) {
-    profitAssessment = 'This quote has a below-target profit margin. Additional services could improve profitability.';
-  } else if (profitMargin < 35) {
-    profitAssessment = 'This quote has a healthy profit margin within the target range.';
-  } else {
-    profitAssessment = 'This quote has an excellent profit margin above the target. Good job!';
-  }
-  
-  // Return quote result with all the calculated values
+  // Return quote result with all the calculated values and tiers
   return {
     vehicle_make,
     vehicle_model,
@@ -3546,27 +3576,195 @@ function generateAutoQuote(quoteData) {
     address,
     destination_address,
     state,
-    baseLaborHours,
-    adjustedLaborRate,
+    travelDistance,
+    gasPrice,
+    emergency,
+    labor_adjustment,
+    tierStandard,
+    tierPremium,
+    tierUltimate,
+    // Include value propositions specific to the service type
+    tierRecommendations,
+    valueProps,
+    // Reference data for displaying in the UI
+    serviceDetails: {
+      baseLaborHours,
+      adjustedLaborRate,
+      baseLaborCost,
+      basePartsCost: partsCost,
+      keycodeCost,
+      taxRate
+    }
+  };
+}
+
+/**
+ * Generate a tier quote with specific pricing parameters
+ * @param {Object} options - Tier options
+ * @returns {Object} Calculated tier pricing
+ */
+function generateTierQuote(options) {
+  const {
+    name,
+    description,
+    laborMultiplier,
+    partsMultiplier,
+    warrantyMonths,
+    extraServices,
     laborCost,
     partsCost,
     keycodeCost,
-    emergency,
+    baseTravelCost,
+    emergencyFee,
     taxRate,
-    taxAmount,
-    travelDistance,
-    travelCost,
-    fuelCost,
-    travelServiceFee,
-    gasPrice,
+    targetMargin
+  } = options;
+  
+  // Calculate costs with appropriate multipliers
+  const adjustedLaborCost = laborCost * laborMultiplier;
+  const adjustedPartsCost = partsCost * partsMultiplier;
+  
+  // Calculate extra services total
+  const extraServicesTotal = extraServices.reduce((sum, service) => sum + service.cost, 0);
+  
+  // Calculate subtotal
+  const subtotal = adjustedLaborCost + adjustedPartsCost + keycodeCost + baseTravelCost + extraServicesTotal + emergencyFee;
+  
+  // Calculate tax (applied to parts only)
+  const taxAmount = adjustedPartsCost * taxRate;
+  
+  // Calculate total
+  const total = subtotal + taxAmount;
+  
+  // Calculate cost basis for profit calculation
+  const costBasis = {
+    labor: laborCost * 0.7,                // 70% of labor goes to technician
+    parts: adjustedPartsCost * 0.6,        // 60% of parts cost is our cost
+    keycode: keycodeCost * 0.8,            // 80% of keycode cost is our cost
+    travel: baseTravelCost * 0.9,          // 90% of travel cost is actual cost
+    extraServices: extraServicesTotal * 0.5 // 50% of extras cost is our cost
+  };
+  
+  const totalCost = Object.values(costBasis).reduce((sum, val) => sum + val, 0);
+  const profit = total - totalCost - taxAmount;
+  const profitMargin = (profit / total) * 100;
+  
+  // Compare to target margin
+  const marginComparison = profitMargin - targetMargin;
+  
+  // Generate message based on margin
+  let marginAssessment = '';
+  if (marginComparison < -10) {
+    marginAssessment = 'Warning: This tier has a profit margin significantly below target.';
+  } else if (marginComparison < 0) {
+    marginAssessment = 'This tier has a profit margin slightly below target.';
+  } else if (marginComparison < 10) {
+    marginAssessment = 'This tier has a profit margin on target.';
+  } else {
+    marginAssessment = 'This tier has an excellent profit margin above target.';
+  }
+  
+  return {
+    name,
+    description,
+    warrantyMonths,
+    extraServices,
+    laborCost: adjustedLaborCost,
+    partsCost: adjustedPartsCost,
+    keycodeCost,
+    travelCost: baseTravelCost,
+    emergencyFee,
     subtotal,
+    taxAmount,
     total,
     profit,
     profitMargin,
     targetMargin,
-    profitAssessment,
-    labor_adjustment // Include years of experience in the result
+    marginAssessment
   };
+}
+
+/**
+ * Get service-specific tier recommendations
+ * @param {string} serviceType - Type of automotive service
+ * @returns {Object} Tier recommendations for the service
+ */
+function getTierRecommendations(serviceType) {
+  // Default recommendations
+  const defaultRecs = {
+    recommended: 'standard',
+    valueMessage: 'We recommend our Standard tier for most customers as it provides the essential service at a good value.'
+  };
+  
+  // Service-specific recommendations
+  const recommendations = {
+    'oil_change': {
+      recommended: 'premium',
+      valueMessage: 'We recommend our Premium tier for oil changes as it includes a comprehensive inspection that can identify potential issues early.'
+    },
+    'brake_repair': {
+      recommended: 'premium',
+      valueMessage: 'For brake repairs, our Premium tier offers higher quality parts with better stopping power and longer lifespan.'
+    },
+    'battery_replacement': {
+      recommended: 'ultimate',
+      valueMessage: 'Our Ultimate tier for battery replacements includes a premium battery with longer warranty and complete electrical system check.'
+    },
+    'tire_replacement': {
+      recommended: 'premium',
+      valueMessage: 'Our Premium tier includes better quality tires with longer tread life and improved handling.'
+    },
+    'all_keys_lost': {
+      recommended: 'ultimate',
+      valueMessage: 'For replacement keys, our Ultimate package provides backup keys and programming for all vehicle remotes.'
+    },
+    'lockout': {
+      recommended: 'standard',
+      valueMessage: 'Our Standard service is quick and efficient for vehicle lockouts, getting you back on the road fast.'
+    }
+  };
+  
+  return recommendations[serviceType] || defaultRecs;
+}
+
+/**
+ * Get service-specific value propositions
+ * @param {string} serviceType - Type of automotive service
+ * @returns {Object} Value propositions for each tier
+ */
+function getValuePropositions(serviceType) {
+  // Default value propositions
+  const defaultProps = {
+    standard: ["Basic service with quality parts", "Performed by certified technicians", "3-month limited warranty"],
+    premium: ["Enhanced service with premium parts", "Performed by senior technicians", "6-month comprehensive warranty", "Includes inspection"],
+    ultimate: ["Comprehensive service with top-tier parts", "Performed by master technicians", "12-month premium warranty", "Priority scheduling", "Follow-up service"]
+  };
+  
+  // Service-specific value propositions
+  const serviceProps = {
+    'oil_change': {
+      standard: ["Standard oil and filter change", "Basic fluid level check", "3-month/3,000 mile warranty"],
+      premium: ["Synthetic blend oil upgrade", "Complete fluid check and top-off", "Multi-point inspection", "6-month/6,000 mile warranty"],
+      ultimate: ["Full synthetic oil upgrade", "Complete fluid exchange", "Comprehensive vehicle inspection", "Filter upgrades", "12-month/10,000 mile warranty"]
+    },
+    'brake_repair': {
+      standard: ["Standard brake pads/shoes", "Resurface rotors/drums", "Basic brake inspection", "3-month/3,000 mile warranty"],
+      premium: ["Premium brake pads/shoes", "Precision rotor/drum machining", "Complete brake system inspection", "6-month/6,000 mile warranty"],
+      ultimate: ["Ceramic brake pads", "New rotors/drums if needed", "Complete brake system flush", "Caliper inspection and lubrication", "12-month/12,000 mile warranty"]
+    },
+    'battery_replacement': {
+      standard: ["Standard battery installation", "Basic battery test", "3-month warranty"],
+      premium: ["High-performance battery", "Electrical system check", "Terminal cleaning and protection", "6-month warranty"],
+      ultimate: ["Premium AGM battery", "Full electrical system diagnostic", "Cable and connection upgrade", "12-month warranty with free replacement"]
+    },
+    'all_keys_lost': {
+      standard: ["Single replacement key", "Basic programming", "30-day warranty"],
+      premium: ["Two replacement keys", "Full programming of all features", "6-month warranty"],
+      ultimate: ["Three replacement keys", "Premium fobs with extended range", "Backup virtual key storage", "12-month warranty"]
+    }
+  };
+  
+  return serviceProps[serviceType] || defaultProps;
 }
 
 /**
@@ -3713,17 +3911,22 @@ function shortenAddress(address) {
  * Display the auto quote result
  * @param {Object} quoteResult - The auto quote result
  */
+/**
+ * Display the generated quote result with tiered options
+ * @param {Object} quoteResult - The generated quote result
+ */
 function displayAutoQuoteResult(quoteResult) {
   const resultSection = document.getElementById('quote-result-section');
   resultSection.innerHTML = '';
   
-  // Result container
+  // Main result container
   const resultContainer = document.createElement('div');
-  resultContainer.classList.add('quote-result-container');
-  resultContainer.style.background = 'var(--color-card-bg)';
-  resultContainer.style.borderRadius = '12px';
-  resultContainer.style.padding = '24px';
+  resultContainer.className = 'quote-result-container';
+  resultContainer.style.backgroundColor = 'white';
+  resultContainer.style.borderRadius = '8px';
   resultContainer.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+  resultContainer.style.padding = '24px';
+  resultContainer.style.marginTop = '32px';
   
   // Quote header
   const quoteHeader = document.createElement('div');
