@@ -2034,14 +2034,23 @@ function createInvoiceFromQuote(quoteResult) {
 /**
  * Get a US state from a ZIP code or city/state string
  * @param {string} location - ZIP code or City, State string
+ * @param {boolean} isAutomotive - Whether this is for the automotive form
  * @returns {string} The two-letter state code
  */
-function getStateFromZip(location) {
-  // Check if we have a Google Places geocoded result for this location
-  const placeResultElement = document.getElementById('general-location-place-data');
-  if (placeResultElement && placeResultElement.dataset.state) {
-    console.log('Using Google Places geocoded state for general quote:', placeResultElement.dataset.state);
-    return placeResultElement.dataset.state;
+function getStateFromZip(location, isAutomotive = false) {
+  // First check the appropriate Google Places geocoded result
+  if (isAutomotive) {
+    const autoPlaceDataElement = document.getElementById('auto-address-place-data');
+    if (autoPlaceDataElement && autoPlaceDataElement.dataset.state) {
+      console.log('Using Google Places geocoded state for automotive quote:', autoPlaceDataElement.dataset.state);
+      return autoPlaceDataElement.dataset.state;
+    }
+  } else {
+    const generalPlaceDataElement = document.getElementById('general-location-place-data');
+    if (generalPlaceDataElement && generalPlaceDataElement.dataset.state) {
+      console.log('Using Google Places geocoded state for general quote:', generalPlaceDataElement.dataset.state);
+      return generalPlaceDataElement.dataset.state;
+    }
   }
   
   // For simplicity, this is a synchronous function in this example
@@ -3208,69 +3217,8 @@ const autoParts = {
  * @returns {string} Two-letter state code
  */
 function validateAddressGetState(address) {
-  // Check if we have a Google Places geocoded result
-  const placeResultElement = document.getElementById('auto-address-place-data');
-  if (placeResultElement && placeResultElement.dataset.state) {
-    console.log('Using Google Places geocoded state:', placeResultElement.dataset.state);
-    return placeResultElement.dataset.state;
-  }
-  
-  // Check if address already has a state code format (e.g., TX, CA)
-  const stateCodeMatch = address.match(/\b([A-Z]{2})\b/);
-  if (stateCodeMatch) {
-    return stateCodeMatch[1];
-  }
-  
-  // Check for common state name patterns
-  const stateMap = {
-    'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
-    'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
-    'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA',
-    'kansas': 'KS', 'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
-    'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO',
-    'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
-    'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH',
-    'oklahoma': 'OK', 'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
-    'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
-    'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY'
-  };
-  
-  const lowercaseAddress = address.toLowerCase();
-  
-  for (const [stateName, stateCode] of Object.entries(stateMap)) {
-    if (lowercaseAddress.includes(stateName)) {
-      return stateCode;
-    }
-  }
-  
-  // Try to extract from ZIP code patterns
-  const zipMatch = address.match(/\b\d{5}(?:-\d{4})?\b/);
-  if (zipMatch) {
-    const zip = zipMatch[0].substring(0, 5);
-    const firstDigit = parseInt(zip.charAt(0));
-    
-    // Very rough approximation of ZIP code to state
-    // This is a simplified mapping and not 100% accurate
-    const zipStateMap = {
-      0: 'MA', // New England
-      1: 'NY', // NY, NJ area
-      2: 'VA', // Mid-Atlantic
-      3: 'FL', // Southeast
-      4: 'IN', // Midwest
-      5: 'MO', // Central
-      6: 'TX', // South Central
-      7: 'TX', // South Central
-      8: 'CO', // Mountain
-      9: 'CA'  // West Coast
-    };
-    
-    if (zipStateMap[firstDigit]) {
-      return zipStateMap[firstDigit];
-    }
-  }
-  
-  // If no state is found, default to California as a fallback
-  return 'CA';
+  // Use our enhanced getStateFromZip function with the isAutomotive flag
+  return getStateFromZip(address, true);
 }
 
 /**
@@ -3414,7 +3362,7 @@ function calculateDistance() {
             travelDistanceInput.value = roundTripDistance.toFixed(1);
             
             // Get gas price and calculate fuel cost
-            const gasPrice = getGasPriceForState(getStateFromZip(originInput.value));
+            const gasPrice = getGasPriceForState(getStateFromZip(originInput.value, false));
             const fuelCost = calculateFuelCost(distanceValue, gasPrice);
             const roundTripCost = fuelCost * 2;
             
