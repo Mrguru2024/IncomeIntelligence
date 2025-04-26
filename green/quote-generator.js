@@ -293,6 +293,7 @@ function createSectionHeader(title, subtitle) {
  */
 function createBreakdownItem(label, amount, highlight = false) {
   const item = document.createElement('div');
+  item.className = 'breakdown-item';
   item.style.display = 'flex';
   item.style.justifyContent = 'space-between';
   item.style.padding = '8px 0';
@@ -306,9 +307,11 @@ function createBreakdownItem(label, amount, highlight = false) {
   }
   
   const labelElement = document.createElement('span');
+  labelElement.className = 'item-label';
   labelElement.textContent = label;
   
   const amountElement = document.createElement('span');
+  amountElement.className = 'item-value';
   amountElement.textContent = `$${amount.toFixed(2)}`;
   
   item.appendChild(labelElement);
@@ -4017,6 +4020,23 @@ function displayAutoQuoteResult(quoteResult) {
   tiersContainer.style.flexWrap = 'wrap';
   tiersContainer.style.justifyContent = 'center';
   
+  // Make responsive for mobile
+  const mediaQueryCheck = () => {
+    if (window.innerWidth < 768) {
+      tiersContainer.style.flexDirection = 'column';
+      tiersContainer.style.alignItems = 'center';
+      tiersContainer.style.gap = '24px';
+    } else {
+      tiersContainer.style.flexDirection = 'row';
+      tiersContainer.style.alignItems = 'stretch';
+      tiersContainer.style.gap = '16px';
+    }
+  };
+  
+  // Run immediately and add resize listener
+  mediaQueryCheck();
+  window.addEventListener('resize', mediaQueryCheck);
+  
   // Get service-specific recommendation
   const recommended = quoteResult.tierRecommendations.recommended;
   
@@ -4070,6 +4090,21 @@ function displayAutoQuoteResult(quoteResult) {
   actionsRow.style.display = 'flex';
   actionsRow.style.gap = '12px';
   actionsRow.style.marginTop = '24px';
+  
+  // Make buttons responsive on mobile
+  const adjustButtonsForMobile = () => {
+    if (window.innerWidth < 600) {
+      actionsRow.style.flexDirection = 'column';
+      actionsRow.style.gap = '8px';
+    } else {
+      actionsRow.style.flexDirection = 'row';
+      actionsRow.style.gap = '12px';
+    }
+  };
+  
+  // Run immediately and add resize listener
+  adjustButtonsForMobile();
+  window.addEventListener('resize', adjustButtonsForMobile);
   
   // Save quote button
   const saveButton = createButton('Save Quote', () => saveAutoQuote(quoteResult), 'primary');
@@ -4880,8 +4915,30 @@ function calculateFuelCost(distanceMiles, pricePerGallon, mpg = 25) {
 function createTierCard(tierData, valueProps, isRecommended) {
   const card = document.createElement('div');
   card.className = 'tier-card';
-  card.style.flex = '1 1 300px';
-  card.style.maxWidth = '350px';
+  // Make cards responsive
+  if (window.innerWidth < 768) {
+    card.style.flex = '1 1 100%';
+    card.style.maxWidth = '100%';
+    card.style.width = '100%';
+  } else {
+    card.style.flex = '1 1 300px';
+    card.style.maxWidth = '350px';
+  }
+  
+  // Add resize listener for responsiveness
+  const updateCardSize = () => {
+    if (window.innerWidth < 768) {
+      card.style.flex = '1 1 100%';
+      card.style.maxWidth = '100%';
+      card.style.width = '100%';
+    } else {
+      card.style.flex = '1 1 300px';
+      card.style.maxWidth = '350px';
+      card.style.width = 'auto';
+    }
+  };
+  
+  window.addEventListener('resize', updateCardSize);
   card.style.backgroundColor = 'white';
   card.style.borderRadius = '8px';
   card.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
@@ -5087,6 +5144,33 @@ function showTierBreakdown(tierData) {
   breakdownList.style.display = 'flex';
   breakdownList.style.flexDirection = 'column';
   breakdownList.style.gap = '8px';
+  
+  // Make breakdown responsive
+  const adjustBreakdownForMobile = () => {
+    const items = breakdownSection.querySelectorAll('.breakdown-item');
+    if (window.innerWidth < 400) {
+      // For very small screens
+      items.forEach(item => {
+        item.style.flexDirection = 'column';
+        item.style.alignItems = 'flex-start';
+        const label = item.querySelector('.item-label');
+        const value = item.querySelector('.item-value');
+        if (label) label.style.marginBottom = '4px';
+        if (value) value.style.fontWeight = '600';
+      });
+    } else {
+      // For larger screens
+      items.forEach(item => {
+        item.style.flexDirection = 'row';
+        item.style.alignItems = 'center';
+        const label = item.querySelector('.item-label');
+        if (label) label.style.marginBottom = '0';
+      });
+    }
+  };
+  
+  // Add window resize listener for responsive breakdown
+  window.addEventListener('resize', adjustBreakdownForMobile);
   
   // Labor cost row
   const laborRow = createBreakdownItem('Labor', tierData.laborCost);
