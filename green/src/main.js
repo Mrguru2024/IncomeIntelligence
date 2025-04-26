@@ -4131,26 +4131,66 @@ function renderApp() {
   console.log(`Page rendered: ${appState.currentPage}`);
   console.log(`Viewport: ${width < 640 ? 'mobile' : width < 1024 ? 'tablet' : 'desktop'}`);
   
-  // Setup responsive event listener
+  // Setup responsive event listeners for window resize and orientation change
   if (!window.resizeListenerAttached) {
-    window.addEventListener('resize', debounce(() => {
-      // Check if a form input is focused before triggering full rerender
+    // Function to check for form focus and handle resize accordingly
+    const handleViewportChange = debounce(() => {
+      // Get the current quote form state if it exists
+      const saveFormState = () => {
+        const quoteForm = document.getElementById('auto-quote-form') || document.getElementById('general-quote-form');
+        if (!quoteForm) return null;
+        
+        // Save form data
+        const formData = new FormData(quoteForm);
+        const formState = {};
+        for (const [key, value] of formData.entries()) {
+          formState[key] = value;
+        }
+        return { formState, formId: quoteForm.id };
+      };
+      
+      // Check if any form fields are focused
       const activeElement = document.activeElement;
       const isFormFieldFocused = activeElement && 
         (activeElement.tagName === 'INPUT' || 
          activeElement.tagName === 'TEXTAREA' || 
          activeElement.tagName === 'SELECT');
       
-      // If a form field is focused, don't re-render the entire app to prevent form reset
-      // This prevents the app from re-rendering when virtual keyboard appears on mobile
-      if (!isFormFieldFocused) {
-        renderApp();
-      } else {
-        console.log('Skipping app re-render while form field is focused');
-        // Still update viewport classes without full re-render
+      // Special handling for quote forms - save state
+      const quotePage = document.querySelector('.quote-generator-container');
+      const savedFormState = quotePage ? saveFormState() : null;
+      
+      // If a form field is focused or we're on the quote page, don't fully re-render
+      if (isFormFieldFocused || quotePage) {
+        console.log('Preventing full re-render to maintain form state');
+        // Just update viewport classes without full re-render
         updateViewportClasses();
+        
+        // Additional fixes specific to quote generator layout
+        if (quotePage) {
+          const formTabs = document.querySelectorAll('.form-tab');
+          const activeTab = document.querySelector('.form-tab.active');
+          if (formTabs.length > 0 && activeTab) {
+            // Re-highlight the active tab
+            formTabs.forEach(tab => tab.classList.remove('active'));
+            activeTab.classList.add('active');
+          }
+        }
+      } else {
+        renderApp();
       }
-    }, 250));
+    }, 250);
+    
+    // Add resize listener
+    window.addEventListener('resize', handleViewportChange);
+    
+    // Add orientation change listener specifically for mobile devices
+    window.addEventListener('orientationchange', (event) => {
+      console.log(`Orientation changed to: ${window.orientation ? window.orientation : 'unknown'}`);
+      // Use a shorter debounce for orientation changes
+      setTimeout(handleViewportChange, 100);
+    });
+    
     window.resizeListenerAttached = true;
   }
 }
