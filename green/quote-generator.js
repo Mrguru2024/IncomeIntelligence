@@ -3097,16 +3097,35 @@ function createAutomotiveQuoteForm() {
   startAddressInput.id = 'auto-address-input';
   startAddressInput.setAttribute('autocomplete', 'off');
   
-  // Prevent default behavior that causes page refresh on mobile
+  // Special handling for foldable devices (ZFold)
   startAddressInput.addEventListener('focus', function(e) {
     e.preventDefault();
+    e.stopImmediatePropagation();
+    // Detect if we're on a foldable device in folded mode
+    if (window.innerWidth < 400) {
+      console.log("Folded device detected - using special handling");
+      // For folded devices, use this special handling
+      setTimeout(() => {
+        // Focus on the field after a brief delay
+        startAddressInput.focus();
+      }, 50);
+    }
     return false;
   });
   
   startAddressInput.addEventListener('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     return false;
+  });
+  
+  // Disable form submission when this field is active
+  startAddressInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      return false;
+    }
   });
   
   // Add small info icon to indicate autocomplete functionality
@@ -3165,16 +3184,35 @@ function createAutomotiveQuoteForm() {
   destAddressInput.id = 'destination-input'; // Changed ID to match what autocomplete initialization expects
   destAddressInput.setAttribute('autocomplete', 'off');
   
-  // Prevent default behavior that causes page refresh on mobile
+  // Special handling for foldable devices (ZFold)
   destAddressInput.addEventListener('focus', function(e) {
     e.preventDefault();
+    e.stopImmediatePropagation();
+    // Detect if we're on a foldable device in folded mode
+    if (window.innerWidth < 400) {
+      console.log("Folded device detected - using special handling for destination");
+      // For folded devices, use this special handling
+      setTimeout(() => {
+        // Focus on the field after a brief delay
+        destAddressInput.focus();
+      }, 50);
+    }
     return false;
   });
   
   destAddressInput.addEventListener('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     return false;
+  });
+  
+  // Disable form submission when this field is active
+  destAddressInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      return false;
+    }
   });
   
   // Create the input field first, but don't add it to the container yet
@@ -3411,8 +3449,9 @@ function handleAutoQuoteFormSubmit(e) {
   // Prevent form submission which causes page refresh on mobile
   if (e && e.preventDefault) {
     e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
   }
-  e.preventDefault();
   
   // Get form data from the auto-quote-form
   const form = document.getElementById('auto-quote-form');
