@@ -92,7 +92,18 @@ if (stripeSecretKey) {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Provide Google Maps API key securely
   app.get('/api/google-maps-key', (req, res) => {
-    res.json({ key: process.env.GOOGLE_MAPS_API_KEY || '' });
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    
+    if (!apiKey) {
+      console.error('GOOGLE_MAPS_API_KEY is not set in environment variables');
+      return res.status(500).json({ 
+        error: 'Maps API key is not configured',
+        message: 'The Google Maps API key is missing from server configuration'
+      });
+    }
+    
+    console.log('Serving Google Maps API key to client');
+    res.json({ key: apiKey });
   });
   // Note: We've removed all static HTML serving routes in favor of the dynamic React application
   // The Vite dev server will handle serving the React application at the root route

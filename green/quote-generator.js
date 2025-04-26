@@ -416,6 +416,21 @@ function loadGooglePlacesAPI(callback) {
     return;
   }
   
+  // Define a global callback that Google will call when API is loaded
+  window.initGooglePlacesAPI = function() {
+    console.log('Google Places API loaded successfully via callback');
+    // Initialize all input fields that need autocomplete
+    initializeAutocompleteFields();
+    if (callback) callback();
+  };
+  
+  // Function to handle errors with API loading
+  function handleApiError(error) {
+    console.error('Failed to load Google Places API:', error);
+    showToast('Address autocomplete may not work correctly', 'warning');
+    // We'll still try to continue, using fallback validation
+  }
+  
   // Fetch API key from server environment variable (more secure than hardcoding)
   fetch('/api/google-maps-key')
     .then(response => {
@@ -427,36 +442,113 @@ function loadGooglePlacesAPI(callback) {
     .then(data => {
       if (!data.key) {
         console.error('Google Maps API key is not configured on the server');
+        handleApiError(new Error('API key not configured'));
         return;
       }
       
       console.log('Successfully retrieved Maps API key, initializing Google Places API');
       
-      // Create the script element
-      const script = document.createElement('script');
-      
-      // Load Google Places API with the provided key
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places`;
-      
-      script.async = true;
-      script.defer = true;
-      
-      // Set callback for when script loads
-      script.onload = () => {
-        console.log('Google Places API loaded successfully');
-        if (callback) callback();
-      };
-      
-      script.onerror = (e) => {
-        console.error('Failed to load Google Places API:', e);
-      };
-      
-      // Add the script to the document
-      document.head.appendChild(script);
+      try {
+        // Create the script element with error handling
+        const script = document.createElement('script');
+        
+        // Load Google Places API with the provided key and callback
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places&callback=initGooglePlacesAPI`;
+        
+        script.async = true;
+        script.defer = true;
+        
+        // Error handler
+        script.onerror = (e) => {
+          console.error('Failed to load Google Places API script:', e);
+          handleApiError(e);
+        };
+        
+        // Set a timeout in case the callback is never called
+        const timeoutId = setTimeout(() => {
+          if (typeof window.initGooglePlacesAPI === 'function') {
+            console.error('Google Places API load timed out');
+            handleApiError(new Error('API load timeout'));
+          }
+        }, 10000); // 10 second timeout
+        
+        // Override the global callback to clear the timeout
+        const originalCallback = window.initGooglePlacesAPI;
+        window.initGooglePlacesAPI = function() {
+          clearTimeout(timeoutId);
+          if (originalCallback) originalCallback();
+        };
+        
+        // Add the script to the document
+        document.head.appendChild(script);
+      } catch (err) {
+        console.error('Error setting up Google Places API:', err);
+        handleApiError(err);
+      }
     })
     .catch(error => {
       console.error('Failed to fetch Google Maps API key:', error);
+      handleApiError(error);
     });
+}
+
+/**
+ * Initialize all autocomplete fields when Google Places API is loaded
+ */
+function initializeAutocompleteFields() {
+  try {
+    if (!window.google || !window.google.maps || !window.google.maps.places) {
+      console.warn('Google Places API not available for autocomplete initialization');
+      return;
+    }
+    
+    console.log('Setting up autocomplete for address fields');
+    
+    // Initialize General Quote Form location input
+    const generalLocationInput = document.getElementById('general-location-input');
+    if (generalLocationInput) {
+      const generalAutocomplete = new google.maps.places.Autocomplete(generalLocationInput, {
+        types: ['address'],
+        componentRestrictions: { country: 'us' }
+      });
+      
+      generalAutocomplete.addListener('place_changed', () => {
+        const place = generalAutocomplete.getPlace();
+        
+        if (!place.geometry) {
+          console.warn('No geometry returned for place:', place);
+          return;
+        }
+        
+        if (place.formatted_address) {
+          generalLocationInput.value = place.formatted_address;
+          
+          // Extract state from address_components
+          let state = '';
+          if (place.address_components) {
+            for (let component of place.address_components) {
+              if (component.types.includes('administrative_area_level_1')) {
+                state = component.short_name;
+                break;
+              }
+            }
+          }
+          
+          // Store state in data attribute for later use
+          const placeDataElement = document.getElementById('general-location-place-data');
+          if (placeDataElement && state) {
+            placeDataElement.dataset.state = state;
+            console.log('Google Places found state for general quote:', state);
+          }
+        }
+      });
+    }
+    
+    // Add more autocomplete field initializations as needed for other forms
+    
+  } catch (error) {
+    console.error('Error initializing autocomplete fields:', error);
+  }
 }
 
 /**
