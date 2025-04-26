@@ -120,9 +120,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check for API key validity
       if (data.error_message && (data.error_message.includes('API key') || data.status === 'REQUEST_DENIED')) {
         console.error('Google Maps API key validation failed:', data.error_message);
+        
+        let errorMessage = 'The Google Maps API key is invalid or restricted';
+        
+        // Check for common billing-related errors
+        if (data.error_message.includes('billing')) {
+          errorMessage = 'The Google Maps API requires billing to be enabled on the Google Cloud Project. Please enable billing at https://console.cloud.google.com/project/_/billing/enable';
+        }
+        
         return res.status(401).json({
           error: 'Invalid API key',
-          message: 'The Google Maps API key is invalid or restricted'
+          message: errorMessage,
+          details: data.error_message,
+          requiresBilling: data.error_message.includes('billing')
         });
       }
       
