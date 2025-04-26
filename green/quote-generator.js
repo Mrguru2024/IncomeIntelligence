@@ -9,6 +9,48 @@
 // Add debugging
 console.log('Quote Generator module initialized');
 
+// Add special handling for ZFold and other foldable devices
+// This is a global fix for form submission issues on foldable devices
+window.addEventListener('DOMContentLoaded', () => {
+  // Check if this is a foldable device (using screen width as heuristic)
+  const isFoldableDevice = window.innerWidth < 400;
+  
+  if (isFoldableDevice) {
+    console.log('Foldable device detected - applying special form handling');
+    
+    // Add global event listener to prevent all form submissions in the quote generator
+    document.addEventListener('submit', function(e) {
+      // Get path to the event target
+      const path = e.composedPath();
+      
+      // Check if any element in the path has ID "auto-quote-form"
+      const isQuoteForm = path.some(el => 
+        el.id === 'auto-quote-form' || 
+        (el.getAttribute && el.getAttribute('id') === 'auto-quote-form')
+      );
+      
+      if (isQuoteForm) {
+        console.log('ZFold protection: Prevented auto-quote form submission');
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+    }, true); // Use capture to ensure this runs first
+    
+    // Additional fix for foldable device input fields
+    document.addEventListener('focus', function(e) {
+      if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
+        console.log('ZFold protection: Handling input focus event');
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    }, true);
+    
+    console.log('ZFold protections applied');
+  }
+});
+
 // Define stateToRegion object 
 const stateToRegion = {
   "ME": "northeast", "NH": "northeast", "VT": "northeast", "MA": "northeast", 
@@ -3053,10 +3095,33 @@ function createAutomotiveQuoteForm() {
   form.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
   
   // Prevent default form submission which causes page refresh on mobile
+  form.setAttribute('novalidate', 'true');
+  form.setAttribute('autocomplete', 'off');
+  form.setAttribute('onsubmit', 'event.preventDefault(); event.stopPropagation(); return false;');
+  
+  // Triple protection against form submission for ZFold devices
+  const isFoldable = window.innerWidth < 400;
+  if (isFoldable) {
+    console.log("ZFold device detected - applying enhanced form protection");
+    form.id = 'auto-quote-form-zfold'; // Special ID to avoid form finder conflicts
+  } else {
+    form.id = 'auto-quote-form';
+  }
+  
+  // Add event listener with capture phase to prevent bubbling
   form.addEventListener('submit', function(event) {
-    event.preventDefault();
+    console.log("Form submission intercepted");
+    if (event && event.preventDefault) {
+      event.preventDefault();
+    }
+    if (event && event.stopPropagation) {
+      event.stopPropagation();
+    }
+    if (event && event.stopImmediatePropagation) {
+      event.stopImmediatePropagation();
+    }
     return false;
-  });
+  }, true);
   
   // Vehicle details section
   const vehicleSection = createSectionHeader('Vehicle Details', 'Enter information about the vehicle for an accurate quote');
