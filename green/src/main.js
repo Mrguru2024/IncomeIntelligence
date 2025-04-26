@@ -3653,8 +3653,13 @@ function renderPageContent(container) {
       case 'quote-generator':
         // Import the Quote Generator module
         import('../quote-generator.js').then(module => {
-          displayPageTitle('Quote Generator');
           try {
+            // Update page title
+            const titleElement = document.getElementById('page-title');
+            if (titleElement) {
+              titleElement.textContent = 'Quote Generator';
+            }
+            
             // Clear container first for clean rendering
             container.innerHTML = '';
             // Create app container for the quote generator page

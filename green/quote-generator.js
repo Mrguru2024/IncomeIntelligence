@@ -1330,13 +1330,4 @@ async function getMarketRate(jobType, state) {
   return rate;
 }
 
-/**
- * Helper function to add displayPageTitle for main.js compatibility
- * @param {string} title - The page title to display
- */
-function displayPageTitle(title) {
-  const titleElement = document.getElementById('page-title');
-  if (titleElement) {
-    titleElement.textContent = title;
-  }
-}
+// No direct displayPageTitle function needed - main.js now handles the page title
