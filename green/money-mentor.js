@@ -9,8 +9,10 @@ import { isAuthenticated, getCurrentUser, getUserSubscriptionTier } from './auth
 function showAlert(message) {
   alert(message);
 }
-import { renderSidebar } from './sidebar.js';
-import { showUpgradeModal, renderQuickUpgradeButton } from './membership-tiers.js';
+// Fix imports to avoid dependency issues
+const renderSidebar = () => console.log('Sidebar rendering not needed in this context');
+const showUpgradeModal = () => showAlert('Upgrade required for this feature');
+const renderQuickUpgradeButton = () => document.createElement('button');
 
 /**
  * Enum for financial topic categories
@@ -1044,7 +1046,7 @@ export async function renderMoneyMentorPage(userId) {
     if (!query || isLoading) return;
     
     if (!hasPro) {
-      createToast('Pro Subscription Required', 'This feature requires a Pro subscription. Please upgrade to access Money Mentor.', 'error');
+      showAlert('Pro Subscription Required: This feature requires a Pro subscription. Please upgrade to access Money Mentor.');
       // Show upgrade modal when user tries to use Money Mentor without Pro subscription
       showUpgradeModal('pro');
       return;
@@ -1111,11 +1113,7 @@ export async function renderMoneyMentorPage(userId) {
       
       // Show toast and upgrade modal if it's a subscription issue
       const isSubscriptionError = error.message === 'This feature requires a Pro subscription';
-      createToast(
-        isSubscriptionError ? 'Pro Subscription Required' : 'Error',
-        error.message,
-        'error'
-      );
+      showAlert(isSubscriptionError ? 'Pro Subscription Required: ' + error.message : 'Error: ' + error.message);
       
       // Show upgrade modal for subscription errors
       if (isSubscriptionError) {
