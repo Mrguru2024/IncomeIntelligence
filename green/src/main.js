@@ -3650,6 +3650,23 @@ function renderPageContent(container) {
         });
         break;
         
+      case 'financial-wellness':
+        // Import the Financial Wellness Scorecard module
+        import('../financial-wellness-scorecard.js').then(module => {
+          displayPageTitle('Financial Wellness Scorecard');
+          try {
+            module.renderFinancialScorecardPage('app-container');
+            console.log('Financial Wellness Scorecard page rendered successfully');
+          } catch (error) {
+            console.error('Error rendering Financial Wellness Scorecard page:', error);
+            container.appendChild(createErrorMessage('Failed to load Financial Wellness Scorecard data'));
+          }
+        }).catch(error => {
+          console.error('Error loading Financial Wellness Scorecard module:', error);
+          container.appendChild(createErrorMessage('Failed to load Financial Wellness Scorecard module'));
+        });
+        break;
+        
       case 'aipersonalization':
         // Import the AI Personalization page module
         import('../ai-personalization.js').then(module => {
