@@ -1645,6 +1645,18 @@ function createQuoteForm() {
   locationInput.id = 'general-location-input';
   locationInput.setAttribute('autocomplete', 'off');
   
+  // Prevent default behavior that causes page refresh on mobile
+  locationInput.addEventListener('focus', function(e) {
+    e.preventDefault();
+    return false;
+  });
+  
+  locationInput.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  });
+  
   // Add small info icon to indicate autocomplete functionality
   const infoIcon = document.createElement('span');
   infoIcon.innerHTML = '&#9432;'; // Info icon
@@ -1780,6 +1792,18 @@ function createQuoteForm() {
   const destinationInput = createInput('text', 'destination', '', 'Destination address');
   destinationInput.id = 'destination-input';
   destinationInput.setAttribute('autocomplete', 'off');
+  
+  // Prevent default behavior that causes page refresh on mobile
+  destinationInput.addEventListener('focus', function(e) {
+    e.preventDefault();
+    return false;
+  });
+  
+  destinationInput.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  });
   
   // Add info icon
   const destInfoIcon = document.createElement('span');
@@ -3072,6 +3096,18 @@ function createAutomotiveQuoteForm() {
   const startAddressInput = createInput('text', 'address', '', 'Your business or starting location');
   startAddressInput.id = 'auto-address-input';
   startAddressInput.setAttribute('autocomplete', 'off');
+  
+  // Prevent default behavior that causes page refresh on mobile
+  startAddressInput.addEventListener('focus', function(e) {
+    e.preventDefault();
+    return false;
+  });
+  
+  startAddressInput.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  });
   
   // Add small info icon to indicate autocomplete functionality
   const startInfoIcon = document.createElement('span');
