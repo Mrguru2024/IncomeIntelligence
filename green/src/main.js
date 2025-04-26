@@ -4017,8 +4017,9 @@ function renderApp() {
   const rootElement = document.getElementById('root');
   rootElement.innerHTML = ''; // Clear previous content
   
-  // Add responsive viewport classes to the body
-  updateViewportClasses();
+  // Add responsive viewport classes to the body and get viewport dimensions
+  const viewport = updateViewportClasses();
+  const { width, height, aspectRatio, isFoldableClosed, isFoldableOpen } = viewport;
   
   // Add responsive styles to root document
   
