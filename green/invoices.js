@@ -6,6 +6,41 @@
 // Cache for invoices data to avoid unnecessary API calls
 let invoicesCache = null;
 
+// User customization preferences (for Pro users)
+const defaultCustomizationOptions = {
+  logo: null, // Base64 encoded image
+  colorTheme: 'default', // default, blue, green, purple, orange, red
+  fontFamily: 'Inter, sans-serif', // Default font
+  headerStyle: 'standard', // standard, minimal, bold
+  footerText: '', // Custom footer text
+};
+
+// Current customization options
+let invoiceCustomizationOptions = { ...defaultCustomizationOptions };
+
+// Pro-only features check
+function isProUser() {
+  try {
+    // Import from auth.js if available
+    if (typeof getUserSubscriptionTier === 'function') {
+      const tier = getUserSubscriptionTier();
+      return tier === 'pro' || tier === 'lifetime';
+    }
+    
+    // Fallback - try to get tier from sidebar user object
+    if (window.user && window.user.subscriptionStatus) {
+      return window.user.subscriptionStatus === 'pro' || window.user.subscriptionStatus === 'lifetime';
+    }
+    
+    // For demo purposes, consider all users as Pro
+    return true;
+  } catch (error) {
+    console.error('Error checking pro status:', error);
+    // Default to true for testing
+    return true;
+  }
+}
+
 // Format currency
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {
@@ -252,13 +287,25 @@ function renderInvoiceUI(container, invoices) {
     <div class="invoices-container" style="padding: 24px; max-width: 1200px; margin: 0 auto;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <h1 style="font-size: 24px; font-weight: 700; color: var(--color-text-primary);">Invoices</h1>
-        <button id="create-invoice-btn" style="padding: 8px 16px; background-color: var(--color-primary); color: white; border: none; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Create Invoice
-        </button>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          ${isProUser() ? `
+            <button id="customize-invoices-btn" style="padding: 8px 16px; background-color: white; border: 1px solid #d1d5db; border-radius: 6px; color: var(--color-text-secondary); font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+              Customize
+              <span style="display: inline-flex; align-items: center; justify-content: center; background: #6366F1; color: white; font-size: 10px; font-weight: bold; height: 18px; padding: 0 6px; border-radius: 9px; margin-left: 4px;">PRO</span>
+            </button>
+          ` : ''}
+          <button id="create-invoice-btn" style="padding: 8px 16px; background-color: var(--color-primary); color: white; border: none; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Create Invoice
+          </button>
+        </div>
       </div>
       
       <div style="background-color: var(--color-background-card); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -349,6 +396,9 @@ function renderInvoiceUI(container, invoices) {
   // Add event listeners
   document.getElementById('create-invoice-btn')?.addEventListener('click', openCreateInvoiceModal);
   document.getElementById('empty-create-invoice-btn')?.addEventListener('click', openCreateInvoiceModal);
+  
+  // Add customize button event listener for pro users
+  document.getElementById('customize-invoices-btn')?.addEventListener('click', openCustomizationModal);
   
   // Add event listeners to all buttons
   document.querySelectorAll('.view-invoice-btn').forEach(btn => {
@@ -1213,13 +1263,474 @@ function deleteInvoice(invoiceId) {
     });
 }
 
+// Open customization modal for Pro users
+function openCustomizationModal() {
+  // Check if user is Pro
+  if (!isProUser()) {
+    showNotification('This feature is only available for Pro users. Please upgrade to customize your invoices.', 'warning');
+    return;
+  }
+  
+  // Create the modal element
+  const modal = document.createElement('div');
+  modal.className = 'customize-invoice-modal';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modal.style.display = 'flex';
+  modal.style.justifyContent = 'center';
+  modal.style.alignItems = 'center';
+  modal.style.zIndex = '9999';
+  modal.style.padding = '20px';
+  
+  // Create the modal content
+  const modalContent = document.createElement('div');
+  modalContent.style.backgroundColor = 'white';
+  modalContent.style.borderRadius = '8px';
+  modalContent.style.maxWidth = '600px';
+  modalContent.style.width = '100%';
+  modalContent.style.maxHeight = '90vh';
+  modalContent.style.overflow = 'auto';
+  modalContent.style.position = 'relative';
+  modalContent.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+  
+  // Add heading and close button
+  modalContent.innerHTML = `
+    <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #111827;">Customize Invoices</h2>
+        <button class="close-modal" style="background: transparent; border: none; cursor: pointer;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <form id="customize-invoice-form" style="padding: 20px;">
+      <div style="background-color: #f9fafb; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4338CA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          <span style="font-weight: 500; color: #111827;">Pro Feature</span>
+        </div>
+        <p style="color: #6b7280; margin: 0;">Changes you make here will apply to all your invoices. Your customizations are saved automatically.</p>
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #4b5563; font-weight: 500;">Company Logo</label>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div id="logo-preview" style="width: 80px; height: 80px; border: 1px dashed #d1d5db; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: #f9fafb;">
+            ${invoiceCustomizationOptions.logo ? 
+              `<img src="${invoiceCustomizationOptions.logo}" alt="Company Logo" style="max-width: 100%; max-height: 100%;">` : 
+              `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>`
+            }
+          </div>
+          <div style="flex: 1;">
+            <input type="file" id="logo-upload" accept="image/*" style="display: none;">
+            <button type="button" id="upload-logo-btn" style="width: 100%; padding: 8px 16px; background-color: white; border: 1px solid #d1d5db; border-radius: 6px; color: #4b5563; font-weight: 500; cursor: pointer; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              Upload Logo
+            </button>
+            ${invoiceCustomizationOptions.logo ? 
+              `<button type="button" id="remove-logo-btn" style="width: 100%; padding: 8px 16px; background-color: #FEE2E2; border: 1px solid #FECACA; border-radius: 6px; color: #B91C1C; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18"></path>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                </svg>
+                Remove Logo
+              </button>` : ''
+            }
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <label for="color-theme" style="display: block; margin-bottom: 8px; font-size: 14px; color: #4b5563; font-weight: 500;">Color Theme</label>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+          <div class="color-option ${invoiceCustomizationOptions.colorTheme === 'default' ? 'selected' : ''}" data-value="default" style="cursor: pointer; border-radius: 6px; padding: 4px; border: 2px solid ${invoiceCustomizationOptions.colorTheme === 'default' ? '#4F46E5' : 'transparent'};">
+            <div style="height: 40px; border-radius: 4px; background: linear-gradient(to right, #4F46E5, #6366F1); display: flex; align-items: center; justify-content: center; color: white; font-weight: 500;">
+              Default
+            </div>
+          </div>
+          <div class="color-option ${invoiceCustomizationOptions.colorTheme === 'green' ? 'selected' : ''}" data-value="green" style="cursor: pointer; border-radius: 6px; padding: 4px; border: 2px solid ${invoiceCustomizationOptions.colorTheme === 'green' ? '#4F46E5' : 'transparent'};">
+            <div style="height: 40px; border-radius: 4px; background: linear-gradient(to right, #059669, #10B981); display: flex; align-items: center; justify-content: center; color: white; font-weight: 500;">
+              Green
+            </div>
+          </div>
+          <div class="color-option ${invoiceCustomizationOptions.colorTheme === 'blue' ? 'selected' : ''}" data-value="blue" style="cursor: pointer; border-radius: 6px; padding: 4px; border: 2px solid ${invoiceCustomizationOptions.colorTheme === 'blue' ? '#4F46E5' : 'transparent'};">
+            <div style="height: 40px; border-radius: 4px; background: linear-gradient(to right, #2563EB, #3B82F6); display: flex; align-items: center; justify-content: center; color: white; font-weight: 500;">
+              Blue
+            </div>
+          </div>
+          <div class="color-option ${invoiceCustomizationOptions.colorTheme === 'purple' ? 'selected' : ''}" data-value="purple" style="cursor: pointer; border-radius: 6px; padding: 4px; border: 2px solid ${invoiceCustomizationOptions.colorTheme === 'purple' ? '#4F46E5' : 'transparent'};">
+            <div style="height: 40px; border-radius: 4px; background: linear-gradient(to right, #7C3AED, #8B5CF6); display: flex; align-items: center; justify-content: center; color: white; font-weight: 500;">
+              Purple
+            </div>
+          </div>
+          <div class="color-option ${invoiceCustomizationOptions.colorTheme === 'orange' ? 'selected' : ''}" data-value="orange" style="cursor: pointer; border-radius: 6px; padding: 4px; border: 2px solid ${invoiceCustomizationOptions.colorTheme === 'orange' ? '#4F46E5' : 'transparent'};">
+            <div style="height: 40px; border-radius: 4px; background: linear-gradient(to right, #D97706, #F59E0B); display: flex; align-items: center; justify-content: center; color: white; font-weight: 500;">
+              Orange
+            </div>
+          </div>
+          <div class="color-option ${invoiceCustomizationOptions.colorTheme === 'red' ? 'selected' : ''}" data-value="red" style="cursor: pointer; border-radius: 6px; padding: 4px; border: 2px solid ${invoiceCustomizationOptions.colorTheme === 'red' ? '#4F46E5' : 'transparent'};">
+            <div style="height: 40px; border-radius: 4px; background: linear-gradient(to right, #DC2626, #EF4444); display: flex; align-items: center; justify-content: center; color: white; font-weight: 500;">
+              Red
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <label for="font-family" style="display: block; margin-bottom: 8px; font-size: 14px; color: #4b5563; font-weight: 500;">Font Style</label>
+        <select id="font-family" name="fontFamily" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; background-color: white;">
+          <option value="Inter, sans-serif" ${invoiceCustomizationOptions.fontFamily === 'Inter, sans-serif' ? 'selected' : ''}>Inter (Default)</option>
+          <option value="'Roboto', sans-serif" ${invoiceCustomizationOptions.fontFamily === "'Roboto', sans-serif" ? 'selected' : ''}>Roboto</option>
+          <option value="'Poppins', sans-serif" ${invoiceCustomizationOptions.fontFamily === "'Poppins', sans-serif" ? 'selected' : ''}>Poppins</option>
+          <option value="'Montserrat', sans-serif" ${invoiceCustomizationOptions.fontFamily === "'Montserrat', sans-serif" ? 'selected' : ''}>Montserrat</option>
+          <option value="'Lato', sans-serif" ${invoiceCustomizationOptions.fontFamily === "'Lato', sans-serif" ? 'selected' : ''}>Lato</option>
+          <option value="'Open Sans', sans-serif" ${invoiceCustomizationOptions.fontFamily === "'Open Sans', sans-serif" ? 'selected' : ''}>Open Sans</option>
+          <option value="'Playfair Display', serif" ${invoiceCustomizationOptions.fontFamily === "'Playfair Display', serif" ? 'selected' : ''}>Playfair Display</option>
+        </select>
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <label for="header-style" style="display: block; margin-bottom: 8px; font-size: 14px; color: #4b5563; font-weight: 500;">Header Style</label>
+        <select id="header-style" name="headerStyle" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; background-color: white;">
+          <option value="standard" ${invoiceCustomizationOptions.headerStyle === 'standard' ? 'selected' : ''}>Standard</option>
+          <option value="minimal" ${invoiceCustomizationOptions.headerStyle === 'minimal' ? 'selected' : ''}>Minimal</option>
+          <option value="bold" ${invoiceCustomizationOptions.headerStyle === 'bold' ? 'selected' : ''}>Bold</option>
+        </select>
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <label for="footer-text" style="display: block; margin-bottom: 8px; font-size: 14px; color: #4b5563; font-weight: 500;">Custom Footer Text</label>
+        <textarea id="footer-text" name="footerText" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; min-height: 80px; resize: vertical;">${invoiceCustomizationOptions.footerText}</textarea>
+        <p style="margin-top: 8px; color: #6b7280; font-size: 12px;">This text will appear at the bottom of all your invoices. You can include terms and conditions or thank you messages.</p>
+      </div>
+      
+      <div id="preview-section" style="margin-bottom: 24px;">
+        <h3 style="font-size: 16px; margin-bottom: 12px; color: #111827; font-weight: 500;">Preview</h3>
+        <div style="border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden;">
+          <div style="padding: 20px; background-color: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div id="preview-logo" style="width: 48px; height: 48px; border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: white;">
+                ${invoiceCustomizationOptions.logo ? 
+                  `<img src="${invoiceCustomizationOptions.logo}" alt="Company Logo" style="max-width: 100%; max-height: 100%;">` : 
+                  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>`
+                }
+              </div>
+              <div>
+                <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #111827;">Your Company Name</h3>
+                <p style="margin: 0; color: #6b7280;">INVOICE #12345</p>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <p style="margin: 0; color: #6b7280;">Date: April 26, 2025</p>
+              <p style="margin: 0; color: #6b7280;">Due: May 10, 2025</p>
+            </div>
+          </div>
+          <div style="padding: 20px;">
+            <div style="margin-bottom: 20px; display: flex; justify-content: space-between;">
+              <div>
+                <h4 style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px; font-weight: 500;">FROM</h4>
+                <p style="margin: 0; color: #111827; font-weight: 500;">Your Company Name</p>
+                <p style="margin: 0; color: #6b7280;">your-email@example.com</p>
+              </div>
+              <div style="text-align: right;">
+                <h4 style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px; font-weight: 500;">TO</h4>
+                <p style="margin: 0; color: #111827; font-weight: 500;">Client Name</p>
+                <p style="margin: 0; color: #6b7280;">client-email@example.com</p>
+              </div>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+              <thead>
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                  <th style="padding: 8px 12px; text-align: left; color: #6b7280; font-weight: 500;">Item</th>
+                  <th style="padding: 8px 12px; text-align: right; color: #6b7280; font-weight: 500;">Qty</th>
+                  <th style="padding: 8px 12px; text-align: right; color: #6b7280; font-weight: 500;">Price</th>
+                  <th style="padding: 8px 12px; text-align: right; color: #6b7280; font-weight: 500;">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                  <td style="padding: 12px; color: #111827;">Website Design</td>
+                  <td style="padding: 12px; text-align: right; color: #111827;">1</td>
+                  <td style="padding: 12px; text-align: right; color: #111827;">$1,200.00</td>
+                  <td style="padding: 12px; text-align: right; color: #111827;">$1,200.00</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                  <td style="padding: 12px; color: #111827;">Hosting (Annual)</td>
+                  <td style="padding: 12px; text-align: right; color: #111827;">1</td>
+                  <td style="padding: 12px; text-align: right; color: #111827;">$200.00</td>
+                  <td style="padding: 12px; text-align: right; color: #111827;">$200.00</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" style="padding: 12px; text-align: right; font-weight: 500; color: #111827;">Total:</td>
+                  <td style="padding: 12px; text-align: right; font-weight: 600; color: #111827;">$1,400.00</td>
+                </tr>
+              </tfoot>
+            </table>
+            <div id="preview-footer" style="border-top: 1px solid #e5e7eb; padding-top: 16px; color: #6b7280; font-size: 14px;">
+              ${invoiceCustomizationOptions.footerText ? invoiceCustomizationOptions.footerText : 'Thank you for your business!'}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+        <button type="button" id="reset-defaults-btn" style="padding: 8px 16px; background-color: white; border: 1px solid #d1d5db; border-radius: 6px; color: #4b5563;">Reset to Defaults</button>
+        <button type="submit" style="padding: 8px 16px; background-color: var(--color-primary); border: none; border-radius: 6px; color: white; font-weight: 500;">Save Changes</button>
+      </div>
+    </form>
+  `;
+  
+  // Add the modal to the DOM
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+  
+  // Add event listeners
+  document.querySelector('.close-modal').addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  // Handle logo upload
+  const logoUpload = document.getElementById('logo-upload');
+  const uploadLogoBtn = document.getElementById('upload-logo-btn');
+  const logoPreview = document.getElementById('logo-preview');
+  const previewLogo = document.getElementById('preview-logo');
+  
+  uploadLogoBtn.addEventListener('click', () => {
+    logoUpload.click();
+  });
+  
+  logoUpload.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Check file size (limit to 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      showNotification('Logo image must be less than 2MB', 'error');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const logoDataUrl = event.target.result;
+      
+      // Update logo preview
+      logoPreview.innerHTML = `<img src="${logoDataUrl}" alt="Company Logo" style="max-width: 100%; max-height: 100%;">`;
+      previewLogo.innerHTML = `<img src="${logoDataUrl}" alt="Company Logo" style="max-width: 100%; max-height: 100%;">`;
+      
+      // Update customization options
+      invoiceCustomizationOptions.logo = logoDataUrl;
+      
+      // Add remove button if it doesn't exist
+      if (!document.getElementById('remove-logo-btn')) {
+        const removeBtn = document.createElement('button');
+        removeBtn.id = 'remove-logo-btn';
+        removeBtn.type = 'button';
+        removeBtn.style.width = '100%';
+        removeBtn.style.padding = '8px 16px';
+        removeBtn.style.backgroundColor = '#FEE2E2';
+        removeBtn.style.border = '1px solid #FECACA';
+        removeBtn.style.borderRadius = '6px';
+        removeBtn.style.color = '#B91C1C';
+        removeBtn.style.fontWeight = '500';
+        removeBtn.style.cursor = 'pointer';
+        removeBtn.style.display = 'flex';
+        removeBtn.style.alignItems = 'center';
+        removeBtn.style.justifyContent = 'center';
+        removeBtn.style.gap = '8px';
+        removeBtn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"></path>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+          </svg>
+          Remove Logo
+        `;
+        uploadLogoBtn.parentNode.appendChild(removeBtn);
+        
+        // Add event listener
+        removeBtn.addEventListener('click', handleRemoveLogo);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  
+  // Handle remove logo
+  function handleRemoveLogo() {
+    // Reset logo preview
+    logoPreview.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+        <polyline points="21 15 16 10 5 21"></polyline>
+      </svg>
+    `;
+    previewLogo.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+        <polyline points="21 15 16 10 5 21"></polyline>
+      </svg>
+    `;
+    
+    // Clear logo data
+    invoiceCustomizationOptions.logo = null;
+    
+    // Remove the remove button
+    const removeBtn = document.getElementById('remove-logo-btn');
+    if (removeBtn) {
+      removeBtn.parentNode.removeChild(removeBtn);
+    }
+  }
+  
+  // Add event listener for existing remove logo button
+  const removeLogoBtn = document.getElementById('remove-logo-btn');
+  if (removeLogoBtn) {
+    removeLogoBtn.addEventListener('click', handleRemoveLogo);
+  }
+  
+  // Handle color theme selection
+  const colorOptions = document.querySelectorAll('.color-option');
+  colorOptions.forEach(option => {
+    option.addEventListener('click', () => {
+      // Remove selected class from all options
+      colorOptions.forEach(opt => {
+        opt.style.border = '2px solid transparent';
+      });
+      
+      // Add selected class to clicked option
+      option.style.border = '2px solid #4F46E5';
+      
+      // Update customization options
+      invoiceCustomizationOptions.colorTheme = option.dataset.value;
+    });
+  });
+  
+  // Handle font family change
+  const fontFamilySelect = document.getElementById('font-family');
+  fontFamilySelect.addEventListener('change', () => {
+    invoiceCustomizationOptions.fontFamily = fontFamilySelect.value;
+  });
+  
+  // Handle header style change
+  const headerStyleSelect = document.getElementById('header-style');
+  headerStyleSelect.addEventListener('change', () => {
+    invoiceCustomizationOptions.headerStyle = headerStyleSelect.value;
+  });
+  
+  // Handle footer text change
+  const footerTextArea = document.getElementById('footer-text');
+  const previewFooter = document.getElementById('preview-footer');
+  footerTextArea.addEventListener('input', () => {
+    invoiceCustomizationOptions.footerText = footerTextArea.value;
+    previewFooter.textContent = footerTextArea.value || 'Thank you for your business!';
+  });
+  
+  // Handle reset to defaults
+  const resetDefaultsBtn = document.getElementById('reset-defaults-btn');
+  resetDefaultsBtn.addEventListener('click', () => {
+    // Reset customization options
+    invoiceCustomizationOptions = { ...defaultCustomizationOptions };
+    
+    // Update UI
+    if (invoiceCustomizationOptions.logo) {
+      logoPreview.innerHTML = `<img src="${invoiceCustomizationOptions.logo}" alt="Company Logo" style="max-width: 100%; max-height: 100%;">`;
+      previewLogo.innerHTML = `<img src="${invoiceCustomizationOptions.logo}" alt="Company Logo" style="max-width: 100%; max-height: 100%;">`;
+    } else {
+      logoPreview.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21 15 16 10 5 21"></polyline>
+        </svg>
+      `;
+      previewLogo.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21 15 16 10 5 21"></polyline>
+        </svg>
+      `;
+      
+      // Remove the remove button
+      const removeBtn = document.getElementById('remove-logo-btn');
+      if (removeBtn) {
+        removeBtn.parentNode.removeChild(removeBtn);
+      }
+    }
+    
+    // Update color options
+    colorOptions.forEach(option => {
+      option.style.border = option.dataset.value === invoiceCustomizationOptions.colorTheme ? '2px solid #4F46E5' : '2px solid transparent';
+    });
+    
+    // Update select inputs
+    fontFamilySelect.value = invoiceCustomizationOptions.fontFamily;
+    headerStyleSelect.value = invoiceCustomizationOptions.headerStyle;
+    
+    // Update footer text
+    footerTextArea.value = invoiceCustomizationOptions.footerText;
+    previewFooter.textContent = invoiceCustomizationOptions.footerText || 'Thank you for your business!';
+    
+    showNotification('Reset to default settings', 'info');
+  });
+  
+  // Handle form submission
+  document.getElementById('customize-invoice-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // Save customization options (already updated via event listeners)
+    
+    // Show success notification
+    showNotification('Invoice customization settings saved', 'success');
+    
+    // Close the modal
+    document.body.removeChild(modal);
+  });
+}
+
 // Download invoice as PDF
 function downloadInvoicePdf(invoiceId) {
   // Show notification
   showNotification('Generating PDF...', 'info');
   
+  // Apply Pro user customizations if available
+  const customizationData = isProUser() ? invoiceCustomizationOptions : defaultCustomizationOptions;
+  
   // Send request to download PDF
-  fetch(`/api/invoices/${invoiceId}/pdf`)
+  fetch(`/api/invoices/${invoiceId}/pdf`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(customizationData)
+  })
     .then(response => {
       if (!response.ok) {
         throw new Error('Failed to generate PDF');
