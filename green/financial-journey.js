@@ -10,73 +10,95 @@
 
 // Store the user's current journey data
 let journeyData = {
-  currentStage: 0,
+  currentStage: 1, // Index of the current milestone in the journey (Building Emergency Fund)
   milestones: [
     {
       id: "income-tracking",
-      title: "Income Tracking",
-      description: "Start tracking your income sources",
-      completed: false,
-      criteria: "Track at least 3 income transactions",
-      tips: "Regular income tracking helps you understand your cash flow patterns",
-      completionPercentage: 0
-    },
-    {
-      id: "expense-management",
-      title: "Expense Management",
-      description: "Categorize and monitor your expenses",
-      completed: false,
-      criteria: "Track at least 5 expenses in different categories",
-      tips: "Categorizing expenses helps identify areas where you can cut back",
-      completionPercentage: 0
+      title: "Getting Started",
+      description: "Begin tracking your income and expenses regularly",
+      criteria: "Track income and expenses for 1 month",
+      tip: "Start simple with basic tracking before trying to optimize everything. Even tracking just your top 5-10 expenses will give you valuable insights into your spending patterns.",
+      completed: true,
+      completionPercentage: 100
     },
     {
       id: "emergency-fund",
-      title: "Emergency Fund",
-      description: "Build your emergency savings",
+      title: "Build Emergency Fund",
+      description: "Save 3-6 months of essential expenses",
+      criteria: "Save $10,000 in your emergency fund",
+      tip: "Start with a $1,000 mini emergency fund for immediate emergencies, then build to the full amount over time. Keep this money in a high-yield savings account that's separate from your checking account.",
       completed: false,
-      criteria: "Save at least 3 months of expenses",
-      tips: "An emergency fund should cover 3-6 months of essential expenses",
+      completionPercentage: 65
+    },
+    {
+      id: "debt-reduction",
+      title: "Eliminate High-Interest Debt",
+      description: "Pay off credit cards and high-interest loans",
+      criteria: "Reduce high-interest debt by 80%",
+      tip: "Use either the avalanche method (highest interest first) for maximum savings or snowball method (smallest balance first) for psychological wins. Either way, make minimum payments on all debts and put extra money toward your target debt.",
+      completed: false,
       completionPercentage: 0
+    },
+    {
+      id: "retirement-contributions",
+      title: "Max Retirement Contributions",
+      description: "Maximize contributions to tax-advantaged accounts",
+      criteria: "Reach maximum annual contributions",
+      tip: "At minimum, contribute enough to get any employer match - it's free money! For self-employed individuals, consider a Solo 401(k) or SEP IRA which often have higher contribution limits than traditional IRAs.",
+      completed: false,
+      completionPercentage: 0
+    },
+    {
+      id: "investment-portfolio",
+      title: "Invest for Growth",
+      description: "Build investment portfolio beyond retirement",
+      criteria: "Invest 15% of income in diversified portfolio",
+      tip: "Consider low-cost index funds for long-term growth with minimal effort. A simple three-fund portfolio (total US market, total international market, and bond fund) provides excellent diversification for beginners.",
+      completed: false,
+      completionPercentage: 0
+    },
+    {
+      id: "financial-independence",
+      title: "Financial Independence",
+      description: "Reach the point where work becomes optional",
+      criteria: "Investments cover 25x annual expenses",
+      tip: "The 4% rule suggests you can withdraw 4% of your portfolio value annually in retirement with low risk of running out of money. This means your target number is roughly 25 times your annual expenses.",
+      completed: false,
+      completionPercentage: 0
+    }
+  ],
+  achievements: [
+    {
+      id: "first-budget",
+      title: "First Budget Created",
+      description: "Created your first monthly budget",
+      date: new Date(2023, 8, 15) // September 15, 2023
+    },
+    {
+      id: "expense-tracker",
+      title: "Expense Tracker",
+      description: "Tracked all expenses for 30 consecutive days",
+      date: new Date(2023, 9, 20) // October 20, 2023
+    },
+    {
+      id: "savings-milestone",
+      title: "Savings Milestone",
+      description: "Saved first $1,000 emergency fund",
+      date: new Date(2023, 11, 5) // December 5, 2023
     },
     {
       id: "debt-reduction",
       title: "Debt Reduction",
-      description: "Reduce high-interest debt",
-      completed: false,
-      criteria: "Pay off at least 25% of your debt",
-      tips: "Focus on high-interest debt first for maximum impact",
-      completionPercentage: 0
+      description: "Paid off your first credit card completely",
+      date: new Date(2024, 1, 12) // February 12, 2024
     },
     {
-      id: "investment-start",
-      title: "Investment Start",
-      description: "Begin investing for the future",
-      completed: false,
-      criteria: "Make your first investment or set up automated investing",
-      tips: "Start with low-cost index funds if you're new to investing",
-      completionPercentage: 0
-    },
-    {
-      id: "financial-security",
-      title: "Financial Security",
-      description: "Achieve basic financial security",
-      completed: false,
-      criteria: "Have zero high-interest debt + 6 months emergency fund",
-      tips: "Financial security gives you options and reduces stress",
-      completionPercentage: 0
-    },
-    {
-      id: "wealth-building",
-      title: "Wealth Building",
-      description: "Accelerate wealth accumulation",
-      completed: false,
-      criteria: "Invest at least 20% of your income",
-      tips: "Consistent investing over time leverages compound growth",
-      completionPercentage: 0
+      id: "income-boost",
+      title: "Income Boost",
+      description: "Secured your first gig through Stackr platform",
+      date: new Date(2024, 3, 8) // April 8, 2024
     }
-  ],
-  achievements: []
+  ]
 };
 
 /**
@@ -148,21 +170,19 @@ function getPersonalizedRecommendation() {
   
   switch (currentMilestone.id) {
     case "income-tracking":
-      return "Start logging your income sources to get a clear picture of your cash flow.";
-    case "expense-management":
-      return "Focus on categorizing your expenses to identify spending patterns.";
+      return "Continue tracking all income sources to maintain a clear picture of your cash flow and spot opportunities to increase earnings.";
     case "emergency-fund":
-      return "Try to save a small amount each week for your emergency fund.";
+      return "Aim to consistently save at least 10% of your income until you've reached your emergency fund goal of 3-6 months of expenses.";
     case "debt-reduction":
-      return "Focus on paying off your highest interest debts first while maintaining minimum payments on others.";
-    case "investment-start":
-      return "Consider setting up automatic contributions to an investment account.";
-    case "financial-security":
-      return "Continue building your emergency fund while avoiding new high-interest debt.";
-    case "wealth-building":
-      return "Increase your investment contributions and diversify your portfolio.";
+      return "Focus on paying off your highest interest debts first while maintaining minimum payments on others to avoid fees and credit score damage.";
+    case "retirement-contributions":
+      return "Gradually increase your retirement contributions with each raise or income boost until you reach the maximum annual limit.";
+    case "investment-portfolio":
+      return "Diversify your investments across multiple asset classes to balance growth potential with appropriate risk for your age and goals.";
+    case "financial-independence":
+      return "Continue optimizing both your income and expenses while maintaining a sustainable investment strategy for long-term growth.";
     default:
-      return "Set specific financial goals and track your progress regularly.";
+      return "Set specific financial goals and track your progress regularly to stay motivated on your journey to financial independence.";
   }
 }
 
@@ -507,6 +527,68 @@ function createJourneyStep(milestone, index) {
 }
 
 /**
+ * Apply responsive styles based on device type and screen size
+ * Especially important for foldable devices like Samsung Z Fold
+ */
+function applyResponsiveStyles() {
+  const isMobile = window.innerWidth < 768;
+  const isFoldable = /SM-F9/.test(navigator.userAgent);
+  const isFolded = isFoldable && window.innerWidth < 600;
+  
+  // Get all the journey steps
+  const journeySteps = document.querySelectorAll('.journey-step');
+  journeySteps.forEach((step) => {
+    // Adjust padding and margins for mobile devices
+    if (isMobile) {
+      step.style.marginBottom = '16px';
+    } else {
+      step.style.marginBottom = '24px';
+    }
+  });
+  
+  // Get the recommendation card and adjust it for mobile
+  const recommendationCard = document.querySelector('.recommendation-card');
+  if (recommendationCard) {
+    if (isMobile) {
+      recommendationCard.style.padding = '16px';
+      recommendationCard.style.marginBottom = '20px';
+    } else {
+      recommendationCard.style.padding = '24px';
+      recommendationCard.style.marginBottom = '32px';
+    }
+  }
+  
+  // Adjust the journey visualization container
+  const journeyContainer = document.querySelector('.journey-visualization');
+  if (journeyContainer) {
+    if (isMobile) {
+      journeyContainer.style.padding = '16px';
+      journeyContainer.style.marginBottom = '20px';
+    } else {
+      journeyContainer.style.padding = '24px';
+      journeyContainer.style.marginBottom = '32px';
+    }
+  }
+  
+  // Special handling for folded state on foldable devices
+  if (isFolded) {
+    // Make content even more compact in folded state
+    const contentElements = document.querySelectorAll('.step-content p');
+    contentElements.forEach((element) => {
+      element.style.fontSize = '12px';
+      element.style.marginBottom = '4px';
+    });
+    
+    // Reduce title sizes for folded state
+    const stepTitles = document.querySelectorAll('.step-content h3');
+    stepTitles.forEach((title) => {
+      title.style.fontSize = '14px';
+      title.style.marginBottom = '2px';
+    });
+  }
+}
+
+/**
  * Creates the achievements section
  * @returns {HTMLElement} The achievements section element
  */
@@ -698,38 +780,3 @@ function showTip(title, tipText) {
   });
 }
 
-/**
- * Apply responsive styles for mobile/foldable devices
- */
-function applyResponsiveStyles() {
-  const isFoldableDevice = window.innerWidth < 400;
-  
-  if (isFoldableDevice) {
-    // Adjust styles for foldable devices
-    
-    // Journey steps
-    const journeySteps = document.querySelectorAll('.journey-step');
-    journeySteps.forEach(step => {
-      step.style.marginBottom = '16px';
-    });
-    
-    // Section titles
-    const sectionTitles = document.querySelectorAll('h2');
-    sectionTitles.forEach(title => {
-      title.style.fontSize = '18px';
-      title.style.marginBottom = '16px';
-    });
-    
-    // Milestone titles
-    const milestoneTitles = document.querySelectorAll('.step-content h3');
-    milestoneTitles.forEach(title => {
-      title.style.fontSize = '15px';
-    });
-    
-    // Achievement grid
-    const achievementGrid = document.querySelector('.achievements-grid');
-    if (achievementGrid) {
-      achievementGrid.style.gridTemplateColumns = '1fr';
-    }
-  }
-}
