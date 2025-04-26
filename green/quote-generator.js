@@ -2316,7 +2316,7 @@ function createAutomotiveQuoteForm() {
   // Reset form button
   const resetButton = createButton('Reset Form', () => {
     form.reset();
-    expLabel.textContent = 'Experience Adjustment: 0%';
+    expLabel.textContent = 'Years of Experience: 3 years';
     document.getElementById('quote-result-section').innerHTML = '';
   }, 'secondary');
   
@@ -2406,8 +2406,10 @@ function generateAutoQuote(quoteData) {
   // Get market rate for this location
   const marketRate = getAutoMarketRate(address);
   
-  // Apply experience adjustment to labor rate
-  const adjustedLaborRate = marketRate * (1 + (labor_adjustment / 100));
+  // Apply experience adjustment to labor rate based on years of experience
+  // Convert years to a percentage adjustment (0 years: -15%, 20 years: +25%)
+  const experiencePercentage = (labor_adjustment / 20) * 40 - 15; 
+  const adjustedLaborRate = marketRate * (1 + (experiencePercentage / 100));
   
   // Calculate labor cost
   let laborCost = baseLaborHours * adjustedLaborRate;
@@ -2454,7 +2456,8 @@ function generateAutoQuote(quoteData) {
     taxRate,
     taxAmount,
     subtotal,
-    total
+    total,
+    labor_adjustment // Include years of experience in the result
   };
 }
 
@@ -2755,6 +2758,10 @@ function printAutoQuote(quoteResult, isCustomerVersion = false) {
   const profitAnalysisSection = !isCustomerVersion && quoteResult.profitMargin ? `
     <div class="profit-analysis">
       <div class="section-title">Profit Analysis</div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div>Experience Level:</div>
+        <div>${quoteResult.labor_adjustment || '3'} years</div>
+      </div>
       <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
         <div>Target Profit Margin:</div>
         <div>${quoteResult.targetMargin || '30'}%</div>
