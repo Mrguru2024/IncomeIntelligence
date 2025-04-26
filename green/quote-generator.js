@@ -9,6 +9,268 @@
 // Add debugging
 console.log('Quote Generator module initialized');
 
+/**
+ * Create a form group with label and input
+ * @param {string} labelText - The label text
+ * @param {HTMLElement} inputElement - The input element
+ * @returns {HTMLElement} The form group element
+ */
+function createFormGroup(labelText, inputElement) {
+  const formGroup = document.createElement('div');
+  formGroup.classList.add('form-group');
+  formGroup.style.display = 'flex';
+  formGroup.style.flexDirection = 'column';
+  formGroup.style.gap = '8px';
+  
+  const label = document.createElement('label');
+  label.textContent = labelText;
+  label.style.fontSize = '14px';
+  label.style.fontWeight = '500';
+  label.style.color = 'var(--color-text-primary)';
+  
+  formGroup.appendChild(label);
+  formGroup.appendChild(inputElement);
+  
+  return formGroup;
+}
+
+/**
+ * Create a select element with options
+ * @param {string} name - The select name attribute
+ * @param {Array<{value: string, label: string}>} options - The select options
+ * @returns {HTMLElement} The select element
+ */
+function createSelect(name, options) {
+  const select = document.createElement('select');
+  select.name = name;
+  select.style.padding = '10px 12px';
+  select.style.borderRadius = '6px';
+  select.style.border = '1px solid var(--color-border)';
+  select.style.backgroundColor = 'var(--color-input-bg)';
+  select.style.color = 'var(--color-text-primary)';
+  select.style.width = '100%';
+  
+  options.forEach(option => {
+    const optionElement = document.createElement('option');
+    optionElement.value = option.value;
+    optionElement.textContent = option.label;
+    select.appendChild(optionElement);
+  });
+  
+  return select;
+}
+
+/**
+ * Create an input element
+ * @param {string} type - The input type
+ * @param {string} name - The input name
+ * @param {string} value - The input value
+ * @param {string} placeholder - The input placeholder
+ * @param {string} min - The input min value
+ * @param {string} max - The input max value
+ * @param {string} step - The input step value
+ * @returns {HTMLElement} The input element
+ */
+function createInput(type, name, value, placeholder, min, max, step) {
+  const input = document.createElement('input');
+  input.type = type;
+  input.name = name;
+  input.value = value;
+  input.placeholder = placeholder;
+  input.style.padding = '10px 12px';
+  input.style.borderRadius = '6px';
+  input.style.border = '1px solid var(--color-border)';
+  input.style.backgroundColor = 'var(--color-input-bg)';
+  input.style.color = 'var(--color-text-primary)';
+  input.style.width = '100%';
+  
+  if (type === 'number') {
+    if (min !== undefined) input.min = min;
+    if (max !== undefined) input.max = max;
+    if (step !== undefined) input.step = step;
+  }
+  
+  return input;
+}
+
+/**
+ * Create a textarea element
+ * @param {string} name - The textarea name
+ * @param {string} placeholder - The textarea placeholder
+ * @returns {HTMLElement} The textarea element
+ */
+function createTextarea(name, placeholder) {
+  const textarea = document.createElement('textarea');
+  textarea.name = name;
+  textarea.placeholder = placeholder;
+  textarea.rows = 3;
+  textarea.style.padding = '10px 12px';
+  textarea.style.borderRadius = '6px';
+  textarea.style.border = '1px solid var(--color-border)';
+  textarea.style.backgroundColor = 'var(--color-input-bg)';
+  textarea.style.color = 'var(--color-text-primary)';
+  textarea.style.width = '100%';
+  textarea.style.resize = 'vertical';
+  
+  return textarea;
+}
+
+/**
+ * Create a button element
+ * @param {string} text - The button text
+ * @param {Function} onClick - The button click handler
+ * @param {string} type - The button type
+ * @returns {HTMLElement} The button element
+ */
+function createButton(text, onClick, type = 'primary') {
+  const button = document.createElement('button');
+  button.textContent = text;
+  button.type = 'button';
+  button.addEventListener('click', onClick);
+  
+  button.style.padding = '10px 16px';
+  button.style.borderRadius = '6px';
+  button.style.fontWeight = '600';
+  button.style.cursor = 'pointer';
+  button.style.transition = 'background-color 0.2s';
+  
+  if (type === 'primary') {
+    button.style.backgroundColor = 'var(--color-primary)';
+    button.style.color = 'white';
+    button.style.border = 'none';
+  } else if (type === 'secondary') {
+    button.style.backgroundColor = 'transparent';
+    button.style.color = 'var(--color-primary)';
+    button.style.border = '1px solid var(--color-primary)';
+  }
+  
+  return button;
+}
+
+/**
+ * Create a section header with title and subtitle
+ * @param {string} title - The section title
+ * @param {string} subtitle - The section subtitle
+ * @returns {HTMLElement} The section header element
+ */
+function createSectionHeader(title, subtitle) {
+  const headerSection = document.createElement('div');
+  headerSection.style.marginBottom = '24px';
+  
+  const headerTitle = document.createElement('h2');
+  headerTitle.textContent = title;
+  headerTitle.style.fontSize = '24px';
+  headerTitle.style.fontWeight = '700';
+  headerTitle.style.color = 'var(--color-primary)';
+  headerTitle.style.marginBottom = '8px';
+  
+  const headerSubtitle = document.createElement('p');
+  headerSubtitle.textContent = subtitle;
+  headerSubtitle.style.fontSize = '16px';
+  headerSubtitle.style.color = 'var(--color-text-secondary)';
+  headerSubtitle.style.lineHeight = '1.5';
+  
+  headerSection.appendChild(headerTitle);
+  headerSection.appendChild(headerSubtitle);
+  
+  return headerSection;
+}
+
+/**
+ * Create a breakdown item for the cost breakdown list
+ * @param {string} label - Item label
+ * @param {number} amount - Item amount
+ * @param {boolean} highlight - Whether to highlight the item
+ * @returns {HTMLElement} The breakdown item
+ */
+function createBreakdownItem(label, amount, highlight = false) {
+  const item = document.createElement('div');
+  item.classList.add('breakdown-item');
+  item.style.display = 'flex';
+  item.style.justifyContent = 'space-between';
+  item.style.padding = '8px 0';
+  
+  if (highlight) {
+    item.style.fontWeight = '600';
+    item.style.fontSize = '16px';
+    item.style.color = 'var(--color-text-primary)';
+    item.style.borderTop = '1px solid var(--color-border)';
+    item.style.marginTop = '8px';
+    item.style.paddingTop = '12px';
+  }
+  
+  const labelElement = document.createElement('span');
+  labelElement.textContent = label;
+  
+  const amountElement = document.createElement('span');
+  amountElement.textContent = `$${amount.toFixed(2)}`;
+  
+  item.appendChild(labelElement);
+  item.appendChild(amountElement);
+  
+  return item;
+}
+
+/**
+ * Show a toast notification
+ * @param {string} message - The message to display
+ * @param {string} type - The type of toast ('success', 'error', 'info')
+ */
+function showToast(message, type = 'success') {
+  // Create toast container if it doesn't exist
+  let toastContainer = document.getElementById('toast-container');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    toastContainer.style.position = 'fixed';
+    toastContainer.style.bottom = '20px';
+    toastContainer.style.right = '20px';
+    toastContainer.style.zIndex = '1000';
+    document.body.appendChild(toastContainer);
+    
+    // Add CSS animation
+    if (!document.getElementById('toast-animations')) {
+      const style = document.createElement('style');
+      style.id = 'toast-animations';
+      style.textContent = `
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+          from { opacity: 1; transform: translateY(0); }
+          to { opacity: 0; transform: translateY(20px); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+  
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.style.backgroundColor = 'white';
+  toast.style.color = type === 'error' ? '#e53e3e' : type === 'info' ? '#3182ce' : '#38a169';
+  toast.style.padding = '12px 16px';
+  toast.style.borderRadius = '6px';
+  toast.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+  toast.style.marginTop = '8px';
+  toast.style.animation = 'fadeIn 0.3s ease-out forwards';
+  toast.style.minWidth = '250px';
+  toast.textContent = message;
+  
+  toastContainer.appendChild(toast);
+  
+  // Remove toast after 5 seconds
+  setTimeout(() => {
+    toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+    setTimeout(() => {
+      if (toast.parentNode === toastContainer) {
+        toastContainer.removeChild(toast);
+      }
+    }, 300);
+  }, 5000);
+}
+
 // Market labor rates - can be expanded with more job types and regions
 const marketRates = {
   "locksmith": {
