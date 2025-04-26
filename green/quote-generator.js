@@ -2060,7 +2060,10 @@ function createQuoteForm() {
   const generateButton = createButton('Generate Quote', (e) => {
     console.log("Generate Quote button clicked");
     // Special handling for Samsung ZFold 4 and small-screen devices
-    if (window.innerWidth < 400) {
+    const { width, isFoldableClosed } = updateViewportClasses();
+    const isSmallScreen = width < 400 || isFoldableClosed;
+    
+    if (isSmallScreen) {
       console.log("Detected small screen - using enhanced button handler");
       // Ensure event propagation is stopped for small screens
       if (e) {
@@ -2079,7 +2082,10 @@ function createQuoteForm() {
   const resetButton = createButton('Reset Form', (e) => {
     console.log("Reset Form button clicked");
     // For small screens, ensure the click doesn't cause issues
-    if (window.innerWidth < 400 && e) {
+    const { width, isFoldableClosed } = updateViewportClasses();
+    const isSmallScreen = width < 400 || isFoldableClosed;
+    
+    if (isSmallScreen && e) {
       e.preventDefault();
       e.stopPropagation();
     }
@@ -4318,7 +4324,8 @@ function displayAutoQuoteResult(quoteResult) {
   
   // Make responsive for mobile
   const mediaQueryCheck = () => {
-    if (window.innerWidth < 768) {
+    const { width, isFoldableClosed } = updateViewportClasses();
+    if (width < 768 || isFoldableClosed) {
       tiersContainer.style.flexDirection = 'column';
       tiersContainer.style.alignItems = 'center';
       tiersContainer.style.gap = '24px';
@@ -4389,7 +4396,8 @@ function displayAutoQuoteResult(quoteResult) {
   
   // Make buttons responsive on mobile
   const adjustButtonsForMobile = () => {
-    if (window.innerWidth < 600) {
+    const { width, isFoldableClosed } = updateViewportClasses();
+    if (width < 600 || isFoldableClosed) {
       actionsRow.style.flexDirection = 'column';
       actionsRow.style.gap = '8px';
     } else {
@@ -5211,8 +5219,9 @@ function calculateFuelCost(distanceMiles, pricePerGallon, mpg = 25) {
 function createTierCard(tierData, valueProps, isRecommended) {
   const card = document.createElement('div');
   card.className = 'tier-card';
-  // Make cards responsive
-  if (window.innerWidth < 768) {
+  // Make cards responsive using viewport utility
+  const { width, isFoldableClosed } = updateViewportClasses();
+  if (width < 768 || isFoldableClosed) {
     card.style.flex = '1 1 100%';
     card.style.maxWidth = '100%';
     card.style.width = '100%';
