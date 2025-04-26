@@ -4018,46 +4018,9 @@ function renderApp() {
   rootElement.innerHTML = ''; // Clear previous content
   
   // Add responsive viewport classes to the body
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  const aspectRatio = width / height;
-  document.body.classList.remove('viewport-mobile', 'viewport-tablet', 'viewport-desktop', 'viewport-fold-closed', 'viewport-fold-open');
+  updateViewportClasses();
   
-  // Enhanced breakpoints to handle foldable devices like Samsung Z Fold 4:
-  // Small Mobile (Folded): < 500px width
-  // Mobile: < 768px (changed from 640px to match sidebar breakpoint)
-  // Tablet/Fold Open: 768px - 1023px
-  // Desktop: >= 1024px
-  
-  // Detect foldable states - Z Fold 4 has these approximate dimensions:
-  // - Folded: ~285-305px width
-  // - Unfolded: ~720-740px width
-  const isFoldableClosed = width < 500 && aspectRatio < 0.7; // Tall and narrow
-  const isFoldableOpen = width >= 500 && width < 840 && aspectRatio > 0.9; // More square-like when open
-  
-  if (width < 500) {
-    document.body.classList.add('viewport-mobile');
-    console.log('Viewport: small mobile');
-    // Add fold-specific class if detected
-    if (isFoldableClosed) {
-      document.body.classList.add('viewport-fold-closed');
-      console.log('Detected: Foldable device (closed)');
-    }
-  } else if (width < 768) {
-    document.body.classList.add('viewport-mobile');
-    console.log('Viewport: mobile');
-  } else if (width < 1024) {
-    document.body.classList.add('viewport-tablet');
-    console.log('Viewport: tablet');
-    // Add fold-specific class if detected
-    if (isFoldableOpen) {
-      document.body.classList.add('viewport-fold-open');
-      console.log('Detected: Foldable device (open)');
-    }
-  } else {
-    document.body.classList.add('viewport-desktop');
-    console.log('Viewport: desktop');
-  }
+  // Add responsive styles to root document
   
   // Add responsive styles to root document
   const htmlRoot = document.documentElement;
@@ -4166,10 +4129,77 @@ function renderApp() {
   // Setup responsive event listener
   if (!window.resizeListenerAttached) {
     window.addEventListener('resize', debounce(() => {
-      renderApp();
+      // Check if a form input is focused before triggering full rerender
+      const activeElement = document.activeElement;
+      const isFormFieldFocused = activeElement && 
+        (activeElement.tagName === 'INPUT' || 
+         activeElement.tagName === 'TEXTAREA' || 
+         activeElement.tagName === 'SELECT');
+      
+      // If a form field is focused, don't re-render the entire app to prevent form reset
+      // This prevents the app from re-rendering when virtual keyboard appears on mobile
+      if (!isFormFieldFocused) {
+        renderApp();
+      } else {
+        console.log('Skipping app re-render while form field is focused');
+        // Still update viewport classes without full re-render
+        updateViewportClasses();
+      }
     }, 250));
     window.resizeListenerAttached = true;
   }
+}
+
+// Function to update viewport classes without full app re-render
+function updateViewportClasses() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const aspectRatio = width / height;
+  document.body.classList.remove('viewport-mobile', 'viewport-tablet', 'viewport-desktop', 'viewport-fold-closed', 'viewport-fold-open');
+  
+  // Enhanced breakpoints to handle foldable devices like Samsung Z Fold 4:
+  // Small Mobile (Folded): < 500px width
+  // Mobile: < 768px (changed from 640px to match sidebar breakpoint)
+  // Tablet/Fold Open: 768px - 1023px
+  // Desktop: >= 1024px
+  
+  // Detect foldable states - Z Fold 4 has these approximate dimensions:
+  // - Folded: ~285-305px width
+  // - Unfolded: ~720-740px width
+  const isFoldableClosed = width < 500 && aspectRatio < 0.7; // Tall and narrow
+  const isFoldableOpen = width >= 500 && width < 840 && aspectRatio > 0.9; // More square-like when open
+  
+  if (width < 500) {
+    document.body.classList.add('viewport-mobile');
+    console.log('Viewport: small mobile');
+    // Add fold-specific class if detected
+    if (isFoldableClosed) {
+      document.body.classList.add('viewport-fold-closed');
+      console.log('Detected: Foldable device (closed)');
+    }
+  } else if (width < 768) {
+    document.body.classList.add('viewport-mobile');
+    console.log('Viewport: mobile');
+  } else if (width < 1024) {
+    document.body.classList.add('viewport-tablet');
+    console.log('Viewport: tablet');
+    // Add fold-specific class if detected
+    if (isFoldableOpen) {
+      document.body.classList.add('viewport-fold-open');
+      console.log('Detected: Foldable device (open)');
+    }
+  } else {
+    document.body.classList.add('viewport-desktop');
+    console.log('Viewport: desktop');
+  }
+  
+  return {
+    width,
+    height,
+    aspectRatio,
+    isFoldableClosed,
+    isFoldableOpen
+  };
 }
 
 // Helper function to limit how often the resize event fires
