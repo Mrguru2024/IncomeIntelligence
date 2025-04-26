@@ -2508,8 +2508,9 @@ function saveAutoQuote(quoteResult) {
 /**
  * Print auto quote
  * @param {Object} quoteResult - The auto quote result to print
+ * @param {boolean} isCustomerVersion - Whether to print a customer-friendly version
  */
-function printAutoQuote(quoteResult) {
+function printAutoQuote(quoteResult, isCustomerVersion = false) {
   // Create a new window for printing
   const printWindow = window.open('', '_blank');
   
@@ -2529,12 +2530,117 @@ function printAutoQuote(quoteResult) {
   
   const serviceName = serviceMap[quoteResult.service_type] || quoteResult.service_type;
   
+  // Create title based on version
+  const pageTitle = isCustomerVersion ? 
+    `Customer Quote - ${quoteResult.vehicle_make} ${quoteResult.vehicle_model}` : 
+    `Auto Quote - ${quoteResult.vehicle_make} ${quoteResult.vehicle_model}`;
+  
+  // Format date
+  const currentDate = new Date().toLocaleDateString();
+  const quoteNumber = `AQ-${Date.now().toString().substring(6)}`;
+  
+  // Create labor breakdown based on version
+  let laborBreakdown = '';
+  if (isCustomerVersion) {
+    // Simplified labor info for customer
+    laborBreakdown = `
+      <div class="breakdown-item">
+        <div>Labor${quoteResult.emergency ? ' (Emergency Service)' : ''}</div>
+        <div>$${quoteResult.laborCost.toFixed(2)}</div>
+      </div>
+    `;
+  } else {
+    // Detailed labor info for service provider
+    laborBreakdown = `
+      <div class="breakdown-item">
+        <div>Labor (${quoteResult.baseLaborHours} hours @ $${quoteResult.adjustedLaborRate.toFixed(2)}/hr)${quoteResult.emergency ? ' (Emergency)' : ''}</div>
+        <div>$${quoteResult.laborCost.toFixed(2)}</div>
+      </div>
+    `;
+  }
+  
+  // Create notes section with different content based on version
+  const notesSection = isCustomerVersion ? `
+    <div class="notes">
+      <div class="section-title">Notes</div>
+      <div>
+        <p>This quote is valid for 30 days from the date of issue.</p>
+        <p>Payment terms: 50% deposit required before work begins, remaining balance due upon completion.</p>
+        <p>Please contact us if you have any questions about this quote.</p>
+      </div>
+    </div>
+  ` : `
+    <div class="notes">
+      <div class="section-title">Notes</div>
+      <div>
+        <p>This quote is valid for 30 days from the date above. Additional costs may apply if unforeseen issues arise during service.</p>
+        <p>Emergency service fees apply for after-hours, weekend, and holiday appointments.</p>
+        <p>Labor rate adjustment: ${quoteResult.emergency ? 'Emergency rate applied' : 'Standard rate applied'}</p>
+        ${quoteResult.service_type === 'all_keys_lost' ? '<p>All keys lost service includes obtaining vehicle key codes and programming new keys/remotes to your vehicle.</p>' : ''}
+        <p>For internal use: Profit analysis available in dashboard</p>
+      </div>
+    </div>
+  `;
+  
+  // Create profit analysis section (only for service provider version)
+  const profitAnalysisSection = !isCustomerVersion && quoteResult.profitMargin ? `
+    <div class="profit-analysis">
+      <div class="section-title">Profit Analysis</div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div>Target Profit Margin:</div>
+        <div>${quoteResult.targetMargin || '30'}%</div>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div>Actual Profit Margin:</div>
+        <div style="font-weight: bold; color: ${quoteResult.profitMargin < 15 ? '#B91C1C' : quoteResult.profitMargin < 25 ? '#D97706' : '#047857'}">
+          ${quoteResult.profitMargin.toFixed(1)}%
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div>Estimated Profit:</div>
+        <div style="font-weight: bold;">$${quoteResult.profit ? quoteResult.profit.toFixed(2) : (quoteResult.total * 0.3).toFixed(2)}</div>
+      </div>
+    </div>
+  ` : '';
+
+  // Create travel section if applicable
+  let travelSection = '';
+  if (quoteResult.travelDistance > 0) {
+    if (isCustomerVersion) {
+      // Customer version shows less detail about travel costs
+      travelSection = `
+        <div class="breakdown-item">
+          <div>Travel Service</div>
+          <div>$${quoteResult.travelCost.toFixed(2)}</div>
+        </div>
+      `;
+    } else {
+      // Service provider version shows detailed breakdown
+      travelSection = `
+        <div class="breakdown-item">
+          <div>Travel (${quoteResult.travelDistance} miles)</div>
+          <div>$${quoteResult.travelCost.toFixed(2)}</div>
+        </div>
+        <div style="font-size: 13px; color: #666; margin-left: 20px; margin-bottom: 8px;">
+          <div style="display: flex; justify-content: space-between;">
+            <div>• Fuel cost ($${quoteResult.gasPrice.toFixed(2)}/gal)</div>
+            <div>$${quoteResult.fuelCost.toFixed(2)}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <div>• Service fee for travel time</div>
+            <div>$${quoteResult.travelServiceFee.toFixed(2)}</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+  
   // Create print content
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Auto Quote - ${quoteResult.vehicle_make} ${quoteResult.vehicle_model}</title>
+      <title>${pageTitle}</title>
       <style>
         body {
           font-family: Arial, sans-serif;
@@ -2591,6 +2697,12 @@ function printAutoQuote(quoteResult) {
           background-color: #f5f5f5;
           border-radius: 5px;
         }
+        .profit-analysis {
+          margin-top: 30px;
+          padding: 15px;
+          background-color: #f0f7ff;
+          border-radius: 4px;
+        }
         .footer {
           margin-top: 50px;
           text-align: center;
@@ -2613,14 +2725,25 @@ function printAutoQuote(quoteResult) {
         <div class="header">
           <div class="company-name">Stackr Automotive Locksmith</div>
           <div>Professional Vehicle Security Solutions</div>
+          ${!isCustomerVersion ? `
+          <div>123 Business St, City, State ZIP</div>
+          <div>Phone: (555) 123-4567</div>
+          <div>Email: contact@stackr.com</div>
+          ` : ''}
         </div>
         
         <div class="quote-info">
           <div class="section-title">Quote Information</div>
           <div class="quote-info-row">
             <div><strong>Date:</strong></div>
-            <div>${new Date().toLocaleDateString()}</div>
+            <div>${currentDate}</div>
           </div>
+          ${!isCustomerVersion ? `
+          <div class="quote-info-row">
+            <div><strong>Quote Number:</strong></div>
+            <div>${quoteNumber}</div>
+          </div>
+          ` : ''}
           <div class="quote-info-row">
             <div><strong>Vehicle:</strong></div>
             <div>${quoteResult.vehicle_year} ${quoteResult.vehicle_make} ${quoteResult.vehicle_model}</div>
@@ -2636,10 +2759,7 @@ function printAutoQuote(quoteResult) {
         </div>
         
         <div class="section-title">Cost Breakdown</div>
-        <div class="breakdown-item">
-          <div>Labor (${quoteResult.baseLaborHours} hours @ $${quoteResult.adjustedLaborRate.toFixed(2)}/hr)${quoteResult.emergency ? ' (Emergency)' : ''}</div>
-          <div>$${quoteResult.laborCost.toFixed(2)}</div>
-        </div>
+        ${laborBreakdown}
         <div class="breakdown-item">
           <div>Parts</div>
           <div>$${quoteResult.partsCost.toFixed(2)}</div>
@@ -2650,6 +2770,7 @@ function printAutoQuote(quoteResult) {
           <div>$${quoteResult.keycodeCost.toFixed(2)}</div>
         </div>
         ` : ''}
+        ${travelSection}
         <div class="breakdown-item">
           <div>Subtotal</div>
           <div>$${quoteResult.subtotal.toFixed(2)}</div>
@@ -2663,12 +2784,9 @@ function printAutoQuote(quoteResult) {
           <div>$${quoteResult.total.toFixed(2)}</div>
         </div>
         
-        <div class="notes">
-          <div class="section-title">Notes</div>
-          <p>This quote is valid for 30 days from the date above. Additional costs may apply if unforeseen issues arise during service.</p>
-          <p>Emergency service fees apply for after-hours, weekend, and holiday appointments.</p>
-          ${quoteResult.service_type === 'all_keys_lost' ? '<p>All keys lost service includes obtaining vehicle key codes and programming new keys/remotes to your vehicle.</p>' : ''}
-        </div>
+        ${notesSection}
+        
+        ${profitAnalysisSection || ''}
         
         <div class="footer">
           <p>Thank you for choosing Stackr Automotive Locksmith Services</p>
