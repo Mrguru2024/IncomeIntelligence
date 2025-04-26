@@ -2262,21 +2262,22 @@ function createAutomotiveQuoteForm() {
   const optionsSection = createSectionHeader('Additional Options', 'Customize your quote settings');
   form.appendChild(optionsSection);
   
-  // Experience adjustment slider
+  // Experience adjustment slider (in years now instead of percentage)
   const expRow = document.createElement('div');
   expRow.style.marginBottom = '16px';
   
   const expLabel = document.createElement('label');
-  expLabel.textContent = 'Experience Adjustment: 0%';
+  expLabel.textContent = 'Years of Experience: 3 years';
   expLabel.style.display = 'block';
   expLabel.style.marginBottom = '8px';
   expLabel.style.fontSize = '14px';
   expLabel.style.fontWeight = '500';
   
-  const expSlider = createInput('range', 'labor_adjustment', '0', '', '-20', '30', '5');
+  // Change range from years 0-20, with default of 3 years
+  const expSlider = createInput('range', 'labor_adjustment', '3', '', '0', '20', '1');
   expSlider.addEventListener('input', (e) => {
-    const value = e.target.value;
-    expLabel.textContent = `Experience Adjustment: ${value}%`;
+    const years = parseInt(e.target.value);
+    expLabel.textContent = `Years of Experience: ${years} ${years === 1 ? 'year' : 'years'}`;
   });
   
   expRow.appendChild(expLabel);
