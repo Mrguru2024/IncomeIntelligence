@@ -907,6 +907,19 @@ function loadGooglePlacesAPI(callback) {
       console.log(`[Maps Autocomplete] Autocomplete initialized for input: ${inputId}`);
     }
     
+    // Helper function to ensure data elements exist
+    function ensureDataElementExists(dataElementId) {
+      if (!document.getElementById(dataElementId)) {
+        console.log(`Creating missing data element: ${dataElementId}`);
+        const el = document.createElement('div');
+        el.id = dataElementId;
+        el.style.display = 'none';
+        document.body.appendChild(el);
+        return true;
+      }
+      return false;
+    }
+    
     // Set up a mutation observer to apply autocomplete when these elements appear
     const observer = new MutationObserver((mutations) => {
       let shouldCheckElements = false;
@@ -922,6 +935,12 @@ function loadGooglePlacesAPI(callback) {
         const autoAddressElement = document.getElementById('auto-address-input');
         const destinationElement = document.getElementById('destination-input');
         const generalLocationElement = document.getElementById('general-location-input');
+        
+        // Create data storage elements if they don't exist yet
+        // This fixes cases where the input exists but the data element might not
+        ensureDataElementExists('auto-address-place-data');
+        ensureDataElementExists('destination-place-data');
+        ensureDataElementExists('general-location-place-data');
         
         if (autoAddressElement && !autoAddressElement._autocompleteInitialized) {
           setupInputAutocomplete('auto-address-input', 'auto-address-place-data');
@@ -945,6 +964,11 @@ function loadGooglePlacesAPI(callback) {
     
     // Try initial setup as well (in case elements already exist)
     setTimeout(() => {
+      // Create data storage elements if they don't exist yet
+      ensureDataElementExists('auto-address-place-data');
+      ensureDataElementExists('destination-place-data');
+      ensureDataElementExists('general-location-place-data');
+      
       // Initial attempt to set up autocomplete for known fields
       const autoAddressElement = document.getElementById('auto-address-input');
       const destinationElement = document.getElementById('destination-input');
