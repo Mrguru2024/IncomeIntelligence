@@ -442,23 +442,21 @@ function loadGooglePlacesAPI(callback) {
     const apiErrorMessage = window.googleMapsError || '';
     
     if (apiErrorMessage.includes('billing')) {
-      showToast('Address autocomplete unavailable: Google Maps requires billing to be enabled', 'warning');
+      showToast('Address autocomplete unavailable temporarily', 'warning');
       
       helpMessage.innerHTML = `
-        <h3 style="margin-top: 0; font-weight: 600; font-size: 16px;">Google Maps API - Billing Required</h3>
-        <p>Address autocomplete is unavailable because the Google Maps API requires billing to be enabled in your Google Cloud account.</p>
-        <p><strong>Status:</strong> <span style="color: #dc3545">♦ API Ready, Billing Required</span></p>
-        <p>After enabling billing in the Google Cloud Console, refresh this page to try again.</p>
+        <h3 style="margin-top: 0; font-weight: 600; font-size: 16px;">Address Autocomplete Unavailable</h3>
+        <p>The address autocomplete feature is currently unavailable due to a configuration issue.</p>
         <p>You can still enter addresses manually in the meantime.</p>
+        <p>Our team has been notified and is working to resolve this.</p>
       `;
     } else {
-      showToast('Using simplified address validation - Google Maps API unavailable', 'info');
+      showToast('Using basic address validation', 'info');
       
       helpMessage.innerHTML = `
-        <h3 style="margin-top: 0; font-weight: 600; font-size: 16px;">Google Maps API - Unavailable</h3>
-        <p>Address autocomplete is temporarily unavailable. You can still enter addresses manually.</p>
-        <p><strong>Status:</strong> <span style="color: #dc3545">● API Connection Issue</span></p>
-        <p>This could be due to network connectivity or API configuration issues.</p>
+        <h3 style="margin-top: 0; font-weight: 600; font-size: 16px;">Address Autocomplete Limited</h3>
+        <p>Enhanced address lookup is temporarily unavailable. You can still enter addresses manually.</p>
+        <p>Basic validation will help ensure your addresses are properly formatted.</p>
       `;
     }
     
@@ -532,7 +530,7 @@ function loadGooglePlacesAPI(callback) {
       }
       
       // Show a success toast
-      showToast('Address autocomplete ready! Google Maps API is properly configured.', 'success');
+      showToast('Enhanced address lookup is now available!', 'success');
       
       if (callback) callback(null);
     } catch (error) {

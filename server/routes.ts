@@ -185,18 +185,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API health check
+  // Simple API health check available to all users
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });
   
-  // System status check endpoint
+  // Basic system status endpoint available to all users
   app.get("/api/status", async (req, res) => {
     try {
+      // Return limited information for regular users
+      res.json({
+        status: 'operational',
+        message: 'All systems operational.',
+        lastUpdated: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Status check error:', error);
+      res.status(500).json({ 
+        status: 'error',
+        message: 'Failed to retrieve system status'
+      });
+    }
+  });
+  
+  // Detailed system status check endpoint for admins only
+  app.get("/api/admin/status", requireAuth, async (req, res) => {
+    try {
+      // Check if user is an admin
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ 
+          error: 'Access denied',
+          message: 'Admin access required for detailed system status'
+        });
+      }
+      
       // Check database connection
       let dbStatus = 'offline';
       let stripeStatus = 'inactive';
       let authStatus = 'configured';
+      let openaiStatus = 'unknown';
+      let googleMapsStatus = 'unknown';
       
       try {
         // Test database connection with a quick query
@@ -210,7 +238,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check Stripe initialization
       stripeStatus = stripe ? 'configured' : 'not_configured';
       
-      // Return all status information
+      // Check OpenAI status
+      openaiStatus = process.env.OPENAI_API_KEY ? 'configured' : 'not_configured';
+      
+      // Check Google Maps API status
+      googleMapsStatus = process.env.GOOGLE_MAPS_API_KEY ? 'configured' : 'not_configured';
+      
+      // Return detailed status information for admins
       res.json({
         status: 'maintenance',
         message: 'System is currently in maintenance mode while Firebase dependencies are being removed.',
@@ -218,18 +252,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           api: 'online',
           database: dbStatus,
           stripe: stripeStatus,
-          authentication: authStatus
+          authentication: authStatus,
+          openai: openaiStatus,
+          googleMaps: googleMapsStatus
         },
         maintenance: {
           reason: 'Removing Firebase dependencies',
           estimatedCompletionDate: 'April 10, 2025'
+        },
+        environment: process.env.NODE_ENV || 'development',
+        serverTime: new Date().toISOString(),
+        apiKeysConfigured: {
+          stripe: !!process.env.STRIPE_SECRET_KEY,
+          openai: !!process.env.OPENAI_API_KEY,
+          googleMaps: !!process.env.GOOGLE_MAPS_API_KEY,
+          plaid: !!process.env.PLAID_SECRET,
+          resend: !!process.env.RESEND_API_KEY
         }
       });
     } catch (error) {
-      console.error('Status check error:', error);
+      console.error('Admin status check error:', error);
       res.status(500).json({ 
         status: 'error',
-        message: 'Failed to retrieve system status'
+        message: 'Failed to retrieve detailed system status'
       });
     }
   });
