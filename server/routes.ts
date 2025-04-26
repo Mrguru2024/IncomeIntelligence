@@ -5228,6 +5228,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Server-side proxy for Google Maps script to avoid CORS/connectivity issues
+  app.get('/api/google-maps-script', async (req, res) => {
+    try {
+      const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+      
+      if (!apiKey) {
+        console.error('GOOGLE_MAPS_API_KEY is not set in environment variables');
+        return res.status(500).send(`console.error('Google Maps API key is not configured on the server');`);
+      }
+      
+      // Validate the API key first
+      const validationResult = await validateGoogleMapsApiKey();
+      if (!validationResult.isValid) {
+        console.error('Google Maps API key validation failed:', validationResult.errorMessage);
+        return res.status(403).send(`console.error('Invalid Google Maps API key: ${validationResult.errorMessage || "Unknown error"}');`);
+      }
+      
+      // Generate script content that will load Google Maps API properly
+      const scriptContent = `
+        // Server-side injected Google Maps loader script
+        (function() {
+          try {
+            // Clean up any existing script elements
+            var existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+            if (existingScript) {
+              existingScript.parentNode.removeChild(existingScript);
+              console.log('Removed existing Google Maps script');
+            }
+            
+            // Create a new script element
+            var script = document.createElement('script');
+            script.src = "https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGooglePlacesAPI";
+            script.async = true;
+            script.defer = true;
+            
+            // Add error handling
+            script.onerror = function(e) {
+              console.error('Server proxy script: Error loading Google Maps API:', e);
+              if (typeof setupAddressValidationFallback === 'function') {
+                setupAddressValidationFallback();
+              }
+            };
+            
+            // Add to the document
+            document.head.appendChild(script);
+            console.log('Google Maps script loaded via server proxy');
+          } catch (err) {
+            console.error('Server proxy script: Error initializing Google Maps:', err);
+            if (typeof setupAddressValidationFallback === 'function') {
+              setupAddressValidationFallback();
+            }
+          }
+        })();
+      `;
+      
+      // Set the correct content type and send the script
+      res.setHeader('Content-Type', 'application/javascript');
+      res.send(scriptContent);
+      console.log('Successfully served Google Maps loader script via server proxy');
+      
+    } catch (error) {
+      console.error('Error in Google Maps script proxy endpoint:', error);
+      res.status(500).setHeader('Content-Type', 'application/javascript');
+      res.send(`console.error('Server error loading Google Maps script: ${error.message}');`);
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
