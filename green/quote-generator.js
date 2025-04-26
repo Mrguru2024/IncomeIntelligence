@@ -2961,11 +2961,11 @@ function extractZipCode(address) {
 }
 
 /**
- * Get current gas price for a state
+ * Get current gas price for a state (2024 data - legacy version)
  * @param {string} state - State code (e.g., "CA", "NY")
  * @returns {number} Gas price per gallon
  */
-function getGasPriceForState(state) {
+function getStaticGasPriceForState(state) {
   // Gas price data by state (as of April 2024)
   const gasPrices = {
     'AL': 3.19, 'AK': 3.94, 'AZ': 3.59, 'AR': 3.17, 'CA': 4.87,
