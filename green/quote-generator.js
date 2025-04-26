@@ -3018,6 +3018,12 @@ function createAutomotiveQuoteForm() {
   form.style.borderRadius = '12px';
   form.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
   
+  // Prevent default form submission which causes page refresh on mobile
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    return false;
+  });
+  
   // Vehicle details section
   const vehicleSection = createSectionHeader('Vehicle Details', 'Enter information about the vehicle for an accurate quote');
   form.appendChild(vehicleSection);
