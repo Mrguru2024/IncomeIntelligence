@@ -1552,8 +1552,9 @@ function createAutomotiveQuoteForm() {
 function handleAutoQuoteFormSubmit(e) {
   e.preventDefault();
   
-  // Get form data from event target (the form)
-  const formData = new FormData(e.target);
+  // Get form data from the auto-quote-form
+  const form = document.getElementById('auto-quote-form');
+  const formData = new FormData(form);
   
   // Basic validation
   const make = formData.get('vehicle_make');
@@ -1614,14 +1615,14 @@ function generateAutoQuote(quoteData) {
   } = quoteData;
   
   // Get state and tax rate
-  const state = getStateFromZip(address);
-  const taxRate = getTaxRate(state);
+  const state = validateAddressGetState(address);
+  const taxRate = getStateTaxRateByState(state);
   
   // Get base labor hours for this service type
   const baseLaborHours = autoLaborHours[service_type] || 2;
   
   // Get market rate for this location
-  const marketRate = getMarketRate('automotive', state);
+  const marketRate = getAutoMarketRate(address);
   
   // Apply experience adjustment to labor rate
   const adjustedLaborRate = marketRate * (1 + (labor_adjustment / 100));
@@ -2083,6 +2084,163 @@ function createInvoiceFromAutoQuote(quoteResult) {
 }
 
 /**
+ * Auto parts pricing database by vehicle type and service
+ * This would typically be sourced from an external API
+ */
+const autoParts = {
+  common: {
+    all_keys_lost: {
+      base: 120,
+      luxury: 180,
+      economy: 95
+    },
+    duplicate_key: {
+      base: 70,
+      luxury: 105,
+      economy: 55
+    },
+    ignition_repair: {
+      base: 90,
+      luxury: 135,
+      economy: 72
+    },
+    lock_rekey: {
+      base: 60,
+      luxury: 90,
+      economy: 48
+    },
+    ecu_reflash: {
+      base: 150,
+      luxury: 225,
+      economy: 120
+    }
+  },
+  // Vehicle-specific pricing could be added here
+  honda: {
+    accord: {
+      all_keys_lost: 110,
+      duplicate_key: 65
+    },
+    civic: {
+      all_keys_lost: 105,
+      duplicate_key: 60
+    }
+  },
+  toyota: {
+    camry: {
+      all_keys_lost: 115,
+      duplicate_key: 68
+    },
+    corolla: {
+      all_keys_lost: 108,
+      duplicate_key: 62
+    }
+  },
+  ford: {
+    f150: {
+      all_keys_lost: 130,
+      duplicate_key: 75
+    },
+    escape: {
+      all_keys_lost: 118,
+      duplicate_key: 70
+    }
+  }
+};
+
+/**
+ * Validates an address and returns the state
+ * @param {string} address - The address to validate
+ * @returns {string} Two-letter state code
+ */
+function validateAddressGetState(address) {
+  // In a real implementation, this would use Google Places API
+  // For now, use a simple regex to extract state code
+  
+  // Check if address already has a state code format (e.g., TX, CA)
+  const stateCodeMatch = address.match(/\b([A-Z]{2})\b/);
+  if (stateCodeMatch) {
+    return stateCodeMatch[1];
+  }
+  
+  // Check for common state name patterns
+  const stateMap = {
+    'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
+    'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
+    'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA',
+    'kansas': 'KS', 'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+    'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO',
+    'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
+    'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH',
+    'oklahoma': 'OK', 'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+    'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
+    'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY'
+  };
+  
+  const lowercaseAddress = address.toLowerCase();
+  
+  for (const [stateName, stateCode] of Object.entries(stateMap)) {
+    if (lowercaseAddress.includes(stateName)) {
+      return stateCode;
+    }
+  }
+  
+  // If no state is found, default to California as a fallback
+  return 'CA';
+}
+
+/**
+ * Get the tax rate for a state
+ * @param {string} state - Two-letter state code
+ * @returns {number} Tax rate as a decimal (e.g., 0.06 for 6%)
+ */
+function getStateTaxRateByState(state) {
+  // Return the tax rate from our database, or a default rate
+  // Access the existing stateTaxRates variable
+  const defaultRate = 0.05;
+  
+  // Make sure state is uppercase for lookup
+  const stateCode = state.toUpperCase();
+  
+  // Try to find the rate in our existing database
+  if (stateTaxRates[stateCode]) {
+    return stateTaxRates[stateCode];
+  }
+  
+  return defaultRate;
+}
+
+/**
+ * Get auto market labor rate for a location
+ * @param {string} zip - ZIP code or location string
+ * @returns {number} Hourly market rate
+ */
+function getAutoMarketRate(zip) {
+  // In a real implementation, this would use an API like Thumbtack or HomeAdvisor
+  // For demonstration, we'll use a base rate with some regional variation
+  
+  // Extract the first digit of the ZIP code if it exists
+  const zipDigit = zip.match(/\d/);
+  
+  // Base rate is $90/hour
+  let baseRate = 90;
+  
+  // Apply regional adjustment if we have a ZIP digit
+  if (zipDigit) {
+    const region = parseInt(zipDigit[0]);
+    
+    // Adjust rate by region (simplified model)
+    if (region >= 0 && region <= 9) {
+      // Different regions have different costs of living
+      const adjustments = [0, 20, 15, 10, 5, 0, -5, -10, -15, -5];
+      baseRate += adjustments[region];
+    }
+  }
+  
+  return baseRate;
+}
+
+/**
  * Get parts cost for a vehicle and service type
  * @param {string} make - Vehicle make
  * @param {string} model - Vehicle model
@@ -2091,30 +2249,31 @@ function createInvoiceFromAutoQuote(quoteResult) {
  * @returns {number} The parts cost
  */
 function searchPartsCost(make, model, year, serviceType) {
-  // This would normally search an external API or database
-  // For now, use a fallback based on service type
-  const baseCosts = {
-    all_keys_lost: 120,
-    duplicate_key: 70,
-    ignition_repair: 90,
-    lock_rekey: 60,
-    ecu_reflash: 150
-  };
+  // Normalize inputs
+  const normalizedMake = make.toLowerCase().trim();
+  const normalizedModel = model.toLowerCase().trim();
   
-  // Start with the base cost
-  let cost = baseCosts[serviceType] || 80;
+  // Check if we have specific pricing for this make+model
+  if (autoParts[normalizedMake] && autoParts[normalizedMake][normalizedModel] && 
+      autoParts[normalizedMake][normalizedModel][serviceType]) {
+    return autoParts[normalizedMake][normalizedModel][serviceType];
+  }
   
-  // Adjust for vehicle make
+  // Determine vehicle category
   const luxuryBrands = ['bmw', 'audi', 'mercedes', 'lexus', 'infiniti', 'cadillac', 'lincoln'];
   const economyBrands = ['kia', 'hyundai', 'suzuki', 'mitsubishi'];
   
-  const normalizedMake = make.toLowerCase().trim();
-  
+  let category = 'base';
   if (luxuryBrands.includes(normalizedMake)) {
-    cost *= 1.5; // 50% more for luxury brands
+    category = 'luxury';
   } else if (economyBrands.includes(normalizedMake)) {
-    cost *= 0.9; // 10% less for economy brands
+    category = 'economy';
   }
+  
+  // Get base cost for this type of service and vehicle category
+  let cost = (autoParts.common[serviceType] && autoParts.common[serviceType][category]) 
+    ? autoParts.common[serviceType][category] 
+    : 80;
   
   // Adjust for vehicle age
   const currentYear = new Date().getFullYear();
