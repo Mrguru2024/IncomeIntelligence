@@ -447,28 +447,7 @@ export function renderQuoteGeneratorPage(containerId) {
  * @param {string} subtitle - The section subtitle
  * @returns {HTMLElement} The section header element
  */
-function createSectionHeader(title, subtitle) {
-  const headerSection = document.createElement('div');
-  headerSection.style.marginBottom = '24px';
-  
-  const headerTitle = document.createElement('h2');
-  headerTitle.textContent = title;
-  headerTitle.style.fontSize = '24px';
-  headerTitle.style.fontWeight = '700';
-  headerTitle.style.color = 'var(--color-primary)';
-  headerTitle.style.marginBottom = '8px';
-  
-  const headerSubtitle = document.createElement('p');
-  headerSubtitle.textContent = subtitle;
-  headerSubtitle.style.fontSize = '16px';
-  headerSubtitle.style.color = 'var(--color-text-secondary)';
-  headerSubtitle.style.lineHeight = '1.5';
-  
-  headerSection.appendChild(headerTitle);
-  headerSection.appendChild(headerSubtitle);
-  
-  return headerSection;
-}
+// createSectionHeader function is already defined above
 
 /**
  * Create the quote form
@@ -1379,29 +1358,8 @@ function createButton(text, onClick) {
  * @param {string} title - Section title
  * @param {string} subtitle - Section subtitle
  * @returns {HTMLElement} Section header element
+// createSectionHeader function is already defined above
  */
-function createSectionHeader(title, subtitle) {
-  const header = document.createElement('div');
-  header.classList.add('section-header');
-  header.style.marginBottom = '24px';
-  
-  const titleElement = document.createElement('h2');
-  titleElement.textContent = title;
-  titleElement.style.fontSize = '24px';
-  titleElement.style.fontWeight = '700';
-  titleElement.style.marginBottom = '8px';
-  titleElement.style.color = 'var(--color-text-primary)';
-  
-  const subtitleElement = document.createElement('p');
-  subtitleElement.textContent = subtitle;
-  subtitleElement.style.fontSize = '16px';
-  subtitleElement.style.color = 'var(--color-text-secondary)';
-  subtitleElement.style.marginBottom = '8px';
-  
-  header.appendChild(titleElement);
-  header.appendChild(subtitleElement);
-  
-  return header;
 }
 
 /**
