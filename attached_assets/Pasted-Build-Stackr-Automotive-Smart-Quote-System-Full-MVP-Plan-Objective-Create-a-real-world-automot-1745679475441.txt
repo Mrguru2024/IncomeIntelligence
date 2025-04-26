@@ -1,0 +1,164 @@
+Build Stackr Automotive Smart Quote System (Full MVP Plan)
+🎯 Objective:
+Create a real-world automotive locksmith quoting system inside Stackr that:
+
+Generates intelligent, profitable quotes
+
+Factors in labor, time, location, tax rates, and real parts costs
+
+Integrates Keycode Help official pricing for all-keys-lost jobs
+
+Searches external sources (or uses fallbacks) for material costs
+
+Applies real-time state tax rates based on validated addresses
+
+Provides a professional itemized quote breakdown
+
+Supports user experience adjustment (based on skill level)
+
+Suggests pricing strategy based on user’s financial goals, struggles, and lifestyle
+
+✅ Stackr Auto Quote MVP Build Plan
+1️⃣ Frontend: Auto Quote Form (public/auto-quote.html)
+html
+Copy
+Edit
+<form id="auto-quote-form">
+  <input name="vehicle_make" placeholder="Vehicle Make" required />
+  <input name="vehicle_model" placeholder="Vehicle Model" required />
+  <input name="vehicle_year" placeholder="Vehicle Year" required />
+
+  <select name="service_type" required>
+    <option value="all_keys_lost">All Keys Lost</option>
+    <option value="duplicate_key">Duplicate Key</option>
+    <option value="ignition_repair">Ignition Repair</option>
+    <option value="lock_rekey">Lock Rekey</option>
+    <option value="ecu_reflash">ECU Reflash</option>
+  </select>
+
+  <input name="address" placeholder="Service Address (for tax)" required />
+
+  <label>Experience Adjustment (%):
+    <input name="labor_adjustment" type="number" step="5" value="0" />
+  </label>
+
+  <button type="submit">Generate Quote</button>
+</form>
+
+<div id="quote-breakdown"></div>
+
+<script>
+  document.getElementById("auto-quote-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = Object.fromEntries(new FormData(e.target).entries());
+    const res = await fetch("/api/auto-quotes/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    document.getElementById("quote-breakdown").innerHTML = data.breakdownHtml;
+  });
+</script>
+2️⃣ Backend: Smart Quote Generation Logic (routes/autoQuotes.js)
+js
+Copy
+Edit
+const keycodePrices = {
+  "Acura": 30,
+  "Honda": 30,
+  "Chrysler": 60,
+  "Dodge": 60,
+  "Jeep": 60,
+  "Ford": 50,
+  "Lincoln": 50,
+  "Mercury": 50,
+  "Hyundai": 50,
+  "Infiniti": 60,
+  "Kia": 50,
+  "Nissan": 60,
+  "Toyota": 60,
+  "Lexus": 60,
+  "Chevy": 50,
+  "GM": 50,
+  "Mazda": 60,
+  "Subaru": 60,
+  "BMW": 70
+};
+
+router.post("/api/auto-quotes/generate", async (req, res) => {
+  const { vehicle_make, vehicle_model, vehicle_year, service_type, address, labor_adjustment } = req.body;
+
+  const state = await validateAddressGetState(address);
+  const taxRate = await getStateTaxRate(state);
+
+  const baseLaborHours = {
+    all_keys_lost: 2.5,
+    duplicate_key: 1,
+    ignition_repair: 3,
+    lock_rekey: 1.5,
+    ecu_reflash: 3.5
+  }[service_type] || 2;
+
+  const marketRate = await getMarketRate(vehicle_make, locationZip(address));
+  const adjustedLaborRate = marketRate * (1 + Number(labor_adjustment) / 100);
+
+  const laborCost = baseLaborHours * adjustedLaborRate;
+  const partsCost = await searchPartsCost(vehicle_make, vehicle_model, vehicle_year, service_type) || 80;
+
+  let keycodeCost = 0;
+  if (service_type === "all_keys_lost") {
+    keycodeCost = keycodePrices[vehicle_make.trim()] || 50;
+  }
+
+  const subtotal = laborCost + partsCost + keycodeCost;
+  const tax = subtotal * taxRate;
+  const total = subtotal + tax;
+
+  const breakdownHtml = `
+    <h3>Automotive Locksmith Quote</h3>
+    <ul>
+      <li><strong>Vehicle:</strong> ${vehicle_year} ${vehicle_make} ${vehicle_model}</li>
+      <li><strong>Service:</strong> ${service_type.replace('_', ' ').toUpperCase()}</li>
+      <li><strong>Labor (${baseLaborHours} hrs @ $${adjustedLaborRate.toFixed(2)}):</strong> $${laborCost.toFixed(2)}</li>
+      <li><strong>Parts:</strong> $${partsCost.toFixed(2)}</li>
+      ${service_type === "all_keys_lost" ? `<li><strong>Keycode:</strong> $${keycodeCost.toFixed(2)}</li>` : ''}
+      <li><strong>Tax (${(taxRate * 100).toFixed(1)}%):</strong> $${tax.toFixed(2)}</li>
+      <li><strong>Total:</strong> <span style="font-weight:bold; color:green;">$${total.toFixed(2)}</span></li>
+    </ul>
+  `;
+
+  res.json({ total, breakdownHtml });
+});
+3️⃣ Helpers Required (services/helpers.js)
+js
+Copy
+Edit
+async function validateAddressGetState(address) {
+  // Google Places API or regex + fallback static lookup
+}
+
+async function getStateTaxRate(state) {
+  // Static map or external tax API
+}
+
+async function getMarketRate(vehicle_make, zip) {
+  // Lookup or flat $90/hr if none found
+}
+
+async function searchPartsCost(make, model, year, service_type) {
+  // External parts APIs or fallback $80 flat
+}
+4️⃣ AI Smart Suggestions (Optional Upgrade Later)
+Use AI agent (OpenAI/Claude) with prompts like:
+
+"Suggest a profitable but fair quote for {make} {model} based on user's goal of {goal} and struggle with {struggle}."
+
+Output = Quote tweak suggestions based on user profile.
+
+5️⃣ Real-World Adjustments (Critical)
+
+Real-World Situation	System Behavior
+All keys lost (Ford Escape)	Adds keycode cost + more labor
+Ignition Repair (Honda Accord)	Adds 3hr labor rate automatically
+Rekeying Lost Keys (Toyota)	Adds key generation

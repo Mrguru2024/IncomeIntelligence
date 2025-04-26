@@ -432,9 +432,77 @@ export function renderQuoteGeneratorPage(containerId) {
   );
   pageContainer.appendChild(header);
   
-  // Add quote form
+  // Create tabs container
+  const tabsContainer = document.createElement('div');
+  tabsContainer.style.display = 'flex';
+  tabsContainer.style.borderBottom = '1px solid var(--color-border)';
+  tabsContainer.style.marginBottom = '24px';
+  
+  // General Services Tab
+  const generalTab = document.createElement('div');
+  generalTab.textContent = 'General Services';
+  generalTab.style.padding = '12px 20px';
+  generalTab.style.cursor = 'pointer';
+  generalTab.style.fontWeight = 'bold';
+  generalTab.style.borderBottom = '3px solid var(--color-primary)';
+  generalTab.dataset.tab = 'general';
+  generalTab.classList.add('active-tab');
+  
+  // Automotive Tab
+  const autoTab = document.createElement('div');
+  autoTab.textContent = 'Automotive Services';
+  autoTab.style.padding = '12px 20px';
+  autoTab.style.cursor = 'pointer';
+  autoTab.style.color = 'var(--color-text-secondary)';
+  autoTab.dataset.tab = 'automotive';
+  
+  // Add event listeners to tabs
+  generalTab.addEventListener('click', () => {
+    generalTab.style.borderBottom = '3px solid var(--color-primary)';
+    generalTab.style.fontWeight = 'bold';
+    generalTab.style.color = 'var(--color-text)';
+    autoTab.style.borderBottom = 'none';
+    autoTab.style.fontWeight = 'normal';
+    autoTab.style.color = 'var(--color-text-secondary)';
+    
+    // Show general form, hide auto form
+    document.getElementById('general-quote-form').style.display = 'block';
+    document.getElementById('auto-quote-form').style.display = 'none';
+    
+    // Clear results
+    document.getElementById('quote-result-section').innerHTML = '';
+  });
+  
+  autoTab.addEventListener('click', () => {
+    autoTab.style.borderBottom = '3px solid var(--color-primary)';
+    autoTab.style.fontWeight = 'bold';
+    autoTab.style.color = 'var(--color-text)';
+    generalTab.style.borderBottom = 'none';
+    generalTab.style.fontWeight = 'normal';
+    generalTab.style.color = 'var(--color-text-secondary)';
+    
+    // Show auto form, hide general form
+    document.getElementById('general-quote-form').style.display = 'none';
+    document.getElementById('auto-quote-form').style.display = 'block';
+    
+    // Clear results
+    document.getElementById('quote-result-section').innerHTML = '';
+  });
+  
+  tabsContainer.appendChild(generalTab);
+  tabsContainer.appendChild(autoTab);
+  pageContainer.appendChild(tabsContainer);
+  
+  // Add general quote form (visible by default)
   const quoteForm = createQuoteForm();
+  quoteForm.id = 'general-quote-form';
   pageContainer.appendChild(quoteForm);
+  
+  // Add automotive quote form (hidden by default)
+  const autoQuoteForm = createAutomotiveQuoteForm();
+  autoQuoteForm.id = 'auto-quote-form';
+  autoQuoteForm.style.display = 'none';
+  pageContainer.appendChild(autoQuoteForm);
   
   // Add result section (initially empty)
   const resultSection = document.createElement('div');
@@ -1330,3 +1398,733 @@ function getMarketRate(jobType, state) {
 }
 
 // No direct displayPageTitle function needed - main.js now handles the page title
+
+/**
+ * Keycode price data for automotive locksmith services
+ */
+const keycodePrices = {
+  "acura": 30,
+  "honda": 30,
+  "chrysler": 60,
+  "dodge": 60,
+  "jeep": 60,
+  "ford": 50,
+  "lincoln": 50,
+  "mercury": 50,
+  "hyundai": 50,
+  "infiniti": 60,
+  "kia": 50,
+  "nissan": 60,
+  "toyota": 60,
+  "lexus": 60,
+  "chevy": 50,
+  "gm": 50,
+  "mazda": 60,
+  "subaru": 60,
+  "bmw": 70
+};
+
+/**
+ * Base labor hours for different automotive service types
+ */
+const autoLaborHours = {
+  all_keys_lost: 2.5,
+  duplicate_key: 1,
+  ignition_repair: 3,
+  lock_rekey: 1.5,
+  ecu_reflash: 3.5
+};
+
+/**
+ * Creates the automotive quote form
+ * @returns {HTMLElement} The automotive form element
+ */
+function createAutomotiveQuoteForm() {
+  const form = document.createElement('form');
+  form.style.backgroundColor = 'var(--color-card-bg)';
+  form.style.padding = '24px';
+  form.style.borderRadius = '12px';
+  form.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+  
+  // Vehicle details section
+  const vehicleSection = createSectionHeader('Vehicle Details', 'Enter information about the vehicle for an accurate quote');
+  form.appendChild(vehicleSection);
+  
+  // Vehicle make
+  const makeInput = createInput('text', 'vehicle_make', '', 'e.g. Honda, Toyota, Ford');
+  form.appendChild(createFormGroup('Vehicle Make', makeInput));
+  
+  // Vehicle model
+  const modelInput = createInput('text', 'vehicle_model', '', 'e.g. Accord, Camry, F-150');
+  form.appendChild(createFormGroup('Vehicle Model', modelInput));
+  
+  // Vehicle year
+  const yearInput = createInput('number', 'vehicle_year', '2020', 'Year', '1990', '2025', '1');
+  form.appendChild(createFormGroup('Vehicle Year', yearInput));
+  
+  // Service type
+  const serviceOptions = [
+    { value: 'all_keys_lost', label: 'All Keys Lost' },
+    { value: 'duplicate_key', label: 'Duplicate Key' },
+    { value: 'ignition_repair', label: 'Ignition Repair' },
+    { value: 'lock_rekey', label: 'Lock Rekey' },
+    { value: 'ecu_reflash', label: 'ECU Reflash' }
+  ];
+  const serviceSelect = createSelect('service_type', serviceOptions);
+  form.appendChild(createFormGroup('Service Type', serviceSelect));
+  
+  // Location for tax
+  const addressInput = createInput('text', 'address', '', 'Full address for tax calculation');
+  form.appendChild(createFormGroup('Service Address', addressInput));
+  
+  // Options section
+  const optionsSection = createSectionHeader('Additional Options', 'Customize your quote settings');
+  form.appendChild(optionsSection);
+  
+  // Experience adjustment slider
+  const expRow = document.createElement('div');
+  expRow.style.marginBottom = '16px';
+  
+  const expLabel = document.createElement('label');
+  expLabel.textContent = 'Experience Adjustment: 0%';
+  expLabel.style.display = 'block';
+  expLabel.style.marginBottom = '8px';
+  expLabel.style.fontSize = '14px';
+  expLabel.style.fontWeight = '500';
+  
+  const expSlider = createInput('range', 'labor_adjustment', '0', '', '-20', '30', '5');
+  expSlider.addEventListener('input', (e) => {
+    const value = e.target.value;
+    expLabel.textContent = `Experience Adjustment: ${value}%`;
+  });
+  
+  expRow.appendChild(expLabel);
+  expRow.appendChild(expSlider);
+  form.appendChild(expRow);
+  
+  // Emergency service checkbox
+  const emergencyRow = document.createElement('div');
+  emergencyRow.style.display = 'flex';
+  emergencyRow.style.alignItems = 'center';
+  emergencyRow.style.marginBottom = '16px';
+  
+  const emergencyCheckbox = createInput('checkbox', 'emergency');
+  emergencyCheckbox.style.width = 'auto';
+  emergencyCheckbox.style.marginRight = '8px';
+  
+  const emergencyLabel = document.createElement('label');
+  emergencyLabel.textContent = 'Emergency Service (after hours/weekend)';
+  emergencyLabel.style.fontSize = '14px';
+  
+  emergencyRow.appendChild(emergencyCheckbox);
+  emergencyRow.appendChild(emergencyLabel);
+  form.appendChild(emergencyRow);
+  
+  // Buttons row
+  const buttonsRow = document.createElement('div');
+  buttonsRow.style.display = 'flex';
+  buttonsRow.style.gap = '12px';
+  buttonsRow.style.marginTop = '24px';
+  
+  // Generate quote button
+  const generateButton = createButton('Generate Auto Quote', (e) => {
+    handleAutoQuoteFormSubmit(e);
+  }, 'primary');
+  
+  // Reset form button
+  const resetButton = createButton('Reset Form', () => {
+    form.reset();
+    expLabel.textContent = 'Experience Adjustment: 0%';
+    document.getElementById('quote-result-section').innerHTML = '';
+  }, 'secondary');
+  
+  buttonsRow.appendChild(generateButton);
+  buttonsRow.appendChild(resetButton);
+  form.appendChild(buttonsRow);
+  
+  return form;
+}
+
+/**
+ * Handle auto quote form submission
+ * @param {Event} e - Form submission event
+ */
+function handleAutoQuoteFormSubmit(e) {
+  e.preventDefault();
+  
+  // Get form data from event target (the form)
+  const formData = new FormData(e.target);
+  
+  // Basic validation
+  const make = formData.get('vehicle_make');
+  const model = formData.get('vehicle_model');
+  const year = formData.get('vehicle_year');
+  const serviceType = formData.get('service_type');
+  const address = formData.get('address');
+  
+  if (!make || !model || !year || !serviceType || !address) {
+    showToast('Please fill in all required fields', 'error');
+    return;
+  }
+  
+  // Show loading state
+  const resultSection = document.getElementById('quote-result-section');
+  resultSection.innerHTML = '<div style="text-align: center; padding: 20px;">Generating automotive quote...</div>';
+  
+  try {
+    // Transform form data into object
+    const quoteData = {
+      vehicle_make: make,
+      vehicle_model: model,
+      vehicle_year: parseInt(year),
+      service_type: serviceType,
+      address: address,
+      labor_adjustment: parseInt(formData.get('labor_adjustment') || '0'),
+      emergency: formData.get('emergency') === 'on'
+    };
+    
+    // Generate quote
+    const quoteResult = generateAutoQuote(quoteData);
+    
+    // Display results
+    displayAutoQuoteResult(quoteResult);
+    
+  } catch (error) {
+    console.error('Error generating auto quote:', error);
+    resultSection.innerHTML = `<div style="text-align: center; padding: 20px; color: red;">Error generating quote: ${error.message}</div>`;
+    showToast('Failed to generate auto quote', 'error');
+  }
+}
+
+/**
+ * Generate an automotive quote
+ * @param {Object} quoteData - The automotive quote data
+ * @returns {Object} The generated quote result
+ */
+function generateAutoQuote(quoteData) {
+  // Extract data
+  const {
+    vehicle_make,
+    vehicle_model,
+    vehicle_year,
+    service_type,
+    address,
+    labor_adjustment,
+    emergency
+  } = quoteData;
+  
+  // Get state and tax rate
+  const state = getStateFromZip(address);
+  const taxRate = getTaxRate(state);
+  
+  // Get base labor hours for this service type
+  const baseLaborHours = autoLaborHours[service_type] || 2;
+  
+  // Get market rate for this location
+  const marketRate = getMarketRate('automotive', state);
+  
+  // Apply experience adjustment to labor rate
+  const adjustedLaborRate = marketRate * (1 + (labor_adjustment / 100));
+  
+  // Calculate labor cost
+  let laborCost = baseLaborHours * adjustedLaborRate;
+  
+  // Apply emergency surcharge if needed (50% increase)
+  if (emergency) {
+    laborCost *= 1.5;
+  }
+  
+  // Get parts cost based on service type and vehicle
+  const partsCost = searchPartsCost(vehicle_make, vehicle_model, vehicle_year, service_type);
+  
+  // Determine if keycode is needed and add cost
+  let keycodeCost = 0;
+  if (service_type === 'all_keys_lost') {
+    // Normalize make to lowercase for lookup
+    const normalizedMake = vehicle_make.trim().toLowerCase();
+    keycodeCost = keycodePrices[normalizedMake] || 50; // Default to $50 if not found
+  }
+  
+  // Calculate subtotal
+  const subtotal = laborCost + partsCost + keycodeCost;
+  
+  // Calculate tax (applied to parts only)
+  const taxAmount = partsCost * taxRate;
+  
+  // Calculate total
+  const total = subtotal + taxAmount;
+  
+  // Return quote result
+  return {
+    vehicle_make,
+    vehicle_model,
+    vehicle_year,
+    service_type,
+    address,
+    state,
+    baseLaborHours,
+    adjustedLaborRate,
+    laborCost,
+    partsCost,
+    keycodeCost,
+    emergency,
+    taxRate,
+    taxAmount,
+    subtotal,
+    total
+  };
+}
+
+/**
+ * Display the auto quote result
+ * @param {Object} quoteResult - The auto quote result
+ */
+function displayAutoQuoteResult(quoteResult) {
+  const resultSection = document.getElementById('quote-result-section');
+  resultSection.innerHTML = '';
+  
+  // Result container
+  const resultContainer = document.createElement('div');
+  resultContainer.classList.add('quote-result-container');
+  resultContainer.style.background = 'var(--color-card-bg)';
+  resultContainer.style.borderRadius = '12px';
+  resultContainer.style.padding = '24px';
+  resultContainer.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+  
+  // Quote header
+  const quoteHeader = document.createElement('div');
+  quoteHeader.style.marginBottom = '20px';
+  quoteHeader.style.borderBottom = '1px solid var(--color-border)';
+  quoteHeader.style.paddingBottom = '16px';
+  
+  const quoteTitle = document.createElement('h2');
+  quoteTitle.textContent = 'Automotive Locksmith Quote';
+  quoteTitle.style.fontSize = '20px';
+  quoteTitle.style.fontWeight = 'bold';
+  quoteTitle.style.marginBottom = '8px';
+  
+  const serviceMap = {
+    'all_keys_lost': 'All Keys Lost',
+    'duplicate_key': 'Duplicate Key',
+    'ignition_repair': 'Ignition Repair',
+    'lock_rekey': 'Lock Rekey',
+    'ecu_reflash': 'ECU Reflash'
+  };
+  
+  const quoteSubtitle = document.createElement('p');
+  quoteSubtitle.textContent = `${quoteResult.vehicle_year} ${quoteResult.vehicle_make} ${quoteResult.vehicle_model} - ${serviceMap[quoteResult.service_type] || quoteResult.service_type}`;
+  quoteSubtitle.style.fontSize = '14px';
+  quoteSubtitle.style.color = 'var(--color-text-secondary)';
+  
+  quoteHeader.appendChild(quoteTitle);
+  quoteHeader.appendChild(quoteSubtitle);
+  resultContainer.appendChild(quoteHeader);
+  
+  // Cost breakdown
+  const breakdownSection = document.createElement('div');
+  breakdownSection.style.marginBottom = '24px';
+  
+  const breakdownTitle = document.createElement('h3');
+  breakdownTitle.textContent = 'Cost Breakdown';
+  breakdownTitle.style.fontSize = '16px';
+  breakdownTitle.style.fontWeight = 'bold';
+  breakdownTitle.style.marginBottom = '12px';
+  
+  breakdownSection.appendChild(breakdownTitle);
+  
+  // Create breakdown items
+  const breakdownList = document.createElement('div');
+  breakdownList.classList.add('cost-breakdown-list');
+  
+  // Labor
+  breakdownList.appendChild(createBreakdownItem(
+    `Labor (${quoteResult.baseLaborHours} hours @ $${quoteResult.adjustedLaborRate.toFixed(2)}/hr)${quoteResult.emergency ? ' (Emergency)' : ''}`,
+    quoteResult.laborCost
+  ));
+  
+  // Parts
+  breakdownList.appendChild(createBreakdownItem('Parts', quoteResult.partsCost));
+  
+  // Keycode if applicable
+  if (quoteResult.keycodeCost > 0) {
+    breakdownList.appendChild(createBreakdownItem('Keycode', quoteResult.keycodeCost));
+  }
+  
+  // Subtotal
+  breakdownList.appendChild(createBreakdownItem('Subtotal', quoteResult.subtotal));
+  
+  // Tax
+  breakdownList.appendChild(createBreakdownItem(
+    `Tax (${(quoteResult.taxRate * 100).toFixed(2)}%)`,
+    quoteResult.taxAmount
+  ));
+  
+  // Total
+  breakdownList.appendChild(createBreakdownItem('Total', quoteResult.total, true));
+  
+  breakdownSection.appendChild(breakdownList);
+  resultContainer.appendChild(breakdownSection);
+  
+  // Buttons row
+  const actionsRow = document.createElement('div');
+  actionsRow.style.display = 'flex';
+  actionsRow.style.gap = '12px';
+  actionsRow.style.marginTop = '24px';
+  
+  // Save quote button
+  const saveButton = createButton('Save Quote', () => saveAutoQuote(quoteResult), 'primary');
+  
+  // Print quote button
+  const printButton = createButton('Print Quote', () => printAutoQuote(quoteResult), 'secondary');
+  
+  // Create invoice button
+  const invoiceButton = createButton('Create Invoice', () => createInvoiceFromAutoQuote(quoteResult), 'secondary');
+  
+  actionsRow.appendChild(saveButton);
+  actionsRow.appendChild(printButton);
+  actionsRow.appendChild(invoiceButton);
+  resultContainer.appendChild(actionsRow);
+  
+  // Add to result section
+  resultSection.appendChild(resultContainer);
+  
+  // Scroll to results
+  resultSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+/**
+ * Save auto quote to local storage
+ * @param {Object} quoteResult - The quote result to save
+ */
+function saveAutoQuote(quoteResult) {
+  try {
+    // Get existing saved quotes
+    const savedQuotes = JSON.parse(localStorage.getItem('savedAutoQuotes') || '[]');
+    
+    // Add timestamp to quote
+    const quoteToSave = {
+      ...quoteResult,
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString()
+    };
+    
+    // Add to saved quotes
+    savedQuotes.push(quoteToSave);
+    
+    // Save back to localStorage
+    localStorage.setItem('savedAutoQuotes', JSON.stringify(savedQuotes));
+    
+    showToast('Auto quote saved successfully', 'success');
+  } catch (error) {
+    console.error('Error saving auto quote:', error);
+    showToast('Failed to save auto quote', 'error');
+  }
+}
+
+/**
+ * Print auto quote
+ * @param {Object} quoteResult - The auto quote result to print
+ */
+function printAutoQuote(quoteResult) {
+  // Create a new window for printing
+  const printWindow = window.open('', '_blank');
+  
+  if (!printWindow) {
+    showToast('Please allow popups to print quotes', 'error');
+    return;
+  }
+  
+  // Service name mapping
+  const serviceMap = {
+    'all_keys_lost': 'All Keys Lost',
+    'duplicate_key': 'Duplicate Key',
+    'ignition_repair': 'Ignition Repair',
+    'lock_rekey': 'Lock Rekey',
+    'ecu_reflash': 'ECU Reflash'
+  };
+  
+  const serviceName = serviceMap[quoteResult.service_type] || quoteResult.service_type;
+  
+  // Create print content
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Auto Quote - ${quoteResult.vehicle_make} ${quoteResult.vehicle_model}</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 20px;
+          color: #333;
+        }
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 30px;
+          padding-bottom: 20px;
+          border-bottom: 1px solid #ddd;
+        }
+        .company-name {
+          font-size: 24px;
+          font-weight: bold;
+        }
+        .quote-info {
+          margin-bottom: 30px;
+        }
+        .quote-info-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 10px;
+        }
+        .section-title {
+          font-size: 18px;
+          font-weight: bold;
+          margin-top: 20px;
+          margin-bottom: 15px;
+        }
+        .breakdown-item {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 0;
+          border-bottom: 1px solid #eee;
+        }
+        .total-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 12px 0;
+          border-top: 2px solid #333;
+          font-weight: bold;
+          font-size: 18px;
+          margin-top: 10px;
+        }
+        .notes {
+          margin-top: 30px;
+          padding: 15px;
+          background-color: #f5f5f5;
+          border-radius: 5px;
+        }
+        .footer {
+          margin-top: 50px;
+          text-align: center;
+          font-size: 14px;
+          color: #666;
+        }
+        .buttons {
+          display: flex;
+          justify-content: center;
+          margin-top: 30px;
+        }
+        button {
+          padding: 10px 20px;
+          cursor: pointer;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="company-name">Stackr Automotive Locksmith</div>
+          <div>Professional Vehicle Security Solutions</div>
+        </div>
+        
+        <div class="quote-info">
+          <div class="section-title">Quote Information</div>
+          <div class="quote-info-row">
+            <div><strong>Date:</strong></div>
+            <div>${new Date().toLocaleDateString()}</div>
+          </div>
+          <div class="quote-info-row">
+            <div><strong>Vehicle:</strong></div>
+            <div>${quoteResult.vehicle_year} ${quoteResult.vehicle_make} ${quoteResult.vehicle_model}</div>
+          </div>
+          <div class="quote-info-row">
+            <div><strong>Service:</strong></div>
+            <div>${serviceName}</div>
+          </div>
+          <div class="quote-info-row">
+            <div><strong>Location:</strong></div>
+            <div>${quoteResult.address}</div>
+          </div>
+        </div>
+        
+        <div class="section-title">Cost Breakdown</div>
+        <div class="breakdown-item">
+          <div>Labor (${quoteResult.baseLaborHours} hours @ $${quoteResult.adjustedLaborRate.toFixed(2)}/hr)${quoteResult.emergency ? ' (Emergency)' : ''}</div>
+          <div>$${quoteResult.laborCost.toFixed(2)}</div>
+        </div>
+        <div class="breakdown-item">
+          <div>Parts</div>
+          <div>$${quoteResult.partsCost.toFixed(2)}</div>
+        </div>
+        ${quoteResult.keycodeCost > 0 ? `
+        <div class="breakdown-item">
+          <div>Keycode Services</div>
+          <div>$${quoteResult.keycodeCost.toFixed(2)}</div>
+        </div>
+        ` : ''}
+        <div class="breakdown-item">
+          <div>Subtotal</div>
+          <div>$${quoteResult.subtotal.toFixed(2)}</div>
+        </div>
+        <div class="breakdown-item">
+          <div>Tax (${(quoteResult.taxRate * 100).toFixed(2)}%)</div>
+          <div>$${quoteResult.taxAmount.toFixed(2)}</div>
+        </div>
+        <div class="total-row">
+          <div>Total</div>
+          <div>$${quoteResult.total.toFixed(2)}</div>
+        </div>
+        
+        <div class="notes">
+          <div class="section-title">Notes</div>
+          <p>This quote is valid for 30 days from the date above. Additional costs may apply if unforeseen issues arise during service.</p>
+          <p>Emergency service fees apply for after-hours, weekend, and holiday appointments.</p>
+          ${quoteResult.service_type === 'all_keys_lost' ? '<p>All keys lost service includes obtaining vehicle key codes and programming new keys/remotes to your vehicle.</p>' : ''}
+        </div>
+        
+        <div class="footer">
+          <p>Thank you for choosing Stackr Automotive Locksmith Services</p>
+          <p>For questions about this quote, please contact us at (555) 123-4567</p>
+        </div>
+        
+        <div class="buttons">
+          <button onclick="window.print()">Print Quote</button>
+          <button onclick="window.close()" style="margin-left: 10px;">Close</button>
+        </div>
+      </div>
+    </body>
+    </html>
+  `);
+  
+  printWindow.document.close();
+}
+
+/**
+ * Create invoice from auto quote
+ * @param {Object} quoteResult - The auto quote result
+ */
+function createInvoiceFromAutoQuote(quoteResult) {
+  try {
+    // Service name mapping
+    const serviceMap = {
+      'all_keys_lost': 'All Keys Lost',
+      'duplicate_key': 'Duplicate Key',
+      'ignition_repair': 'Ignition Repair',
+      'lock_rekey': 'Lock Rekey',
+      'ecu_reflash': 'ECU Reflash'
+    };
+    
+    const serviceName = serviceMap[quoteResult.service_type] || quoteResult.service_type;
+    
+    // Create invoice data
+    const invoiceData = {
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+      client: {
+        name: 'Auto Service Client',
+        email: '',
+        address: quoteResult.address
+      },
+      status: 'draft',
+      items: [
+        {
+          id: '1',
+          description: `Labor - ${serviceName}${quoteResult.emergency ? ' (Emergency)' : ''}`,
+          quantity: quoteResult.baseLaborHours,
+          unitPrice: quoteResult.adjustedLaborRate,
+          amount: quoteResult.laborCost
+        },
+        {
+          id: '2',
+          description: `Parts - ${quoteResult.vehicle_year} ${quoteResult.vehicle_make} ${quoteResult.vehicle_model}`,
+          quantity: 1,
+          unitPrice: quoteResult.partsCost,
+          amount: quoteResult.partsCost
+        }
+      ],
+      subtotal: quoteResult.subtotal,
+      taxRate: quoteResult.taxRate,
+      taxAmount: quoteResult.taxAmount,
+      total: quoteResult.total,
+      notes: `Service for ${quoteResult.vehicle_year} ${quoteResult.vehicle_make} ${quoteResult.vehicle_model}\nIncludes ${serviceName}${quoteResult.keycodeCost > 0 ? ' with keycode services' : ''}`
+    };
+    
+    // Add keycode item if applicable
+    if (quoteResult.keycodeCost > 0) {
+      invoiceData.items.push({
+        id: '3',
+        description: 'Keycode Services',
+        quantity: 1,
+        unitPrice: quoteResult.keycodeCost,
+        amount: quoteResult.keycodeCost
+      });
+    }
+    
+    // Save invoice to storage
+    const savedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+    savedInvoices.push(invoiceData);
+    localStorage.setItem('invoices', JSON.stringify(savedInvoices));
+    
+    showToast('Invoice created from quote', 'success');
+    
+    // Option to redirect to invoices page
+    if (confirm('Invoice created successfully! Would you like to view it now?')) {
+      window.location.hash = 'invoices';
+    }
+  } catch (error) {
+    console.error('Error creating invoice from auto quote:', error);
+    showToast('Failed to create invoice', 'error');
+  }
+}
+
+/**
+ * Get parts cost for a vehicle and service type
+ * @param {string} make - Vehicle make
+ * @param {string} model - Vehicle model
+ * @param {number} year - Vehicle year
+ * @param {string} serviceType - Service type
+ * @returns {number} The parts cost
+ */
+function searchPartsCost(make, model, year, serviceType) {
+  // This would normally search an external API or database
+  // For now, use a fallback based on service type
+  const baseCosts = {
+    all_keys_lost: 120,
+    duplicate_key: 70,
+    ignition_repair: 90,
+    lock_rekey: 60,
+    ecu_reflash: 150
+  };
+  
+  // Start with the base cost
+  let cost = baseCosts[serviceType] || 80;
+  
+  // Adjust for vehicle make
+  const luxuryBrands = ['bmw', 'audi', 'mercedes', 'lexus', 'infiniti', 'cadillac', 'lincoln'];
+  const economyBrands = ['kia', 'hyundai', 'suzuki', 'mitsubishi'];
+  
+  const normalizedMake = make.toLowerCase().trim();
+  
+  if (luxuryBrands.includes(normalizedMake)) {
+    cost *= 1.5; // 50% more for luxury brands
+  } else if (economyBrands.includes(normalizedMake)) {
+    cost *= 0.9; // 10% less for economy brands
+  }
+  
+  // Adjust for vehicle age
+  const currentYear = new Date().getFullYear();
+  const age = currentYear - year;
+  
+  if (age > 15) {
+    cost *= 1.2; // 20% more for older vehicles (parts harder to find)
+  } else if (age < 3) {
+    cost *= 1.1; // 10% more for newer vehicles (newer tech)
+  }
+  
+  return Math.round(cost); // Round to nearest dollar
+}
