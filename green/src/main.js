@@ -3650,20 +3650,20 @@ function renderPageContent(container) {
         });
         break;
         
-      case 'financial-wellness':
-        // Import the Financial Wellness Scorecard module
-        import('../financial-wellness-scorecard.js').then(module => {
-          displayPageTitle('Financial Wellness Scorecard');
+      case 'quote-generator':
+        // Import the Quote Generator module
+        import('../quote-generator.js').then(module => {
+          displayPageTitle('Quote Generator');
           try {
-            module.renderFinancialScorecardPage('app-container');
-            console.log('Financial Wellness Scorecard page rendered successfully');
+            module.renderQuoteGeneratorPage('app-container');
+            console.log('Quote Generator page rendered successfully');
           } catch (error) {
-            console.error('Error rendering Financial Wellness Scorecard page:', error);
-            container.appendChild(createErrorMessage('Failed to load Financial Wellness Scorecard data'));
+            console.error('Error rendering Quote Generator page:', error);
+            container.appendChild(createErrorMessage('Failed to load Quote Generator. Please try again.'));
           }
         }).catch(error => {
-          console.error('Error loading Financial Wellness Scorecard module:', error);
-          container.appendChild(createErrorMessage('Failed to load Financial Wellness Scorecard module'));
+          console.error('Error loading Quote Generator module:', error);
+          container.appendChild(createErrorMessage('Failed to load Quote Generator module'));
         });
         break;
         

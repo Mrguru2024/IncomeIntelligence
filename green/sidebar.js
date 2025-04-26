@@ -322,10 +322,10 @@ export function createSidebar(appState) {
           icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>'
         },
         {
-          id: 'financial-wellness',
-          label: 'Financial Wellness Scorecard',
+          id: 'quote-generator',
+          label: 'Quote Generator',
           badge: 'NEW',
-          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"></path></svg>'
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"></path><line x1="16" y1="8" x2="16" y2="8"></line><line x1="20" y1="8" x2="20" y2="8"></line><line x1="16" y1="12" x2="16" y2="12"></line><line x1="20" y1="12" x2="20" y2="12"></line><line x1="16" y1="16" x2="16" y2="16"></line><line x1="20" y1="16" x2="20" y2="16"></line><path d="M16 1l4 4-4 4"></path></svg>'
         }
       ]
     },
