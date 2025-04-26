@@ -1,21 +1,93 @@
 /**
  * Financial Wellness Scorecard Module
- * Generates a personalized financial wellness score based on user's financial data and behaviors
+ * 
+ * This module provides a comprehensive financial wellness assessment tool
+ * that evaluates users' financial health across multiple categories
+ * and provides personalized recommendations for improvement.
  */
 
-// Store the latest calculated scores for the user
-let userScores = null;
-
-// Category weights for calculating final score
-const categoryWeights = {
-  savingsRate: 0.25,       // 25% - How much of income is saved
-  debtManagement: 0.20,    // 20% - Debt levels and payment consistency
-  emergencyFund: 0.15,     // 15% - Emergency savings compared to monthly expenses
-  budgetAdherence: 0.15,   // 15% - How well user sticks to budget
-  investmentDiversity: 0.10, // 10% - Diversity of investments
-  financialKnowledge: 0.10, // 10% - Based on interaction with educational content
-  expenseControl: 0.05     // 5% - Control over discretionary spending
-};
+/**
+ * Render the Financial Wellness Scorecard page
+ * @param {string} containerId - DOM element ID to render the scorecard interface
+ */
+export function renderFinancialScorecardPage(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  // Clear the container
+  container.innerHTML = '';
+  
+  // Create the scorecard container with responsive layout
+  const scorecardContainer = document.createElement('div');
+  scorecardContainer.classList.add('financial-wellness-scorecard');
+  scorecardContainer.style.display = 'flex';
+  scorecardContainer.style.flexDirection = 'column';
+  scorecardContainer.style.maxWidth = '1200px';
+  scorecardContainer.style.margin = '0 auto';
+  scorecardContainer.style.padding = '24px';
+  scorecardContainer.style.gap = '24px';
+  
+  // Add the header section
+  const headerSection = createSectionHeader(
+    'Financial Wellness Scorecard',
+    'Understand your overall financial health and get personalized tips to improve'
+  );
+  scorecardContainer.appendChild(headerSection);
+  
+  // Main scorecard content
+  const mainContent = document.createElement('div');
+  mainContent.classList.add('scorecard-content');
+  mainContent.style.display = 'grid';
+  mainContent.style.gridTemplateColumns = 'repeat(auto-fill, minmax(340px, 1fr))';
+  mainContent.style.gap = '24px';
+  
+  // Add score summary card
+  const scoreSummaryCard = createScoreSummaryCard();
+  mainContent.appendChild(scoreSummaryCard);
+  
+  // Load user ID from local storage or app state
+  const userId = getUserId();
+  
+  // Async function to load and display scorecard data
+  (async function loadScorecard() {
+    try {
+      // Show loading state
+      const loadingIndicator = createLoadingIndicator();
+      scoreSummaryCard.appendChild(loadingIndicator);
+      
+      // Fetch user's financial wellness score
+      const scoreData = await calculateFinancialWellnessScore(userId);
+      
+      // Remove loading indicator
+      loadingIndicator.remove();
+      
+      // Update the score summary card with the overall score
+      updateScoreSummaryCard(scoreSummaryCard, scoreData);
+      
+      // Create category score cards
+      Object.entries(scoreData.categories).forEach(([category, data]) => {
+        const categoryCard = createCategoryScoreCard(category, data);
+        mainContent.appendChild(categoryCard);
+      });
+      
+      // Add recommendations section
+      const recommendationsSection = createRecommendationsSection(scoreData.recommendations);
+      scorecardContainer.appendChild(recommendationsSection);
+      
+    } catch (error) {
+      console.error('Error loading financial wellness scorecard:', error);
+      scoreSummaryCard.innerHTML = `
+        <div class="error-message" style="padding: 24px; text-align: center; color: var(--color-error);">
+          <h3>Unable to load financial wellness data</h3>
+          <p>${error.message || 'Please try again later'}</p>
+        </div>
+      `;
+    }
+  })();
+  
+  scorecardContainer.appendChild(mainContent);
+  container.appendChild(scorecardContainer);
+}
 
 /**
  * Calculate a user's financial wellness score and breakdown
@@ -23,63 +95,76 @@ const categoryWeights = {
  * @returns {Object} User's financial scores
  */
 async function calculateFinancialWellnessScore(userId) {
-  try {
-    // Fetch financial data for calculations
-    const financialData = await fetchUserFinancialData(userId);
-    
-    if (!financialData) {
-      console.error("Could not fetch financial data for user:", userId);
-      return null;
-    }
-    
-    // Calculate individual category scores (0-100)
-    const scores = {
-      savingsRate: calculateSavingsRateScore(financialData),
-      debtManagement: calculateDebtManagementScore(financialData),
-      emergencyFund: calculateEmergencyFundScore(financialData),
-      budgetAdherence: calculateBudgetAdherenceScore(financialData),
-      investmentDiversity: calculateInvestmentDiversityScore(financialData),
-      financialKnowledge: calculateFinancialKnowledgeScore(financialData),
-      expenseControl: calculateExpenseControlScore(financialData)
-    };
-    
-    // Calculate overall score (weighted average)
-    let overallScore = 0;
-    for (const [category, score] of Object.entries(scores)) {
-      overallScore += score * categoryWeights[category];
-    }
-    
-    // Round to nearest whole number
-    overallScore = Math.round(overallScore);
-    
-    // Generate improvement recommendations
-    const recommendations = generateRecommendations(scores);
-    
-    // Generate score grades (A, B, C, D, F)
-    const scoreGrades = {};
-    for (const [category, score] of Object.entries(scores)) {
-      scoreGrades[category] = getScoreGrade(score);
-    }
-    
-    // Generate overall grade
-    const overallGrade = getScoreGrade(overallScore);
-    
-    // Store the complete score data
-    userScores = {
-      userId,
-      timestamp: new Date().toISOString(),
-      overallScore,
-      overallGrade,
-      categoryScores: scores,
-      categoryGrades: scoreGrades,
-      recommendations
-    };
-    
-    return userScores;
-  } catch (error) {
-    console.error("Error calculating financial wellness score:", error);
-    return null;
-  }
+  // First try to fetch the user's financial data
+  const financialData = await fetchUserFinancialData(userId);
+  
+  // Calculate individual category scores
+  const savingsRateScore = calculateSavingsRateScore(financialData);
+  const debtManagementScore = calculateDebtManagementScore(financialData);
+  const emergencyFundScore = calculateEmergencyFundScore(financialData);
+  const budgetAdherenceScore = calculateBudgetAdherenceScore(financialData);
+  const investmentDiversityScore = calculateInvestmentDiversityScore(financialData);
+  
+  // Calculate overall score (weighted average)
+  const overallScore = Math.round(
+    (savingsRateScore * 0.25) +
+    (debtManagementScore * 0.25) +
+    (emergencyFundScore * 0.2) +
+    (budgetAdherenceScore * 0.15) +
+    (investmentDiversityScore * 0.15)
+  );
+  
+  // Generate personalized recommendations based on scores
+  const recommendations = generateRecommendations({
+    savingsRateScore,
+    debtManagementScore,
+    emergencyFundScore,
+    budgetAdherenceScore,
+    investmentDiversityScore
+  });
+  
+  return {
+    overallScore,
+    grade: getScoreGrade(overallScore),
+    categories: {
+      savingsRate: {
+        name: 'Savings Rate',
+        score: savingsRateScore,
+        grade: getScoreGrade(savingsRateScore),
+        description: 'How much of your income you save',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M20 12V8"></path><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path><path d="M20 16v4"></path></svg>'
+      },
+      debtManagement: {
+        name: 'Debt Management',
+        score: debtManagementScore,
+        grade: getScoreGrade(debtManagementScore),
+        description: 'How well you manage and reduce debt',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z"></path><path d="M20 15V8a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"></path><path d="M10 14V8a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v6"></path></svg>'
+      },
+      emergencyFund: {
+        name: 'Emergency Fund',
+        score: emergencyFundScore,
+        grade: getScoreGrade(emergencyFundScore),
+        description: 'Your preparedness for financial emergencies',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>'
+      },
+      budgetAdherence: {
+        name: 'Budget Adherence',
+        score: budgetAdherenceScore,
+        grade: getScoreGrade(budgetAdherenceScore),
+        description: 'How well you stick to your budget',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>'
+      },
+      investmentDiversity: {
+        name: 'Investment Diversity',
+        score: investmentDiversityScore,
+        grade: getScoreGrade(investmentDiversityScore),
+        description: 'How diversified your investments are',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>'
+      }
+    },
+    recommendations
+  };
 }
 
 /**
@@ -102,19 +187,61 @@ function getScoreGrade(score) {
  */
 async function fetchUserFinancialData(userId) {
   try {
-    // Try to get data from API first
-    const response = await fetch(`/api/financial-data/${userId}`);
+    // First try to fetch from API if available
+    // This would be replaced with an actual API call in production
     
-    if (response.ok) {
-      return response.json();
+    // For the MVP, use local storage as data source if available
+    const localData = fetchFinancialDataFromLocalStorage(userId);
+    if (localData) {
+      return localData;
     }
     
-    // Fallback to local storage or samples if no connected accounts
-    return fetchFinancialDataFromLocalStorage(userId);
+    // If no data is found, generate sensible defaults
+    return {
+      income: {
+        monthly: 4000,
+        annual: 48000
+      },
+      expenses: {
+        fixed: 2000,
+        variable: 1000,
+        monthly: 3000
+      },
+      savings: {
+        liquid: 5000,
+        retirement: 15000,
+        monthly: 400
+      },
+      debt: {
+        credit: 2000,
+        student: 10000,
+        mortgage: 150000,
+        auto: 8000,
+        personal: 0,
+        totalMonthlyPayments: 1200
+      },
+      netWorth: 20000,
+      budgetCategories: {
+        housing: { planned: 1200, actual: 1250 },
+        food: { planned: 500, actual: 600 },
+        transportation: { planned: 300, actual: 280 },
+        utilities: { planned: 200, actual: 210 },
+        entertainment: { planned: 200, actual: 250 },
+        healthcare: { planned: 150, actual: 100 },
+        personal: { planned: 100, actual: 150 },
+        savings: { planned: 400, actual: 400 }
+      },
+      investments: {
+        stocks: 10000,
+        bonds: 5000,
+        realEstate: 0,
+        crypto: 0,
+        other: 0
+      }
+    };
   } catch (error) {
-    console.error("Error fetching financial data:", error);
-    // Fallback to local storage or samples
-    return fetchFinancialDataFromLocalStorage(userId);
+    console.error('Error fetching financial data:', error);
+    throw new Error('Unable to retrieve financial data');
   }
 }
 
@@ -124,32 +251,16 @@ async function fetchUserFinancialData(userId) {
  * @returns {Object} User financial data
  */
 function fetchFinancialDataFromLocalStorage(userId) {
-  // Look for saved transaction data
-  const transactions = JSON.parse(localStorage.getItem(`${userId}_transactions`) || '[]');
-  const budgets = JSON.parse(localStorage.getItem(`${userId}_budgets`) || '{}');
-  const savings = JSON.parse(localStorage.getItem(`${userId}_savings`) || '{}');
-  const investments = JSON.parse(localStorage.getItem(`${userId}_investments`) || '[]');
-  const debts = JSON.parse(localStorage.getItem(`${userId}_debts`) || '[]');
-  const income = parseFloat(localStorage.getItem(`${userId}_income`) || '0');
-  const expenses = calculateExpensesFromTransactions(transactions);
-  const savingsAmount = parseFloat(localStorage.getItem(`${userId}_savingsAmount`) || '0');
-  const emergencyFund = parseFloat(localStorage.getItem(`${userId}_emergencyFund`) || '0');
-  const quizScores = JSON.parse(localStorage.getItem(`${userId}_financialQuizScores`) || '[]');
-  
-  // Return compiled financial data
-  return {
-    userId,
-    transactions,
-    budgets,
-    savings,
-    investments,
-    debts,
-    income,
-    expenses,
-    savingsAmount,
-    emergencyFund,
-    quizScores
-  };
+  try {
+    const data = localStorage.getItem(`user_financial_data_${userId}`);
+    if (data) {
+      return JSON.parse(data);
+    }
+    return null;
+  } catch (e) {
+    console.warn('Could not read from localStorage:', e);
+    return null;
+  }
 }
 
 /**
@@ -158,9 +269,11 @@ function fetchFinancialDataFromLocalStorage(userId) {
  * @returns {number} Total expenses
  */
 function calculateExpensesFromTransactions(transactions) {
+  if (!transactions || !transactions.length) return 0;
+  
   return transactions
-    .filter(transaction => transaction.amount < 0)
-    .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0);
+    .filter(tx => tx.amount < 0)
+    .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
 }
 
 /**
@@ -169,21 +282,19 @@ function calculateExpensesFromTransactions(transactions) {
  * @returns {number} Savings rate score
  */
 function calculateSavingsRateScore(financialData) {
-  // If income is 0 or not present, return lowest score
-  if (!financialData.income || financialData.income === 0) {
-    return 20; // Base score even without data
-  }
+  // Savings rate = (monthly savings / monthly income) * 100
+  const monthlyIncome = financialData.income.monthly;
+  const monthlySavings = financialData.savings.monthly;
   
-  // Calculate savings rate (as a percentage of income)
-  const savingsRate = (financialData.savingsAmount / financialData.income) * 100;
+  if (!monthlyIncome || monthlyIncome <= 0) return 0;
   
-  // Score based on recommended savings rate (15-20% is ideal)
-  if (savingsRate >= 20) return 100;
-  if (savingsRate >= 15) return 90;
-  if (savingsRate >= 10) return 80;
-  if (savingsRate >= 5) return 60;
-  if (savingsRate > 0) return 40;
-  return 20; // Minimum score if not saving at all
+  const savingsRate = (monthlySavings / monthlyIncome) * 100;
+  
+  // Calculate score on scale of 0-100
+  // 0% savings rate = 0 score
+  // 20% or higher savings rate = 100 score
+  // Linear scale in between
+  return Math.min(100, Math.round((savingsRate / 20) * 100));
 }
 
 /**
@@ -192,34 +303,22 @@ function calculateSavingsRateScore(financialData) {
  * @returns {number} Debt management score
  */
 function calculateDebtManagementScore(financialData) {
-  // If no debt data, return a moderate score
-  if (!financialData.debts || financialData.debts.length === 0) {
-    return 60; // Moderate score with no debt data
-  }
+  const monthlyIncome = financialData.income.monthly;
+  const monthlyDebtPayments = financialData.debt.totalMonthlyPayments;
   
-  // Calculate debt-to-income ratio
-  const totalDebt = financialData.debts.reduce((sum, debt) => sum + debt.amount, 0);
-  const monthlyIncome = financialData.income / 12;
-  const debtToIncomeRatio = totalDebt / monthlyIncome;
+  if (!monthlyIncome || monthlyIncome <= 0) return 0;
   
-  // Calculate on-time payment percentage
-  const onTimePayments = financialData.debts.filter(debt => debt.paymentStatus === 'onTime').length;
-  const onTimePercentage = (onTimePayments / financialData.debts.length) * 100;
+  // Debt-to-income ratio = (monthly debt payments / monthly income) * 100
+  const debtToIncomeRatio = (monthlyDebtPayments / monthlyIncome) * 100;
   
-  // Score based on debt-to-income ratio and payment history
-  let score = 0;
+  // Ideal debt-to-income ratio is below 20%
+  // 50% or higher debt-to-income ratio = 0 score
+  // 20% or lower debt-to-income ratio = 100 score
+  // Linear scale in between
+  if (debtToIncomeRatio >= 50) return 0;
+  if (debtToIncomeRatio <= 20) return 100;
   
-  // Debt-to-income portion (50% of this score)
-  if (debtToIncomeRatio <= 0.1) score += 50;
-  else if (debtToIncomeRatio <= 0.3) score += 40;
-  else if (debtToIncomeRatio <= 0.4) score += 30;
-  else if (debtToIncomeRatio <= 0.5) score += 20;
-  else score += 10;
-  
-  // On-time payments portion (50% of this score)
-  score += (onTimePercentage / 2);
-  
-  return score;
+  return Math.round(100 - ((debtToIncomeRatio - 20) / 30) * 100);
 }
 
 /**
@@ -228,22 +327,18 @@ function calculateDebtManagementScore(financialData) {
  * @returns {number} Emergency fund score
  */
 function calculateEmergencyFundScore(financialData) {
-  // If no expenses data, return a moderate score
-  if (!financialData.expenses || financialData.expenses === 0) {
-    return 50; // Moderate score with no expense data
-  }
+  const monthlyExpenses = financialData.expenses.monthly;
+  const liquidSavings = financialData.savings.liquid;
   
-  // Calculate months of expenses covered by emergency fund
-  const monthlyExpenses = financialData.expenses / 12;
-  const monthsCovered = financialData.emergencyFund / monthlyExpenses;
+  if (!monthlyExpenses || monthlyExpenses <= 0) return 0;
   
-  // Score based on recommended emergency fund size (3-6 months)
-  if (monthsCovered >= 6) return 100;
-  if (monthsCovered >= 3) return 80;
-  if (monthsCovered >= 2) return 60;
-  if (monthsCovered >= 1) return 40;
-  if (monthsCovered > 0) return 20;
-  return 0; // No emergency fund
+  // Number of months emergency fund covers
+  const monthsCovered = liquidSavings / monthlyExpenses;
+  
+  // 0 months covered = 0 score
+  // 6 or more months covered = 100 score
+  // Linear scale in between
+  return Math.min(100, Math.round((monthsCovered / 6) * 100));
 }
 
 /**
@@ -252,42 +347,31 @@ function calculateEmergencyFundScore(financialData) {
  * @returns {number} Budget adherence score
  */
 function calculateBudgetAdherenceScore(financialData) {
-  // If no budget data, return a moderate score
-  if (!financialData.budgets || Object.keys(financialData.budgets).length === 0) {
-    return 50; // Moderate score with no budget data
-  }
+  const categories = financialData.budgetCategories;
   
-  // Calculate percentage of budget categories adhered to
-  let categoriesAdheringToBudget = 0;
-  let totalCategories = 0;
+  // If no budget categories are defined, return 0
+  if (!categories || Object.keys(categories).length === 0) return 0;
   
-  for (const [category, budget] of Object.entries(financialData.budgets)) {
-    // Skip categories without budget amounts
-    if (!budget.amount) continue;
-    
-    totalCategories++;
-    
-    // Calculate actual spending for this category
-    const categoryTransactions = financialData.transactions
-      .filter(t => t.category === category && t.amount < 0);
-    
-    const categorySpending = categoryTransactions
-      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-    
-    // Check if spending is within budget
-    if (categorySpending <= budget.amount) {
-      categoriesAdheringToBudget++;
+  let totalPlanned = 0;
+  let totalDifference = 0;
+  
+  // Calculate total planned budget and total difference between actual and planned
+  Object.values(categories).forEach(category => {
+    if (category.planned > 0) {
+      totalPlanned += category.planned;
+      totalDifference += Math.abs(category.actual - category.planned);
     }
-  }
+  });
   
-  // If no valid budget categories, return a moderate score
-  if (totalCategories === 0) {
-    return 50;
-  }
+  if (totalPlanned <= 0) return 0;
   
-  // Calculate adherence percentage and score
-  const adherencePercentage = (categoriesAdheringToBudget / totalCategories) * 100;
-  return Math.round(adherencePercentage);
+  // Calculate percentage difference
+  const percentageDifference = (totalDifference / totalPlanned) * 100;
+  
+  // 0% difference = 100 score
+  // 30% or more difference = 0 score
+  // Linear scale in between
+  return Math.max(0, Math.round(100 - (percentageDifference * (100 / 30))));
 }
 
 /**
@@ -296,95 +380,37 @@ function calculateBudgetAdherenceScore(financialData) {
  * @returns {number} Investment diversity score
  */
 function calculateInvestmentDiversityScore(financialData) {
-  // If no investment data, return a low-moderate score
-  if (!financialData.investments || financialData.investments.length === 0) {
-    return 40; // Low-moderate score with no investment data
-  }
+  const investments = financialData.investments;
   
-  // Count different asset classes
-  const assetClasses = new Set();
-  financialData.investments.forEach(investment => {
-    if (investment.assetClass) {
-      assetClasses.add(investment.assetClass);
+  // If no investments, return 0
+  if (!investments) return 0;
+  
+  const investmentTypes = Object.keys(investments).filter(type => investments[type] > 0);
+  const totalInvestments = Object.values(investments).reduce((sum, val) => sum + val, 0);
+  
+  // No investments = 0 score
+  if (totalInvestments <= 0) return 0;
+  
+  // Calculate Herfindahl index to measure concentration
+  // Higher Herfindahl = less diversity
+  let herfindahlIndex = 0;
+  
+  Object.values(investments).forEach(amount => {
+    if (amount > 0) {
+      const marketShare = amount / totalInvestments;
+      herfindahlIndex += marketShare * marketShare;
     }
   });
   
-  // Score based on number of asset classes
-  const numAssetClasses = assetClasses.size;
+  // Convert to diversity score (1 - Herfindahl)
+  // Scale to 0-100
+  const rawDiversityScore = (1 - herfindahlIndex) * 100;
   
-  if (numAssetClasses >= 5) return 100;
-  if (numAssetClasses === 4) return 90;
-  if (numAssetClasses === 3) return 80;
-  if (numAssetClasses === 2) return 70;
-  if (numAssetClasses === 1) return 60;
-  return 40; // Default with no clear asset classes
-}
-
-/**
- * Calculate financial knowledge score (0-100)
- * @param {Object} financialData - User's financial data
- * @returns {number} Financial knowledge score
- */
-function calculateFinancialKnowledgeScore(financialData) {
-  // If no quiz scores data, return a moderate score
-  if (!financialData.quizScores || financialData.quizScores.length === 0) {
-    // Check app usage as a proxy for engagement
-    const appOpenCount = parseInt(localStorage.getItem(`${financialData.userId}_appOpenCount`) || '0');
-    
-    // Basic score based on app usage
-    if (appOpenCount > 20) return 70;
-    if (appOpenCount > 10) return 60;
-    if (appOpenCount > 5) return 50;
-    return 40;
-  }
+  // Adjustment based on number of investment types
+  // Maximum score if there are at least 3-4 types
+  const typeBonus = Math.min(30, investmentTypes.length * 10);
   
-  // Calculate average quiz score
-  const totalScore = financialData.quizScores.reduce((sum, quiz) => sum + quiz.score, 0);
-  const averageScore = totalScore / financialData.quizScores.length;
-  
-  // Convert to 0-100 scale if needed
-  return Math.min(100, Math.round(averageScore));
-}
-
-/**
- * Calculate expense control score (0-100)
- * @param {Object} financialData - User's financial data
- * @returns {number} Expense control score
- */
-function calculateExpenseControlScore(financialData) {
-  // If no transaction data, return a moderate score
-  if (!financialData.transactions || financialData.transactions.length === 0) {
-    return 50; // Moderate score with no transaction data
-  }
-  
-  // Calculate discretionary vs. essential spending
-  const discretionarySpending = financialData.transactions
-    .filter(t => t.category === 'entertainment' || t.category === 'dining' || 
-           t.category === 'shopping' || t.category === 'travel')
-    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-  
-  const totalSpending = financialData.transactions
-    .filter(t => t.amount < 0)
-    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-  
-  // If no spending, return a moderate score
-  if (totalSpending === 0) {
-    return 50;
-  }
-  
-  // Calculate discretionary spending ratio
-  const discretionaryRatio = discretionarySpending / totalSpending;
-  
-  // Score based on discretionary spending ratio (lower is better)
-  if (discretionaryRatio <= 0.1) return 100;
-  if (discretionaryRatio <= 0.2) return 90;
-  if (discretionaryRatio <= 0.3) return 80;
-  if (discretionaryRatio <= 0.4) return 70;
-  if (discretionaryRatio <= 0.5) return 60;
-  if (discretionaryRatio <= 0.6) return 50;
-  if (discretionaryRatio <= 0.7) return 40;
-  if (discretionaryRatio <= 0.8) return 30;
-  return 20; // Very high discretionary spending
+  return Math.min(100, Math.round(rawDiversityScore * 0.7 + typeBonus));
 }
 
 /**
@@ -395,590 +421,590 @@ function calculateExpenseControlScore(financialData) {
 function generateRecommendations(scores) {
   const recommendations = [];
   
-  // Find the lowest scoring categories (up to 3)
-  const sortedCategories = Object.entries(scores)
-    .sort(([, scoreA], [, scoreB]) => scoreA - scoreB)
-    .map(([category]) => category);
+  // Savings Rate recommendations
+  if (scores.savingsRateScore < 40) {
+    recommendations.push({
+      category: 'savingsRate',
+      priority: 'high',
+      title: 'Increase Your Savings Rate',
+      description: 'Aim to save at least 10-15% of your income. Start by automatically transferring money to savings on payday.'
+    });
+  } else if (scores.savingsRateScore < 70) {
+    recommendations.push({
+      category: 'savingsRate',
+      priority: 'medium',
+      title: 'Boost Your Savings Rate',
+      description: 'Consider increasing your savings rate by 2-5%. Review your budget to find areas where you can cut back.'
+    });
+  }
   
-  const lowestCategories = sortedCategories.slice(0, 3);
+  // Debt Management recommendations
+  if (scores.debtManagementScore < 30) {
+    recommendations.push({
+      category: 'debtManagement',
+      priority: 'high',
+      title: 'Reduce High-Interest Debt',
+      description: 'Focus on paying down high-interest debt like credit cards first. Consider debt consolidation or balance transfer offers.'
+    });
+  } else if (scores.debtManagementScore < 60) {
+    recommendations.push({
+      category: 'debtManagement',
+      priority: 'medium',
+      title: 'Optimize Debt Repayment',
+      description: 'Consider the snowball or avalanche method to pay down debt more efficiently. Always pay more than the minimum payment.'
+    });
+  }
   
-  // Generate recommendations for the lowest categories
-  lowestCategories.forEach(category => {
-    const score = scores[category];
-    const recommendation = getRecommendationForCategory(category, score);
-    recommendations.push(recommendation);
-  });
+  // Emergency Fund recommendations
+  if (scores.emergencyFundScore < 50) {
+    recommendations.push({
+      category: 'emergencyFund',
+      priority: 'high',
+      title: 'Build Your Emergency Fund',
+      description: 'Aim for 3-6 months of expenses in an easily accessible account. Start with a goal of $1,000, then build from there.'
+    });
+  } else if (scores.emergencyFundScore < 80) {
+    recommendations.push({
+      category: 'emergencyFund',
+      priority: 'medium',
+      title: 'Strengthen Your Emergency Fund',
+      description: 'Consider increasing your emergency fund to cover 6 months of expenses. Keep these funds in a high-yield savings account.'
+    });
+  }
+  
+  // Budget Adherence recommendations
+  if (scores.budgetAdherenceScore < 60) {
+    recommendations.push({
+      category: 'budgetAdherence',
+      priority: 'medium',
+      title: 'Improve Budget Tracking',
+      description: 'Review your spending weekly instead of monthly. Use the envelope method or automatic categorization to better track expenses.'
+    });
+  }
+  
+  // Investment Diversity recommendations
+  if (scores.investmentDiversityScore < 40) {
+    recommendations.push({
+      category: 'investmentDiversity',
+      priority: 'medium',
+      title: 'Diversify Your Investments',
+      description: 'Consider low-cost index funds or ETFs to increase diversification. Don't put all your investments in a single asset class.'
+    });
+  }
   
   return recommendations;
 }
 
 /**
- * Get a specific recommendation for a category and score
- * @param {string} category - Score category
- * @param {number} score - Category score
- * @returns {Object} Recommendation object
- */
-function getRecommendationForCategory(category, score) {
-  // Common recommendation templates
-  const recommendations = {
-    savingsRate: [
-      {
-        threshold: 40,
-        title: "Start a Savings Habit",
-        description: "Try the 50/30/20 rule: 50% of income for needs, 30% for wants, and 20% for savings. Start small if needed.",
-        action: "Set up an automatic transfer to savings each payday, even if it's just 5% of your income."
-      },
-      {
-        threshold: 70,
-        title: "Boost Your Savings Rate",
-        description: "You're saving, but could benefit from increasing your rate to build wealth faster.",
-        action: "Try increasing your savings rate by 2-3% every few months until you reach 15-20% of income."
-      },
-      {
-        threshold: 100,
-        title: "Optimize Your Savings Strategy",
-        description: "You're already saving well. Focus on optimizing where those savings go.",
-        action: "Consider diversifying your savings into different buckets: emergency fund, retirement, and short-term goals."
-      }
-    ],
-    debtManagement: [
-      {
-        threshold: 40,
-        title: "Create a Debt Reduction Plan",
-        description: "Your debt levels are impacting your financial health significantly.",
-        action: "List all debts with interest rates and consider either the snowball method (smallest balance first) or avalanche method (highest interest first)."
-      },
-      {
-        threshold: 70,
-        title: "Accelerate Debt Repayment",
-        description: "You're managing debt reasonably, but could benefit from faster repayment.",
-        action: "Consider allocating any extra income or windfalls to paying down high-interest debt."
-      },
-      {
-        threshold: 100,
-        title: "Maintain Your Debt Strategy",
-        description: "You're handling debt well. Focus on maintaining your good habits.",
-        action: "If applicable, look into refinancing remaining debts to lower interest rates."
-      }
-    ],
-    emergencyFund: [
-      {
-        threshold: 40,
-        title: "Start an Emergency Fund",
-        description: "Having even a small emergency fund can help avoid debt when unexpected expenses arise.",
-        action: "Aim to save $1,000 as a starter emergency fund, then work toward 3-6 months of expenses."
-      },
-      {
-        threshold: 70,
-        title: "Grow Your Emergency Fund",
-        description: "Your emergency fund is a good start, but may not cover larger emergencies.",
-        action: "Work toward saving 3-6 months of essential expenses in an accessible account."
-      },
-      {
-        threshold: 100,
-        title: "Maintain Your Emergency Fund",
-        description: "Your emergency fund is in great shape. Make sure it stays that way.",
-        action: "Review your emergency fund annually to ensure it still covers 3-6 months of your current expenses."
-      }
-    ],
-    budgetAdherence: [
-      {
-        threshold: 40,
-        title: "Strengthen Your Budget",
-        description: "Consistent budgeting helps ensure you're spending according to your priorities.",
-        action: "Identify your top budget-busting categories and create specific strategies for each."
-      },
-      {
-        threshold: 70,
-        title: "Fine-tune Your Budget",
-        description: "Your budget is working fairly well, but some adjustments could help.",
-        action: "Review if your budget allocations match your actual spending patterns, and adjust as needed."
-      },
-      {
-        threshold: 100,
-        title: "Optimize Your Budget",
-        description: "Your budget discipline is excellent. Focus on optimizing categories.",
-        action: "Look for small adjustments that align your spending even more with your long-term goals."
-      }
-    ],
-    investmentDiversity: [
-      {
-        threshold: 40,
-        title: "Start Diversifying Investments",
-        description: "A diversified portfolio helps manage risk and maximize returns.",
-        action: "Consider low-cost index funds that provide instant diversification across many companies."
-      },
-      {
-        threshold: 70,
-        title: "Expand Your Investment Mix",
-        description: "Your investments have some diversity, but could benefit from more.",
-        action: "Consider adding 1-2 more asset classes that you don't currently have in your portfolio."
-      },
-      {
-        threshold: 100,
-        title: "Review Investment Allocations",
-        description: "Your investments are well-diversified. Focus on optimizing allocations.",
-        action: "Review your investment allocations annually and rebalance to maintain your target asset mix."
-      }
-    ],
-    financialKnowledge: [
-      {
-        threshold: 40,
-        title: "Build Financial Literacy",
-        description: "Understanding core financial concepts helps you make better decisions.",
-        action: "Spend 15 minutes each day reading about a financial topic or concept."
-      },
-      {
-        threshold: 70,
-        title: "Deepen Financial Knowledge",
-        description: "You have a good foundation of knowledge. Keep building on it.",
-        action: "Pick one financial topic each month to learn in-depth through books, podcasts, or courses."
-      },
-      {
-        threshold: 100,
-        title: "Stay Updated on Finance",
-        description: "Your financial knowledge is strong. Stay current with trends and changes.",
-        action: "Follow financial news and consider more advanced topics like tax optimization or estate planning."
-      }
-    ],
-    expenseControl: [
-      {
-        threshold: 40,
-        title: "Reduce Discretionary Spending",
-        description: "Controlling non-essential spending frees up money for saving and important goals.",
-        action: "Try a 30-day challenge where you cut one category of discretionary spending completely."
-      },
-      {
-        threshold: 70,
-        title: "Balance Essential and Non-essential Spending",
-        description: "Your spending is fairly balanced, but could be optimized further.",
-        action: "Review your recent discretionary purchases and identify which brought lasting value versus temporary satisfaction."
-      },
-      {
-        threshold: 100,
-        title: "Maintain Spending Balance",
-        description: "You're managing discretionary spending well. Focus on maintaining this balance.",
-        action: "Periodically review if your spending aligns with your current priorities and values."
-      }
-    ]
-  };
-  
-  // Find the appropriate recommendation based on score
-  const categoryRecs = recommendations[category];
-  
-  for (let i = 0; i < categoryRecs.length; i++) {
-    if (score <= categoryRecs[i].threshold) {
-      return {
-        category,
-        score,
-        ...categoryRecs[i]
-      };
-    }
-  }
-  
-  // Default to the highest threshold recommendation if none matched
-  return {
-    category,
-    score,
-    ...categoryRecs[categoryRecs.length - 1]
-  };
-}
-
-/**
- * Render the Financial Wellness Scorecard Page
- * @param {string} containerId - DOM container ID to render into
- * @returns {void}
- */
-export async function renderFinancialScorecardPage(containerId = 'app-container') {
-  // Get container
-  const container = document.getElementById(containerId);
-  
-  if (!container) {
-    console.error(`Container with ID ${containerId} not found`);
-    return;
-  }
-  
-  // Show loading state
-  container.innerHTML = `
-    <div class="scorecard-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px;">
-      <div class="spinner" style="width: 40px; height: 40px; border: 4px solid rgba(79, 70, 229, 0.2); border-radius: 50%; border-top-color: #4F46E5; animation: spin 1s linear infinite;"></div>
-      <p style="margin-top: 16px; color: #6b7280; font-size: 16px;">Calculating your financial wellness score...</p>
-    </div>
-    
-    <style>
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    </style>
-  `;
-  
-  try {
-    // Get user ID (either from auth system or localStorage)
-    const userId = getUserId();
-    
-    // Calculate or retrieve the user's financial wellness score
-    const scoreData = await calculateFinancialWellnessScore(userId);
-    
-    if (!scoreData) {
-      renderErrorState(container);
-      return;
-    }
-    
-    // Render the scorecard UI with the score data
-    renderScorecardUI(container, scoreData);
-  } catch (error) {
-    console.error("Error rendering financial scorecard:", error);
-    renderErrorState(container);
-  }
-}
-
-/**
- * Get the current user's ID
+ * Get current user ID from app state or local storage
  * @returns {string} User ID
  */
 function getUserId() {
-  // Try to get user ID from auth system (if available)
-  if (typeof getAuthenticatedUserId === 'function') {
-    const authUserId = getAuthenticatedUserId();
-    if (authUserId) return authUserId;
+  // Try to get from app state if available
+  if (window.appState && window.appState.user && window.appState.user.id) {
+    return window.appState.user.id;
   }
   
-  // Check if we have a cached user ID in session
-  if (window.user && window.user.id) {
-    return window.user.id;
+  // Otherwise get from local storage
+  try {
+    const userData = localStorage.getItem('stackr_user');
+    if (userData) {
+      const parsedData = JSON.parse(userData);
+      return parsedData.id;
+    }
+  } catch (e) {
+    console.warn('Could not get user ID from localStorage:', e);
   }
   
-  // Check for URL parameter (if applicable)
-  const urlParams = new URLSearchParams(window.location.search);
-  const paramUserId = urlParams.get('userId');
-  if (paramUserId) return paramUserId;
+  // Fallback to demo user
+  return 'demo-user';
+}
+
+/* UI components for the scorecard */
+
+/**
+ * Create section header component
+ * @param {string} title - Section title
+ * @param {string} subtitle - Section subtitle
+ * @returns {HTMLElement} Section header element
+ */
+function createSectionHeader(title, subtitle) {
+  const header = document.createElement('div');
+  header.classList.add('section-header');
+  header.style.marginBottom = '24px';
   
-  // Try to get from localStorage
-  const localUserId = localStorage.getItem('current_user_id');
-  if (localUserId) return localUserId;
+  const titleElement = document.createElement('h2');
+  titleElement.textContent = title;
+  titleElement.style.fontSize = '24px';
+  titleElement.style.fontWeight = '700';
+  titleElement.style.marginBottom = '8px';
+  titleElement.style.color = 'var(--color-text-primary)';
   
-  // Generate a temporary ID if all else fails
-  const tempId = 'user-' + Date.now();
-  localStorage.setItem('current_user_id', tempId);
-  return tempId;
+  const subtitleElement = document.createElement('p');
+  subtitleElement.textContent = subtitle;
+  subtitleElement.style.fontSize = '16px';
+  subtitleElement.style.color = 'var(--color-text-secondary)';
+  subtitleElement.style.marginBottom = '8px';
+  
+  header.appendChild(titleElement);
+  header.appendChild(subtitleElement);
+  
+  return header;
 }
 
 /**
- * Render an error state in the container
- * @param {HTMLElement} container - Container element
+ * Create score summary card
+ * @returns {HTMLElement} Score summary card element
  */
-function renderErrorState(container) {
-  container.innerHTML = `
-    <div class="error-container" style="padding: 24px; text-align: center;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="12" y1="8" x2="12" y2="12"></line>
-        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-      </svg>
-      <h2 style="margin-top: 16px; font-size: 20px; color: #374151;">Error Loading Financial Scorecard</h2>
-      <p style="margin-top: 8px; color: #6b7280;">We encountered a problem calculating your financial wellness score. This could be due to limited financial data.</p>
-      <button id="retry-scorecard" style="margin-top: 16px; padding: 8px 16px; background-color: #4F46E5; color: white; border: none; border-radius: 4px; cursor: pointer;">Try Again</button>
-    </div>
-  `;
+function createScoreSummaryCard() {
+  const card = document.createElement('div');
+  card.classList.add('score-summary-card');
+  card.style.background = 'var(--color-card-bg)';
+  card.style.borderRadius = '12px';
+  card.style.padding = '24px';
+  card.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.1)';
+  card.style.position = 'relative';
+  card.style.overflow = 'hidden';
+  card.style.gridColumn = '1 / -1';
   
-  // Add retry button handler
-  document.getElementById('retry-scorecard')?.addEventListener('click', () => {
-    renderFinancialScorecardPage(container.id);
-  });
+  const headerText = document.createElement('h3');
+  headerText.textContent = 'Your Financial Wellness Score';
+  headerText.style.fontSize = '18px';
+  headerText.style.fontWeight = '600';
+  headerText.style.marginBottom = '16px';
+  headerText.style.color = 'var(--color-text-primary)';
+  
+  card.appendChild(headerText);
+  
+  return card;
 }
 
 /**
- * Render the Scorecard UI with the given score data
- * @param {HTMLElement} container - Container element
- * @param {Object} scoreData - User's financial wellness score data
+ * Update score summary card with data
+ * @param {HTMLElement} card - Score summary card element
+ * @param {Object} scoreData - Score data object
  */
-function renderScorecardUI(container, scoreData) {
-  // Generate color based on overall score
-  const getScoreColor = (score) => {
-    if (score >= 90) return '#059669'; // Green (excellent)
-    if (score >= 80) return '#10B981'; // Light green (very good)
-    if (score >= 70) return '#F59E0B'; // Yellow (good)
-    if (score >= 60) return '#F97316'; // Orange (fair)
-    return '#EF4444'; // Red (needs improvement)
-  };
+function updateScoreSummaryCard(card, scoreData) {
+  // Create score display container
+  const scoreContainer = document.createElement('div');
+  scoreContainer.style.display = 'flex';
+  scoreContainer.style.alignItems = 'center';
+  scoreContainer.style.gap = '24px';
+  scoreContainer.style.marginBottom = '24px';
   
-  // Get color for overall score
-  const scoreColor = getScoreColor(scoreData.overallScore);
+  // Create circular score indicator
+  const scoreCircle = document.createElement('div');
+  scoreCircle.style.width = '120px';
+  scoreCircle.style.height = '120px';
+  scoreCircle.style.borderRadius = '50%';
+  scoreCircle.style.display = 'flex';
+  scoreCircle.style.flexDirection = 'column';
+  scoreCircle.style.justifyContent = 'center';
+  scoreCircle.style.alignItems = 'center';
+  scoreCircle.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
   
-  // Get top 3 recommendations
-  const topRecommendations = scoreData.recommendations.slice(0, 3);
+  // Set background color based on score
+  if (scoreData.overallScore >= 80) {
+    scoreCircle.style.background = 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)';
+  } else if (scoreData.overallScore >= 60) {
+    scoreCircle.style.background = 'linear-gradient(135deg, #facc15 0%, #eab308 100%)';
+  } else {
+    scoreCircle.style.background = 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)';
+  }
   
-  // Build the UI
-  container.innerHTML = `
-    <div class="scorecard-container" style="padding: 24px; max-width: 1200px; margin: 0 auto;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-        <h1 style="font-size: 24px; font-weight: 700; color: var(--color-text-primary);">Financial Wellness Scorecard</h1>
-        <button id="refresh-scorecard" style="padding: 8px 16px; background-color: white; border: 1px solid #d1d5db; border-radius: 6px; color: var(--color-text-secondary); font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M23 4v6h-6"></path>
-            <path d="M1 20v-6h6"></path>
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-          </svg>
-          Refresh Score
-        </button>
-      </div>
-      
-      <!-- Overall Score -->
-      <div style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px;">
-        <div style="padding: 24px; text-align: center;">
-          <h2 style="font-size: 18px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 16px;">Your Financial Wellness Score</h2>
-          
-          <div style="display: flex; flex-direction: column; align-items: center;">
-            <div class="score-circle" style="position: relative; width: 150px; height: 150px; border-radius: 50%; margin-bottom: 16px; background: conic-gradient(${scoreColor} ${scoreData.overallScore}%, #f3f4f6 0); display: flex; align-items: center; justify-content: center;">
-              <div style="width: 130px; height: 130px; border-radius: 50%; background-color: white; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                <span style="font-size: 40px; font-weight: 700; color: ${scoreColor};">${scoreData.overallScore}</span>
-                <span style="font-size: 14px; color: #6b7280;">out of 100</span>
-              </div>
-            </div>
-            
-            <div class="score-grade" style="font-size: 24px; font-weight: 700; color: ${scoreColor};">
-              Grade: ${scoreData.overallGrade}
-            </div>
-            
-            <p style="margin-top: 16px; color: #6b7280; max-width: 600px;">
-              Your financial wellness score is based on seven key areas of your financial life. This personalized assessment helps identify your strengths and areas for improvement.
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Category Scores -->
-      <div style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px;">
-        <div style="padding: 24px;">
-          <h2 style="font-size: 18px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 16px;">Category Breakdown</h2>
-          
-          <div class="score-categories" style="display: grid; gap: 16px;">
-            ${Object.entries(scoreData.categoryScores).map(([category, score]) => {
-              const categoryDisplayName = getCategoryDisplayName(category);
-              const categoryGrade = scoreData.categoryGrades[category];
-              const categoryColor = getScoreColor(score);
-              
-              return `
-                <div class="score-category" style="display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px;">
-                  <div style="width: 50px; height: 50px; border-radius: 50%; background: conic-gradient(${categoryColor} ${score}%, #f3f4f6 0); display: flex; align-items: center; justify-content: center;">
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background-color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; color: ${categoryColor};">
-                      ${categoryGrade}
-                    </div>
-                  </div>
-                  
-                  <div style="flex: 1;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                      <h3 style="font-size: 16px; font-weight: 500; color: var(--color-text-primary);">${categoryDisplayName}</h3>
-                      <span style="font-weight: 600; color: ${categoryColor};">${score}/100</span>
-                    </div>
-                    
-                    <div style="height: 6px; background-color: #f3f4f6; border-radius: 3px; overflow: hidden;">
-                      <div style="height: 100%; width: ${score}%; background-color: ${categoryColor};"></div>
-                    </div>
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        </div>
-      </div>
-      
-      <!-- Recommendations -->
-      <div style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-        <div style="padding: 24px;">
-          <h2 style="font-size: 18px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 16px;">Top Recommendations</h2>
-          
-          <div class="recommendations" style="display: grid; gap: 16px;">
-            ${topRecommendations.map(rec => {
-              const categoryDisplayName = getCategoryDisplayName(rec.category);
-              const categoryColor = getScoreColor(rec.score);
-              
-              return `
-                <div class="recommendation" style="padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h3 style="font-size: 16px; font-weight: 600; color: var(--color-text-primary);">${rec.title}</h3>
-                    <span style="font-size: 12px; padding: 4px 8px; background-color: ${categoryColor}20; color: ${categoryColor}; border-radius: 9999px; font-weight: 500;">
-                      ${categoryDisplayName}
-                    </span>
-                  </div>
-                  
-                  <p style="color: #6b7280; margin-bottom: 12px;">${rec.description}</p>
-                  
-                  <div style="background-color: #f9fafb; padding: 12px; border-radius: 6px; border-left: 4px solid ${categoryColor};">
-                    <div style="display: flex; gap: 8px; align-items: center; color: var(--color-text-primary); font-weight: 500;">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="16"></line>
-                        <line x1="8" y1="12" x2="16" y2="12"></line>
-                      </svg>
-                      Action Step
-                    </div>
-                    <p style="margin-top: 4px; color: #6b7280;">${rec.action}</p>
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        </div>
-      </div>
-      
-      <!-- View History Button -->
-      <div style="margin-top: 24px; text-align: center;">
-        <button id="view-history-btn" style="padding: 8px 16px; background-color: white; border: 1px solid #d1d5db; border-radius: 6px; color: var(--color-text-secondary); font-weight: 500; cursor: pointer;">
-          View Score History
-        </button>
-      </div>
-    </div>
-  `;
+  // Score number
+  const scoreNumber = document.createElement('div');
+  scoreNumber.textContent = scoreData.overallScore;
+  scoreNumber.style.fontSize = '36px';
+  scoreNumber.style.fontWeight = '700';
+  scoreNumber.style.color = 'white';
   
-  // Add event listeners
-  document.getElementById('refresh-scorecard')?.addEventListener('click', () => {
-    renderFinancialScorecardPage(container.id);
-  });
+  // Score grade
+  const scoreGrade = document.createElement('div');
+  scoreGrade.textContent = scoreData.grade;
+  scoreGrade.style.fontSize = '24px';
+  scoreGrade.style.fontWeight = '600';
+  scoreGrade.style.color = 'rgba(255, 255, 255, 0.9)';
   
-  document.getElementById('view-history-btn')?.addEventListener('click', () => {
-    showScoreHistoryModal();
-  });
-}
-
-/**
- * Get a display-friendly name for a score category
- * @param {string} category - Category key
- * @returns {string} Display name
- */
-function getCategoryDisplayName(category) {
-  const displayNames = {
-    savingsRate: 'Savings Rate',
-    debtManagement: 'Debt Management',
-    emergencyFund: 'Emergency Fund',
-    budgetAdherence: 'Budget Adherence',
-    investmentDiversity: 'Investment Diversity',
-    financialKnowledge: 'Financial Knowledge',
-    expenseControl: 'Expense Control'
-  };
+  scoreCircle.appendChild(scoreNumber);
+  scoreCircle.appendChild(scoreGrade);
   
-  return displayNames[category] || category;
-}
-
-/**
- * Show modal with score history
- */
-function showScoreHistoryModal() {
-  // Create modal element
-  const modal = document.createElement('div');
-  modal.className = 'score-history-modal';
-  modal.style.position = 'fixed';
-  modal.style.top = '0';
-  modal.style.left = '0';
-  modal.style.width = '100%';
-  modal.style.height = '100%';
-  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-  modal.style.display = 'flex';
-  modal.style.justifyContent = 'center';
-  modal.style.alignItems = 'center';
-  modal.style.zIndex = '9999';
-  modal.style.padding = '20px';
+  // Score explanation
+  const scoreExplanation = document.createElement('div');
+  scoreExplanation.style.flex = '1';
   
-  // Create modal content
-  const modalContent = document.createElement('div');
-  modalContent.style.backgroundColor = 'white';
-  modalContent.style.borderRadius = '8px';
-  modalContent.style.maxWidth = '800px';
-  modalContent.style.width = '100%';
-  modalContent.style.maxHeight = '90vh';
-  modalContent.style.overflow = 'auto';
-  modalContent.style.position = 'relative';
-  modalContent.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+  const explanationTitle = document.createElement('h4');
+  explanationTitle.style.fontSize = '16px';
+  explanationTitle.style.fontWeight = '600';
+  explanationTitle.style.marginBottom = '8px';
+  explanationTitle.style.color = 'var(--color-text-primary)';
   
-  // For now, we'll show a placeholder as we don't have historical data yet
-  modalContent.innerHTML = `
-    <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #111827;">Score History</h2>
-        <button class="close-modal" style="background: transparent; border: none; cursor: pointer;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-    </div>
+  const explanationText = document.createElement('p');
+  explanationText.style.fontSize = '14px';
+  explanationText.style.lineHeight = '1.5';
+  explanationText.style.color = 'var(--color-text-secondary)';
+  
+  // Set explanation based on score
+  if (scoreData.overallScore >= 80) {
+    explanationTitle.textContent = 'Excellent Financial Health';
+    explanationText.textContent = 'You're managing your finances very well! Continue your current habits and look for opportunities to optimize further.';
+  } else if (scoreData.overallScore >= 60) {
+    explanationTitle.textContent = 'Good Financial Health';
+    explanationText.textContent = 'You're on the right track, but there are areas you can improve. Focus on the recommendations below.';
+  } else {
+    explanationTitle.textContent = 'Needs Improvement';
+    explanationText.textContent = 'There are some key areas that need your attention. Focus on the high-priority recommendations to improve your financial wellness.';
+  }
+  
+  scoreExplanation.appendChild(explanationTitle);
+  scoreExplanation.appendChild(explanationText);
+  
+  // Add components to score container
+  scoreContainer.appendChild(scoreCircle);
+  scoreContainer.appendChild(scoreExplanation);
+  
+  // Add category score overview
+  const categoryScoresContainer = document.createElement('div');
+  categoryScoresContainer.style.display = 'flex';
+  categoryScoresContainer.style.flexWrap = 'wrap';
+  categoryScoresContainer.style.gap = '16px';
+  categoryScoresContainer.style.marginTop = '16px';
+  
+  // Create mini score indicators for each category
+  Object.entries(scoreData.categories).forEach(([key, category]) => {
+    const miniScoreContainer = document.createElement('div');
+    miniScoreContainer.style.display = 'flex';
+    miniScoreContainer.style.alignItems = 'center';
+    miniScoreContainer.style.gap = '8px';
+    miniScoreContainer.style.flex = '1';
+    miniScoreContainer.style.minWidth = '180px';
     
-    <div style="padding: 24px; text-align: center;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-        <line x1="8" y1="21" x2="16" y2="21"></line>
-        <line x1="12" y1="17" x2="12" y2="21"></line>
-      </svg>
-      
-      <h3 style="margin-top: 16px; font-size: 18px; color: var(--color-text-primary);">No History Yet</h3>
-      <p style="margin-top: 8px; color: var(--color-text-secondary); max-width: 400px; margin-left: auto; margin-right: auto;">
-        Your score history will be tracked and displayed here as you continue to use the app and improve your financial wellness.
-      </p>
-      
-      <button class="close-modal-btn" style="margin-top: 24px; padding: 8px 16px; background-color: var(--color-primary); color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">
-        Got It
-      </button>
-    </div>
-  `;
-  
-  // Add the modal to the DOM
-  modal.appendChild(modalContent);
-  document.body.appendChild(modal);
-  
-  // Add event listeners
-  document.querySelector('.close-modal')?.addEventListener('click', () => {
-    document.body.removeChild(modal);
+    // Mini score circle
+    const miniCircle = document.createElement('div');
+    miniCircle.style.width = '36px';
+    miniCircle.style.height = '36px';
+    miniCircle.style.borderRadius = '50%';
+    miniCircle.style.display = 'flex';
+    miniCircle.style.justifyContent = 'center';
+    miniCircle.style.alignItems = 'center';
+    miniCircle.style.color = 'white';
+    miniCircle.style.fontWeight = '600';
+    miniCircle.style.fontSize = '14px';
+    
+    // Set color based on category score
+    if (category.score >= 80) {
+      miniCircle.style.backgroundColor = '#22c55e';
+    } else if (category.score >= 60) {
+      miniCircle.style.backgroundColor = '#eab308';
+    } else {
+      miniCircle.style.backgroundColor = '#ef4444';
+    }
+    
+    miniCircle.textContent = category.score;
+    
+    // Category label
+    const miniLabel = document.createElement('div');
+    miniLabel.textContent = category.name;
+    miniLabel.style.fontSize = '14px';
+    miniLabel.style.color = 'var(--color-text-primary)';
+    
+    miniScoreContainer.appendChild(miniCircle);
+    miniScoreContainer.appendChild(miniLabel);
+    
+    categoryScoresContainer.appendChild(miniScoreContainer);
   });
   
-  document.querySelector('.close-modal-btn')?.addEventListener('click', () => {
-    document.body.removeChild(modal);
-  });
+  // Add components to card
+  card.appendChild(scoreContainer);
+  card.appendChild(createDivider());
+  card.appendChild(categoryScoresContainer);
 }
 
-// Helper functions for demo purposes
-// These would be replaced with proper API calls in a real app
+/**
+ * Create category score card
+ * @param {string} categoryKey - Category key
+ * @param {Object} data - Category data
+ * @returns {HTMLElement} Category score card element
+ */
+function createCategoryScoreCard(categoryKey, data) {
+  const card = document.createElement('div');
+  card.classList.add('category-score-card');
+  card.style.background = 'var(--color-card-bg)';
+  card.style.borderRadius = '12px';
+  card.style.padding = '24px';
+  card.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.1)';
+  
+  // Card header with icon
+  const cardHeader = document.createElement('div');
+  cardHeader.style.display = 'flex';
+  cardHeader.style.alignItems = 'center';
+  cardHeader.style.gap = '12px';
+  cardHeader.style.marginBottom = '16px';
+  
+  // Icon
+  const iconContainer = document.createElement('div');
+  iconContainer.style.width = '36px';
+  iconContainer.style.height = '36px';
+  iconContainer.style.borderRadius = '8px';
+  iconContainer.style.background = 'var(--color-primary)';
+  iconContainer.style.display = 'flex';
+  iconContainer.style.justifyContent = 'center';
+  iconContainer.style.alignItems = 'center';
+  iconContainer.style.color = 'white';
+  iconContainer.innerHTML = data.icon;
+  
+  // Category name
+  const categoryName = document.createElement('h3');
+  categoryName.textContent = data.name;
+  categoryName.style.fontSize = '16px';
+  categoryName.style.fontWeight = '600';
+  categoryName.style.color = 'var(--color-text-primary)';
+  
+  cardHeader.appendChild(iconContainer);
+  cardHeader.appendChild(categoryName);
+  
+  // Score display
+  const scoreDisplay = document.createElement('div');
+  scoreDisplay.style.display = 'flex';
+  scoreDisplay.style.alignItems = 'center';
+  scoreDisplay.style.gap = '12px';
+  scoreDisplay.style.marginBottom = '16px';
+  
+  // Score number
+  const scoreNumber = document.createElement('div');
+  scoreNumber.textContent = data.score;
+  scoreNumber.style.fontSize = '28px';
+  scoreNumber.style.fontWeight = '700';
+  
+  // Set color based on score
+  if (data.score >= 80) {
+    scoreNumber.style.color = '#22c55e';
+  } else if (data.score >= 60) {
+    scoreNumber.style.color = '#eab308';
+  } else {
+    scoreNumber.style.color = '#ef4444';
+  }
+  
+  // Grade display
+  const gradeDisplay = document.createElement('div');
+  gradeDisplay.textContent = data.grade;
+  gradeDisplay.style.width = '36px';
+  gradeDisplay.style.height = '36px';
+  gradeDisplay.style.display = 'flex';
+  gradeDisplay.style.justifyContent = 'center';
+  gradeDisplay.style.alignItems = 'center';
+  gradeDisplay.style.borderRadius = '50%';
+  gradeDisplay.style.fontSize = '16px';
+  gradeDisplay.style.fontWeight = '600';
+  gradeDisplay.style.color = 'white';
+  
+  // Set background color based on grade
+  if (data.grade === 'A') {
+    gradeDisplay.style.backgroundColor = '#22c55e';
+  } else if (data.grade === 'B') {
+    gradeDisplay.style.backgroundColor = '#84cc16';
+  } else if (data.grade === 'C') {
+    gradeDisplay.style.backgroundColor = '#eab308';
+  } else if (data.grade === 'D') {
+    gradeDisplay.style.backgroundColor = '#f97316';
+  } else {
+    gradeDisplay.style.backgroundColor = '#ef4444';
+  }
+  
+  scoreDisplay.appendChild(scoreNumber);
+  scoreDisplay.appendChild(gradeDisplay);
+  
+  // Description
+  const description = document.createElement('p');
+  description.textContent = data.description;
+  description.style.fontSize = '14px';
+  description.style.color = 'var(--color-text-secondary)';
+  description.style.marginBottom = '16px';
+  
+  // Add components to card
+  card.appendChild(cardHeader);
+  card.appendChild(scoreDisplay);
+  card.appendChild(description);
+  
+  return card;
+}
 
 /**
- * Generate sample financial data for testing
- * @param {string} userId - User ID
- * @returns {Object} Sample financial data
+ * Create recommendations section
+ * @param {Array} recommendations - Array of recommendation objects
+ * @returns {HTMLElement} Recommendations section element
  */
-function generateSampleFinancialData(userId) {
-  return {
-    userId,
-    income: 5000,
-    expenses: 4000,
-    savingsAmount: 750,
-    emergencyFund: 10000,
-    transactions: [
-      { id: 1, amount: -120, category: 'dining', date: '2025-04-20' },
-      { id: 2, amount: -1500, category: 'housing', date: '2025-04-01' },
-      { id: 3, amount: -200, category: 'entertainment', date: '2025-04-15' },
-      { id: 4, amount: -350, category: 'utilities', date: '2025-04-10' },
-      { id: 5, amount: -500, category: 'groceries', date: '2025-04-05' },
-      { id: 6, amount: 5000, category: 'income', date: '2025-04-01' },
-    ],
-    budgets: {
-      housing: { amount: 1500 },
-      groceries: { amount: 600 },
-      dining: { amount: 200 },
-      entertainment: { amount: 150 },
-      utilities: { amount: 400 }
-    },
-    debts: [
-      { id: 1, type: 'creditCard', amount: 2000, interestRate: 17.99, paymentStatus: 'onTime' },
-      { id: 2, type: 'studentLoan', amount: 15000, interestRate: 4.5, paymentStatus: 'onTime' }
-    ],
-    investments: [
-      { id: 1, type: '401k', assetClass: 'stocks', amount: 50000 },
-      { id: 2, type: 'ira', assetClass: 'bonds', amount: 20000 },
-      { id: 3, type: 'brokerage', assetClass: 'realestate', amount: 10000 }
-    ],
-    quizScores: [
-      { id: 1, quiz: 'budgeting', score: 80, date: '2025-03-15' },
-      { id: 2, quiz: 'investing', score: 65, date: '2025-03-22' },
-      { id: 3, quiz: 'retirement', score: 70, date: '2025-04-05' }
-    ]
-  };
+function createRecommendationsSection(recommendations) {
+  const section = document.createElement('div');
+  section.classList.add('recommendations-section');
+  section.style.marginTop = '32px';
+  
+  // Section header
+  const header = createSectionHeader(
+    'Your Personalized Recommendations',
+    'Focus on these key actions to improve your financial wellness'
+  );
+  section.appendChild(header);
+  
+  // No recommendations message
+  if (!recommendations || recommendations.length === 0) {
+    const noRecommendations = document.createElement('p');
+    noRecommendations.textContent = 'Great job! We don\'t have any specific recommendations at this time. Continue your current financial habits.';
+    noRecommendations.style.textAlign = 'center';
+    noRecommendations.style.padding = '24px';
+    noRecommendations.style.color = 'var(--color-text-secondary)';
+    section.appendChild(noRecommendations);
+    return section;
+  }
+  
+  // Recommendations container
+  const recommendationsContainer = document.createElement('div');
+  recommendationsContainer.style.display = 'grid';
+  recommendationsContainer.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+  recommendationsContainer.style.gap = '16px';
+  
+  // Sort recommendations by priority: high, medium, low
+  const sortedRecommendations = [...recommendations].sort((a, b) => {
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    return priorityOrder[a.priority] - priorityOrder[b.priority];
+  });
+  
+  // Create recommendation cards
+  sortedRecommendations.forEach(recommendation => {
+    const recommendationCard = createRecommendationCard(recommendation);
+    recommendationsContainer.appendChild(recommendationCard);
+  });
+  
+  section.appendChild(recommendationsContainer);
+  return section;
+}
+
+/**
+ * Create recommendation card
+ * @param {Object} recommendation - Recommendation object
+ * @returns {HTMLElement} Recommendation card element
+ */
+function createRecommendationCard(recommendation) {
+  const card = document.createElement('div');
+  card.classList.add('recommendation-card');
+  card.style.background = 'var(--color-card-bg)';
+  card.style.borderRadius = '12px';
+  card.style.padding = '20px';
+  card.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.08)';
+  card.style.display = 'flex';
+  card.style.flexDirection = 'column';
+  card.style.gap = '12px';
+  card.style.border = '1px solid var(--color-border)';
+  
+  // Priority badge
+  const priorityBadge = document.createElement('div');
+  priorityBadge.style.display = 'inline-block';
+  priorityBadge.style.padding = '4px 8px';
+  priorityBadge.style.borderRadius = '4px';
+  priorityBadge.style.fontSize = '12px';
+  priorityBadge.style.fontWeight = '600';
+  priorityBadge.style.textTransform = 'uppercase';
+  priorityBadge.style.marginBottom = '8px';
+  priorityBadge.style.alignSelf = 'flex-start';
+  
+  // Set badge style based on priority
+  if (recommendation.priority === 'high') {
+    priorityBadge.textContent = 'High Priority';
+    priorityBadge.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+    priorityBadge.style.color = '#ef4444';
+  } else if (recommendation.priority === 'medium') {
+    priorityBadge.textContent = 'Medium Priority';
+    priorityBadge.style.backgroundColor = 'rgba(234, 179, 8, 0.15)';
+    priorityBadge.style.color = '#eab308';
+  } else {
+    priorityBadge.textContent = 'Good Practice';
+    priorityBadge.style.backgroundColor = 'rgba(34, 197, 94, 0.15)';
+    priorityBadge.style.color = '#22c55e';
+  }
+  
+  // Title
+  const title = document.createElement('h4');
+  title.textContent = recommendation.title;
+  title.style.fontSize = '16px';
+  title.style.fontWeight = '600';
+  title.style.color = 'var(--color-text-primary)';
+  
+  // Description
+  const description = document.createElement('p');
+  description.textContent = recommendation.description;
+  description.style.fontSize = '14px';
+  description.style.color = 'var(--color-text-secondary)';
+  description.style.lineHeight = '1.5';
+  
+  // Add components to card
+  card.appendChild(priorityBadge);
+  card.appendChild(title);
+  card.appendChild(description);
+  
+  return card;
+}
+
+/**
+ * Create loading indicator
+ * @returns {HTMLElement} Loading indicator element
+ */
+function createLoadingIndicator() {
+  const loadingContainer = document.createElement('div');
+  loadingContainer.style.display = 'flex';
+  loadingContainer.style.flexDirection = 'column';
+  loadingContainer.style.alignItems = 'center';
+  loadingContainer.style.justifyContent = 'center';
+  loadingContainer.style.padding = '24px';
+  loadingContainer.style.gap = '16px';
+  
+  const spinner = document.createElement('div');
+  spinner.style.width = '40px';
+  spinner.style.height = '40px';
+  spinner.style.border = '4px solid var(--color-border)';
+  spinner.style.borderTopColor = 'var(--color-primary)';
+  spinner.style.borderRadius = '50%';
+  spinner.style.animation = 'spin 1s linear infinite';
+  
+  // Add keyframes for spinner animation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  const loadingText = document.createElement('p');
+  loadingText.textContent = 'Calculating your financial wellness score...';
+  loadingText.style.color = 'var(--color-text-secondary)';
+  loadingText.style.fontSize = '14px';
+  
+  loadingContainer.appendChild(spinner);
+  loadingContainer.appendChild(loadingText);
+  
+  return loadingContainer;
+}
+
+/**
+ * Create divider element
+ * @returns {HTMLElement} Divider element
+ */
+function createDivider() {
+  const divider = document.createElement('hr');
+  divider.style.border = 'none';
+  divider.style.height = '1px';
+  divider.style.backgroundColor = 'var(--color-border)';
+  divider.style.margin = '16px 0';
+  return divider;
+}
+
+/**
+ * Helper function to add displayPageTitle for main.js compatibility
+ * @param {string} title - The page title to display
+ */
+function displayPageTitle(title) {
+  const titleElement = document.getElementById('page-title');
+  if (titleElement) {
+    titleElement.textContent = title;
+  }
 }
