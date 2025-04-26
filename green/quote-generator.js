@@ -552,15 +552,15 @@ function loadGooglePlacesAPI(callback) {
         // Create the script element with error handling
         const script = document.createElement('script');
         
-        // Make sure we set up CORS correctly for the Google Maps API
-        const googleMapsUrl = new URL('https://maps.googleapis.com/maps/api/js');
-        googleMapsUrl.searchParams.append('key', data.key);
-        googleMapsUrl.searchParams.append('libraries', 'places');
-        googleMapsUrl.searchParams.append('callback', 'initGooglePlacesAPI');
+        // Try a completely different approach - create the script element dynamically
+        // with a specific CORS attribute to see if it helps
+        script.crossOrigin = "anonymous";  // Add CORS attribute
+        script.integrity = "";  // Empty integrity to allow loading
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places&callback=initGooglePlacesAPI`;
         
-        script.src = googleMapsUrl.toString();
-        script.async = true;
-        script.defer = true;
+        // Don't load async to ensure proper loading order
+        script.async = false;
+        script.defer = false;
         
         // Error handler
         script.onerror = (e) => {

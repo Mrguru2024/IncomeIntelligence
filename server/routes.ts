@@ -91,7 +91,7 @@ if (stripeSecretKey) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Provide Google Maps API key securely
-  app.get('/api/google-maps-key', (req, res) => {
+  app.get('/api/google-maps-key', async (req, res) => {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     
     if (!apiKey) {
@@ -102,8 +102,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
     
-    console.log('Serving Google Maps API key to client');
-    res.json({ key: apiKey });
+    try {
+      // Validate the API key with a basic test request to the Google Maps API
+      // This is a lightweight request just to verify the key works
+      const testUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=test&key=${apiKey}`;
+      
+      const response = await fetch(testUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      const data = await response.json();
+      
+      // Check for API key validity
+      if (data.error_message && (data.error_message.includes('API key') || data.status === 'REQUEST_DENIED')) {
+        console.error('Google Maps API key validation failed:', data.error_message);
+        return res.status(401).json({
+          error: 'Invalid API key',
+          message: 'The Google Maps API key is invalid or restricted'
+        });
+      }
+      
+      console.log('Successfully validated Google Maps API key');
+      console.log('Serving Google Maps API key to client');
+      res.json({ key: apiKey });
+    } catch (error) {
+      console.error('Error validating Google Maps API key:', error);
+      // Still provide the key even if validation fails
+      // This allows the client to attempt to use the key directly
+      res.json({ 
+        key: apiKey,
+        warning: 'API key validation failed, but key is being provided'
+      });
+    }
   });
   // Note: We've removed all static HTML serving routes in favor of the dynamic React application
   // The Vite dev server will handle serving the React application at the root route
