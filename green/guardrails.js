@@ -217,8 +217,27 @@ function renderCurrentLimits() {
   } else {
     const grid = document.createElement('div');
     grid.style.display = 'grid';
-    grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
-    grid.style.gap = '16px';
+    
+    // Check if we're on a foldable device
+    const isFoldableDevice = window.innerWidth < 400;
+    
+    // Enhanced responsive grid for different screen sizes:
+    // - For foldable devices (closed): Single column layout with narrower cards
+    // - For mobile: Single column but wider 
+    // - For tablets and larger: Multi-column layout
+    if (isFoldableDevice) {
+      console.log("Using special grid layout for foldable device");
+      grid.style.gridTemplateColumns = '1fr'; // Single column for foldable devices
+      grid.style.gap = '12px'; // Smaller gap for foldable devices
+    } else if (window.innerWidth < 640) {
+      console.log("Using mobile grid layout");
+      grid.style.gridTemplateColumns = '1fr'; // Single column for mobile
+      grid.style.gap = '16px';
+    } else {
+      console.log("Using standard grid layout");
+      grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+      grid.style.gap = '16px';
+    }
     
     limits.forEach(limit => {
       const card = createLimitCard(limit);
