@@ -3110,11 +3110,8 @@ function createAutomotiveQuoteForm() {
   destAddressInput.id = 'destination-input'; // Changed ID to match what autocomplete initialization expects
   destAddressInput.setAttribute('autocomplete', 'off');
   
-  // Note: We need to ensure the destAddressContainer is properly set up first
-  // since the autocomplete system will need to append to it directly
-
-  // No need to create an additional wrapper as destAddressContainer already acts as the wrapper
-  // The input is directly inside destAddressContainer already
+  // Create the input field first, but don't add it to the container yet
+  // We'll ensure everything is properly set up before we add elements to the DOM
   
   // Create dropdown container if it doesn't exist
   const dropdownId = `destination-input-dropdown`;
