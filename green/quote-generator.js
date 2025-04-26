@@ -421,39 +421,62 @@ function loadGooglePlacesAPI(callback) {
     
     console.log("Setting up fallback address validation");
     
-    // Check if we have a specific Google API error
+    // Clear any existing alert message first
+    const existingMessage = document.querySelector('.maps-status-message');
+    if (existingMessage) {
+      existingMessage.remove();
+    }
+    
+    // Create a message element to display status
+    const helpMessage = document.createElement('div');
+    helpMessage.className = 'help-message maps-status-message';
+    helpMessage.style.marginBottom = '20px';
+    helpMessage.style.padding = '12px';
+    helpMessage.style.borderRadius = '6px';
+    helpMessage.style.backgroundColor = '#FEF3C7';
+    helpMessage.style.color = '#92400E';
+    helpMessage.style.fontSize = '14px';
+    helpMessage.style.lineHeight = '1.5';
+    
+    // Check for specific error types
     const apiErrorMessage = window.googleMapsError || '';
+    
     if (apiErrorMessage.includes('billing')) {
-      showToast('Google Maps requires billing to be enabled. Using manual address entry for now.', 'warning');
-      
-      // Create a more detailed help message element
-      const helpMessage = document.createElement('div');
-      helpMessage.className = 'help-message';
-      helpMessage.style.marginBottom = '20px';
-      helpMessage.style.padding = '12px';
-      helpMessage.style.borderRadius = '6px';
-      helpMessage.style.backgroundColor = '#FEF3C7';
-      helpMessage.style.color = '#92400E';
-      helpMessage.style.fontSize = '14px';
-      helpMessage.style.lineHeight = '1.5';
+      showToast('Address autocomplete unavailable: Google Maps requires billing to be enabled', 'warning');
       
       helpMessage.innerHTML = `
         <h3 style="margin-top: 0; font-weight: 600; font-size: 16px;">Google Maps API - Billing Required</h3>
-        <p>Address autocomplete is unavailable because the Google Maps API requires billing to be enabled.</p>
-        <p>After enabling billing in the Google Cloud Console, it may take 5-15 minutes to propagate.</p>
+        <p>Address autocomplete is unavailable because the Google Maps API requires billing to be enabled in your Google Cloud account.</p>
+        <p><strong>Status:</strong> <span style="color: #dc3545">♦ API Ready, Billing Required</span></p>
+        <p>After enabling billing in the Google Cloud Console, refresh this page to try again.</p>
         <p>You can still enter addresses manually in the meantime.</p>
       `;
+    } else {
+      showToast('Using simplified address validation - Google Maps API unavailable', 'info');
       
-      // Insert it after the location input
-      setTimeout(() => {
+      helpMessage.innerHTML = `
+        <h3 style="margin-top: 0; font-weight: 600; font-size: 16px;">Google Maps API - Unavailable</h3>
+        <p>Address autocomplete is temporarily unavailable. You can still enter addresses manually.</p>
+        <p><strong>Status:</strong> <span style="color: #dc3545">● API Connection Issue</span></p>
+        <p>This could be due to network connectivity or API configuration issues.</p>
+      `;
+    }
+    
+    // Insert message at the beginning of the form container
+    setTimeout(() => {
+      const formContainer = document.querySelector('.quote-generator-container');
+      const tabsContainer = document.querySelector('.quote-generator-container > div');
+      
+      if (formContainer && tabsContainer) {
+        formContainer.insertBefore(helpMessage, tabsContainer.nextSibling);
+      } else {
+        // Fallback to inserting after location input if container not found
         const locationInput = document.getElementById('general-location-input');
         if (locationInput && locationInput.parentNode) {
           locationInput.parentNode.insertAdjacentElement('afterend', helpMessage);
         }
-      }, 1000);
-    } else {
-      showToast('Using simplified address validation', 'info');
-    }
+      }
+    }, 500);
     
     // Helper function to add validation to an input field
     function setupBasicAddressField(inputId) {
@@ -501,7 +524,16 @@ function loadGooglePlacesAPI(callback) {
     try {
       // Initialize all input fields that need autocomplete
       initializeAutocompleteFields();
-      showToast('Address autocomplete ready', 'success');
+      
+      // Clear any warning messages that might have been displayed
+      const helpMessage = document.querySelector('.help-message');
+      if (helpMessage) {
+        helpMessage.remove();
+      }
+      
+      // Show a success toast
+      showToast('Address autocomplete ready! Google Maps API is properly configured.', 'success');
+      
       if (callback) callback(null);
     } catch (error) {
       console.error('Error initializing Google Places autocomplete:', error);
@@ -516,11 +548,14 @@ function loadGooglePlacesAPI(callback) {
     return;
   }
   
-  // If the script tag exists but API failed to load properly
-  if (document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
-    console.log('Google Maps script tag exists but API not available - using fallback');
-    setupAddressValidationFallback();
-    return;
+  // Even if the script tag exists, we'll try to reinitialize it
+  // This helps when permissions change (like billing being enabled) after the initial load
+  const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
+  if (existingScript) {
+    console.log('Found existing Google Maps script tag - removing and reinitializing with fresh API key');
+    existingScript.remove();
+    // Clear any window-level error state from previous attempts
+    window.googleMapsError = null;
   }
   
   // Define a global callback that Google will call when API is loaded
@@ -533,7 +568,12 @@ function loadGooglePlacesAPI(callback) {
     try {
       // Verify Google Maps is actually available before proceeding
       if (window.google && window.google.maps && window.google.maps.places) {
+        console.log('Google Maps Places API successfully initialized!');
         window.googlePlacesInitialized = true;
+        // Set a global success flag to indicate successful initialization
+        window.googleMapsReady = true;
+        // Clear any error state
+        window.googleMapsError = null;
         initializeGooglePlaces();
       } else {
         console.warn('Google Maps callback triggered but API not fully available');
@@ -558,7 +598,8 @@ function loadGooglePlacesAPI(callback) {
   }, 15000); // 15 second timeout
   
   // Fetch API key from server environment variable (more secure than hardcoding)
-  fetch('/api/google-maps-key')
+  // Include refresh=true to force backend validation refresh
+  fetch('/api/google-maps-key?refresh=true')
     .then(response => {
       if (!response.ok) {
         throw new Error(`Failed to fetch API key: ${response.status} ${response.statusText}`);
