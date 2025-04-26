@@ -5232,7 +5232,8 @@ function createTierCard(tierData, valueProps, isRecommended) {
   
   // Add resize listener for responsiveness
   const updateCardSize = () => {
-    if (window.innerWidth < 768) {
+    const { width, isFoldableClosed } = updateViewportClasses();
+    if (width < 768 || isFoldableClosed) {
       card.style.flex = '1 1 100%';
       card.style.maxWidth = '100%';
       card.style.width = '100%';
@@ -5453,8 +5454,10 @@ function showTierBreakdown(tierData) {
   // Make breakdown responsive
   const adjustBreakdownForMobile = () => {
     const items = breakdownSection.querySelectorAll('.breakdown-item');
-    if (window.innerWidth < 400) {
-      // For very small screens
+    const { width, isFoldableClosed } = updateViewportClasses();
+    
+    if (width < 400 || isFoldableClosed) {
+      // For very small screens or foldable devices closed
       items.forEach(item => {
         item.style.flexDirection = 'column';
         item.style.alignItems = 'flex-start';
