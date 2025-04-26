@@ -701,9 +701,13 @@ function loadGooglePlacesAPI(callback) {
     function setupInputAutocomplete(inputId, dataElementId) {
       const inputElement = document.getElementById(inputId);
       if (!inputElement) {
-        console.warn(`Input element ${inputId} not found`);
+        console.log(`Waiting for ${inputId} element to be available in DOM...`);
+        // Element doesn't exist yet, attempt to attach later when DOM is updated
+        setTimeout(() => setupInputAutocomplete(inputId, dataElementId), 500);
         return;
       }
+      
+      console.log(`Initializing Places Autocomplete for ${inputId}`);
       
       // Create wrapper if needed
       let wrapper = inputElement.parentElement;
@@ -899,12 +903,68 @@ function loadGooglePlacesAPI(callback) {
           fetchSuggestions(query);
         }
       });
+      
+      console.log(`[Maps Autocomplete] Autocomplete initialized for input: ${inputId}`);
     }
     
-    // Apply to all address inputs
-    setupInputAutocomplete('general-location-input', 'general-location-place-data');
-    setupInputAutocomplete('auto-address-input', 'auto-address-place-data');
-    setupInputAutocomplete('destination-input', 'destination-place-data');
+    // Set up a mutation observer to apply autocomplete when these elements appear
+    const observer = new MutationObserver((mutations) => {
+      let shouldCheckElements = false;
+      
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+          shouldCheckElements = true;
+        }
+      });
+      
+      if (shouldCheckElements) {
+        // Check for each input element and set up autocomplete if it exists
+        const autoAddressElement = document.getElementById('auto-address-input');
+        const destinationElement = document.getElementById('destination-input');
+        const generalLocationElement = document.getElementById('general-location-input');
+        
+        if (autoAddressElement && !autoAddressElement._autocompleteInitialized) {
+          setupInputAutocomplete('auto-address-input', 'auto-address-place-data');
+          autoAddressElement._autocompleteInitialized = true;
+        }
+        
+        if (destinationElement && !destinationElement._autocompleteInitialized) {
+          setupInputAutocomplete('destination-input', 'destination-place-data');
+          destinationElement._autocompleteInitialized = true;
+        }
+        
+        if (generalLocationElement && !generalLocationElement._autocompleteInitialized) {
+          setupInputAutocomplete('general-location-input', 'general-location-place-data');
+          generalLocationElement._autocompleteInitialized = true;
+        }
+      }
+    });
+    
+    // Start observing the document with the configured parameters
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    // Try initial setup as well (in case elements already exist)
+    setTimeout(() => {
+      // Initial attempt to set up autocomplete for known fields
+      const autoAddressElement = document.getElementById('auto-address-input');
+      const destinationElement = document.getElementById('destination-input');
+      const generalLocationElement = document.getElementById('general-location-input');
+      
+      if (autoAddressElement) {
+        setupInputAutocomplete('auto-address-input', 'auto-address-place-data');
+        autoAddressElement._autocompleteInitialized = true;
+      }
+      
+      if (destinationElement) {
+        setupInputAutocomplete('destination-input', 'destination-place-data');
+        destinationElement._autocompleteInitialized = true;
+      }
+      
+      if (generalLocationElement) {
+        setupInputAutocomplete('general-location-input', 'general-location-place-data');
+        generalLocationElement._autocompleteInitialized = true;
+      }
+    }, 1000);
   }
   
   // If we already have the script, use it
