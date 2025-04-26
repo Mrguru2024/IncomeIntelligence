@@ -89,19 +89,8 @@ function generateFallbackScript() {
         
         this._suggestionsEl = suggestionsEl;
         
-        // Add a debug element to show what's happening
-        this._debugElement = document.createElement('div');
-        this._debugElement.style.position = 'fixed';
-        this._debugElement.style.top = '10px';
-        this._debugElement.style.right = '10px';
-        this._debugElement.style.backgroundColor = 'rgba(0,0,0,0.7)';
-        this._debugElement.style.color = 'white';
-        this._debugElement.style.padding = '10px';
-        this._debugElement.style.borderRadius = '5px';
-        this._debugElement.style.fontSize = '12px';
-        this._debugElement.style.zIndex = '10000';
-        this._debugElement.style.display = 'none';
-        document.body.appendChild(this._debugElement);
+        // Debug element removed from production code
+        this._debugElement = null;
         
         // Log initial setup
         this._logDebug("Autocomplete initialized for input: " + (input.id || "unnamed"));
