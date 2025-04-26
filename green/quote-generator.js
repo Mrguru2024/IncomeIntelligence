@@ -841,7 +841,8 @@ function loadGooglePlacesAPI(callback) {
       }
       
       // Input event handler with debounce
-      inputElement.addEventListener('input', () => {
+      inputElement.addEventListener('input', (event) => {
+        console.log(`Input event triggered on ${inputId} with value: "${inputElement.value}"`);
         clearTimeout(debounceTimer);
         
         debounceTimer = setTimeout(() => {
@@ -850,6 +851,7 @@ function loadGooglePlacesAPI(callback) {
             console.log(`Fetching suggestions for "${query}" from ${inputId}`);
             fetchSuggestions(query);
           } else {
+            console.log(`Query too short for ${inputId}: "${query}"`);
             dropdown.style.display = 'none';
           }
         }, 300);
@@ -948,7 +950,22 @@ function loadGooglePlacesAPI(callback) {
         }
         
         if (destinationElement && !destinationElement._autocompleteInitialized) {
+          console.log('Setting up autocomplete for destination-input (extra debug)');
           setupInputAutocomplete('destination-input', 'destination-place-data');
+          // Explicitly add the event listener to handle input events if the normal setup fails
+          destinationElement.addEventListener('input', (e) => {
+            console.log('Manual input event on destination-input:', e.target.value);
+            if (e.target.value.trim().length >= 3) {
+              // Try to trigger the API call directly
+              fetch(`/api/address-suggestions?query=${encodeURIComponent(e.target.value.trim())}`)
+                .then(response => response.json())
+                .then(data => {
+                  console.log('Manual destination suggestion fetch:', data);
+                  // Process and display suggestions manually if needed
+                })
+                .catch(err => console.error('Manual suggestion fetch error:', err));
+            }
+          });
           destinationElement._autocompleteInitialized = true;
         }
         
@@ -980,7 +997,22 @@ function loadGooglePlacesAPI(callback) {
       }
       
       if (destinationElement) {
+        console.log('Setting up autocomplete for destination-input in initial check');
         setupInputAutocomplete('destination-input', 'destination-place-data');
+        // Explicitly add the event listener to handle input events if the normal setup fails
+        destinationElement.addEventListener('input', (e) => {
+          console.log('Manual input event on destination-input (initial):', e.target.value);
+          if (e.target.value.trim().length >= 3) {
+            // Try to trigger the API call directly
+            fetch(`/api/address-suggestions?query=${encodeURIComponent(e.target.value.trim())}`)
+              .then(response => response.json())
+              .then(data => {
+                console.log('Manual destination suggestion fetch (initial):', data);
+                // Process and display suggestions manually if needed
+              })
+              .catch(err => console.error('Manual suggestion fetch error:', err));
+          }
+        });
         destinationElement._autocompleteInitialized = true;
       }
       
