@@ -2003,14 +2003,35 @@ function createQuoteForm() {
   
   // Generate quote button
   const generateButton = createButton('Generate Quote', (e) => {
-    handleQuoteFormSubmit(e);
+    console.log("Generate Quote button clicked");
+    // Special handling for Samsung ZFold 4 and small-screen devices
+    if (window.innerWidth < 400) {
+      console.log("Detected small screen - using enhanced button handler");
+      // Ensure event propagation is stopped for small screens
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+    }
+    // Call handler with explicit foldable device flag
+    handleAutoQuoteFormSubmit(e);
+    // Return false to prevent default action as a fallback
+    return false;
   }, 'primary');
   
   // Reset form button
-  const resetButton = createButton('Reset Form', () => {
+  const resetButton = createButton('Reset Form', (e) => {
+    console.log("Reset Form button clicked");
+    // For small screens, ensure the click doesn't cause issues
+    if (window.innerWidth < 400 && e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     form.reset();
     marginLabel.textContent = 'Target Profit Margin: 25%';
     document.getElementById('quote-result-section').innerHTML = '';
+    return false;
   }, 'secondary');
   
   buttonsRow.appendChild(generateButton);
@@ -3511,15 +3532,49 @@ function createAutomotiveQuoteForm() {
  * @param {Event} e - Form submission event
  */
 function handleAutoQuoteFormSubmit(e) {
-  // Prevent form submission which causes page refresh on mobile
+  console.log("Quote form submit handler triggered");
+  
+  // Always prevent form submission which causes page refresh on mobile
   if (e && e.preventDefault) {
+    console.log("Preventing default form submission");
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
   }
   
-  // Get form data from the auto-quote-form
-  const form = document.getElementById('auto-quote-form');
+  // Check if we're on a foldable device
+  const isFoldable = window.innerWidth < 400;
+  
+  // Look for the form using multiple IDs since we renamed it for foldable devices
+  let form = document.getElementById('auto-quote-form');
+  
+  if (!form && isFoldable) {
+    console.log("Form not found with standard ID, checking foldable ID");
+    form = document.getElementById('auto-quote-form-zfold');
+  }
+  
+  if (!form) {
+    console.log("Form still not found, looking for any available form");
+    // As a last resort, try to find the form from the event target
+    if (e && e.target && e.target.tagName === 'FORM') {
+      form = e.target;
+    } else if (e && e.target) {
+      // Try to find the closest form to the event target
+      let element = e.target;
+      while (element && element.tagName !== 'FORM') {
+        element = element.parentElement;
+      }
+      form = element;
+    }
+  }
+  
+  if (!form) {
+    console.error("Cannot find form element by any method");
+    showToast('Error: Form not found. Please try again.', 'error');
+    return;
+  }
+  
+  console.log("Found form, processing submission");
   const formData = new FormData(form);
   
   // Basic validation
