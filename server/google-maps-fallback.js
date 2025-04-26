@@ -4,7 +4,8 @@
  * It creates a more reliable dropdown UI with better positioning and visibility
  */
 
-module.exports = function generateFallbackScript() {
+// Function that generates the client-side JavaScript for the fallback
+function generateFallbackScript() {
   return `
     console.log('Loading Google Maps enhanced fallback implementation');
     
@@ -367,3 +368,6 @@ module.exports = function generateFallbackScript() {
     }
   `;
 }
+
+// Export for both CommonJS and ES modules
+export default generateFallbackScript;

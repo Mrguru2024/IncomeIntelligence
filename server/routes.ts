@@ -5263,8 +5263,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Import our clean fallback implementation from a separate JS file
       // This avoids having a large amount of JS code in our TypeScript file
-      const generateFallbackScript = require('./google-maps-fallback.js');
-      const scriptContent = generateFallbackScript();
+      // Use dynamic import for TypeScript compatibility
+      const fallbackModule = await import('./google-maps-fallback.js');
+      const scriptContent = fallbackModule.default();
       
       res.setHeader('Content-Type', 'application/javascript');
       res.send(scriptContent);
