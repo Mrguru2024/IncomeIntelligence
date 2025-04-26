@@ -418,12 +418,19 @@ function loadGooglePlacesAPI(callback) {
   
   // Fetch API key from server environment variable (more secure than hardcoding)
   fetch('/api/google-maps-key')
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch API key: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
     .then(data => {
       if (!data.key) {
         console.error('Google Maps API key is not configured on the server');
         return;
       }
+      
+      console.log('Successfully retrieved Maps API key, initializing Google Places API');
       
       // Create the script element
       const script = document.createElement('script');
@@ -440,8 +447,8 @@ function loadGooglePlacesAPI(callback) {
         if (callback) callback();
       };
       
-      script.onerror = () => {
-        console.error('Failed to load Google Places API');
+      script.onerror = (e) => {
+        console.error('Failed to load Google Places API:', e);
       };
       
       // Add the script to the document
