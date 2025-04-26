@@ -440,12 +440,13 @@ function renderInvoiceUI(container, invoices) {
   makeTableResponsive();
 }
 
-// Helper function to ensure table is responsive on mobile
+// Helper function to ensure table is responsive on mobile and foldable devices
 function makeTableResponsive() {
-  // Only apply these changes on mobile
+  // Check for different device types
+  const isFoldableDevice = window.innerWidth < 400;
   const isMobile = window.innerWidth < 768;
   
-  if (isMobile) {
+  if (isMobile || isFoldableDevice) {
     // Get the table
     const table = document.querySelector('.invoices-container table');
     if (!table) return;
@@ -454,20 +455,54 @@ function makeTableResponsive() {
     table.style.display = 'block';
     table.style.overflowX = 'auto';
     
+    // Apply specific styles for foldable devices
+    if (isFoldableDevice) {
+      console.log("Applying foldable device optimizations to invoice table");
+      table.style.fontSize = '13px';
+      
+      // Add more compact container style for foldable
+      const container = document.querySelector('.invoices-container');
+      if (container) {
+        container.style.padding = '8px';
+      }
+    }
+    
     // Handle column visibility for small screens
     const allRows = table.querySelectorAll('tr');
     allRows.forEach(row => {
-      // Hide the date column (4th column) on mobile
+      // Hide date column on all mobile devices
       const dateCell = row.children[3];
       if (dateCell) {
         dateCell.style.display = 'none';
+      }
+      
+      // For foldable devices, hide the status column as well
+      if (isFoldableDevice) {
+        const statusCell = row.children[4];
+        if (statusCell) {
+          statusCell.style.display = 'none';
+        }
+        
+        // Make client name column narrower on foldable
+        const clientCell = row.children[1];
+        if (clientCell) {
+          clientCell.style.maxWidth = '80px';
+          clientCell.style.overflow = 'hidden';
+          clientCell.style.textOverflow = 'ellipsis';
+          clientCell.style.whiteSpace = 'nowrap';
+        }
       }
     });
     
     // Make action buttons scrollable in their cell
     const actionCells = table.querySelectorAll('td:last-child');
     actionCells.forEach(cell => {
-      cell.style.maxWidth = '100px';
+      // Smaller action area for foldable
+      if (isFoldableDevice) {
+        cell.style.maxWidth = '80px';
+      } else {
+        cell.style.maxWidth = '100px';
+      }
       cell.style.overflow = 'auto';
     });
   }
@@ -541,11 +576,31 @@ function openCreateInvoiceModal() {
         <label style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Invoice Items</label>
         <div id="invoice-items" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 12px; margin-bottom: 8px;">
           <div class="invoice-item" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
-            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-              <input type="text" name="description[]" placeholder="Description" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
-              <input type="number" name="quantity[]" placeholder="Quantity" min="1" value="1" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
-              <input type="number" name="price[]" placeholder="Price" min="0" step="0.01" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
-            </div>
+            <script>
+              // Check if we're on a foldable device
+              const isFoldableDevice = window.innerWidth < 400;
+              
+              // Document write the appropriate grid based on device size
+              if (isFoldableDevice) {
+                document.write(`
+                  <div style="display: grid; grid-template-rows: auto auto auto; gap: 6px;">
+                    <input type="text" name="description[]" placeholder="Description" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" required>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                      <input type="number" name="quantity[]" placeholder="Qty" min="1" value="1" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" required>
+                      <input type="number" name="price[]" placeholder="Price" min="0" step="0.01" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" required>
+                    </div>
+                  </div>
+                `);
+              } else {
+                document.write(`
+                  <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                    <input type="text" name="description[]" placeholder="Description" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+                    <input type="number" name="quantity[]" placeholder="Quantity" min="1" value="1" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+                    <input type="number" name="price[]" placeholder="Price" min="0" step="0.01" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
+                  </div>
+                `);
+              }
+            </script>
           </div>
         </div>
         <button type="button" id="add-item-btn" style="width: 100%; padding: 8px; background-color: #f3f4f6; border: 1px dashed #d1d5db; border-radius: 6px; color: #6b7280; cursor: pointer;">

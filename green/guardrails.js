@@ -513,11 +513,26 @@ function renderAddLimitForm() {
   form.style.display = 'grid';
   form.style.gap = '16px';
   
-  // Row 1: Category and Period selects
+  // Row 1: Category and Period selects - improved for foldable devices
   const row1 = document.createElement('div');
   row1.style.display = 'grid';
-  row1.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
-  row1.style.gap = '16px';
+  
+  // Special handling for foldable devices
+  const isFoldableDevice = window.innerWidth < 400;
+  
+  if (isFoldableDevice) {
+    console.log("Using stacked layout for form fields on foldable device");
+    row1.style.gridTemplateColumns = '1fr'; // Single column for foldable devices
+    row1.style.gap = '12px'; // Smaller gap for foldable devices
+  } else if (window.innerWidth < 640) {
+    // Mobile but not foldable
+    row1.style.gridTemplateColumns = '1fr'; // Single column for mobile
+    row1.style.gap = '16px';
+  } else {
+    // Tablets and above
+    row1.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
+    row1.style.gap = '16px';
+  }
   
   // Category select
   const categoryGroup = document.createElement('div');

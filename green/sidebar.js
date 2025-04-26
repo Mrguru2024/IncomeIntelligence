@@ -737,9 +737,14 @@ export function toggleSidebar() {
   const isMobile = checkMobile();
   const isFoldable = checkFoldable();
   
-  // Adjust width specifically for foldable devices
+  // Adjust width specifically for foldable devices with dynamic calculation
   if (isFoldable) {
-    sidebar.style.width = '250px'; // Slightly narrower for foldable devices
+    // For foldable devices, calculate width based on screen width
+    // This makes it responsive even in different fold states
+    const screenWidth = window.innerWidth;
+    const idealWidth = Math.min(screenWidth * 0.85, 250); // 85% of screen width, max 250px
+    console.log(`Foldable device detected: screen width ${screenWidth}px, setting sidebar width to ${idealWidth}px`);
+    sidebar.style.width = `${idealWidth}px`; // Dynamic width for foldable devices
   } else if (isMobile) {
     sidebar.style.width = '280px';
   }
