@@ -2774,19 +2774,6 @@ function generateQuote(quoteData) {
   if (jobType === 'plumber' || jobType === 'electrician' || jobType === 'hvac') {
     // Licensed trade services often require more technical expertise 
     serviceTypeMultiplier = 1.10; // 10% premium for licensed trades
-  } else if (jobType === 'photographer' || jobType === 'videographer') {
-    // Photography and videography services have equipment costs and post-processing time
-    serviceTypeMultiplier = 1.15; // 15% premium for creative services with equipment
-    specialMaterialsPercentage = 0.05; // 5% additional for media storage/delivery
-    additionalFees += 25; // Media processing fee
-  } else if (jobType === 'hair_stylist' || jobType === 'makeup_artist' || jobType === 'esthetician') {
-    // Beauty services often require specialized products
-    serviceTypeMultiplier = 1.05; // 5% premium for specialized beauty services
-    specialMaterialsPercentage = 0.15; // 15% additional for high-quality products
-  } else if (jobType === 'graphic_designer' || jobType === 'web_designer' || jobType === 'illustrator') {
-    // Design services have different hourly structures
-    serviceTypeMultiplier = 1.20; // 20% premium for creative professional services
-    specialMaterialsPercentage = 0.02; // 2% for software/licensing
     
     // Check for emergency service rate for critical utilities
     if (emergency) {
@@ -2794,28 +2781,31 @@ function generateQuote(quoteData) {
       additionalFees += 50; // Emergency response fee for critical services
     }
   } 
+  else if (jobType === 'photographer' || jobType === 'videographer') {
+    // Creative services with equipment costs and post-processing time
+    serviceTypeMultiplier = 1.15; // 15% premium for creative services with equipment
+    specialMaterialsPercentage = 0.05; // 5% additional for media storage/delivery
+    additionalFees += 75; // Media processing & equipment fee
+  } 
+  else if (jobType === 'hair_stylist' || jobType === 'makeup_artist' || jobType === 'esthetician') {
+    // Beauty services often require specialized products
+    serviceTypeMultiplier = 1.05; // 5% premium for specialized beauty services
+    specialMaterialsPercentage = 0.15; // 15% additional for high-quality products
+  } 
+  else if (jobType === 'graphic_designer' || jobType === 'web_designer' || jobType === 'illustrator') {
+    // Design services have different hourly structures
+    serviceTypeMultiplier = 1.20; // 20% premium for creative professional services
+    specialMaterialsPercentage = 0.02; // 2% for software/licensing
+  } 
   else if (jobType === 'general_contractor') {
     // General contractors need to cover subcontractor coordination
     serviceTypeMultiplier = 1.15; // 15% premium for project management
     specialMaterialsPercentage = 0.05; // 5% materials procurement fee
   }
-  else if (jobType === 'photographer' || jobType === 'videographer') {
-    // Creative services with equipment costs
-    serviceTypeMultiplier = 1.0; // Base rate already accounts for service
-    additionalFees += 75; // Equipment fee
-  }
-  else if (jobType === 'graphic_designer' || jobType === 'web_designer') {
-    // Design services with rights/licensing considerations
-    serviceTypeMultiplier = 1.15; // 15% premium for commercial rights
-  }
-  else if (jobType === 'hair_stylist' || jobType === 'makeup_artist' || jobType === 'esthetician') {
-    // Beauty services with product usage
-    serviceTypeMultiplier = 1.05; // 5% premium for beauty services
-    specialMaterialsPercentage = 0.10; // 10% product usage fee
-  }
   else if (jobType === 'event_planner' || jobType === 'caterer' || jobType === 'dj') {
     // Event services with time sensitivity
     serviceTypeMultiplier = 1.08; // 8% premium for event services
+    additionalFees += 35; // Event coordination fee
   }
   else {
     // Standard services get the regular emergency fee
@@ -6378,6 +6368,7 @@ function createTierCard(tierData, valueProps, isRecommended, serviceType) {
       
       // Create different messages based on service type
       let serviceMessage = '';
+      // Auto service types
       if (['all_keys_lost', 'duplicate_key', 'ignition_repair'].includes(serviceType)) {
         serviceMessage = 'Includes specialized key programming and security system diagnostics.';
       } 
@@ -6389,6 +6380,19 @@ function createTierCard(tierData, valueProps, isRecommended, serviceType) {
       }
       else if (['window_tinting', 'sound_system', 'vehicle_wrap'].includes(serviceType)) {
         serviceMessage = 'Includes premium materials and specialized installation equipment.';
+      }
+      // Professional service types
+      else if (['photographer', 'videographer'].includes(serviceType)) {
+        serviceMessage = 'Includes professional equipment, image processing, and media delivery.';
+      }
+      else if (['hair_stylist', 'makeup_artist', 'esthetician'].includes(serviceType)) {
+        serviceMessage = 'Includes premium beauty products and specialized treatments.';
+      }
+      else if (['graphic_designer', 'web_designer', 'illustrator'].includes(serviceType)) {
+        serviceMessage = 'Includes licensed software use, commercial rights, and multiple revisions.';
+      }
+      else if (['event_planner', 'caterer', 'dj'].includes(serviceType)) {
+        serviceMessage = 'Includes planning meetings, vendor coordination, and day-of support.';
       }
       else {
         serviceMessage = 'Includes service-specific tools and materials for optimal results.';
