@@ -391,6 +391,7 @@ const stateToRegion = {
 
 // Regional market rates for different job types
 const marketRates = {
+  // Trade services rates
   "locksmith": {
     "northeast": 95,
     "midwest": 75,
@@ -446,6 +447,103 @@ const marketRates = {
     "southeast": 65,
     "southwest": 75,
     "west": 90
+  },
+  
+  // Beauty and wellness service rates
+  "hair_stylist": {
+    "northeast": 90,
+    "midwest": 75,
+    "southeast": 70,
+    "southwest": 80,
+    "west": 95
+  },
+  "makeup_artist": {
+    "northeast": 125,
+    "midwest": 95,
+    "southeast": 85,
+    "southwest": 95,
+    "west": 150
+  },
+  "nail_technician": {
+    "northeast": 75,
+    "midwest": 60,
+    "southeast": 55,
+    "southwest": 65,
+    "west": 85
+  },
+  "esthetician": {
+    "northeast": 105,
+    "midwest": 85,
+    "southeast": 80,
+    "southwest": 90,
+    "west": 115
+  },
+  "massage_therapist": {
+    "northeast": 110,
+    "midwest": 90,
+    "southeast": 85,
+    "southwest": 95,
+    "west": 120
+  },
+  
+  // Creative service rates
+  "photographer": {
+    "northeast": 150,
+    "midwest": 120,
+    "southeast": 110,
+    "southwest": 125,
+    "west": 175
+  },
+  "videographer": {
+    "northeast": 175,
+    "midwest": 145,
+    "southeast": 135,
+    "southwest": 150,
+    "west": 200
+  },
+  "graphic_designer": {
+    "northeast": 125,
+    "midwest": 95,
+    "southeast": 85,
+    "southwest": 100,
+    "west": 140
+  },
+  "web_designer": {
+    "northeast": 135,
+    "midwest": 105,
+    "southeast": 95,
+    "southwest": 110,
+    "west": 150
+  },
+  "illustrator": {
+    "northeast": 115,
+    "midwest": 90,
+    "southeast": 80,
+    "southwest": 95,
+    "west": 130
+  },
+  
+  // Event service rates
+  "event_planner": {
+    "northeast": 110,
+    "midwest": 90,
+    "southeast": 85,
+    "southwest": 95,
+    "west": 125
+  },
+  "caterer": {
+    "northeast": 95,
+    "midwest": 75,
+    "southeast": 70,
+    "southwest": 80,
+    "west": 100
+  },
+  "dj": {
+    "northeast": 125,
+    "midwest": 100,
+    "southeast": 95,
+    "southwest": 110,
+    "west": 140
   }
 };
 
@@ -2093,8 +2191,9 @@ function createQuoteForm() {
   const jobDetailsSection = createSectionHeader('Job Details', 'Provide information about the job to get an accurate quote');
   form.appendChild(jobDetailsSection);
   
-  // Job type select
+  // Job type select with expanded options including creative services
   const jobTypeOptions = [
+    // Trade services
     { value: 'locksmith', label: 'Locksmith Services' },
     { value: 'plumber', label: 'Plumbing Services' },
     { value: 'electrician', label: 'Electrical Services' },
@@ -2102,7 +2201,26 @@ function createQuoteForm() {
     { value: 'hvac', label: 'HVAC Services' },
     { value: 'painter', label: 'Painting Services' },
     { value: 'general_contractor', label: 'General Contracting' },
-    { value: 'landscaper', label: 'Landscaping Services' }
+    { value: 'landscaper', label: 'Landscaping Services' },
+    
+    // Beauty and wellness services
+    { value: 'hair_stylist', label: 'Hair Styling Services' },
+    { value: 'makeup_artist', label: 'Makeup Artist Services' },
+    { value: 'nail_technician', label: 'Nail Technician Services' },
+    { value: 'esthetician', label: 'Esthetician/Skincare Services' },
+    { value: 'massage_therapist', label: 'Massage Therapy' },
+    
+    // Creative services
+    { value: 'photographer', label: 'Photography Services' },
+    { value: 'videographer', label: 'Videography Services' },
+    { value: 'graphic_designer', label: 'Graphic Design Services' },
+    { value: 'web_designer', label: 'Web Design Services' },
+    { value: 'illustrator', label: 'Illustration Services' },
+    
+    // Event services
+    { value: 'event_planner', label: 'Event Planning Services' },
+    { value: 'caterer', label: 'Catering Services' },
+    { value: 'dj', label: 'DJ/Entertainment Services' }
   ];
   const jobTypeSelect = createSelect('jobType', jobTypeOptions);
   form.appendChild(createFormGroup('Service Type', jobTypeSelect));
@@ -3592,11 +3710,29 @@ function createAutomotiveQuoteForm() {
   
   // Service type
   const serviceOptions = [
+    // Standard automotive services
+    { value: 'oil_change', label: 'Oil Change' },
+    { value: 'brake_service', label: 'Brake Service' },
+    { value: 'tire_service', label: 'Tire Service/Rotation' },
+    { value: 'engine_repair', label: 'Engine Repair' },
+    { value: 'transmission', label: 'Transmission Service' },
+    { value: 'electrical', label: 'Electrical Repair' },
+    { value: 'ac_service', label: 'A/C Service' },
+    
+    // Security and key services
     { value: 'all_keys_lost', label: 'All Keys Lost' },
     { value: 'duplicate_key', label: 'Duplicate Key' },
     { value: 'ignition_repair', label: 'Ignition Repair' },
     { value: 'lock_rekey', label: 'Lock Rekey' },
-    { value: 'ecu_reflash', label: 'ECU Reflash' }
+    { value: 'ecu_reflash', label: 'ECU Reflash' },
+    
+    // Customization services
+    { value: 'body_repair', label: 'Body Repair/Customization' },
+    { value: 'detailing', label: 'Pro Detailing' },
+    { value: 'paint_work', label: 'Custom Paint Work' },
+    { value: 'window_tinting', label: 'Window Tinting' },
+    { value: 'sound_system', label: 'Sound System Installation' },
+    { value: 'vehicle_wrap', label: 'Vehicle Wrap Installation' }
   ];
   const serviceSelect = createSelect('service_type', serviceOptions);
   form.appendChild(createFormGroup('Service Type', serviceSelect));
