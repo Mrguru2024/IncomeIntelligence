@@ -361,6 +361,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve static assets from green folder directly
   app.use(express.static(path.join(process.cwd(), 'green')));
   
+  // Register user profile routes
+  app.use(userProfileRoutes);
+  console.log('User profile routes registered');
+  
   // Serve GREEN version directly at root path
   app.get("/", (req, res) => {
     const greenHtmlPath = path.join(process.cwd(), 'green', 'index.html');

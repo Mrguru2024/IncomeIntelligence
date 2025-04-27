@@ -1,148 +1,148 @@
-import { Router } from 'express';
+import express from 'express';
+import { z } from 'zod';
+import { userProfileSchema, updateUserProfileSchema } from '@shared/user-profile-schema';
 import { userProfileService } from '../services/user-profile-service';
-import { updateUserProfileSchema } from '@shared/user-profile-schema';
 
-const router = Router();
+const router = express.Router();
 
-// Get user profile
+// Get user profile by ID
 router.get('/api/user-profile/:userId', async (req, res) => {
   try {
-    const { userId } = req.params;
-    
-    if (!userId) {
-      return res.status(400).json({ error: 'User ID is required' });
-    }
+    const userId = req.params.userId;
     
     const profile = await userProfileService.getProfile(userId);
     
     if (!profile) {
-      return res.status(404).json({ error: 'User profile not found' });
+      return res.status(404).json({ message: 'User profile not found' });
     }
     
     res.json(profile);
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    res.status(500).json({ error: 'Failed to fetch user profile' });
+    res.status(500).json({ message: 'Failed to fetch user profile' });
   }
 });
 
-// Create user profile
+// Create a new user profile
 router.post('/api/user-profile/:userId', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { body } = req;
-    
-    if (!userId) {
-      return res.status(400).json({ error: 'User ID is required' });
-    }
+    const userId = req.params.userId;
     
     // Check if profile already exists
     const existingProfile = await userProfileService.getProfile(userId);
     
     if (existingProfile) {
-      return res.status(409).json({ error: 'User profile already exists' });
+      return res.status(409).json({ 
+        message: 'Profile already exists, use PATCH to update',
+        profile: existingProfile
+      });
     }
     
-    const newProfile = await userProfileService.createProfile(userId, body);
+    // Create a new profile
+    const profileData = {
+      userId,
+      ...req.body
+    };
+    
+    try {
+      // Validate with schema
+      userProfileSchema.parse(profileData);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: 'Invalid profile data',
+          errors: err.errors
+        });
+      }
+    }
+    
+    const newProfile = await userProfileService.createProfile(userId, req.body);
+    
     res.status(201).json(newProfile);
   } catch (error) {
     console.error('Error creating user profile:', error);
-    res.status(500).json({ error: 'Failed to create user profile' });
+    res.status(500).json({ message: 'Failed to create user profile' });
   }
 });
 
-// Update user profile
+// Update an existing user profile
 router.patch('/api/user-profile/:userId', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { body } = req;
-    
-    if (!userId) {
-      return res.status(400).json({ error: 'User ID is required' });
-    }
-    
-    // Validate the update data against the schema
-    try {
-      updateUserProfileSchema.parse(body);
-    } catch (validationError) {
-      return res.status(400).json({ error: 'Invalid profile data', details: validationError });
-    }
+    const userId = req.params.userId;
     
     // Check if profile exists
     const existingProfile = await userProfileService.getProfile(userId);
     
     if (!existingProfile) {
-      // Create a new profile if it doesn't exist
-      const newProfile = await userProfileService.createProfile(userId, body);
-      return res.status(201).json(newProfile);
+      return res.status(404).json({ message: 'User profile not found' });
     }
     
-    // Update the existing profile
-    const updatedProfile = await userProfileService.updateProfile(userId, body);
+    try {
+      // Validate update data with schema
+      updateUserProfileSchema.parse(req.body);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: 'Invalid profile data',
+          errors: err.errors
+        });
+      }
+    }
+    
+    // Update the profile
+    const updatedProfile = await userProfileService.updateProfile(userId, req.body);
+    
     res.json(updatedProfile);
   } catch (error) {
     console.error('Error updating user profile:', error);
-    res.status(500).json({ error: 'Failed to update user profile' });
+    res.status(500).json({ message: 'Failed to update user profile' });
   }
 });
 
-// Add quote to user profile history
+// Add a quote to the user's history
 router.post('/api/user-profile/:userId/quotes', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { jobType, totalAmount, jobSubtype, margin } = req.body;
-    
-    if (!userId) {
-      return res.status(400).json({ error: 'User ID is required' });
-    }
-    
-    if (!jobType || typeof totalAmount !== 'number') {
-      return res.status(400).json({ error: 'Job type and total amount are required' });
-    }
+    const userId = req.params.userId;
     
     // Check if profile exists
     const existingProfile = await userProfileService.getProfile(userId);
     
     if (!existingProfile) {
-      // Create a new profile if it doesn't exist
-      await userProfileService.createProfile(userId);
+      return res.status(404).json({ message: 'User profile not found' });
     }
     
-    // Add the quote to history
+    // Validate quote data
+    const quoteSchema = z.object({
+      jobType: z.string(),
+      jobSubtype: z.string().optional(),
+      totalAmount: z.number(),
+      margin: z.number().optional()
+    });
+    
+    try {
+      quoteSchema.parse(req.body);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: 'Invalid quote data',
+          errors: err.errors
+        });
+      }
+    }
+    
+    // Add quote to history
     const updatedProfile = await userProfileService.addQuoteToHistory(
-      userId,
-      jobType,
-      totalAmount,
-      jobSubtype,
-      margin
+      userId, 
+      req.body.jobType, 
+      req.body.totalAmount, 
+      req.body.jobSubtype, 
+      req.body.margin
     );
     
     res.json(updatedProfile);
   } catch (error) {
-    console.error('Error adding quote to user profile:', error);
-    res.status(500).json({ error: 'Failed to add quote to user profile' });
-  }
-});
-
-// Delete user profile
-router.delete('/api/user-profile/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    
-    if (!userId) {
-      return res.status(400).json({ error: 'User ID is required' });
-    }
-    
-    const result = await userProfileService.deleteProfile(userId);
-    
-    if (!result) {
-      return res.status(404).json({ error: 'User profile not found' });
-    }
-    
-    res.status(204).send();
-  } catch (error) {
-    console.error('Error deleting user profile:', error);
-    res.status(500).json({ error: 'Failed to delete user profile' });
+    console.error('Error adding quote to history:', error);
+    res.status(500).json({ message: 'Failed to add quote to history' });
   }
 });
 

@@ -1,21 +1,26 @@
-import { db } from '../db';
+import * as fs from 'fs';
+import * as path from 'path';
 import { UpdateUserProfile, UserProfile, userProfileSchema } from '@shared/user-profile-schema';
 
 class UserProfileService {
   private profiles: Map<string, UserProfile> = new Map();
+  private profilesFilePath: string;
   
   constructor() {
+    // Set up file path for storing profiles
+    this.profilesFilePath = path.join(process.cwd(), 'user-profiles.json');
+    
     // Initialize with any existing data from persistent storage
     this.loadProfiles();
   }
   
   private async loadProfiles() {
     try {
-      // Try to load from database if available
-      // For the MemStorage implementation, we'll use localStorage in memory
-      const storedProfiles = localStorage.getItem('userProfiles');
-      if (storedProfiles) {
-        const parsedProfiles = JSON.parse(storedProfiles);
+      // Try to load from file if available
+      if (fs.existsSync(this.profilesFilePath)) {
+        const fileData = fs.readFileSync(this.profilesFilePath, 'utf8');
+        const parsedProfiles = JSON.parse(fileData);
+        
         if (Array.isArray(parsedProfiles)) {
           parsedProfiles.forEach(profile => {
             try {
@@ -27,6 +32,9 @@ class UserProfileService {
             }
           });
         }
+        console.log(`Loaded ${this.profiles.size} user profiles from file`);
+      } else {
+        console.log('No user profiles file found, starting with empty profiles');
       }
     } catch (error) {
       console.error('Error loading user profiles:', error);
@@ -35,9 +43,14 @@ class UserProfileService {
   
   private async saveProfiles() {
     try {
-      // Save to persistent storage
+      // Save to file
       const profilesArray = Array.from(this.profiles.values());
-      localStorage.setItem('userProfiles', JSON.stringify(profilesArray));
+      fs.writeFileSync(
+        this.profilesFilePath, 
+        JSON.stringify(profilesArray, null, 2),
+        'utf8'
+      );
+      console.log(`Saved ${profilesArray.length} user profiles to file`);
     } catch (error) {
       console.error('Error saving user profiles:', error);
     }
@@ -114,15 +127,19 @@ class UserProfileService {
     };
     
     // Update preferred job types based on frequency
-    const jobTypeCounts = new Map<string, number>();
+    // Use a regular object instead of Map to avoid TypeScript issues
+    const jobTypeCounts: {[key: string]: number} = {};
     
     updatedProfile.quoteHistory?.forEach(quote => {
-      const count = jobTypeCounts.get(quote.jobType) || 0;
-      jobTypeCounts.set(quote.jobType, count + 1);
+      const jobType = quote.jobType;
+      jobTypeCounts[jobType] = (jobTypeCounts[jobType] || 0) + 1;
     });
     
+    // Convert to array of [jobType, count] pairs
+    const jobTypeEntries = Object.entries(jobTypeCounts);
+    
     // Sort job types by frequency and take the top 5
-    const sortedJobTypes = [...jobTypeCounts.entries()]
+    const sortedJobTypes = jobTypeEntries
       .sort((a, b) => b[1] - a[1])
       .map(entry => entry[0])
       .slice(0, 5);
