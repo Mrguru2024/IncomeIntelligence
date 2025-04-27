@@ -1224,15 +1224,26 @@ function renderQuoteGeneratorPage(containerId) {
  */
 function initGoogleMapsAutocomplete() {
   try {
-    // Check if Google Maps API is loaded
-    if (typeof google === 'undefined' || typeof google.maps === 'undefined' || 
-        typeof google.maps.places === 'undefined') {
-      console.log('Google Maps Places API not loaded yet, will try again shortly');
-      
-      // Try again in 1 second
+    // Debug: Check Google Maps API status
+    if (typeof google === 'undefined') {
+      console.log('Google object is undefined');
+      setTimeout(initGoogleMapsAutocomplete, 1000);
+      return;
+    } else if (typeof google.maps === 'undefined') {
+      console.log('Google Maps API not loaded yet');
+      setTimeout(initGoogleMapsAutocomplete, 1000);
+      return;
+    } else if (typeof google.maps.places === 'undefined') {
+      console.log('Google Maps Places library not loaded yet');
+      setTimeout(initGoogleMapsAutocomplete, 1000);
+      return;
+    } else if (typeof google.maps.places.Autocomplete === 'undefined') {
+      console.log('Google Maps Autocomplete not available');
       setTimeout(initGoogleMapsAutocomplete, 1000);
       return;
     }
+    
+    console.log('SUCCESS: Google Maps Places API loaded successfully!');
 
     const addressInput = document.getElementById('auto-address-input');
     if (!addressInput) {
@@ -1240,18 +1251,21 @@ function initGoogleMapsAutocomplete() {
       return;
     }
 
-    console.log('Initializing Google Maps autocomplete for address input');
+    console.log('Initializing Google Maps autocomplete for address input:', addressInput);
     
     // Create the autocomplete object
     const autocomplete = new google.maps.places.Autocomplete(addressInput, {
       types: ['address'],
       componentRestrictions: { country: 'us' },
-      fields: ['formatted_address', 'address_components'] // Use fields in options instead of setFields method
+      fields: ['formatted_address', 'address_components']
     });
+    
+    console.log('Google Maps Autocomplete initialized successfully');
     
     // Add listener for place changed event
     autocomplete.addListener('place_changed', function() {
       const place = autocomplete.getPlace();
+      console.log('Selected place:', place);
       
       if (!place.address_components) {
         console.error('No address details available for this place');
