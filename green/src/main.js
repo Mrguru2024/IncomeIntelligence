@@ -3686,8 +3686,9 @@ function renderPageContent(container) {
           console.log("Created app-container for quote generator:", appContainer);
           
           // Load the script using dynamic script loading instead of ES modules
+          // Use the simplified quote generator instead
           const scriptElement = document.createElement('script');
-          scriptElement.src = '../quote-generator.js'; 
+          scriptElement.src = '../quote-generator-simple.js'; 
           scriptElement.async = true;
           
           // When script loads, call the global function
@@ -3695,10 +3696,10 @@ function renderPageContent(container) {
             console.log('Quote Generator script loaded successfully');
             
             // Check if the global object is available
-            if (window.QuoteGenerator && typeof window.QuoteGenerator.renderQuoteGeneratorPage === 'function') {
+            if (window.QuoteGenerator && typeof window.QuoteGenerator.renderPage === 'function') {
               try {
                 // Call the global function
-                window.QuoteGenerator.renderQuoteGeneratorPage('app-container');
+                window.QuoteGenerator.renderPage('app-container');
                 console.log('Quote Generator page rendered successfully using global object');
               } catch (renderError) {
                 console.error('Error rendering Quote Generator:', renderError);
