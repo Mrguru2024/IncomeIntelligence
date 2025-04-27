@@ -7800,5 +7800,6 @@ function showTierBreakdown(tierData) {
   breakdownSection.scrollIntoView({ behavior: 'smooth' });
 } // End of renderQuoteGeneratorPage function
 
-// Export the function using ES Module syntax
-export { renderQuoteGeneratorPage };
+// The simplest possible export that works with dynamic import
+const exportModule = { renderQuoteGeneratorPage };
+export default exportModule;
