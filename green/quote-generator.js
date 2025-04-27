@@ -537,18 +537,160 @@ function handleGenerateQuote() {
       targetMargin: parseInt(targetMarginInput.value)
     };
     
-    // Generate the quote
-    const quoteResult = generateQuote(formData);
+    // Generate multiple quotes
+    const quotes = generateMultiQuote(formData);
     
     // Display the results
-    displayQuoteResults(quoteResult);
+    displayMultiQuoteResults(quotes);
     
     // Show success message
-    showToast('Quote generated successfully', 'success');
+    showToast('Quotes generated successfully', 'success');
   } catch (error) {
-    console.error('Error generating quote:', error);
-    showToast('Error generating quote: ' + error.message, 'error');
+    console.error('Error generating quotes:', error);
+    showToast('Error generating quotes: ' + error.message, 'error');
   }
+}
+
+/**
+ * Generate multiple quotes with basic, standard, and premium tiers
+ * @param {Object} data - The base quote data
+ * @returns {Object} Object containing three quote options
+ */
+function generateMultiQuote(data) {
+  // Extract state from location
+  const state = getStateFromLocation(data.location);
+  
+  // Get region and rates
+  const region = stateToRegion[state] || 'northeast';
+  const baseRate = marketRates[data.jobType]?.[region] || 85; // Default rate if not found
+  const taxRate = stateTaxRates[state] || 0.06; // Default 6% if not found
+  
+  // Common data for all quotes
+  const commonData = {
+    jobType: data.jobType,
+    jobTypeDisplay: getJobTypeDisplay(data.jobType),
+    location: data.location,
+    state,
+    region,
+    emergency: data.emergency,
+    taxRate
+  };
+  
+  // Generate the three quote options
+  const basicQuote = generateQuoteForTier('basic', data, commonData, baseRate);
+  const standardQuote = generateQuoteForTier('standard', data, commonData, baseRate);
+  const premiumQuote = generateQuoteForTier('premium', data, commonData, baseRate);
+  
+  return {
+    basic: basicQuote,
+    standard: standardQuote,
+    premium: premiumQuote,
+    commonData
+  };
+}
+
+/**
+ * Generate a quote for a specific tier
+ * @param {string} tier - The tier level (basic, standard, premium)
+ * @param {Object} data - The original form data
+ * @param {Object} commonData - Common data for all tiers
+ * @param {number} baseRate - The base hourly rate
+ * @returns {Object} The quote result for this tier
+ */
+function generateQuoteForTier(tier, data, commonData, baseRate) {
+  // Adjust parameters based on tier
+  let laborHours, laborRate, materialsCost, targetMargin;
+  
+  switch (tier) {
+    case 'basic':
+      laborHours = data.laborHours * 0.8; // 20% less time for basic
+      laborRate = baseRate * 0.9; // 10% lower rate
+      materialsCost = data.materialsCost * 0.8; // 20% cheaper materials
+      targetMargin = data.targetMargin - 5; // Lower margin
+      break;
+    case 'standard':
+      laborHours = data.laborHours; // Standard time
+      laborRate = baseRate; // Standard rate
+      materialsCost = data.materialsCost; // Standard materials
+      targetMargin = data.targetMargin; // Standard margin
+      break;
+    case 'premium':
+      laborHours = data.laborHours * 1.2; // 20% more time for premium
+      laborRate = baseRate * 1.2; // 20% higher rate
+      materialsCost = data.materialsCost * 1.5; // 50% more expensive materials
+      targetMargin = data.targetMargin + 5; // Higher margin
+      break;
+    default:
+      laborHours = data.laborHours;
+      laborRate = baseRate;
+      materialsCost = data.materialsCost;
+      targetMargin = data.targetMargin;
+  }
+  
+  // Emergency pricing adjustment
+  if (data.emergency) {
+    laborRate *= 1.5; // 50% premium for emergency service
+  }
+  
+  // Calculate costs
+  const laborCost = laborRate * laborHours;
+  const materialsTax = materialsCost * commonData.taxRate;
+  const subtotal = laborCost + materialsCost;
+  const total = subtotal + materialsTax;
+  
+  // Calculate profit
+  const targetMarginDecimal = targetMargin / 100;
+  const cost = subtotal / (1 - targetMarginDecimal);
+  const profit = total - cost;
+  const actualProfitMargin = (profit / total) * 100;
+  
+  // Generate profit assessment
+  let profitAssessment;
+  if (actualProfitMargin < 15) {
+    profitAssessment = 'Low profit margin. Consider reducing costs or increasing prices.';
+  } else if (actualProfitMargin < 25) {
+    profitAssessment = 'Acceptable profit margin, but could be improved.';
+  } else {
+    profitAssessment = 'Good profit margin. This quote should be profitable.';
+  }
+  
+  // Get tier-specific content
+  let description, features;
+  switch (tier) {
+    case 'basic':
+      description = getBasicDescription(data.jobType);
+      features = getBasicFeatures(data.jobType);
+      break;
+    case 'standard':
+      description = getStandardDescription(data.jobType);
+      features = getStandardFeatures(data.jobType);
+      break;
+    case 'premium':
+      description = getPremiumDescription(data.jobType);
+      features = getPremiumFeatures(data.jobType);
+      break;
+    default:
+      description = '';
+      features = [];
+  }
+  
+  return {
+    ...commonData,
+    tier,
+    description,
+    features,
+    laborHours,
+    laborRate,
+    laborCost,
+    materialsCost,
+    materialsTax,
+    subtotal,
+    total,
+    targetMargin,
+    actualProfitMargin,
+    profit,
+    profitAssessment
+  };
 }
 
 /**
@@ -617,6 +759,256 @@ function generateQuote(data) {
     profitAssessment,
     taxRate
   };
+}
+
+/**
+ * Display multiple quote options in the UI
+ * @param {Object} quotes - The quote options
+ */
+function displayMultiQuoteResults(quotes) {
+  const resultsContainer = document.getElementById('quote-results');
+  resultsContainer.style.display = 'block';
+  resultsContainer.innerHTML = '';
+  
+  // Create header
+  const header = document.createElement('div');
+  header.style.marginBottom = '24px';
+  
+  const title = document.createElement('h3');
+  title.textContent = 'Service Quote Options';
+  title.style.fontSize = '20px';
+  title.style.fontWeight = 'bold';
+  title.style.marginBottom = '8px';
+  
+  const subtitle = document.createElement('p');
+  subtitle.textContent = `${quotes.commonData.jobTypeDisplay} in ${quotes.commonData.location}`;
+  subtitle.style.fontSize = '16px';
+  subtitle.style.color = 'var(--color-text-secondary)';
+  
+  header.appendChild(title);
+  header.appendChild(subtitle);
+  resultsContainer.appendChild(header);
+  
+  // Create quotes container
+  const quotesContainer = document.createElement('div');
+  quotesContainer.style.display = 'flex';
+  quotesContainer.style.gap = '16px';
+  quotesContainer.style.flexWrap = 'wrap';
+  
+  // Create each quote card
+  createQuoteCard(quotes.basic, 'Basic', '#f9fafb', quotesContainer);
+  createQuoteCard(quotes.standard, 'Standard', '#f0f9ff', quotesContainer, true);
+  createQuoteCard(quotes.premium, 'Premium', '#f0f7f5', quotesContainer);
+  
+  resultsContainer.appendChild(quotesContainer);
+  
+  // Add disclaimer
+  const disclaimer = document.createElement('p');
+  disclaimer.textContent = 'All quotes are estimates and may vary based on actual job conditions. Emergency service includes a 50% premium rate.';
+  disclaimer.style.fontSize = '12px';
+  disclaimer.style.color = 'var(--color-text-secondary, #6b7280)';
+  disclaimer.style.marginTop = '24px';
+  resultsContainer.appendChild(disclaimer);
+  
+  // Scroll to results
+  resultsContainer.scrollIntoView({ behavior: 'smooth' });
+}
+
+/**
+ * Create a quote card for the specified tier
+ * @param {Object} quote - The quote data
+ * @param {string} tierName - The tier name to display
+ * @param {string} bgColor - Background color
+ * @param {HTMLElement} container - Container to append the card to
+ * @param {boolean} recommended - Whether this is the recommended option
+ */
+function createQuoteCard(quote, tierName, bgColor, container, recommended = false) {
+  // Create card
+  const card = document.createElement('div');
+  card.style.flex = '1';
+  card.style.minWidth = '280px';
+  card.style.border = recommended ? '2px solid var(--color-primary, #4F46E5)' : '1px solid var(--color-border, #e5e7eb)';
+  card.style.borderRadius = '8px';
+  card.style.overflow = 'hidden';
+  card.style.backgroundColor = bgColor;
+  card.style.boxShadow = recommended ? '0 4px 12px rgba(79, 70, 229, 0.15)' : '0 1px 3px rgba(0, 0, 0, 0.05)';
+  
+  // Card header
+  const cardHeader = document.createElement('div');
+  cardHeader.style.padding = '16px';
+  cardHeader.style.backgroundColor = recommended ? 'var(--color-primary, #4F46E5)' : '#fff';
+  cardHeader.style.borderBottom = '1px solid var(--color-border, #e5e7eb)';
+  
+  const tierTitle = document.createElement('h4');
+  tierTitle.textContent = tierName;
+  tierTitle.style.fontSize = '18px';
+  tierTitle.style.fontWeight = 'bold';
+  tierTitle.style.marginBottom = '4px';
+  tierTitle.style.color = recommended ? '#fff' : 'var(--color-text, #111827)';
+  
+  const price = document.createElement('div');
+  price.style.fontSize = '24px';
+  price.style.fontWeight = 'bold';
+  price.style.marginBottom = '8px';
+  price.style.color = recommended ? '#fff' : 'var(--color-text, #111827)';
+  price.textContent = `$${quote.total.toFixed(2)}`;
+  
+  // Recommended badge
+  if (recommended) {
+    const badge = document.createElement('span');
+    badge.textContent = 'RECOMMENDED';
+    badge.style.fontSize = '11px';
+    badge.style.fontWeight = 'bold';
+    badge.style.backgroundColor = '#ffffff';
+    badge.style.color = 'var(--color-primary, #4F46E5)';
+    badge.style.padding = '2px 8px';
+    badge.style.borderRadius = '9999px';
+    badge.style.marginLeft = '8px';
+    badge.style.display = 'inline-block';
+    badge.style.verticalAlign = 'middle';
+    tierTitle.appendChild(badge);
+  }
+  
+  const description = document.createElement('p');
+  description.textContent = quote.description;
+  description.style.fontSize = '14px';
+  description.style.color = recommended ? 'rgba(255, 255, 255, 0.9)' : 'var(--color-text-secondary, #6b7280)';
+  
+  cardHeader.appendChild(tierTitle);
+  cardHeader.appendChild(price);
+  cardHeader.appendChild(description);
+  card.appendChild(cardHeader);
+  
+  // Card body
+  const cardBody = document.createElement('div');
+  cardBody.style.padding = '16px';
+  
+  // Features list
+  const featuresList = document.createElement('ul');
+  featuresList.style.listStyleType = 'none';
+  featuresList.style.padding = '0';
+  featuresList.style.marginBottom = '16px';
+  
+  quote.features.forEach(feature => {
+    const item = document.createElement('li');
+    item.style.display = 'flex';
+    item.style.marginBottom = '8px';
+    item.style.fontSize = '14px';
+    
+    const checkIcon = document.createElement('span');
+    checkIcon.innerHTML = '✓';
+    checkIcon.style.color = 'var(--color-primary, #4F46E5)';
+    checkIcon.style.marginRight = '8px';
+    checkIcon.style.fontWeight = 'bold';
+    
+    const text = document.createElement('span');
+    text.textContent = feature;
+    
+    item.appendChild(checkIcon);
+    item.appendChild(text);
+    featuresList.appendChild(item);
+  });
+  
+  cardBody.appendChild(featuresList);
+  
+  // Cost breakdown
+  const breakdownTitle = document.createElement('h5');
+  breakdownTitle.textContent = 'Cost Breakdown';
+  breakdownTitle.style.fontSize = '14px';
+  breakdownTitle.style.fontWeight = 'bold';
+  breakdownTitle.style.marginBottom = '8px';
+  cardBody.appendChild(breakdownTitle);
+  
+  // Add breakdown items
+  const breakdownItems = [
+    {
+      label: `Labor (${quote.laborHours.toFixed(1)} hrs @ $${quote.laborRate.toFixed(2)}/hr)${quote.emergency ? ' (Emergency)' : ''}`,
+      value: quote.laborCost
+    },
+    {
+      label: 'Materials',
+      value: quote.materialsCost
+    },
+    {
+      label: `Tax (${(quote.taxRate * 100).toFixed(2)}%)`,
+      value: quote.materialsTax
+    },
+    {
+      label: 'Total',
+      value: quote.total,
+      isTotal: true
+    }
+  ];
+  
+  breakdownItems.forEach(item => {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.justifyContent = 'space-between';
+    row.style.padding = '4px 0';
+    row.style.fontSize = '13px';
+    
+    if (item.isTotal) {
+      row.style.borderTop = '1px solid var(--color-border-light, #e5e7eb)';
+      row.style.marginTop = '4px';
+      row.style.paddingTop = '8px';
+      row.style.fontWeight = 'bold';
+    }
+    
+    const label = document.createElement('span');
+    label.textContent = item.label;
+    
+    const value = document.createElement('span');
+    value.textContent = `$${item.value.toFixed(2)}`;
+    
+    row.appendChild(label);
+    row.appendChild(value);
+    cardBody.appendChild(row);
+  });
+  
+  // Actions
+  const actions = document.createElement('div');
+  actions.style.marginTop = '16px';
+  actions.style.display = 'flex';
+  actions.style.gap = '8px';
+  
+  // Select button
+  const selectButton = document.createElement('button');
+  selectButton.textContent = 'Select';
+  selectButton.style.flex = '1';
+  selectButton.style.backgroundColor = 'var(--color-primary, #4F46E5)';
+  selectButton.style.color = 'white';
+  selectButton.style.border = 'none';
+  selectButton.style.borderRadius = '6px';
+  selectButton.style.padding = '8px 16px';
+  selectButton.style.fontSize = '14px';
+  selectButton.style.fontWeight = 'bold';
+  selectButton.style.cursor = 'pointer';
+  
+  selectButton.addEventListener('click', () => {
+    displayQuoteResults(quote);
+  });
+  
+  // Print button
+  const printButton = document.createElement('button');
+  printButton.textContent = 'Print';
+  printButton.style.backgroundColor = 'transparent';
+  printButton.style.color = 'var(--color-text, #111827)';
+  printButton.style.border = '1px solid var(--color-border, #e5e7eb)';
+  printButton.style.borderRadius = '6px';
+  printButton.style.padding = '8px 16px';
+  printButton.style.fontSize = '14px';
+  printButton.style.cursor = 'pointer';
+  
+  printButton.addEventListener('click', () => {
+    printQuote(quote);
+  });
+  
+  actions.appendChild(selectButton);
+  actions.appendChild(printButton);
+  cardBody.appendChild(actions);
+  
+  card.appendChild(cardBody);
+  container.appendChild(card);
 }
 
 /**
@@ -1268,11 +1660,12 @@ function saveQuote(quote) {
     // Get existing saved quotes or initialize empty array
     const savedQuotes = JSON.parse(localStorage.getItem('savedQuotes') || '[]');
     
-    // Add a unique ID and timestamp
+    // Add a unique ID and timestamp plus tier information if available
     const quoteToSave = {
       ...quote,
       id: Date.now().toString(),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      tierName: quote.tier ? (quote.tier.charAt(0).toUpperCase() + quote.tier.slice(1)) : undefined
     };
     
     // Add to saved quotes
@@ -1360,6 +1753,30 @@ function printQuote(quote) {
           background-color: #f9f9f9;
           border-radius: 4px;
         }
+        .features-list {
+          margin-top: 20px;
+          margin-bottom: 30px;
+        }
+        .feature-item {
+          padding: 4px 0;
+          display: flex;
+        }
+        .feature-item:before {
+          content: "✓";
+          color: #4F46E5;
+          font-weight: bold;
+          margin-right: 8px;
+        }
+        .tier-badge {
+          display: inline-block;
+          padding: 3px 10px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: bold;
+          color: #4F46E5;
+          border: 1px solid #4F46E5;
+          margin-left: 8px;
+        }
         .footer {
           margin-top: 40px;
           padding-top: 20px;
@@ -1386,7 +1803,10 @@ function printQuote(quote) {
         </div>
         
         <div class="quote-info">
-          <div class="section-title">Quote Information</div>
+          <div class="section-title">
+            Quote Information
+            ${quote.tier ? `<span class="tier-badge">${quote.tier.toUpperCase()} TIER</span>` : ''}
+          </div>
           <div class="quote-info-row">
             <div><strong>Date:</strong></div>
             <div>${new Date().toLocaleDateString()}</div>
@@ -1403,11 +1823,28 @@ function printQuote(quote) {
             <div><strong>Location:</strong></div>
             <div>${quote.location}</div>
           </div>
+          ${quote.description ? `
+          <div class="quote-info-row">
+            <div><strong>Description:</strong></div>
+            <div>${quote.description}</div>
+          </div>
+          ` : ''}
         </div>
+        
+        ${quote.features && quote.features.length > 0 ? `
+        <div>
+          <div class="section-title">Service Features</div>
+          <div class="features-list">
+            ${quote.features.map(feature => `
+              <div class="feature-item">${feature}</div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
         
         <div class="section-title">Cost Breakdown</div>
         <div class="breakdown-item">
-          <div>Labor (${quote.laborHours} hours @ $${quote.laborRate.toFixed(2)}/hr)${quote.emergency ? ' (Emergency)' : ''}</div>
+          <div>Labor (${typeof quote.laborHours === 'number' ? quote.laborHours.toFixed(1) : quote.laborHours} hours @ $${quote.laborRate.toFixed(2)}/hr)${quote.emergency ? ' (Emergency)' : ''}</div>
           <div>$${quote.laborCost.toFixed(2)}</div>
         </div>
         <div class="breakdown-item">
@@ -1614,16 +2051,418 @@ function getJobTypeDisplay(jobType) {
   return displayNames[jobType] || jobType;
 }
 
+/**
+ * Get description for basic tier services
+ * @param {string} jobType - Type of job/service
+ * @returns {string} Description for basic tier service
+ */
+function getBasicDescription(jobType) {
+  const descriptions = {
+    'locksmith': 'Essential locksmith service with standard locks and basic security options.',
+    'plumber': 'Basic plumbing service for standard fixtures and simple repairs.',
+    'electrician': 'Essential electrical work with standard components and basic troubleshooting.',
+    'carpenter': 'Standard carpentry work with basic materials and essential construction.',
+    'hvac': 'Basic HVAC maintenance and simple repairs for residential systems.',
+    'painter': 'Standard painting service using basic quality paints and minimal preparation.',
+    'general_contractor': 'Basic contracting services with standard materials and essential construction techniques.',
+    'landscaper': 'Simple landscaping work with basic design and standard plants.',
+    'roofer': 'Basic roof repair with standard materials and essential waterproofing.',
+    'flooring_specialist': 'Standard flooring installation with basic materials and minimal preparation.',
+    'window_installer': 'Basic window installation with standard frames and essential weatherproofing.',
+    'appliance_repair': 'Simple appliance repair with standard parts and basic troubleshooting.',
+    'automotive_repair': 'Basic automotive repair with standard parts and essential diagnostics.',
+    'electronic_repair': 'Simple electronic repairs with standard components and basic troubleshooting.',
+    'cellphone_repair': 'Basic cellphone repair with standard replacement parts and simple fixes.',
+    'computer_repair': 'Essential computer repair with standard diagnostics and basic hardware fixes.',
+    'tv_repair': 'Simple TV repair with basic diagnostics and standard component replacement.',
+    'beauty_services': 'Standard beauty services with basic techniques and essential products.',
+    'photography': 'Basic photography session with standard equipment and minimal editing.',
+    'graphic_design': 'Simple graphic design with standard templates and basic customization.'
+  };
+  
+  return descriptions[jobType] || 'Standard service with basic materials and essential workmanship.';
+}
+
+/**
+ * Get description for standard tier services
+ * @param {string} jobType - Type of job/service
+ * @returns {string} Description for standard tier service
+ */
+function getStandardDescription(jobType) {
+  const descriptions = {
+    'locksmith': 'Complete locksmith service with high-quality locks and enhanced security features.',
+    'plumber': 'Professional plumbing service with quality fixtures and comprehensive repairs.',
+    'electrician': 'Comprehensive electrical work with quality components and thorough diagnostics.',
+    'carpenter': 'Professional carpentry with quality materials and detailed workmanship.',
+    'hvac': 'Complete HVAC service with thorough diagnostics and quality repair or installation.',
+    'painter': 'Professional painting with quality paints and proper surface preparation.',
+    'general_contractor': 'Comprehensive contracting services with quality materials and detailed execution.',
+    'landscaper': 'Professional landscaping with thoughtful design and quality plants.',
+    'roofer': 'Complete roofing service with quality materials and professional installation.',
+    'flooring_specialist': 'Professional flooring installation with quality materials and proper subflooring preparation.',
+    'window_installer': 'Complete window installation with quality frames and professional weatherproofing.',
+    'appliance_repair': 'Comprehensive appliance repair with detailed diagnostics and quality parts.',
+    'automotive_repair': 'Professional automotive repair with quality parts and comprehensive diagnostics.',
+    'electronic_repair': 'Complete electronic repair with detailed diagnostics and quality components.',
+    'cellphone_repair': 'Professional cellphone repair with quality parts and comprehensive testing.',
+    'computer_repair': 'Complete computer repair with detailed diagnostics and quality hardware solutions.',
+    'tv_repair': 'Professional TV repair with comprehensive diagnostics and quality component replacement.',
+    'beauty_services': 'Complete beauty services with professional techniques and quality products.',
+    'photography': 'Professional photography session with quality equipment and detailed editing.',
+    'graphic_design': 'Complete graphic design with professional layouts and thoughtful customization.'
+  };
+  
+  return descriptions[jobType] || 'Professional service with quality materials and detailed workmanship.';
+}
+
+/**
+ * Get description for premium tier services
+ * @param {string} jobType - Type of job/service
+ * @returns {string} Description for premium tier service
+ */
+function getPremiumDescription(jobType) {
+  const descriptions = {
+    'locksmith': 'Premium locksmith service with top-tier security systems and advanced smart-lock integration.',
+    'plumber': 'Premium plumbing service with premium fixtures and comprehensive system optimization.',
+    'electrician': 'Premium electrical work with high-end components and advanced system optimization.',
+    'carpenter': 'Premium carpentry with luxury materials and master craftsmanship.',
+    'hvac': 'Premium HVAC service with advanced diagnostics and high-efficiency system installation.',
+    'painter': 'Premium painting with top-tier paints and exceptional surface preparation and finishing.',
+    'general_contractor': 'Premium contracting services with luxury materials and master craftsmanship.',
+    'landscaper': 'Premium landscaping with custom design and rare/specialty plants.',
+    'roofer': 'Premium roofing with top-tier materials and advanced weatherproofing systems.',
+    'flooring_specialist': 'Premium flooring installation with luxury materials and advanced preparation techniques.',
+    'window_installer': 'Premium window installation with high-end frames and advanced insulation systems.',
+    'appliance_repair': 'Premium appliance service with advanced diagnostics and high-end parts.',
+    'automotive_repair': 'Premium automotive service with dealer-grade diagnostics and OEM parts.',
+    'electronic_repair': 'Premium electronic service with advanced diagnostics and high-end components.',
+    'cellphone_repair': 'Premium cellphone repair with OEM parts and comprehensive device optimization.',
+    'computer_repair': 'Premium computer service with advanced diagnostics and performance optimization.',
+    'tv_repair': 'Premium TV repair with advanced calibration and premium component replacement.',
+    'beauty_services': 'Premium beauty services with advanced techniques and high-end luxury products.',
+    'photography': 'Premium photography with high-end equipment and advanced retouching and artistic editing.',
+    'graphic_design': 'Premium graphic design with customized layouts and advanced artistic direction.'
+  };
+  
+  return descriptions[jobType] || 'Premium service with luxury materials and master craftsmanship.';
+}
+
+/**
+ * Get features for basic tier services
+ * @param {string} jobType - Type of job/service
+ * @returns {string[]} List of features for basic tier service
+ */
+function getBasicFeatures(jobType) {
+  const commonFeatures = [
+    'Standard service coverage',
+    '30-day limited warranty',
+    'Basic materials included',
+    'Standard quality parts',
+    'Emergency service available'
+  ];
+  
+  const serviceSpecificFeatures = {
+    'locksmith': [
+      'Basic lock replacement',
+      'Simple key cutting',
+      'Standard doorknob installation'
+    ],
+    'plumber': [
+      'Simple fixture replacement',
+      'Basic drain cleaning',
+      'Standard faucet installation'
+    ],
+    'electrician': [
+      'Basic outlet installation',
+      'Simple switch replacement',
+      'Standard light fixture mounting'
+    ],
+    'carpenter': [
+      'Basic framing and trim work',
+      'Simple door installation',
+      'Standard cabinet assembly'
+    ],
+    'hvac': [
+      'Basic system diagnostics',
+      'Standard filter replacement',
+      'Simple vent cleaning'
+    ],
+    'roofer': [
+      'Basic leak repair',
+      'Standard shingle replacement',
+      'Simple gutter cleaning'
+    ],
+    'flooring_specialist': [
+      'Standard vinyl/laminate installation',
+      'Basic subfloor preparation',
+      'Simple trim work'
+    ],
+    'window_installer': [
+      'Standard window installation',
+      'Basic weatherstripping',
+      'Simple frame repair'
+    ],
+    'automotive_repair': [
+      'Basic oil and filter change',
+      'Standard brake pad replacement',
+      'Simple diagnostics scan'
+    ],
+    'electronic_repair': [
+      'Basic component replacement',
+      'Standard cleaning and maintenance',
+      'Simple diagnostics'
+    ],
+    'cellphone_repair': [
+      'Basic screen replacement',
+      'Standard battery replacement',
+      'Simple software troubleshooting'
+    ],
+    'computer_repair': [
+      'Basic virus removal',
+      'Standard hardware installation',
+      'Simple software troubleshooting'
+    ],
+    'tv_repair': [
+      'Basic component replacement',
+      'Standard picture adjustment',
+      'Simple cable connection setup'
+    ]
+  };
+  
+  return [...commonFeatures, ...(serviceSpecificFeatures[jobType] || [])];
+}
+
+/**
+ * Get features for standard tier services
+ * @param {string} jobType - Type of job/service
+ * @returns {string[]} List of features for standard tier service
+ */
+function getStandardFeatures(jobType) {
+  const commonFeatures = [
+    'Complete service coverage',
+    '90-day comprehensive warranty',
+    'Quality materials included',
+    'Professional-grade parts',
+    'Priority scheduling',
+    'Emergency service available'
+  ];
+  
+  const serviceSpecificFeatures = {
+    'locksmith': [
+      'High-security lock installation',
+      'Precision key duplication',
+      'Deadbolt reinforcement',
+      'Lock rekeying service'
+    ],
+    'plumber': [
+      'Comprehensive pipe repair',
+      'Professional drain cleaning',
+      'Quality fixture installation',
+      'Water pressure optimization'
+    ],
+    'electrician': [
+      'Circuit troubleshooting',
+      'Quality fixture installation',
+      'Panel inspection and maintenance',
+      'GFCI outlet upgrades'
+    ],
+    'carpenter': [
+      'Custom shelving installation',
+      'Professional door hanging',
+      'Quality cabinet installation',
+      'Detailed trim work'
+    ],
+    'hvac': [
+      'Comprehensive system diagnostics',
+      'Complete duct cleaning',
+      'Professional thermostat installation',
+      'System efficiency optimization'
+    ],
+    'roofer': [
+      'Complete leak detection and repair',
+      'Professional shingle replacement',
+      'Quality flashing installation',
+      'Full gutter service'
+    ],
+    'flooring_specialist': [
+      'Hardwood floor installation',
+      'Professional subfloor preparation',
+      'Detailed trim and transition work',
+      'Quality material selection assistance'
+    ],
+    'window_installer': [
+      'Double-pane window installation',
+      'Professional frame replacement',
+      'Complete weatherproofing',
+      'Quality hardware installation'
+    ],
+    'automotive_repair': [
+      'Comprehensive vehicle inspection',
+      'Professional brake system service',
+      'Complete fluid replacement',
+      'Quality filter package replacement'
+    ],
+    'electronic_repair': [
+      'Circuit board repair',
+      'Professional calibration',
+      'Comprehensive diagnostics',
+      'Quality component upgrades'
+    ],
+    'cellphone_repair': [
+      'OEM-comparable screen replacement',
+      'Professional water damage treatment',
+      'Complete diagnostics',
+      'Data recovery assistance'
+    ],
+    'computer_repair': [
+      'Complete system optimization',
+      'Professional hardware upgrades',
+      'Comprehensive malware removal',
+      'System backup and recovery'
+    ],
+    'tv_repair': [
+      'Professional panel replacement',
+      'Complete circuit diagnostics',
+      'Quality board replacement',
+      'Basic calibration service'
+    ]
+  };
+  
+  return [...commonFeatures, ...(serviceSpecificFeatures[jobType] || [])];
+}
+
+/**
+ * Get features for premium tier services
+ * @param {string} jobType - Type of job/service
+ * @returns {string[]} List of features for premium tier service
+ */
+function getPremiumFeatures(jobType) {
+  const commonFeatures = [
+    'Premium service coverage',
+    '1-year comprehensive warranty',
+    'Luxury materials included',
+    'Top-tier/OEM parts',
+    'Next-day scheduling',
+    'Priority emergency service',
+    'Free follow-up inspection'
+  ];
+  
+  const serviceSpecificFeatures = {
+    'locksmith': [
+      'Smart lock integration',
+      'Complete security system installation',
+      'Master key system setup',
+      'Electronic access control',
+      'Security assessment and consultation'
+    ],
+    'plumber': [
+      'Whole house plumbing inspection',
+      'Premium fixture installation',
+      'Complete pipe system replacement',
+      'Water filtration system installation',
+      'Smart water monitoring setup'
+    ],
+    'electrician': [
+      'Whole house electrical inspection',
+      'Smart home integration',
+      'Complete panel upgrade',
+      'Surge protection system',
+      'LED lighting conversion'
+    ],
+    'carpenter': [
+      'Custom cabinetry installation',
+      'Premium hardwood work',
+      'Specialty woodworking details',
+      'Architectural element restoration',
+      'Designer consultation included'
+    ],
+    'hvac': [
+      'Complete system replacement',
+      'Smart thermostat integration',
+      'Zoned system installation',
+      'High-efficiency upgrades',
+      'Extended system warranty'
+    ],
+    'roofer': [
+      'Premium roofing material installation',
+      'Complete roof system replacement',
+      'Advanced waterproofing system',
+      'Extended material warranty',
+      'Ice dam prevention system'
+    ],
+    'flooring_specialist': [
+      'Premium hardwood installation',
+      'Custom inlay and pattern work',
+      'Complete subflooring reconstruction',
+      'Radiant heating integration',
+      'Designer consultation included'
+    ],
+    'window_installer': [
+      'Triple-pane window installation',
+      'Custom window sizing',
+      'Advanced insulation package',
+      'Premium trim and finishing',
+      'Energy efficiency certification'
+    ],
+    'automotive_repair': [
+      'Dealer-level diagnostic service',
+      'Premium parts package',
+      'Complete system overhaul',
+      'Performance optimization',
+      'Detailed vehicle inspection report'
+    ],
+    'electronic_repair': [
+      'Complete device refurbishment',
+      'Premium component upgrades',
+      'Performance optimization',
+      'Extended warranty',
+      'Preventative maintenance plan'
+    ],
+    'cellphone_repair': [
+      'OEM part replacement',
+      'Complete device restoration',
+      'Performance optimization',
+      'Premium screen protector',
+      'Device backup and transfer service'
+    ],
+    'computer_repair': [
+      'Complete system rebuild',
+      'Premium component upgrades',
+      'Performance optimization',
+      'Data migration and backup',
+      'Remote support included'
+    ],
+    'tv_repair': [
+      'Professional calibration service',
+      'Premium component replacement',
+      'Complete system diagnostics',
+      'Setup and optimization',
+      'Home theater integration'
+    ]
+  };
+  
+  return [...commonFeatures, ...(serviceSpecificFeatures[jobType] || [])];
+}
+
 // Make functions available globally
 window.renderQuoteGeneratorPage = renderQuoteGeneratorPage;
 window.QuoteGenerator = {
   generateQuote,
+  generateMultiQuote,
   handleGenerateQuote,
   displayQuoteResults,
+  displayMultiQuoteResults,
+  createQuoteCard,
   createFormGroup,
   createSelect,
   createInput,
   initGoogleMapsAutocomplete,
+  getBasicDescription,
+  getStandardDescription,
+  getPremiumDescription,
+  getBasicFeatures,
+  getStandardFeatures,
+  getPremiumFeatures,
   showToast: function(message, type) {
     if (window.showToast) {
       window.showToast(message, type);
