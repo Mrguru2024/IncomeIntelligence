@@ -10,7 +10,27 @@
 console.log('Quote Generator module initialized');
 
 // Import necessary utility functions
-import { updateViewportClasses } from './src/main.js';
+// Instead of importing, we'll use the global function if available
+// or a fallback implementation if not
+function updateViewportForQuotes() {
+  // Try to use the global function if available
+  if (window.updateViewportClasses) {
+    window.updateViewportClasses();
+  } else {
+    // Simple fallback implementation
+    const width = window.innerWidth;
+    if (width < 768) {
+      document.body.classList.add('mobile');
+      document.body.classList.remove('tablet', 'desktop');
+    } else if (width < 1024) {
+      document.body.classList.add('tablet');
+      document.body.classList.remove('mobile', 'desktop');
+    } else {
+      document.body.classList.add('desktop');
+      document.body.classList.remove('mobile', 'tablet');
+    }
+  }
+}
 
 // Global form state cache to preserve form data during orientation changes
 let cachedFormState = {
@@ -25,7 +45,7 @@ function getViewportData() {
   saveCurrentFormState();
   
   try {
-    return updateViewportClasses();
+    return updateViewportForQuotes();
   } catch (error) {
     console.error("Error getting viewport data:", error);
     // Fallback if function fails
