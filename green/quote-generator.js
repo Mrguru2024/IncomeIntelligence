@@ -3642,11 +3642,29 @@ const keycodePrices = {
  * Base labor hours for different automotive service types
  */
 const autoLaborHours = {
+  // Standard and key services
   all_keys_lost: 2.5,
   duplicate_key: 1,
   ignition_repair: 3,
   lock_rekey: 1.5,
-  ecu_reflash: 3.5
+  ecu_reflash: 3.5,
+  
+  // Standard automotive services
+  oil_change: 1.0,
+  brake_service: 2.5,
+  tire_service: 1.0,
+  engine_repair: 4.0,
+  transmission: 5.0,
+  electrical: 3.0,
+  ac_service: 2.5,
+  
+  // Customization services (typically require more labor hours)
+  body_repair: 4.0,
+  detailing: 3.0,
+  paint_work: 5.0,
+  window_tinting: 2.0,
+  sound_system: 3.5,
+  vehicle_wrap: 4.5
 };
 
 /**
@@ -4779,11 +4797,29 @@ function displayAutoQuoteResult(quoteResult) {
   // Format service type for display
   function formatServiceType(type) {
     const serviceMap = {
+      // Key and security services
       'all_keys_lost': 'All Keys Lost',
       'duplicate_key': 'Duplicate Key',
       'ignition_repair': 'Ignition Repair',
       'lock_rekey': 'Lock Rekey',
-      'ecu_reflash': 'ECU Reflash'
+      'ecu_reflash': 'ECU Reflash',
+      
+      // Standard automotive services
+      'oil_change': 'Oil Change',
+      'brake_service': 'Brake Service',
+      'tire_service': 'Tire Service/Rotation',
+      'engine_repair': 'Engine Repair',
+      'transmission': 'Transmission Service',
+      'electrical': 'Electrical Repair',
+      'ac_service': 'A/C Service',
+      
+      // Customization services
+      'body_repair': 'Body Repair/Customization',
+      'detailing': 'Professional Detailing',
+      'paint_work': 'Custom Paint Work',
+      'window_tinting': 'Window Tinting',
+      'sound_system': 'Sound System Installation',
+      'vehicle_wrap': 'Vehicle Wrap Installation'
     };
     return serviceMap[type] || type;
   }
@@ -5048,11 +5084,29 @@ function printAutoQuote(quoteResult, isCustomerVersion = false) {
   
   // Service name mapping
   const serviceMap = {
+    // Key and security services
     'all_keys_lost': 'All Keys Lost',
     'duplicate_key': 'Duplicate Key',
     'ignition_repair': 'Ignition Repair',
     'lock_rekey': 'Lock Rekey',
-    'ecu_reflash': 'ECU Reflash'
+    'ecu_reflash': 'ECU Reflash',
+    
+    // Standard automotive services
+    'oil_change': 'Oil Change',
+    'brake_service': 'Brake Service',
+    'tire_service': 'Tire Service/Rotation',
+    'engine_repair': 'Engine Repair',
+    'transmission': 'Transmission Service',
+    'electrical': 'Electrical Repair',
+    'ac_service': 'A/C Service',
+    
+    // Customization services
+    'body_repair': 'Body Repair/Customization',
+    'detailing': 'Professional Detailing',
+    'paint_work': 'Custom Paint Work',
+    'window_tinting': 'Window Tinting',
+    'sound_system': 'Sound System Installation',
+    'vehicle_wrap': 'Vehicle Wrap Installation'
   };
   
   const serviceName = serviceMap[quoteResult.service_type] || quoteResult.service_type;
@@ -5344,11 +5398,29 @@ function createInvoiceFromAutoQuote(quoteResult) {
   try {
     // Service name mapping
     const serviceMap = {
+      // Key and security services
       'all_keys_lost': 'All Keys Lost',
       'duplicate_key': 'Duplicate Key',
       'ignition_repair': 'Ignition Repair',
       'lock_rekey': 'Lock Rekey',
-      'ecu_reflash': 'ECU Reflash'
+      'ecu_reflash': 'ECU Reflash',
+      
+      // Standard automotive services
+      'oil_change': 'Oil Change',
+      'brake_service': 'Brake Service',
+      'tire_service': 'Tire Service/Rotation',
+      'engine_repair': 'Engine Repair',
+      'transmission': 'Transmission Service',
+      'electrical': 'Electrical Repair',
+      'ac_service': 'A/C Service',
+      
+      // Customization services
+      'body_repair': 'Body Repair/Customization',
+      'detailing': 'Professional Detailing',
+      'paint_work': 'Custom Paint Work',
+      'window_tinting': 'Window Tinting',
+      'sound_system': 'Sound System Installation',
+      'vehicle_wrap': 'Vehicle Wrap Installation'
     };
     
     const serviceName = serviceMap[quoteResult.service_type] || quoteResult.service_type;
@@ -5421,6 +5493,7 @@ function createInvoiceFromAutoQuote(quoteResult) {
  */
 const autoParts = {
   common: {
+    // Key and security services
     all_keys_lost: {
       base: 120,
       luxury: 180,
@@ -5445,6 +5518,75 @@ const autoParts = {
       base: 150,
       luxury: 225,
       economy: 120
+    },
+    
+    // Standard automotive services
+    oil_change: {
+      base: 40,
+      luxury: 85,
+      economy: 30
+    },
+    brake_service: {
+      base: 120,
+      luxury: 200,
+      economy: 90
+    },
+    tire_service: {
+      base: 80,
+      luxury: 150,
+      economy: 65
+    },
+    engine_repair: {
+      base: 250,
+      luxury: 450,
+      economy: 180
+    },
+    transmission: {
+      base: 350,
+      luxury: 600,
+      economy: 280
+    },
+    electrical: {
+      base: 160,
+      luxury: 240,
+      economy: 130
+    },
+    ac_service: {
+      base: 130,
+      luxury: 220,
+      economy: 110
+    },
+    
+    // Customization services
+    body_repair: {
+      base: 280,
+      luxury: 450,
+      economy: 210
+    },
+    detailing: {
+      base: 150,
+      luxury: 250,
+      economy: 120
+    },
+    paint_work: {
+      base: 350,
+      luxury: 600,
+      economy: 280
+    },
+    window_tinting: {
+      base: 180,
+      luxury: 250,
+      economy: 150
+    },
+    sound_system: {
+      base: 450,
+      luxury: 750,
+      economy: 350
+    },
+    vehicle_wrap: {
+      base: 1200,
+      luxury: 1800,
+      economy: 950
     }
   },
   // Vehicle-specific pricing could be added here
