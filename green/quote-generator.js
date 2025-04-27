@@ -335,6 +335,20 @@ function renderQuoteGeneratorPage(containerId) {
     
     // Define service subcategories with detailed options for all service types
     const serviceSubcategories = {
+      // Professional Services
+      'graphic_design': [
+        { value: 'logo_design', label: 'Logo Design' },
+        { value: 'branding', label: 'Brand Identity Package' },
+        { value: 'social_media', label: 'Social Media Graphics' },
+        { value: 'print_design', label: 'Print Design' },
+        { value: 'web_graphics', label: 'Web Graphics/UI' },
+        { value: 'packaging', label: 'Packaging Design' },
+        { value: 'illustration', label: 'Custom Illustration' },
+        { value: 'advertising', label: 'Advertising Materials' },
+        { value: 'brochure', label: 'Brochure Design' },
+        { value: 'business_card', label: 'Business Card Design' }
+      ],
+      
       // Home Services
       'locksmith': [
         { value: 'rekey', label: 'Rekey Service' },
