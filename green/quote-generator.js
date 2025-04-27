@@ -1461,6 +1461,302 @@ function generateQuoteForTier(tier, data, commonData, baseRate) {
  * @param {Object} quote - The quote object
  * @returns {Array<string>} List of recommendations
  */
+/**
+ * Shows payment terms modal for quotes requiring deposits
+ * @param {Object} quote - Quote data
+ * @param {string} tierName - The tier name (Basic, Standard, Premium)
+ */
+function showDepositPaymentModal(quote, tierName) {
+  // Create modal container
+  const modalOverlay = document.createElement('div');
+  modalOverlay.style.position = 'fixed';
+  modalOverlay.style.top = '0';
+  modalOverlay.style.left = '0';
+  modalOverlay.style.width = '100%';
+  modalOverlay.style.height = '100%';
+  modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modalOverlay.style.display = 'flex';
+  modalOverlay.style.alignItems = 'center';
+  modalOverlay.style.justifyContent = 'center';
+  modalOverlay.style.zIndex = '9999';
+  
+  // Create modal
+  const modal = document.createElement('div');
+  modal.style.backgroundColor = 'white';
+  modal.style.borderRadius = '8px';
+  modal.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+  modal.style.width = '90%';
+  modal.style.maxWidth = '500px';
+  modal.style.maxHeight = '90vh';
+  modal.style.overflow = 'auto';
+  modal.style.position = 'relative';
+  
+  // Modal header
+  const header = document.createElement('div');
+  header.style.padding = '20px 24px';
+  header.style.borderBottom = '1px solid var(--color-border, #e5e7eb)';
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'center';
+  
+  const title = document.createElement('h3');
+  title.textContent = 'Payment Terms & Deposit';
+  title.style.margin = '0';
+  title.style.fontSize = '18px';
+  title.style.fontWeight = 'bold';
+  
+  const closeButton = document.createElement('button');
+  closeButton.innerHTML = '×';
+  closeButton.style.background = 'none';
+  closeButton.style.border = 'none';
+  closeButton.style.fontSize = '24px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.color = 'var(--color-text-secondary, #6b7280)';
+  closeButton.addEventListener('click', () => {
+    document.body.removeChild(modalOverlay);
+  });
+  
+  header.appendChild(title);
+  header.appendChild(closeButton);
+  
+  // Modal content
+  const content = document.createElement('div');
+  content.style.padding = '24px';
+  
+  // Quote summary
+  const summary = document.createElement('div');
+  summary.style.marginBottom = '24px';
+  summary.style.padding = '16px';
+  summary.style.backgroundColor = 'rgba(243, 244, 246, 0.7)';
+  summary.style.borderRadius = '6px';
+  
+  const serviceType = document.createElement('div');
+  serviceType.textContent = `${quote.jobTypeDisplay} - ${quote.jobSubtypeDisplay}`;
+  serviceType.style.fontWeight = 'bold';
+  serviceType.style.marginBottom = '8px';
+  
+  const quoteTotal = document.createElement('div');
+  quoteTotal.style.display = 'flex';
+  quoteTotal.style.justifyContent = 'space-between';
+  quoteTotal.style.alignItems = 'center';
+  quoteTotal.style.marginBottom = '4px';
+  
+  const totalLabel = document.createElement('span');
+  totalLabel.textContent = 'Quote Total:';
+  
+  const totalValue = document.createElement('span');
+  totalValue.textContent = `$${quote.total.toFixed(2)}`;
+  totalValue.style.fontWeight = 'bold';
+  
+  quoteTotal.appendChild(totalLabel);
+  quoteTotal.appendChild(totalValue);
+  
+  // Deposit amount
+  const depositDiv = document.createElement('div');
+  depositDiv.style.display = 'flex';
+  depositDiv.style.justifyContent = 'space-between';
+  depositDiv.style.alignItems = 'center';
+  depositDiv.style.marginBottom = '4px';
+  depositDiv.style.padding = '12px';
+  depositDiv.style.backgroundColor = 'white';
+  depositDiv.style.borderRadius = '4px';
+  depositDiv.style.border = '1px solid var(--color-primary, #4F46E5)';
+  depositDiv.style.marginTop = '16px';
+  
+  const depositLabel = document.createElement('span');
+  depositLabel.textContent = 'Required Deposit (25%):';
+  
+  const depositValue = document.createElement('span');
+  depositValue.textContent = `$${quote.depositAmount.toFixed(2)}`;
+  depositValue.style.fontWeight = 'bold';
+  depositValue.style.color = 'var(--color-primary, #4F46E5)';
+  
+  depositDiv.appendChild(depositLabel);
+  depositDiv.appendChild(depositValue);
+  
+  // Remaining balance
+  const remainingDiv = document.createElement('div');
+  remainingDiv.style.display = 'flex';
+  remainingDiv.style.justifyContent = 'space-between';
+  remainingDiv.style.alignItems = 'center';
+  remainingDiv.style.backgroundColor = 'white';
+  remainingDiv.style.borderRadius = '4px';
+  remainingDiv.style.padding = '12px';
+  remainingDiv.style.marginTop = '8px';
+  
+  const remainingLabel = document.createElement('span');
+  remainingLabel.textContent = 'Remaining Balance (due at completion):';
+  
+  const remainingValue = document.createElement('span');
+  remainingValue.textContent = `$${quote.remainingAmount.toFixed(2)}`;
+  remainingValue.style.fontWeight = 'bold';
+  
+  remainingDiv.appendChild(remainingLabel);
+  remainingDiv.appendChild(remainingValue);
+  
+  summary.appendChild(serviceType);
+  summary.appendChild(quoteTotal);
+  summary.appendChild(depositDiv);
+  summary.appendChild(remainingDiv);
+  
+  // Payment terms checkboxes
+  const termsSection = document.createElement('div');
+  termsSection.style.marginBottom = '24px';
+  
+  const termsTitle = document.createElement('h4');
+  termsTitle.textContent = 'Terms & Conditions';
+  termsTitle.style.fontSize = '16px';
+  termsTitle.style.fontWeight = 'bold';
+  termsTitle.style.marginBottom = '12px';
+  
+  const termsList = document.createElement('div');
+  
+  const terms = [
+    'The deposit is non-refundable but will be applied to the final invoice.',
+    'The remaining balance is due upon completion of the service.',
+    'Cancellations must be made at least 24 hours in advance.',
+    'Price may change if job scope changes significantly from quote.',
+    'Service provider is licensed and insured as required by local regulations.'
+  ];
+  
+  terms.forEach((term, index) => {
+    const termItem = document.createElement('div');
+    termItem.style.display = 'flex';
+    termItem.style.alignItems = 'flex-start';
+    termItem.style.marginBottom = '12px';
+    
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = `term-${index}`;
+    checkbox.style.marginRight = '10px';
+    checkbox.style.marginTop = '3px';
+    
+    const label = document.createElement('label');
+    label.htmlFor = `term-${index}`;
+    label.textContent = term;
+    label.style.fontSize = '14px';
+    
+    termItem.appendChild(checkbox);
+    termItem.appendChild(label);
+    termsList.appendChild(termItem);
+  });
+  
+  termsSection.appendChild(termsTitle);
+  termsSection.appendChild(termsList);
+  
+  // Payment method section
+  const paymentSection = document.createElement('div');
+  paymentSection.style.marginBottom = '24px';
+  
+  const paymentTitle = document.createElement('h4');
+  paymentTitle.textContent = 'Payment Method';
+  paymentTitle.style.fontSize = '16px';
+  paymentTitle.style.fontWeight = 'bold';
+  paymentTitle.style.marginBottom = '12px';
+  
+  // Stripe card element placeholder
+  const paymentElement = document.createElement('div');
+  paymentElement.style.padding = '16px';
+  paymentElement.style.border = '1px solid var(--color-border, #e5e7eb)';
+  paymentElement.style.borderRadius = '6px';
+  paymentElement.style.backgroundColor = 'rgba(243, 244, 246, 0.7)';
+  paymentElement.style.marginBottom = '16px';
+  
+  const cardIcon = document.createElement('div');
+  cardIcon.innerHTML = '💳';
+  cardIcon.style.fontSize = '24px';
+  cardIcon.style.marginBottom = '12px';
+  cardIcon.style.textAlign = 'center';
+  
+  const placeholderText = document.createElement('p');
+  placeholderText.textContent = 'Secure payment processing via Stripe';
+  placeholderText.style.margin = '0';
+  placeholderText.style.textAlign = 'center';
+  placeholderText.style.fontSize = '14px';
+  placeholderText.style.color = 'var(--color-text-secondary, #6b7280)';
+  
+  paymentElement.appendChild(cardIcon);
+  paymentElement.appendChild(placeholderText);
+  
+  paymentSection.appendChild(paymentTitle);
+  paymentSection.appendChild(paymentElement);
+  
+  // Add Stripe payment form
+  // In a real implementation, this would include the Stripe Elements
+  // This is a placeholder that simulates what the UI would look like
+  
+  // Payment button
+  const payButton = document.createElement('button');
+  payButton.textContent = `Pay Deposit: $${quote.depositAmount.toFixed(2)}`;
+  payButton.style.backgroundColor = 'var(--color-primary, #4F46E5)';
+  payButton.style.color = 'white';
+  payButton.style.border = 'none';
+  payButton.style.borderRadius = '6px';
+  payButton.style.padding = '12px 16px';
+  payButton.style.width = '100%';
+  payButton.style.fontSize = '16px';
+  payButton.style.fontWeight = 'bold';
+  payButton.style.cursor = 'pointer';
+  payButton.disabled = true;
+  payButton.style.opacity = '0.6';
+  
+  // Enable the button only when all terms are checked
+  const checkboxes = termsList.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+      payButton.disabled = !allChecked;
+      payButton.style.opacity = allChecked ? '1' : '0.6';
+    });
+  });
+  
+  payButton.addEventListener('click', () => {
+    // This would normally initiate the actual Stripe payment
+    // For this example, we'll simulate the payment process
+    payButton.disabled = true;
+    payButton.textContent = 'Processing...';
+    
+    // Simulate payment processing
+    setTimeout(() => {
+      // Show success and close modal
+      if (window.showToast) {
+        window.showToast('Deposit payment successful! Quote accepted.', 'success');
+      }
+      
+      // Remove modal
+      document.body.removeChild(modalOverlay);
+      
+      // Display quote results
+      displayQuoteResults(quote);
+      
+      // Update quote status
+      quote.depositPaid = true;
+      quote.acceptedAt = new Date().toISOString();
+      
+      // In a real app, this would save the updated quote to the database
+      saveQuote(quote, tierName);
+    }, 1500);
+  });
+  
+  // Assemble modal content
+  content.appendChild(summary);
+  content.appendChild(termsSection);
+  content.appendChild(paymentSection);
+  content.appendChild(payButton);
+  
+  modal.appendChild(header);
+  modal.appendChild(content);
+  modalOverlay.appendChild(modal);
+  
+  // Add to DOM
+  document.body.appendChild(modalOverlay);
+}
+
+/**
+ * Generate AI recommendations for pricing
+ * @param {Object} quote - The quote object
+ * @returns {Object} Recommendations object
+ */
 function generateAIRecommendations(quote) {
   const recommendations = [];
   
@@ -3277,9 +3573,12 @@ if (quote.editable) {
     showAIRecommendations(recommendations, tierName);
   });
   
-  // Select button
+  // Select/Accept button
   const selectButton = document.createElement('button');
-  selectButton.textContent = 'Select';
+  
+  // Change button text based on quote value
+  selectButton.textContent = quote.total >= 300 ? 'Accept & Pay Deposit' : 'Accept Quote';
+  
   selectButton.style.flex = '1';
   selectButton.style.backgroundColor = 'var(--color-primary, #4F46E5)';
   selectButton.style.color = 'white';
@@ -3291,8 +3590,39 @@ if (quote.editable) {
   selectButton.style.cursor = 'pointer';
   selectButton.style.minWidth = '80px';
   
+  // Add deposit info to quote for quotes over $300
+  if (quote.total >= 300) {
+    // Calculate deposit (25% of total)
+    quote.depositAmount = Math.round(quote.total * 0.25);
+    quote.remainingAmount = quote.total - quote.depositAmount;
+    
+    // Add visual indicator for deposit required
+    const buttonContent = document.createElement('div');
+    buttonContent.style.display = 'flex';
+    buttonContent.style.alignItems = 'center';
+    buttonContent.style.justifyContent = 'center';
+    
+    const payIcon = document.createElement('span');
+    payIcon.innerHTML = '💳';
+    payIcon.style.marginRight = '6px';
+    
+    const buttonText = document.createElement('span');
+    buttonText.textContent = 'Accept & Pay Deposit';
+    
+    buttonContent.appendChild(payIcon);
+    buttonContent.appendChild(buttonText);
+    selectButton.innerHTML = '';
+    selectButton.appendChild(buttonContent);
+  }
+  
   selectButton.addEventListener('click', () => {
-    displayQuoteResults(quote);
+    if (quote.total >= 300) {
+      // Show payment terms modal for quotes requiring deposit
+      showDepositPaymentModal(quote, tierName);
+    } else {
+      // Regular quote display
+      displayQuoteResults(quote);
+    }
   });
   
   // Print button
