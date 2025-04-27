@@ -7799,3 +7799,6 @@ function showTierBreakdown(tierData) {
   // Scroll to the breakdown
   breakdownSection.scrollIntoView({ behavior: 'smooth' });
 } // End of renderQuoteGeneratorPage function
+
+// Export the function using ES Module syntax
+export { renderQuoteGeneratorPage };
