@@ -6941,13 +6941,17 @@ function calculateAddressDistance() {
             }
           }
       );
-    } catch (error) {
-      console.error('Error calculating distance:', error);
+      } catch (error) {
+        console.error('Error calculating distance:', error);
+        useFallbackDistanceCalculation();
+      }
+    } else {
+      // Fallback if Google Maps API is not available
+      console.log("Google Maps API not available, using fallback");
       useFallbackDistanceCalculation();
     }
-  } else {
-    // Fallback if Google Maps API is not available
-    console.log("Google Maps API not available, using fallback");
+  } catch (outerError) {
+    console.error('Error in Maps API calculation attempt:', outerError);
     useFallbackDistanceCalculation();
   }
 }
@@ -7791,3 +7795,4 @@ function showTierBreakdown(tierData) {
   // Scroll to the breakdown
   breakdownSection.scrollIntoView({ behavior: 'smooth' });
 }
+} // Close the exported function
