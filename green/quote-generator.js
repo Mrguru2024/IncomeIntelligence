@@ -1901,9 +1901,11 @@ function displayMultiQuoteResults(quotes) {
   }
   
   // Display Product Quantity if applicable
-  if (isProductService(quotes.basic.jobType) && quotes.basic.quantity > 1) {
+  if ((isProductService(quotes.basic.jobType) && quotes.basic.quantity > 1) || 
+      (quotes.basic.jobType === 'locksmith' && quotes.basic.jobSubtype === 'rekey')) {
+    const unitType = (quotes.basic.jobType === 'locksmith' && quotes.basic.jobSubtype === 'rekey') ? 'lock cylinders' : 'units';
     const quantityInfo = document.createElement('p');
-    quantityInfo.textContent = `Product Quantity: ${quotes.basic.quantity} units`;
+    quantityInfo.textContent = `Product Quantity: ${quotes.basic.quantity} ${unitType}`;
     quantityInfo.style.fontSize = '15px';
     quantityInfo.style.marginTop = '4px';
     quantityInfo.style.color = 'var(--color-text)';
@@ -4035,10 +4037,11 @@ function printQuote(quote) {
             })()}</div>
           </div>
           ` : ''}
-          ${isProductService(quote.jobType) && quote.quantity > 1 ? `
+          ${(isProductService(quote.jobType) && quote.quantity > 1) || 
+            (quote.jobType === 'locksmith' && quote.jobSubtype === 'rekey') ? `
           <div class="quote-info-row">
             <div><strong>Product Quantity:</strong></div>
-            <div>${quote.quantity} units</div>
+            <div>${quote.quantity} ${(quote.jobType === 'locksmith' && quote.jobSubtype === 'rekey') ? 'lock cylinders' : 'units'}</div>
           </div>
           ` : ''}
           ${quote.description ? `
@@ -4152,11 +4155,12 @@ function createInvoiceFromQuote(quote) {
           })() : ''
         },
         {
-          description: isProductService(quote.jobType) && quote.quantity > 1 ? 
-            `Materials (${quote.quantity} units)` : 'Materials',
+          description: ((isProductService(quote.jobType) && quote.quantity > 1) || 
+                       (quote.jobType === 'locksmith' && quote.jobSubtype === 'rekey')) ? 
+            `Materials (${quote.quantity} ${(quote.jobType === 'locksmith' && quote.jobSubtype === 'rekey') ? 'lock cylinders' : 'units'})` : 'Materials',
           quantity: isProductService(quote.jobType) ? quote.quantity : 1,
-          unit: 'lot',
-          unitPrice: isProductService(quote.jobType) && quote.quantity > 1 ? 
+          unit: (quote.jobType === 'locksmith' && quote.jobSubtype === 'rekey') ? 'cylinders' : 'lot',
+          unitPrice: isProductService(quote.jobType) && quote.quantity > 0 ? 
             quote.materialsCost / quote.quantity : quote.materialsCost,
           amount: quote.materialsCost
         }
