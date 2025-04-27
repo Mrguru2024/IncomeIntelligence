@@ -1567,7 +1567,7 @@ function showDepositPaymentModal(quote, tierName) {
   depositLabel.textContent = 'Required Deposit (25%):';
   
   const depositValue = document.createElement('span');
-  depositValue.textContent = `$${quote.depositAmount.toFixed(2)}`;
+  depositValue.textContent = quote.depositAmount !== undefined ? `$${quote.depositAmount.toFixed(2)}` : '$0.00';
   depositValue.style.fontWeight = 'bold';
   depositValue.style.color = 'var(--color-primary, #4F46E5)';
   
@@ -1588,7 +1588,7 @@ function showDepositPaymentModal(quote, tierName) {
   remainingLabel.textContent = 'Remaining Balance (due at completion):';
   
   const remainingValue = document.createElement('span');
-  remainingValue.textContent = `$${quote.remainingAmount.toFixed(2)}`;
+  remainingValue.textContent = quote.remainingAmount !== undefined ? `$${quote.remainingAmount.toFixed(2)}` : `$${(quote.total * 0.75).toFixed(2)}`;
   remainingValue.style.fontWeight = 'bold';
   
   remainingDiv.appendChild(remainingLabel);
@@ -1687,7 +1687,7 @@ function showDepositPaymentModal(quote, tierName) {
   
   // Payment button
   const payButton = document.createElement('button');
-  payButton.textContent = `Pay Deposit: $${quote.depositAmount.toFixed(2)}`;
+  payButton.textContent = quote.depositAmount !== undefined ? `Pay Deposit: $${quote.depositAmount.toFixed(2)}` : `Pay Deposit: $${(quote.total * 0.25).toFixed(2)}`;
   payButton.style.backgroundColor = 'var(--color-primary, #4F46E5)';
   payButton.style.color = 'white';
   payButton.style.border = 'none';
