@@ -430,5 +430,44 @@
 </script>
 
 <script type="module" src="/green/src/main.js"></script>
+
+<!-- Development Tools (only visible in development environments) -->
+<style>
+  .dev-tools {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(245, 245, 245, 0.9);
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    z-index: 9999;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .dev-tools a {
+    color: #4F46E5;
+    text-decoration: none;
+    margin: 0 5px;
+    display: inline-block;
+    padding: 3px 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.7);
+  }
+  .dev-tools a:hover {
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  @media (max-width: 768px) {
+    .dev-tools {
+      bottom: 65px;
+    }
+  }
+</style>
+
+<div class="dev-tools">
+  <strong>Dev Tools:</strong>
+  <a href="/green/distance-calculator-test.html" target="_blank">Distance Calculator Test</a>
+</div>
 </body>
 </html>

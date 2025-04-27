@@ -295,61 +295,105 @@ async function calculateDistance(origin, destination) {
         }
       });
       
-      // Test our window.useFallbackDistanceCalculation function
+      // Test our distance calculation function
       async function testWindowFallback(origin, destination) {
-        // Create temporary input elements that match the expected form field structure
-        const container = document.createElement('div');
-        container.style.display = 'none';
-        document.body.appendChild(container);
-        
-        // Create fake input fields with the same name attributes as expected
-        const originInput = document.createElement('input');
-        originInput.name = 'startLocation';
-        originInput.value = origin;
-        container.appendChild(originInput);
-        
-        const destInput = document.createElement('input');
-        destInput.name = 'endLocation';
-        destInput.value = destination;
-        container.appendChild(destInput);
-        
-        const distanceInput = document.createElement('input');
-        distanceInput.name = 'travelDistance';
-        container.appendChild(distanceInput);
-        
-        // Create results container
-        const distanceResult = document.createElement('div');
-        distanceResult.id = 'distanceResult';
-        container.appendChild(distanceResult);
-        
-        // Check if the window.useFallbackDistanceCalculation function is available
-        if (typeof window.useFallbackDistanceCalculation !== 'function') {
-          resultDiv.innerHTML = `
-            <p style="color: #EA4335;">Error: The fallback calculation function is not available.</p>
-            <p>Make sure you've included the quote-generator.js script.</p>
-          `;
-          document.body.removeChild(container);
-          return;
-        }
-        
         try {
-          // Call the fallback function
-          await window.useFallbackDistanceCalculation();
+          resultDiv.innerHTML = `<p>Calculating distance from "${origin}" to "${destination}"...</p>`;
           
-          // Get the results
-          const html = distanceResult.innerHTML;
-          resultDiv.innerHTML = html || '<p style="color: #EA4335;">No result returned from calculation function.</p>';
-          
-          // Get the calculated distance
-          const calculatedDistance = distanceInput.value;
-          if (calculatedDistance) {
-            resultDiv.innerHTML += `<p><strong>Calculated Round-Trip Distance:</strong> ${calculatedDistance} miles</p>`;
+          // Direct call to our distance calculation library
+          if (typeof window.calculateDistance === 'function') {
+            // Use our new function
+            const result = await window.calculateDistance(origin, destination);
+            
+            if (result.status === 'OK' && result.results) {
+              let methodBadge = '';
+              if (result.source === 'google-maps-api') {
+                methodBadge = '<span style="background-color: #34A853; color: white; padding: 2px 6px; border-radius: 10px; font-size: 12px; font-weight: bold;">Google Maps API</span>';
+              } else if (result.source === 'zip-estimation') {
+                methodBadge = '<span style="background-color: #FBBC05; color: #333; padding: 2px 6px; border-radius: 10px; font-size: 12px; font-weight: bold;">ZIP Estimation</span>';
+              } else {
+                methodBadge = '<span style="background-color: #EA4335; color: white; padding: 2px 6px; border-radius: 10px; font-size: 12px; font-weight: bold;">Fallback Estimate</span>';
+              }
+              
+              resultDiv.innerHTML = `
+                <h3>Distance Calculation Result</h3>
+                <p><strong>Status:</strong> Success ${methodBadge}</p>
+                <p><strong>Distance:</strong> ${result.results.distance.text}</p>
+                <p><strong>Duration:</strong> ${result.results.duration.text}</p>
+                <p><strong>Distance Value:</strong> ${result.results.distance.value} meters (${(result.results.distance.value / 1609.34).toFixed(2)} miles)</p>
+                <p><strong>Duration Value:</strong> ${result.results.duration.value} seconds (${Math.floor(result.results.duration.value / 60)} minutes)</p>
+                <p><strong>Method:</strong> ${result.source}</p>
+                <hr>
+                <h4>Raw Response:</h4>
+                <pre style="background-color: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px;">${JSON.stringify(result, null, 2)}</pre>
+              `;
+              
+              // Calculate round-trip distance (double the one-way distance)
+              const oneWayMiles = parseFloat(result.results.distance.text.replace(/[^0-9.]/g, ''));
+              if (!isNaN(oneWayMiles)) {
+                const roundTripMiles = (oneWayMiles * 2).toFixed(1);
+                resultDiv.innerHTML += `<p><strong>Calculated Round-Trip Distance:</strong> ${roundTripMiles} miles</p>`;
+              }
+            } else {
+              resultDiv.innerHTML = `
+                <p style="color: #EA4335;">Error: ${result.error || 'Failed to calculate distance'}</p>
+                <pre style="background-color: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px;">${JSON.stringify(result, null, 2)}</pre>
+              `;
+            }
+          } else if (typeof window.useFallbackDistanceCalculation === 'function') {
+            // Fall back to old method if available
+            // Create temporary input elements that match the expected form field structure
+            const container = document.createElement('div');
+            container.style.display = 'none';
+            document.body.appendChild(container);
+            
+            // Create fake input fields with the same name attributes as expected
+            const originInput = document.createElement('input');
+            originInput.name = 'startLocation';
+            originInput.value = origin;
+            container.appendChild(originInput);
+            
+            const destInput = document.createElement('input');
+            destInput.name = 'endLocation';
+            destInput.value = destination;
+            container.appendChild(destInput);
+            
+            const distanceInput = document.createElement('input');
+            distanceInput.name = 'travelDistance';
+            container.appendChild(distanceInput);
+            
+            // Create results container
+            const distanceResult = document.createElement('div');
+            distanceResult.id = 'distanceResult';
+            container.appendChild(distanceResult);
+            
+            try {
+              // Call the fallback function
+              await window.useFallbackDistanceCalculation();
+              
+              // Get the results
+              const html = distanceResult.innerHTML;
+              resultDiv.innerHTML = html || '<p style="color: #EA4335;">No result returned from calculation function.</p>';
+              
+              // Get the calculated distance
+              const calculatedDistance = distanceInput.value;
+              if (calculatedDistance) {
+                resultDiv.innerHTML += `<p><strong>Calculated Round-Trip Distance:</strong> ${calculatedDistance} miles</p>`;
+              }
+            } catch (error) {
+              resultDiv.innerHTML = `<p style="color: #EA4335;">Error during calculation: ${error.message || error}</p>`;
+            } finally {
+              // Clean up
+              document.body.removeChild(container);
+            }
+          } else {
+            resultDiv.innerHTML = `
+              <p style="color: #EA4335;">Error: No distance calculation function is available.</p>
+              <p>Make sure you've included the distance-calculator.js script.</p>
+            `;
           }
         } catch (error) {
-          resultDiv.innerHTML = `<p style="color: #EA4335;">Error during calculation: ${error.message || error}</p>`;
-        } finally {
-          // Clean up
-          document.body.removeChild(container);
+          resultDiv.innerHTML = `<p style="color: #EA4335;">Error during distance calculation: ${error.message || error}</p>`;
         }
       }
     });
