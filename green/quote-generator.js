@@ -6,6 +6,13 @@
  * market rates, and other factors.
  */
 
+// Initialize a global QuoteGenerator object for external access
+window.QuoteGenerator = {
+  renderPage: function(containerId) {
+    return window.renderQuoteGeneratorPage(containerId);
+  }
+};
+
 // Add debugging
 console.log('Quote Generator module initialized');
 
@@ -2278,7 +2285,8 @@ function initializeAutocompleteFields() {
  * Main function to render the quote generator page
  * @param {string} containerId - The ID of the container to render the page in
  */
-export function renderQuoteGeneratorPage(containerId) {
+// Make the function available globally by attaching to window
+window.renderQuoteGeneratorPage = function(containerId) {
   console.log('Created app-container for quote generator');
   
   // Initialize form state preservation system first thing
