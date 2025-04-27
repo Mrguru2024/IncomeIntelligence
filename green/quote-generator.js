@@ -12,8 +12,18 @@ console.log('Quote Generator module initialized');
 // Import necessary utility functions
 import { updateViewportClasses } from './src/main.js';
 
+// Global form state cache to preserve form data during orientation changes
+let cachedFormState = {
+  autoQuote: null,
+  generalQuote: null,
+  lastActiveTab: null
+};
+
 // Safe wrapper for viewport detection to prevent form reset issues
 function getViewportData() {
+  // Save form state before any viewport update
+  saveCurrentFormState();
+  
   try {
     return updateViewportClasses();
   } catch (error) {
@@ -26,7 +36,142 @@ function getViewportData() {
       isFoldableClosed: window.innerWidth < 400 && (window.innerWidth / window.innerHeight) < 0.7,
       isFoldableOpen: window.innerWidth >= 500 && window.innerWidth < 840 && (window.innerWidth / window.innerHeight) > 0.9
     };
+  } finally {
+    // Restore form state after viewport update (with slight delay to ensure DOM is ready)
+    setTimeout(restoreFormState, 100);
   }
+}
+
+// Function to save current form state
+function saveCurrentFormState() {
+  // Auto service quote form
+  const autoForm = document.getElementById('auto-quote-form');
+  if (autoForm) {
+    const formData = new FormData(autoForm);
+    const formState = {};
+    for (const [key, value] of formData.entries()) {
+      formState[key] = value;
+    }
+    cachedFormState.autoQuote = formState;
+    console.log('Saved auto quote form state');
+  }
+  
+  // General service quote form
+  const generalForm = document.getElementById('general-quote-form');
+  if (generalForm) {
+    const formData = new FormData(generalForm);
+    const formState = {};
+    for (const [key, value] of formData.entries()) {
+      formState[key] = value;
+    }
+    cachedFormState.generalQuote = formState;
+    console.log('Saved general quote form state');
+  }
+  
+  // Save active tab
+  const activeTab = document.querySelector('.form-tab.active');
+  if (activeTab) {
+    cachedFormState.lastActiveTab = activeTab.getAttribute('data-tab');
+    console.log('Saved active tab:', cachedFormState.lastActiveTab);
+  }
+}
+
+// Function to restore form state
+function restoreFormState() {
+  console.log('Attempting to restore form state');
+  
+  // Restore active tab first
+  if (cachedFormState.lastActiveTab) {
+    const tabs = document.querySelectorAll('.form-tab');
+    tabs.forEach(tab => {
+      if (tab.getAttribute('data-tab') === cachedFormState.lastActiveTab) {
+        tab.click(); // This will activate the tab
+      }
+    });
+  }
+  
+  // Restore auto form fields
+  if (cachedFormState.autoQuote) {
+    const autoForm = document.getElementById('auto-quote-form');
+    if (autoForm) {
+      const formState = cachedFormState.autoQuote;
+      for (const [key, value] of Object.entries(formState)) {
+        const field = autoForm.elements[key];
+        if (field) {
+          field.value = value;
+        }
+      }
+      console.log('Restored auto quote form state');
+    }
+  }
+  
+  // Restore general form fields
+  if (cachedFormState.generalQuote) {
+    const generalForm = document.getElementById('general-quote-form');
+    if (generalForm) {
+      const formState = cachedFormState.generalQuote;
+      for (const [key, value] of Object.entries(formState)) {
+        const field = generalForm.elements[key];
+        if (field) {
+          field.value = value;
+        }
+      }
+      console.log('Restored general quote form state');
+    }
+  }
+}
+
+// Function to initialize the form state preservation system
+function initFormStatePreservation() {
+  // Skip if already initialized
+  if (window.quoteFormPreservationSetup) return;
+  
+  console.log('Initializing quote form state preservation system');
+  
+  // Register for orientation change events
+  window.addEventListener('orientationchange', function() {
+    console.log('Orientation changed - preserving quote form state');
+    saveCurrentFormState();
+    // Allow DOM to update and then restore with increased delay for ZFold devices
+    setTimeout(restoreFormState, 500);
+  });
+  
+  // Add MutationObserver to detect quote form reset
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.type === 'childList' && 
+         (mutation.target.id === 'auto-quote-form' || 
+          mutation.target.id === 'general-quote-form' ||
+          mutation.target.classList.contains('quote-generator-container'))) {
+        console.log('Quote form DOM changed - checking if data needs restoration');
+        // Only restore if form fields are empty (reset occurred)
+        const autoForm = document.getElementById('auto-quote-form');
+        const generalForm = document.getElementById('general-quote-form');
+        
+        if ((autoForm && cachedFormState.autoQuote && Object.keys(cachedFormState.autoQuote).length > 0) || 
+            (generalForm && cachedFormState.generalQuote && Object.keys(cachedFormState.generalQuote).length > 0)) {
+          console.log('Form reset detected - restoring saved data');
+          setTimeout(restoreFormState, 100);
+        }
+      }
+    });
+  });
+  
+  // Start observing after a delay to let DOM initialize
+  setTimeout(() => {
+    const container = document.querySelector('.quote-generator-container');
+    if (container) {
+      observer.observe(container, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['value']
+      });
+      console.log('Form reset detection observer started');
+    }
+  }, 1000);
+  
+  window.quoteFormPreservationSetup = true;
 }
 
 // Add special handling for ZFold and other foldable devices
@@ -1607,10 +1752,32 @@ function initializeAutocompleteFields() {
  * @param {string} containerId - The ID of the container to render the page in
  */
 export function renderQuoteGeneratorPage(containerId) {
-  // Autocomplete CSS is now added in the initializeAutocompleteFields function
+  console.log('Created app-container for quote generator:', {});
   
-  // Load Google Places API for address autocomplete
-  loadGooglePlacesAPI();
+  // Initialize form state preservation system first thing
+  initFormStatePreservation();
+  
+  // Check Google Maps API status directly
+  if (window.google && window.google.maps && window.google.maps.places) {
+    console.log('Google Places API already loaded');
+  } else {
+    console.log('Loading Google Places API...');
+    loadGooglePlacesAPI();
+  }
+  
+  // Log detailed diagnostics for debugging form resets
+  console.log('Checking Google Maps API status at render time:');
+  console.log('- window.google exists:', !!window.google);
+  console.log('- window.google.maps exists:', !!(window.google && window.google.maps));
+  console.log('- window.google.maps.places exists:', !!(window.google && window.google.maps && window.google.maps.places));
+  
+  // Check if this is a foldable device and log status
+  const { width, isFoldableClosed, isFoldableOpen } = getViewportData();
+  const isFoldableDevice = width < 400 || isFoldableClosed;
+  
+  if (isFoldableDevice) {
+    console.log('ZFold device detected - applying enhanced form protection');
+  }
   
   // Add debug logging for diagnosing Google Maps API issues
   console.log('Checking Google Maps API status at render time:');
@@ -1654,7 +1821,8 @@ export function renderQuoteGeneratorPage(containerId) {
   generalTab.style.fontWeight = 'bold';
   generalTab.style.borderBottom = '3px solid var(--color-primary)';
   generalTab.dataset.tab = 'general';
-  generalTab.classList.add('active-tab');
+  generalTab.classList.add('form-tab');
+  generalTab.classList.add('active');
   
   // Automotive Tab
   const autoTab = document.createElement('div');
@@ -1663,6 +1831,7 @@ export function renderQuoteGeneratorPage(containerId) {
   autoTab.style.cursor = 'pointer';
   autoTab.style.color = 'var(--color-text-secondary)';
   autoTab.dataset.tab = 'automotive';
+  autoTab.classList.add('form-tab');
   
   // Add event listeners to tabs
   generalTab.addEventListener('click', () => {
