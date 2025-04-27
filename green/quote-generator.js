@@ -2583,9 +2583,12 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   });
   
   // If it's a product service with multiple units, show quantity
-  if (isProductService && quote.quantity > 1) {
+  // For locksmith rekey, always show quantity even if it's 1
+  if ((isProductService && quote.quantity > 1) || 
+      (quote.jobType === 'locksmith' && quote.jobSubtype === 'rekey')) {
+    const unitType = (quote.jobType === 'locksmith' && quote.jobSubtype === 'rekey') ? 'lock cylinders' : 'units';
     breakdownItems.push({
-      label: `Product Quantity: ${quote.quantity} units`,
+      label: `Product Quantity: ${quote.quantity} ${unitType}`,
       value: null, // No direct value, just informational
       isInfo: true
     });
@@ -2603,7 +2606,15 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
       label: 'Products',
       value: quote.materialsCost
     });
-  } 
+  }
+  // For locksmith services: display quantity in materials calculation
+  else if (quote.jobType === 'locksmith') {
+    const perUnitCost = quote.materialsCost / quote.quantity;
+    breakdownItems.push({
+      label: `Materials (${quote.quantity} ${quote.jobSubtype === 'rekey' ? 'lock cylinders' : 'units'} @ $${perUnitCost.toFixed(2)}/unit)`,
+      value: quote.materialsCost
+    });
+  }
   // For electronic repair: add parts and diagnostics
   else if (isElectronicRepair(quote.jobType)) {
     breakdownItems.push({
@@ -2829,9 +2840,12 @@ function displayQuoteResults(result) {
   });
   
   // If it's a product service with multiple units, show quantity
-  if (isProductService(result.jobType) && result.quantity > 1) {
+  // For locksmith rekey, always show quantity even if it's 1
+  if ((isProductService(result.jobType) && result.quantity > 1) || 
+      (result.jobType === 'locksmith' && result.jobSubtype === 'rekey')) {
+    const unitType = (result.jobType === 'locksmith' && result.jobSubtype === 'rekey') ? 'lock cylinders' : 'units';
     breakdownItems.push({
-      label: `Product Quantity: ${result.quantity} units`,
+      label: `Product Quantity: ${result.quantity} ${unitType}`,
       value: null, // No direct value, just informational
       isInfo: true
     });
@@ -2849,7 +2863,15 @@ function displayQuoteResults(result) {
       label: 'Products',
       value: result.materialsCost
     });
-  } 
+  }
+  // For locksmith services: display quantity in materials calculation
+  else if (result.jobType === 'locksmith') {
+    const perUnitCost = result.materialsCost / result.quantity;
+    breakdownItems.push({
+      label: `Materials (${result.quantity} ${result.jobSubtype === 'rekey' ? 'lock cylinders' : 'units'} @ $${perUnitCost.toFixed(2)}/unit)`,
+      value: result.materialsCost
+    });
+  }
   // For electronic repair: add parts and diagnostics
   else if (isElectronicRepair(result.jobType)) {
     breakdownItems.push({
