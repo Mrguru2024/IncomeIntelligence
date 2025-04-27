@@ -2666,6 +2666,12 @@ function printQuote(quote) {
             <div><strong>Service:</strong></div>
             <div>${quote.jobTypeDisplay}</div>
           </div>
+          ${quote.jobSubtypeDisplay ? `
+          <div class="quote-info-row">
+            <div><strong>Service Type:</strong></div>
+            <div>${quote.jobSubtypeDisplay}</div>
+          </div>
+          ` : ''}
           <div class="quote-info-row">
             <div><strong>Location:</strong></div>
             <div>${quote.location}</div>
@@ -2765,7 +2771,7 @@ function createInvoiceFromQuote(quote) {
       },
       items: [
         {
-          description: `${quote.jobTypeDisplay}${quote.emergency ? ' (Emergency)' : ''}`,
+          description: `${quote.jobTypeDisplay}${quote.jobSubtypeDisplay ? ` - ${quote.jobSubtypeDisplay}` : ''}${quote.emergency ? ' (Emergency)' : ''}`,
           quantity: quote.laborHours,
           unit: 'hours',
           unitPrice: quote.laborRate,
