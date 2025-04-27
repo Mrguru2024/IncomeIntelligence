@@ -1780,12 +1780,27 @@ function loadGooglePlacesAPI(callback) {
 /**
  * Initialize all autocomplete fields when Google Places API is loaded
  */
+// Add global callback function for Google Maps script
+window.initGooglePlacesAPI = function() {
+  console.log('Google Maps callback triggered: initGooglePlacesAPI');
+  setTimeout(() => {
+    if (window.google && window.google.maps && window.google.maps.places) {
+      console.log('Google Maps Places API available, initializing autocomplete fields');
+      initializeAutocompleteFields();
+    } else {
+      console.warn('Places library not available in callback');
+    }
+  }, 100);
+};
+
 function initializeAutocompleteFields() {
   try {
     if (!window.google || !window.google.maps || !window.google.maps.places) {
       console.warn('Google Places API not available for autocomplete initialization');
       return;
     }
+    
+    console.log('Starting autocomplete fields initialization');
     
     // Add CSS to ensure autocomplete suggestions are visible
     const style = document.createElement('style');
@@ -2041,17 +2056,25 @@ function initializeAutocompleteFields() {
  * @param {string} containerId - The ID of the container to render the page in
  */
 export function renderQuoteGeneratorPage(containerId) {
-  console.log('Created app-container for quote generator:', {});
+  console.log('Created app-container for quote generator');
   
   // Initialize form state preservation system first thing
   initFormStatePreservation();
   
+  // Log the Google Maps API initialization status
+  console.log('Google Maps initialization status check:');
+  console.log('- window.google exists:', !!window.google);
+  console.log('- window.google.maps exists:', !!(window.google && window.google.maps));
+  console.log('- window.google.maps.places exists:', !!(window.google && window.google.maps && window.google.maps.places));
+  console.log('- window.initGooglePlacesAPI exists:', typeof window.initGooglePlacesAPI === 'function');
+  
   // Check Google Maps API status directly
   if (window.google && window.google.maps && window.google.maps.places) {
-    console.log('Google Places API already loaded');
+    console.log('Google Places API already loaded - initializing autocomplete fields');
     
     // Initialize autocomplete with a delay to ensure the DOM is ready
     setTimeout(() => {
+      console.log('Delayed initialization of autocomplete fields');
       initializeAutocompleteFields();
       
       // Add a helper function to force the autocomplete dropdown to be visible

@@ -5246,11 +5246,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Return the script URL - client will load it directly
+      // Using the callback function we've defined in our client code
       res.json({
         scriptUrl: `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGooglePlacesAPI`
       });
       
-      console.log('Successfully served direct Google Maps script URL');
+      console.log('Successfully served direct Google Maps script URL with callback=initGooglePlacesAPI');
       
     } catch (error) {
       console.error('Error in Google Maps direct endpoint:', error);

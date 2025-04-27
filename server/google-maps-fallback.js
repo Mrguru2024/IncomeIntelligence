@@ -348,12 +348,17 @@ function generateFallbackScript() {
     // Call initialization function if it exists
     if (typeof initGooglePlacesAPI === 'function') {
       console.log('Calling initGooglePlacesAPI from enhanced fallback');
-      initGooglePlacesAPI();
+      setTimeout(initGooglePlacesAPI, 100);
     } else if (typeof initializeGooglePlaces === 'function') {
       console.log('Calling initializeGooglePlaces from enhanced fallback');
-      initializeGooglePlaces();
+      setTimeout(initializeGooglePlaces, 100);
     } else {
       console.log('No Maps initialization function found, will initialize when called by application');
+      // Try to initialize autocomplete fields directly if neither callback is available
+      if (typeof initializeAutocompleteFields === 'function') {
+        console.log('Calling initializeAutocompleteFields directly from fallback');
+        setTimeout(initializeAutocompleteFields, 200);
+      }
     }
   `;
 }
