@@ -523,6 +523,11 @@ function generateMultiQuote(data) {
   const standardQuote = generateQuoteForTier('standard', data, commonData, baseRate);
   const premiumQuote = generateQuoteForTier('premium', data, commonData, baseRate);
   
+  // Add editable flag to each quote for customization
+  basicQuote.editable = true;
+  standardQuote.editable = true;
+  premiumQuote.editable = true;
+  
   return {
     basic: basicQuote,
     standard: standardQuote,
@@ -906,6 +911,26 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   price.style.color = recommended ? '#fff' : 'var(--color-text, #111827)';
   price.textContent = `$${quote.total.toFixed(2)}`;
   
+  // Make price editable if quote is editable
+  if (quote.editable) {
+    price.style.cursor = 'pointer';
+    price.title = 'Click to edit price';
+    
+    price.addEventListener('click', () => {
+      const newPrice = prompt('Enter new total price:', quote.total.toFixed(2));
+      if (newPrice !== null && !isNaN(parseFloat(newPrice))) {
+        const newPriceValue = parseFloat(newPrice);
+        if (newPriceValue >= 0) {
+          quote.total = newPriceValue;
+          price.textContent = `$${newPriceValue.toFixed(2)}`;
+          if (window.showToast) {
+            window.showToast('Price updated', 'success');
+          }
+        }
+      }
+    });
+  }
+  
   // Recommended badge
   if (recommended) {
     const badge = document.createElement('span');
@@ -927,6 +952,23 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   description.style.fontSize = '14px';
   description.style.color = recommended ? 'rgba(255, 255, 255, 0.9)' : 'var(--color-text-secondary, #6b7280)';
   
+  // Make description editable if quote is editable
+  if (quote.editable) {
+    description.style.cursor = 'pointer';
+    description.title = 'Click to edit description';
+    
+    description.addEventListener('click', () => {
+      const newDescription = prompt('Edit service description:', quote.description);
+      if (newDescription !== null) {
+        quote.description = newDescription;
+        description.textContent = newDescription;
+        if (window.showToast) {
+          window.showToast('Description updated', 'success');
+        }
+      }
+    });
+  }
+  
   cardHeader.appendChild(tierTitle);
   cardHeader.appendChild(price);
   cardHeader.appendChild(description);
@@ -942,11 +984,17 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   featuresList.style.padding = '0';
   featuresList.style.marginBottom = '16px';
   
-  quote.features.forEach(feature => {
+  quote.features.forEach((feature, index) => {
     const item = document.createElement('li');
     item.style.display = 'flex';
     item.style.marginBottom = '8px';
     item.style.fontSize = '14px';
+    item.style.justifyContent = 'space-between';
+    item.style.alignItems = 'flex-start';
+    
+    const featureContainer = document.createElement('div');
+    featureContainer.style.display = 'flex';
+    featureContainer.style.flexGrow = '1';
     
     const checkIcon = document.createElement('span');
     checkIcon.innerHTML = '✓';
@@ -957,10 +1005,114 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
     const text = document.createElement('span');
     text.textContent = feature;
     
-    item.appendChild(checkIcon);
-    item.appendChild(text);
+    featureContainer.appendChild(checkIcon);
+    featureContainer.appendChild(text);
+    item.appendChild(featureContainer);
+    
+    // Add edit controls if quote is editable
+    if (quote.editable) {
+      const controls = document.createElement('div');
+      controls.style.display = 'none';
+      controls.style.alignItems = 'center';
+      
+      // Edit button
+      const editBtn = document.createElement('button');
+      editBtn.innerHTML = '✎';
+      editBtn.title = 'Edit feature';
+      editBtn.style.background = 'none';
+      editBtn.style.border = 'none';
+      editBtn.style.color = 'var(--color-primary, #4F46E5)';
+      editBtn.style.cursor = 'pointer';
+      editBtn.style.marginRight = '4px';
+      editBtn.style.fontSize = '14px';
+      
+      editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const newFeature = prompt('Edit feature:', feature);
+        if (newFeature !== null && newFeature.trim() !== '') {
+          quote.features[index] = newFeature.trim();
+          text.textContent = newFeature.trim();
+          if (window.showToast) {
+            window.showToast('Feature updated', 'success');
+          }
+        }
+      });
+      
+      // Delete button
+      const deleteBtn = document.createElement('button');
+      deleteBtn.innerHTML = '×';
+      deleteBtn.title = 'Remove feature';
+      deleteBtn.style.background = 'none';
+      deleteBtn.style.border = 'none';
+      deleteBtn.style.color = '#ef4444';
+      deleteBtn.style.cursor = 'pointer';
+      deleteBtn.style.fontSize = '16px';
+      
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm('Remove this feature?')) {
+          quote.features.splice(index, 1);
+          item.remove();
+          if (window.showToast) {
+            window.showToast('Feature removed', 'success');
+          }
+        }
+      });
+      
+      controls.appendChild(editBtn);
+      controls.appendChild(deleteBtn);
+      item.appendChild(controls);
+      
+      // Show controls on hover
+      item.addEventListener('mouseenter', () => {
+        controls.style.display = 'flex';
+      });
+      
+      item.addEventListener('mouseleave', () => {
+        controls.style.display = 'none';
+      });
+    }
+    
     featuresList.appendChild(item);
   });
+  
+  // Add "Add feature" option if editable
+  if (quote.editable) {
+    const addItem = document.createElement('li');
+    addItem.style.display = 'flex';
+    addItem.style.marginBottom = '8px';
+    addItem.style.fontSize = '14px';
+    addItem.style.color = 'var(--color-primary, #4F46E5)';
+    addItem.style.cursor = 'pointer';
+    
+    const plusIcon = document.createElement('span');
+    plusIcon.innerHTML = '+';
+    plusIcon.style.marginRight = '8px';
+    plusIcon.style.fontWeight = 'bold';
+    
+    const text = document.createElement('span');
+    text.textContent = 'Add feature';
+    
+    addItem.appendChild(plusIcon);
+    addItem.appendChild(text);
+    
+    addItem.addEventListener('click', () => {
+      const newFeature = prompt('Enter new feature:');
+      if (newFeature !== null && newFeature.trim() !== '') {
+        quote.features.push(newFeature.trim());
+        
+        // Clear and rebuild the features list
+        featuresList.innerHTML = '';
+        createQuoteCard(quote, tierName, bgColor, container, recommended);
+        
+        if (window.showToast) {
+          window.showToast('Feature added', 'success');
+        }
+      }
+    });
+    
+    featuresList.appendChild(addItem);
+  }
   
   cardBody.appendChild(featuresList);
   
@@ -1067,6 +1219,7 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   actions.style.marginTop = '16px';
   actions.style.display = 'flex';
   actions.style.gap = '8px';
+  actions.style.flexWrap = 'wrap';
   
   // Select button
   const selectButton = document.createElement('button');
@@ -1080,6 +1233,7 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   selectButton.style.fontSize = '14px';
   selectButton.style.fontWeight = 'bold';
   selectButton.style.cursor = 'pointer';
+  selectButton.style.minWidth = '80px';
   
   selectButton.addEventListener('click', () => {
     displayQuoteResults(quote);
@@ -1100,8 +1254,37 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
     printQuote(quote);
   });
   
+  // Add Save button
+  const saveButton = document.createElement('button');
+  saveButton.textContent = 'Save';
+  saveButton.style.backgroundColor = quote.editable ? '#10b981' : 'transparent';
+  saveButton.style.color = quote.editable ? 'white' : 'var(--color-text, #111827)';
+  saveButton.style.border = quote.editable ? 'none' : '1px solid var(--color-border, #e5e7eb)';
+  saveButton.style.borderRadius = '6px';
+  saveButton.style.padding = '8px 16px';
+  saveButton.style.fontSize = '14px';
+  saveButton.style.cursor = 'pointer';
+  
+  saveButton.addEventListener('click', () => {
+    saveQuote(quote);
+  });
+  
   actions.appendChild(selectButton);
   actions.appendChild(printButton);
+  
+  // Only add save button if the quote is editable
+  if (quote.editable) {
+    // Create a new row for the save button to ensure it appears below on mobile
+    const saveButtonRow = document.createElement('div');
+    saveButtonRow.style.display = 'flex';
+    saveButtonRow.style.width = '100%';
+    saveButtonRow.style.marginTop = '8px';
+    
+    saveButton.style.flex = '1';
+    saveButtonRow.appendChild(saveButton);
+    
+    actions.appendChild(saveButtonRow);
+  }
   cardBody.appendChild(actions);
   
   card.appendChild(cardBody);
