@@ -2762,39 +2762,88 @@ function generateQuote(quoteData) {
   const taxRate = getTaxRate(state);
   
   // Get market rate for this job type and region
-  const hourlyRate = getMarketRate(jobType, state);
+  const baseHourlyRate = getMarketRate(jobType, state);
+  
+  // Apply service-specific rate adjustments
+  let hourlyRate = baseHourlyRate;
+  let serviceTypeMultiplier = 1.0;
+  let additionalFees = 0;
+  let specialMaterialsPercentage = 0;
+  
+  // Adjust rates based on job type (service-specific calculations)
+  if (jobType === 'plumber' || jobType === 'electrician' || jobType === 'hvac') {
+    // Licensed trade services often require more technical expertise 
+    serviceTypeMultiplier = 1.10; // 10% premium for licensed trades
+    
+    // Check for emergency service rate for critical utilities
+    if (emergency) {
+      serviceTypeMultiplier = 1.75; // 75% premium for emergency licensed trades
+      additionalFees += 50; // Emergency response fee for critical services
+    }
+  } 
+  else if (jobType === 'general_contractor') {
+    // General contractors need to cover subcontractor coordination
+    serviceTypeMultiplier = 1.15; // 15% premium for project management
+    specialMaterialsPercentage = 0.05; // 5% materials procurement fee
+  }
+  else if (jobType === 'photographer' || jobType === 'videographer') {
+    // Creative services with equipment costs
+    serviceTypeMultiplier = 1.0; // Base rate already accounts for service
+    additionalFees += 75; // Equipment fee
+  }
+  else if (jobType === 'graphic_designer' || jobType === 'web_designer') {
+    // Design services with rights/licensing considerations
+    serviceTypeMultiplier = 1.15; // 15% premium for commercial rights
+  }
+  else if (jobType === 'hair_stylist' || jobType === 'makeup_artist' || jobType === 'esthetician') {
+    // Beauty services with product usage
+    serviceTypeMultiplier = 1.05; // 5% premium for beauty services
+    specialMaterialsPercentage = 0.10; // 10% product usage fee
+  }
+  else if (jobType === 'event_planner' || jobType === 'caterer' || jobType === 'dj') {
+    // Event services with time sensitivity
+    serviceTypeMultiplier = 1.08; // 8% premium for event services
+  }
+  else {
+    // Standard services get the regular emergency fee
+    if (emergency) {
+      serviceTypeMultiplier = 1.5; // 50% emergency premium for standard services
+    }
+  }
+  
+  // Apply service type multiplier to hourly rate
+  hourlyRate *= serviceTypeMultiplier;
   
   // Calculate base labor cost
   let laborCost = hourlyRate * laborHours;
   
-  // Apply emergency surcharge if needed (50% increase)
-  if (emergency) {
-    laborCost *= 1.5;
-  }
+  // Apply any specialty materials percentage to materials cost
+  const adjustedMaterialsCost = materialsCost * (1 + specialMaterialsPercentage);
   
   // Calculate travel costs with gas price data
   const gasPrice = getGasPriceForState(state);
   const fuelCost = calculateFuelCost(travelDistance, gasPrice);
   
-  // Add service fee for travel time ($0.80 per mile)
-  const travelServiceFee = travelDistance * 0.80;
+  // Add service fee for travel time (based on hourly rate)
+  // For high-value services, travel time is more expensive
+  const travelServiceFee = travelDistance * (hourlyRate < 100 ? 0.80 : hourlyRate / 100);
   
   // Total travel cost (fuel + service fee)
   const travelCost = fuelCost + travelServiceFee;
   
-  // Calculate subtotal (labor + materials + travel)
-  const subtotal = laborCost + materialsCost + travelCost;
+  // Calculate subtotal (labor + adjusted materials + travel + additional fees)
+  const subtotal = laborCost + adjustedMaterialsCost + travelCost + additionalFees;
   
   // Calculate tax (applied to materials only in most regions)
-  const taxAmount = materialsCost * taxRate;
+  const taxAmount = adjustedMaterialsCost * taxRate;
   
   // Calculate total
   const total = subtotal + taxAmount;
   
   // Calculate profit based on target margin
-  const costWithoutProfit = subtotal / (1 - (targetMargin / 100));
-  const profit = total - costWithoutProfit;
-  const profitMargin = (profit / total) * 100;
+  const targetProfit = subtotal * (targetMargin / 100);
+  const actualProfit = total - (subtotal - targetProfit);
+  const profitMargin = (actualProfit / total) * 100;
   
   // Generate profit assessment
   let profitAssessment = '';
@@ -2806,16 +2855,21 @@ function generateQuote(quoteData) {
     profitAssessment = 'This quote has a healthy profit margin. Well done!';
   }
   
-  // Return quote result
+  // Return quote result with detailed breakdown
   return {
     jobType,
     jobDescription,
     location,
     state,
     laborHours,
+    baseHourlyRate,
     hourlyRate,
+    serviceTypeMultiplier,
+    additionalFees,
+    specialMaterialsPercentage,
     laborCost,
-    materialsCost,
+    materialsCost: adjustedMaterialsCost,
+    rawMaterialsCost: materialsCost,
     travelDistance,
     gasPrice,
     fuelCost,
@@ -2827,7 +2881,7 @@ function generateQuote(quoteData) {
     taxAmount,
     total,
     targetMargin,
-    profit,
+    profit: actualProfit,
     profitMargin,
     profitAssessment
   };
@@ -2887,14 +2941,113 @@ function displayQuoteResult(quoteResult) {
   const breakdownList = document.createElement('div');
   breakdownList.classList.add('cost-breakdown-list');
   
-  // Labor
-  breakdownList.appendChild(createBreakdownItem(
-    `Labor (${quoteResult.laborHours} hours @ $${quoteResult.hourlyRate.toFixed(2)}/hr)${quoteResult.emergency ? ' (Emergency)' : ''}`,
-    quoteResult.laborCost
-  ));
+  // Labor with service-specific rate details
+  let laborLabel = `Labor (${quoteResult.laborHours} hours @ $${quoteResult.hourlyRate.toFixed(2)}/hr)`;
   
-  // Materials
-  breakdownList.appendChild(createBreakdownItem('Materials', quoteResult.materialsCost));
+  // Show rate adjustment if applicable
+  if (quoteResult.serviceTypeMultiplier && quoteResult.serviceTypeMultiplier !== 1.0) {
+    const adjustmentPercent = ((quoteResult.serviceTypeMultiplier - 1) * 100).toFixed(0);
+    laborLabel += ` (includes ${adjustmentPercent}% ${quoteResult.emergency ? 'emergency' : 'service type'} adjustment)`;
+  } else if (quoteResult.emergency) {
+    laborLabel += ' (Emergency rate)';
+  }
+  
+  breakdownList.appendChild(createBreakdownItem(laborLabel, quoteResult.laborCost));
+  
+  // Materials with any specialty materials percentage
+  let materialsLabel = 'Materials';
+  if (quoteResult.specialMaterialsPercentage > 0) {
+    const materialsPercent = (quoteResult.specialMaterialsPercentage * 100).toFixed(0);
+    materialsLabel += ` (includes ${materialsPercent}% service fee)`;
+    
+    // Show original cost and fee in a detailed breakdown
+    const materialsItem = document.createElement('div');
+    materialsItem.style.borderBottom = '1px solid var(--color-border)';
+    materialsItem.style.padding = '8px 0';
+    materialsItem.style.position = 'relative';
+    
+    // Main materials row with total cost
+    const materialsRow = document.createElement('div');
+    materialsRow.style.display = 'flex';
+    materialsRow.style.justifyContent = 'space-between';
+    materialsRow.style.cursor = 'pointer';
+    
+    const materialsRowLabel = document.createElement('div');
+    materialsRowLabel.innerHTML = `${materialsLabel} <span style="font-size: 12px; color: var(--color-text-secondary);">▼ Click for details</span>`;
+    
+    const materialsValue = document.createElement('div');
+    materialsValue.textContent = `$${quoteResult.materialsCost.toFixed(2)}`;
+    
+    materialsRow.appendChild(materialsRowLabel);
+    materialsRow.appendChild(materialsValue);
+    materialsItem.appendChild(materialsRow);
+    
+    // Materials details (hidden by default)
+    const materialsDetails = document.createElement('div');
+    materialsDetails.style.fontSize = '13px';
+    materialsDetails.style.color = 'var(--color-text-secondary)';
+    materialsDetails.style.paddingLeft = '20px';
+    materialsDetails.style.marginTop = '8px';
+    materialsDetails.style.display = 'none';
+    
+    // Base materials cost detail
+    const baseMatDetail = document.createElement('div');
+    baseMatDetail.style.display = 'flex';
+    baseMatDetail.style.justifyContent = 'space-between';
+    baseMatDetail.style.marginBottom = '4px';
+    
+    const baseMatLabel = document.createElement('div');
+    baseMatLabel.textContent = 'Base materials cost';
+    
+    const baseMatValue = document.createElement('div');
+    baseMatValue.textContent = `$${quoteResult.rawMaterialsCost.toFixed(2)}`;
+    
+    baseMatDetail.appendChild(baseMatLabel);
+    baseMatDetail.appendChild(baseMatValue);
+    materialsDetails.appendChild(baseMatDetail);
+    
+    // Materials fee detail
+    const matFeeDetail = document.createElement('div');
+    matFeeDetail.style.display = 'flex';
+    matFeeDetail.style.justifyContent = 'space-between';
+    
+    const matFeeLabel = document.createElement('div');
+    matFeeLabel.textContent = `Service fee (${materialsPercent}%)`;
+    
+    const matFeeValue = document.createElement('div');
+    const feeAmount = quoteResult.materialsCost - quoteResult.rawMaterialsCost;
+    matFeeValue.textContent = `$${feeAmount.toFixed(2)}`;
+    
+    matFeeDetail.appendChild(matFeeLabel);
+    matFeeDetail.appendChild(matFeeValue);
+    materialsDetails.appendChild(matFeeDetail);
+    
+    materialsItem.appendChild(materialsDetails);
+    
+    // Toggle materials details on click
+    materialsRow.addEventListener('click', () => {
+      if (materialsDetails.style.display === 'none') {
+        materialsDetails.style.display = 'block';
+        materialsRowLabel.innerHTML = `${materialsLabel} <span style="font-size: 12px; color: var(--color-text-secondary);">▲ Hide details</span>`;
+      } else {
+        materialsDetails.style.display = 'none';
+        materialsRowLabel.innerHTML = `${materialsLabel} <span style="font-size: 12px; color: var(--color-text-secondary);">▼ Click for details</span>`;
+      }
+    });
+    
+    breakdownList.appendChild(materialsItem);
+  } else {
+    // Simple materials line with no breakdown
+    breakdownList.appendChild(createBreakdownItem(materialsLabel, quoteResult.materialsCost));
+  }
+  
+  // Add any additional service-specific fees
+  if (quoteResult.additionalFees > 0) {
+    breakdownList.appendChild(createBreakdownItem(
+      'Additional service fees',
+      quoteResult.additionalFees
+    ));
+  }
   
   // Travel - with detailed breakdown
   if (quoteResult.travelDistance > 0) {
@@ -4444,7 +4597,8 @@ function generateAutoQuote(quoteData) {
     baseTravelCost,
     emergencyFee,
     taxRate,
-    targetMargin: 30          // 30% target margin for standard tier
+    targetMargin: 30,         // 30% target margin for standard tier
+    service_type               // Pass service type for service-specific adjustments
   });
   
   // TIER 2: PREMIUM - Enhanced service with better parts and some value-adds
@@ -4464,7 +4618,8 @@ function generateAutoQuote(quoteData) {
     baseTravelCost,
     emergencyFee,
     taxRate,
-    targetMargin: 45          // 45% target margin for premium tier
+    targetMargin: 45,         // 45% target margin for premium tier
+    service_type               // Pass service type for service-specific adjustments
   });
   
   // TIER 3: ULTIMATE - Top-tier service with premium parts, extensive value-adds
@@ -4486,7 +4641,8 @@ function generateAutoQuote(quoteData) {
     baseTravelCost,
     emergencyFee,
     taxRate,
-    targetMargin: 65          // 65% target margin for ultimate tier
+    targetMargin: 65,         // 65% target margin for ultimate tier
+    service_type               // Pass service type for service-specific adjustments
   });
   
   // Find appropriate service tier recommendations based on the service type
@@ -4545,32 +4701,124 @@ function generateTierQuote(options) {
     baseTravelCost,
     emergencyFee,
     taxRate,
-    targetMargin
+    targetMargin,
+    service_type // Optional service type for service-specific adjustments
   } = options;
   
   // Calculate costs with appropriate multipliers
-  const adjustedLaborCost = laborCost * laborMultiplier;
-  const adjustedPartsCost = partsCost * partsMultiplier;
+  let adjustedLaborCost = laborCost * laborMultiplier;
+  let adjustedPartsCost = partsCost * partsMultiplier;
+  
+  // Service-specific adjustments
+  let serviceAdjustments = {
+    diagnosticFee: 0,
+    specialEquipmentFee: 0,
+    certificationFee: 0,
+    rushFee: 0,
+    materialQualityUpgrade: 0
+  };
+  
+  // Specialized adjustment logic based on service type and tier
+  if (service_type) {
+    // Key and security services
+    if (['all_keys_lost', 'duplicate_key', 'ignition_repair'].includes(service_type)) {
+      if (name === 'Premium Service' || name === 'Ultimate Service') {
+        // Premium key services require specialized electronic diagnostics 
+        serviceAdjustments.diagnosticFee = name === 'Ultimate Service' ? 60 : 30;
+      }
+      
+      // Security-related services have stricter certification requirements
+      if (service_type === 'all_keys_lost') {
+        serviceAdjustments.certificationFee = 25;
+      }
+    }
+    
+    // Engine and mechanical services
+    else if (['engine_repair', 'transmission', 'brake_service'].includes(service_type)) {
+      // These are complex mechanical services requiring specialized training
+      if (name === 'Premium Service') {
+        serviceAdjustments.diagnosticFee = 45;
+        serviceAdjustments.specialEquipmentFee = 30;
+      } else if (name === 'Ultimate Service') {
+        serviceAdjustments.diagnosticFee = 75;
+        serviceAdjustments.specialEquipmentFee = 60;
+        serviceAdjustments.certificationFee = 40; // Master technician premium
+      }
+      
+      // Adjust labor cost for complex mechanical work in premium tiers
+      if (name === 'Ultimate Service' && service_type === 'engine_repair') {
+        adjustedLaborCost *= 1.15; // Additional 15% for master technician expertise
+      }
+    }
+    
+    // Body work and cosmetic services
+    else if (['body_repair', 'paint_work', 'detailing'].includes(service_type)) {
+      // These services vary dramatically in quality based on materials and time spent
+      if (name === 'Premium Service') {
+        serviceAdjustments.materialQualityUpgrade = adjustedPartsCost * 0.15; // 15% materials upgrade
+      } else if (name === 'Ultimate Service') {
+        serviceAdjustments.materialQualityUpgrade = adjustedPartsCost * 0.30; // 30% premium materials
+        serviceAdjustments.specialEquipmentFee = 75; // Special finishing equipment
+      }
+      
+      // Premium paint and body work takes more time and care
+      if (name !== 'Standard Service' && service_type === 'paint_work') {
+        adjustedLaborCost *= name === 'Ultimate Service' ? 1.25 : 1.15; // Additional labor time for quality
+      }
+    }
+    
+    // Customization services
+    else if (['window_tinting', 'sound_system', 'vehicle_wrap'].includes(service_type)) {
+      // These services have significant material quality differences
+      if (name === 'Premium Service') {
+        serviceAdjustments.materialQualityUpgrade = adjustedPartsCost * 0.20; // 20% better materials
+        
+        // Sound systems need specialized tuning in premium tiers
+        if (service_type === 'sound_system') {
+          serviceAdjustments.specialEquipmentFee = 50;
+        }
+      } 
+      else if (name === 'Ultimate Service') {
+        serviceAdjustments.materialQualityUpgrade = adjustedPartsCost * 0.40; // 40% premium materials
+        serviceAdjustments.specialEquipmentFee = service_type === 'sound_system' ? 120 : 80;
+      }
+    }
+    
+    // Rush/emergency services in higher tiers get priority scheduling
+    if (emergencyFee > 0 && name !== 'Standard Service') {
+      serviceAdjustments.rushFee = name === 'Ultimate Service' ? 40 : 25;
+    }
+  }
+  
+  // Calculate total service adjustments
+  const totalServiceAdjustments = Object.values(serviceAdjustments).reduce((sum, val) => sum + val, 0);
   
   // Calculate extra services total
   const extraServicesTotal = extraServices.reduce((sum, service) => sum + service.cost, 0);
   
-  // Calculate subtotal
-  const subtotal = adjustedLaborCost + adjustedPartsCost + keycodeCost + baseTravelCost + extraServicesTotal + emergencyFee;
+  // Calculate subtotal with service-specific adjustments
+  const subtotal = adjustedLaborCost + 
+                  adjustedPartsCost + 
+                  keycodeCost + 
+                  baseTravelCost + 
+                  extraServicesTotal + 
+                  emergencyFee + 
+                  totalServiceAdjustments;
   
-  // Calculate tax (applied to parts only)
-  const taxAmount = adjustedPartsCost * taxRate;
+  // Calculate tax (applied to parts and materials only)
+  const taxAmount = (adjustedPartsCost + serviceAdjustments.materialQualityUpgrade) * taxRate;
   
   // Calculate total
   const total = subtotal + taxAmount;
   
-  // Calculate cost basis for profit calculation
+  // Calculate cost basis for profit calculation - with service-specific adjustments
   const costBasis = {
     labor: laborCost * 0.7,                // 70% of labor goes to technician
     parts: adjustedPartsCost * 0.6,        // 60% of parts cost is our cost
     keycode: keycodeCost * 0.8,            // 80% of keycode cost is our cost
     travel: baseTravelCost * 0.9,          // 90% of travel cost is actual cost
-    extraServices: extraServicesTotal * 0.5 // 50% of extras cost is our cost
+    extraServices: extraServicesTotal * 0.5, // 50% of extras cost is our cost
+    serviceAdjustments: totalServiceAdjustments * 0.7 // 70% of service adjustments are actual costs
   };
   
   const totalCost = Object.values(costBasis).reduce((sum, val) => sum + val, 0);
@@ -4602,6 +4850,8 @@ function generateTierQuote(options) {
     keycodeCost,
     travelCost: baseTravelCost,
     emergencyFee,
+    serviceAdjustments,
+    totalServiceAdjustments,
     subtotal,
     taxAmount,
     total,
