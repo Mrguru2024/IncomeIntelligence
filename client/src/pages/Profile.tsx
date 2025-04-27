@@ -37,7 +37,6 @@ import { Switch } from "@/components/ui/switch";
 import { occupationTypes, financialHealthStatuses } from "@shared/schema";
 import SmartRulesEngine from "@/components/SmartRulesEngine"; //Import added here
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 
 // Form validation schema
 const profileFormSchema = z.object({
