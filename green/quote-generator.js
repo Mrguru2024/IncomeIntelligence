@@ -5452,12 +5452,13 @@ function estimateDistanceFromAddresses(address1, address2) {
  * Extract ZIP code from an address string
  * @param {string} address - Address string
  * @returns {string|null} ZIP code or null if not found
+ * Note: The more comprehensive version of this function is defined later in the file
  */
-function extractZipCode(address) {
-  // Try to match a 5-digit ZIP code
-  const zipMatch = address.match(/\b\d{5}\b/);
-  return zipMatch ? zipMatch[0] : null;
-}
+// function extractZipCode(address) {
+//   // Try to match a 5-digit ZIP code
+//   const zipMatch = address.match(/\b\d{5}\b/);
+//   return zipMatch ? zipMatch[0] : null;
+// }
 
 /**
  * Get current gas price for a state (2024 data - legacy version)
