@@ -7796,4 +7796,3 @@ function showTierBreakdown(tierData) {
   // Scroll to the breakdown
   breakdownSection.scrollIntoView({ behavior: 'smooth' });
 }
-} // Close the exported function
