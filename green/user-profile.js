@@ -1,167 +1,50 @@
 /**
  * User Profile Module
- * Handles collection, storage, and retrieval of user profile data
- * for personalizing quote generation and service recommendations
+ * Handles loading, saving, and managing user profile data
  */
 
-// Cached user profile data
-let currentUserProfile = null;
-let userId = null;
-
-// Auto-initialize with default user ID on load if window.appState exists
-(function initializeUserProfileOnLoad() {
-  try {
-    console.log('Auto-initializing user profile module...');
-    
-    // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initializeUserProfileFromWindowState);
-    } else {
-      initializeUserProfileFromWindowState();
-    }
-    
-    // Also set up a window event listener for when appState might be updated later
-    window.addEventListener('appStateUpdated', function(event) {
-      console.log('App state updated, reinitializing user profile');
-      initializeUserProfileFromWindowState();
-    });
-  } catch (error) {
-    console.error('Error in auto-initialization of user profile:', error);
-  }
-})();
+// Default profile template
+const DEFAULT_PROFILE = {
+  displayName: '',
+  email: '',
+  phone: '',
+  location: '',
+  businessName: '',
+  industry: '',
+  experienceLevel: 'intermediate',
+  targetMargin: 30,
+  servicePreferences: [],
+  businessGoals: [],
+  businessChallenges: [],
+  splitRatio: {
+    needs: 40,
+    investments: 30,
+    savings: 30
+  },
+  lastUpdated: new Date().toISOString()
+};
 
 /**
- * Initialize user profile from window state
- * This runs automatically and also when app state changes
+ * Initialize user profile
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>} User profile data
  */
-function initializeUserProfileFromWindowState() {
-  try {
-    // Check if appState and user exist
-    if (window.appState && window.appState.user && window.appState.user.id) {
-      console.log('Found user ID in window.appState:', window.appState.user.id);
-      
-      // Only initialize if it's not already initialized or if ID changed
-      if (!userId || userId !== window.appState.user.id) {
-        initUserProfile(window.appState.user.id)
-          .then(profile => {
-            console.log('User profile automatically initialized:', profile ? 'success' : 'failed');
-          })
-          .catch(err => {
-            console.error('Error auto-initializing user profile:', err);
-          });
-      }
-    } else {
-      // Try to get user ID from localStorage as fallback
-      const userData = localStorage.getItem('stackrUser');
-      if (userData) {
-        try {
-          const user = JSON.parse(userData);
-          if (user && user.id) {
-            console.log('Found user ID in localStorage:', user.id);
-            
-            // Only initialize if it's not already initialized or if ID changed
-            if (!userId || userId !== user.id) {
-              initUserProfile(user.id)
-                .then(profile => {
-                  console.log('User profile initialized from localStorage:', profile ? 'success' : 'failed');
-                })
-                .catch(err => {
-                  console.error('Error initializing user profile from localStorage:', err);
-                });
-            }
-          }
-        } catch (error) {
-          console.error('Error parsing user data from localStorage:', error);
-        }
-      } else {
-        console.log('No user ID found in window.appState or localStorage, using temporary ID');
-        
-        // Create a temporary ID and initialize
-        const tempId = `temp-${Date.now()}`;
-        initUserProfile(tempId)
-          .then(profile => {
-            console.log('User profile initialized with temporary ID:', profile ? 'success' : 'failed');
-          })
-          .catch(err => {
-            console.error('Error initializing user profile with temporary ID:', err);
-          });
-      }
-    }
-  } catch (error) {
-    console.error('Error in initializeUserProfileFromWindowState:', error);
-  }
-}
-
-/**
- * Initialize the user profile module
- * @param {string} currentUserId - The current user's ID
- */
-export async function initUserProfile(currentUserId) {
-  if (!currentUserId) {
-    console.error('Cannot initialize user profile without a user ID');
-    try {
-      // Try to get user ID from localStorage as a fallback
-      const userData = localStorage.getItem('stackrUser');
-      if (userData) {
-        const user = JSON.parse(userData);
-        currentUserId = user.id || `google-${Date.now()}`;
-        console.log('Retrieved user ID from localStorage:', currentUserId);
-      } else {
-        // Create a temporary user ID if none exists
-        currentUserId = `temp-${Date.now()}`;
-        console.log('Created temporary user ID:', currentUserId);
-      }
-    } catch (error) {
-      console.error('Error retrieving user ID from localStorage:', error);
-      return null;
-    }
-  }
-  
-  if (!currentUserId) {
-    console.error('Failed to determine user ID, cannot initialize profile');
+export async function initUserProfile(userId) {
+  if (!userId) {
+    console.error('Cannot initialize profile: No user ID provided');
     return null;
   }
   
-  userId = currentUserId;
-  console.log('Initializing user profile for:', userId);
-  
   try {
-    // Try to fetch existing profile
-    const profile = await fetchUserProfile(userId);
+    // Load existing profile or create new one
+    let profile = await loadUserProfile(userId);
     
-    if (profile) {
-      console.log('User profile loaded:', profile);
-      currentUserProfile = profile;
-      
-      // Dispatch an event to notify other components
-      const event = new CustomEvent('userProfileLoaded', { detail: profile });
-      window.dispatchEvent(event);
-      
-      return profile;
-    } else {
-      // Create a new profile with default values
-      const newProfile = await createDefaultUserProfile(userId);
-      console.log('Created new user profile:', newProfile);
-      currentUserProfile = newProfile;
-      
-      // Check if we should show the onboarding UI
-      const isFirstLogin = !localStorage.getItem('stackrOnboardingCompleted');
-      if (isFirstLogin && typeof window.navigateTo === 'function') {
-        // Show a toast notification about profile creation
-        if (window.showToast) {
-          window.showToast('Welcome! We\'ve created a default profile for you.', 'info');
-        }
-        
-        // You may choose to navigate to onboarding here
-        // window.navigateTo('onboarding');
-      }
-      
-      // Dispatch an event to notify other components
-      const event = new CustomEvent('userProfileCreated', { detail: newProfile });
-      window.dispatchEvent(event);
-      
-      return newProfile;
+    if (!profile) {
+      profile = { ...DEFAULT_PROFILE, userId };
+      await saveUserProfile(profile);
     }
+    
+    return profile;
   } catch (error) {
     console.error('Error initializing user profile:', error);
     return null;
@@ -169,822 +52,184 @@ export async function initUserProfile(currentUserId) {
 }
 
 /**
- * Fetch user profile from server
- * @param {string} profileUserId - User ID to fetch profile for
- * @returns {Object|null} User profile or null if not found
+ * Load user profile from storage
+ * @param {string} userId - User ID
+ * @returns {Promise<Object|null>} User profile or null if not found
  */
-export async function fetchUserProfile(profileUserId) {
+export async function loadUserProfile(userId) {
+  if (!userId) {
+    console.error('Cannot load profile: No user ID provided');
+    return null;
+  }
+  
   try {
-    const response = await fetch(`/api/user-profile/${profileUserId}`);
-    if (response.ok) {
-      return await response.json();
-    } else if (response.status === 404) {
-      return null; // Profile doesn't exist yet
-    } else {
-      console.error('Error fetching user profile:', await response.text());
-      return null;
+    // First try to get from local storage
+    const profileKey = `stackrUserProfile_${userId}`;
+    const storedProfile = localStorage.getItem(profileKey);
+    
+    if (storedProfile) {
+      return JSON.parse(storedProfile);
     }
+    
+    // If not found in local storage, try to get from API
+    // Note: In a real app, this would be an API call to fetch from a database
+    // For now, we'll return null and let the initUserProfile function create a new profile
+    return null;
   } catch (error) {
-    console.error('Network error fetching user profile:', error);
+    console.error('Error loading user profile:', error);
     return null;
   }
 }
 
 /**
- * Create a default user profile
- * @param {string} profileUserId - User ID to create profile for
- * @returns {Object} Newly created user profile
+ * Save user profile to storage
+ * @param {Object} profile - User profile data
+ * @returns {Promise<boolean>} Success status
  */
-export async function createDefaultUserProfile(profileUserId) {
+export async function saveUserProfile(profile) {
+  if (!profile || !profile.userId) {
+    console.error('Cannot save profile: No user ID in profile data');
+    return false;
+  }
+  
   try {
-    const newProfile = {
-      userId: profileUserId,
-      experienceLevel: 'intermediate', // Default to intermediate experience level
-      targetMargin: 30, // Default 30% target profit margin
-      servicePreferences: ['value_oriented', 'reliability_oriented'],
-      businessGoals: ['increase_revenue', 'retain_existing_clients'],
-      businessChallenges: ['pricing_strategy', 'finding_clients'],
-      lastUpdated: new Date().toISOString()
-    };
+    // Update lastUpdated timestamp
+    profile.lastUpdated = new Date().toISOString();
     
-    const response = await fetch(`/api/user-profile/${profileUserId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newProfile)
-    });
+    // Save to local storage
+    const profileKey = `stackrUserProfile_${profile.userId}`;
+    localStorage.setItem(profileKey, JSON.stringify(profile));
     
-    if (response.ok) {
-      return await response.json();
-    } else {
-      console.error('Error creating user profile:', await response.text());
-      return null;
-    }
+    // In a real app, this would also save to a database via API call
+    
+    return true;
   } catch (error) {
-    console.error('Network error creating user profile:', error);
-    return newProfile; // Use local version if network error
+    console.error('Error saving user profile:', error);
+    return false;
   }
 }
 
 /**
  * Update user profile with new data
- * @param {Object} profileUpdates - Object containing profile updates
- * @returns {Object|null} Updated profile or null if failed
+ * @param {Object} profileData - New profile data
+ * @returns {Promise<Object|null>} Updated profile or null if failed
  */
-export async function updateUserProfile(profileUpdates) {
-  // Get user ID from localStorage if not already set
-  if (!userId) {
-    try {
-      const userData = localStorage.getItem('stackrUser');
-      if (userData) {
-        const user = JSON.parse(userData);
-        userId = user.id || `google-${Date.now()}`;
-        console.log('Set user ID from localStorage:', userId);
-      } else {
-        // Create a temporary ID if none exists
-        userId = `temp-${Date.now()}`;
-        console.log('Created temporary user ID:', userId);
-      }
-    } catch (error) {
-      console.error('Error retrieving user ID from localStorage:', error);
-      // Create a fallback ID
-      userId = `fallback-${Date.now()}`;
-    }
-    
-    if (!userId) {
-      console.error('Cannot update profile: Failed to determine user ID');
-      return null;
-    }
-  }
-  
-  try {
-    console.log('Updating profile for user:', userId, 'with data:', profileUpdates);
-    
-    const response = await fetch(`/api/user-profile/${userId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(profileUpdates)
-    });
-    
-    if (response.ok) {
-      const updatedProfile = await response.json();
-      currentUserProfile = updatedProfile;
-      
-      // Cache the updated profile for immediate use in the app
-      console.log('Profile updated successfully:', updatedProfile);
-      
-      // Dispatch a custom event to notify other components
-      const event = new CustomEvent('userProfileUpdated', { detail: updatedProfile });
-      window.dispatchEvent(event);
-      
-      return updatedProfile;
-    } else {
-      console.error('Error updating user profile:', await response.text());
-      return null;
-    }
-  } catch (error) {
-    console.error('Network error updating user profile:', error);
-    return null;
-  }
-}
-
-/**
- * Add quote to user's quote history
- * @param {Object} quote - The quote object to add to history
- * @returns {Object|null} Updated profile or null if failed
- */
-export async function addQuoteToHistory(quote) {
-  if (!userId) {
-    console.error('Cannot add quote to history: No user ID set');
+export async function updateUserProfile(profileData) {
+  if (!profileData || !profileData.userId) {
+    console.error('Cannot update profile: No user ID in profile data');
     return null;
   }
   
   try {
-    // Build a comprehensive quote data object with all relevant information
-    const quoteData = {
-      jobType: quote.jobType,
-      jobSubtype: quote.jobSubtype,
-      totalAmount: typeof quote.totalAmount === 'number' ? quote.totalAmount : 
-                  (typeof quote.total === 'number' ? quote.total : 0),
-      margin: typeof quote.margin === 'number' ? quote.margin : 
-             (typeof quote.actualProfitMargin === 'number' ? quote.actualProfitMargin : 
-             (typeof quote.targetMargin === 'number' ? quote.targetMargin : 0)),
-      tier: quote.tier || 'standard',
-      accepted: quote.accepted || false,
-      date: quote.date || new Date().toISOString(),
-      location: quote.location || '',
-      laborHours: typeof quote.laborHours === 'number' ? quote.laborHours : 0,
-      laborRate: typeof quote.laborRate === 'number' ? quote.laborRate : 0,
-      materialsCost: typeof quote.materialsCost === 'number' ? quote.materialsCost : 0,
-      emergency: quote.emergency || false
+    // Load existing profile
+    const currentProfile = await loadUserProfile(profileData.userId);
+    
+    if (!currentProfile) {
+      console.error('Cannot update profile: Profile not found');
+      return null;
+    }
+    
+    // Merge current profile with new data
+    const updatedProfile = {
+      ...currentProfile,
+      ...profileData,
+      // Ensure nested objects are properly merged
+      splitRatio: {
+        ...currentProfile.splitRatio,
+        ...profileData.splitRatio
+      },
+      lastUpdated: new Date().toISOString()
     };
     
-    // Update the profile by sending the quote data to the server
-    const response = await fetch(`/api/user-profile/${userId}/quotes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(quoteData)
-    });
+    // Save updated profile
+    const success = await saveUserProfile(updatedProfile);
     
-    if (response.ok) {
-      const updatedProfile = await response.json();
-      currentUserProfile = updatedProfile;
-      console.log('Quote added to history:', updatedProfile);
-      
-      // Update user preferences based on this quote
-      if (typeof updateUserPreferencesFromQuote === 'function') {
-        updateUserPreferencesFromQuote(quoteData);
-      }
-      
+    if (success) {
       return updatedProfile;
     } else {
-      console.error('Error adding quote to history:', await response.text());
       return null;
     }
   } catch (error) {
-    console.error('Network error adding quote to history:', error);
+    console.error('Error updating user profile:', error);
     return null;
   }
 }
 
 /**
- * Get the current user profile
- * @returns {Object|null} Current user profile or null if not loaded
+ * Get user's current ID
+ * @returns {string|null} User ID or null if not found
  */
-export function getCurrentProfile() {
-  return currentUserProfile;
+export function getCurrentUserId() {
+  // Try to get from window.appState first
+  if (window.appState && window.appState.user && window.appState.user.id) {
+    return window.appState.user.id;
+  }
+  
+  // Fall back to localStorage
+  try {
+    const userData = localStorage.getItem('stackrUser');
+    if (userData) {
+      const user = JSON.parse(userData);
+      return user.id;
+    }
+  } catch (error) {
+    console.error('Error getting current user ID:', error);
+  }
+  
+  return null;
 }
 
 /**
- * Customize a quote based on user profile data
- * @param {Object} quoteData - Initial quote data
- * @returns {Object} Personalized quote data
+ * Check if the current user is a service provider
+ * @param {string} userId - User ID
+ * @returns {Promise<boolean>} True if user is a service provider
  */
-export function personalizeQuote(quoteData) {
-  if (!currentUserProfile) {
-    console.log('No user profile available, returning standard quote');
-    return quoteData;
+export async function isServiceProvider(userId) {
+  if (!userId) {
+    return false;
   }
-  
-  // Create a deep copy of the quote data to avoid modifying the original
-  const personalizedQuote = JSON.parse(JSON.stringify(quoteData));
   
   try {
-    // Apply experience level if set in profile
-    if (currentUserProfile.experienceLevel) {
-      personalizedQuote.experienceLevel = currentUserProfile.experienceLevel;
+    const profile = await loadUserProfile(userId);
+    
+    if (!profile) {
+      return false;
     }
     
-    // Apply target margin if set in profile
-    if (currentUserProfile.targetMargin) {
-      personalizedQuote.targetMargin = currentUserProfile.targetMargin;
-    }
-    
-    // Adjust service preferences based on profile
-    if (currentUserProfile.servicePreferences) {
-      // If user is value-oriented, slightly decrease labor rate
-      if (currentUserProfile.servicePreferences.includes('value_oriented')) {
-        personalizedQuote.laborRate = Math.max(personalizedQuote.laborRate * 0.95, personalizedQuote.laborRate - 5);
-      }
-      
-      // If user is quality-oriented, slightly increase labor rate and premium options
-      if (currentUserProfile.servicePreferences.includes('quality_oriented')) {
-        personalizedQuote.laborRate = personalizedQuote.laborRate * 1.1;
-        personalizedQuote.materialsCost = personalizedQuote.materialsCost * 1.15;
-      }
-      
-      // If user is speed-oriented, slightly increase labor rate (premium for speed)
-      if (currentUserProfile.servicePreferences.includes('speed_oriented')) {
-        personalizedQuote.laborRate = personalizedQuote.laborRate * 1.08;
-      }
-    }
-    
-    // Use preferred job types to influence quote if applicable
-    if (currentUserProfile.preferredJobTypes && currentUserProfile.preferredJobTypes.length > 0) {
-      // If this job type is one of user's frequent types, apply a small discount
-      if (currentUserProfile.preferredJobTypes.includes(personalizedQuote.jobType)) {
-        personalizedQuote.loyaltyDiscount = 0.05; // 5% discount for frequent service types
-      }
-    }
-    
-    console.log('Personalized quote based on user profile:', personalizedQuote);
-    return personalizedQuote;
+    // Check if user has business name and industry set
+    return Boolean(profile.businessName && profile.industry);
   } catch (error) {
-    console.error('Error personalizing quote:', error);
-    return quoteData; // Return original quote if personalization fails
+    console.error('Error checking if user is service provider:', error);
+    return false;
   }
 }
 
 /**
- * Creates and shows the user profile editor UI
- * @param {Function} onSave - Callback function when profile is saved
+ * Get user basic info
+ * @param {string} userId - User ID
+ * @returns {Promise<Object|null>} User basic info or null if not found
  */
-export function showProfileEditor(onSave) {
-  // Create modal container
-  const modal = document.createElement('div');
-  modal.className = 'modal';
-  modal.style.position = 'fixed';
-  modal.style.top = '0';
-  modal.style.left = '0';
-  modal.style.width = '100%';
-  modal.style.height = '100%';
-  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-  modal.style.display = 'flex';
-  modal.style.justifyContent = 'center';
-  modal.style.alignItems = 'center';
-  modal.style.zIndex = '1000';
+export async function getUserBasicInfo(userId) {
+  if (!userId) {
+    return null;
+  }
   
-  // Create modal content
-  const modalContent = document.createElement('div');
-  modalContent.className = 'modal-content';
-  modalContent.style.backgroundColor = 'white';
-  modalContent.style.borderRadius = '8px';
-  modalContent.style.padding = '24px';
-  modalContent.style.width = '90%';
-  modalContent.style.maxWidth = '600px';
-  modalContent.style.maxHeight = '80vh';
-  modalContent.style.overflowY = 'auto';
-  
-  // Create close button
-  const closeButton = document.createElement('button');
-  closeButton.textContent = '×';
-  closeButton.style.position = 'absolute';
-  closeButton.style.top = '16px';
-  closeButton.style.right = '16px';
-  closeButton.style.border = 'none';
-  closeButton.style.background = 'transparent';
-  closeButton.style.fontSize = '24px';
-  closeButton.style.cursor = 'pointer';
-  closeButton.style.color = '#666';
-  closeButton.onclick = () => {
-    document.body.removeChild(modal);
-  };
-  
-  // Create header
-  const header = document.createElement('h2');
-  header.textContent = 'Your Business Profile';
-  header.style.marginTop = '0';
-  header.style.color = 'var(--color-text, #333)';
-  
-  // Create form
-  const form = document.createElement('form');
-  form.id = 'profileForm';
-  form.style.display = 'flex';
-  form.style.flexDirection = 'column';
-  form.style.gap = '16px';
-  
-  // Get current profile data or defaults
-  const profile = currentUserProfile || {};
-  
-  // Business Name field
-  const businessNameGroup = createFormGroup('Business Name', 'businessName', profile.businessName || '', 'text');
-  
-  // Experience Level field
-  const experienceLevelOptions = [
-    { value: 'junior', label: 'Junior (1-2 years)' },
-    { value: 'intermediate', label: 'Intermediate (3-5 years)' },
-    { value: 'senior', label: 'Senior (6-10 years)' },
-    { value: 'expert', label: 'Expert (10+ years)' }
-  ];
-  const experienceLevelGroup = createSelectGroup('Experience Level', 'experienceLevel', profile.experienceLevel || 'intermediate', experienceLevelOptions);
-  
-  // Industry field
-  const industryOptions = [
-    { value: 'home_services', label: 'Home Services' },
-    { value: 'professional_services', label: 'Professional Services' },
-    { value: 'beauty_wellness', label: 'Beauty & Wellness' },
-    { value: 'automotive', label: 'Automotive' },
-    { value: 'electronics_repair', label: 'Electronics Repair' },
-    { value: 'construction', label: 'Construction' },
-    { value: 'landscaping', label: 'Landscaping' },
-    { value: 'cleaning', label: 'Cleaning' },
-    { value: 'education_training', label: 'Education & Training' },
-    { value: 'other', label: 'Other' }
-  ];
-  const industryGroup = createSelectGroup('Industry', 'serviceIndustry', profile.serviceIndustry || 'home_services', industryOptions);
-  
-  // Target Margin slider
-  const targetMarginGroup = createRangeGroup('Target Profit Margin', 'targetMargin', profile.targetMargin || 30, 0, 80, 5, '%');
-  
-  // Business Goals checkboxes
-  const goalsOptions = [
-    { value: 'increase_revenue', label: 'Increase Revenue' },
-    { value: 'reduce_costs', label: 'Reduce Costs' },
-    { value: 'expand_services', label: 'Expand Services' },
-    { value: 'improve_efficiency', label: 'Improve Efficiency' },
-    { value: 'attract_new_clients', label: 'Attract New Clients' },
-    { value: 'retain_existing_clients', label: 'Retain Existing Clients' },
-    { value: 'enter_new_markets', label: 'Enter New Markets' },
-    { value: 'improve_quality', label: 'Improve Quality' },
-    { value: 'build_brand', label: 'Build Brand' }
-  ];
-  const goalsGroup = createCheckboxGroup('Business Goals', 'businessGoals', profile.businessGoals || [], goalsOptions);
-  
-  // Business Challenges checkboxes
-  const challengesOptions = [
-    { value: 'limited_budget', label: 'Limited Budget' },
-    { value: 'time_constraints', label: 'Time Constraints' },
-    { value: 'competitive_market', label: 'Competitive Market' },
-    { value: 'finding_clients', label: 'Finding Clients' },
-    { value: 'pricing_strategy', label: 'Pricing Strategy' },
-    { value: 'skilled_labor_shortage', label: 'Skilled Labor Shortage' },
-    { value: 'equipment_costs', label: 'Equipment Costs' },
-    { value: 'cash_flow', label: 'Cash Flow' },
-    { value: 'marketing', label: 'Marketing' },
-    { value: 'seasonality', label: 'Seasonality' }
-  ];
-  const challengesGroup = createCheckboxGroup('Business Challenges', 'businessChallenges', profile.businessChallenges || [], challengesOptions);
-  
-  // Service Preferences radio buttons
-  const preferencesOptions = [
-    { value: 'value_oriented', label: 'Value Oriented (Budget-friendly solutions)' },
-    { value: 'quality_oriented', label: 'Quality Oriented (Premium solutions)' },
-    { value: 'speed_oriented', label: 'Speed Oriented (Quick turnaround time)' },
-    { value: 'reliability_oriented', label: 'Reliability Oriented (Consistent results)' },
-    { value: 'relationship_oriented', label: 'Relationship Oriented (Building long-term clients)' },
-    { value: 'detail_oriented', label: 'Detail Oriented (Precision and exactness)' }
-  ];
-  const preferencesGroup = createRadioGroup('Service Preference', 'servicePreferences', profile.servicePreferences?.[0] || 'value_oriented', preferencesOptions);
-  
-  // Save button
-  const saveButton = document.createElement('button');
-  saveButton.type = 'submit';
-  saveButton.textContent = 'Save Profile';
-  saveButton.style.backgroundColor = 'var(--color-primary, #4F46E5)';
-  saveButton.style.color = 'white';
-  saveButton.style.border = 'none';
-  saveButton.style.borderRadius = '4px';
-  saveButton.style.padding = '12px';
-  saveButton.style.fontSize = '16px';
-  saveButton.style.cursor = 'pointer';
-  saveButton.style.marginTop = '16px';
-  
-  // Add all elements to form
-  form.appendChild(businessNameGroup);
-  form.appendChild(industryGroup);
-  form.appendChild(experienceLevelGroup);
-  form.appendChild(targetMarginGroup);
-  form.appendChild(preferencesGroup);
-  form.appendChild(goalsGroup);
-  form.appendChild(challengesGroup);
-  form.appendChild(saveButton);
-  
-  // Set up form submission
-  form.onsubmit = async (e) => {
-    e.preventDefault();
+  try {
+    const profile = await loadUserProfile(userId);
     
-    // Show loading indicator on save button
-    saveButton.innerHTML = '<span class="spinner"></span> Saving...';
-    saveButton.disabled = true;
+    if (!profile) {
+      return null;
+    }
     
-    // Add spinner style
-    const style = document.createElement('style');
-    style.textContent = `
-      .spinner {
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(255,255,255,0.3);
-        border-radius: 50%;
-        border-top-color: white;
-        animation: spin 1s linear infinite;
-        margin-right: 8px;
-      }
-      
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(style);
-    
-    // Collect form data
-    const formData = new FormData(form);
-    const profileData = {
-      businessName: formData.get('businessName'),
-      experienceLevel: formData.get('experienceLevel'),
-      serviceIndustry: formData.get('serviceIndustry'),
-      targetMargin: parseInt(formData.get('targetMargin')),
-      servicePreferences: [formData.get('servicePreferences')],
-      businessGoals: Array.from(formData.getAll('businessGoals')),
-      businessChallenges: Array.from(formData.getAll('businessChallenges'))
+    return {
+      userId: profile.userId,
+      displayName: profile.displayName,
+      businessName: profile.businessName,
+      location: profile.location,
+      experienceLevel: profile.experienceLevel
     };
-    
-    console.log('Saving profile data:', profileData);
-    
-    try {
-      // Update the profile
-      const updatedProfile = await updateUserProfile(profileData);
-      
-      if (updatedProfile) {
-        // Show success message
-        if (window.showToast) {
-          window.showToast('Profile updated successfully', 'success');
-        } else {
-          alert('Profile updated successfully');
-        }
-        
-        // Important: Update the cached profile
-        currentUserProfile = updatedProfile;
-        
-        console.log('Profile updated and cached:', currentUserProfile);
-        
-        // Call callback function if provided
-        if (typeof onSave === 'function') {
-          onSave(updatedProfile);
-        }
-        
-        // Refresh quote generation if we're on the quote page
-        const quotePage = document.getElementById('quote-generator-page');
-        if (quotePage) {
-          console.log('Quote page detected, refreshing quotes with updated profile');
-          if (typeof window.refreshQuotes === 'function') {
-            window.refreshQuotes();
-          }
-        }
-        
-        // Close modal
-        document.body.removeChild(modal);
-      } else {
-        // Show error message
-        if (window.showToast) {
-          window.showToast('Failed to update profile', 'error');
-        } else {
-          alert('Failed to update profile');
-        }
-      }
-    } catch (error) {
-      console.error('Error saving profile:', error);
-      if (window.showToast) {
-        window.showToast('Error saving profile', 'error');
-      } else {
-        alert('Error saving profile');
-      }
-    }
-  };
-  
-  // Add all elements to modal
-  modalContent.appendChild(closeButton);
-  modalContent.appendChild(header);
-  modalContent.appendChild(form);
-  modal.appendChild(modalContent);
-  
-  // Add modal to document
-  document.body.appendChild(modal);
-}
-
-/**
- * Update user preferences based on quote data
- * This function analyzes quote history and updates user profile preferences
- * @param {Object} quoteData - Data from the recently added quote
- */
-function updateUserPreferencesFromQuote(quoteData) {
-  if (!currentUserProfile) {
-    console.log('No user profile available, cannot update preferences');
-    return;
-  }
-  
-  try {
-    const profileUpdates = {};
-    let needsUpdate = false;
-    
-    // Track frequently quoted job types
-    if (quoteData.jobType) {
-      const preferredJobTypes = currentUserProfile.preferredJobTypes || [];
-      // Count occurrences of job types
-      const jobTypeCounts = {};
-      
-      // If we have quote history, analyze it
-      if (currentUserProfile.quoteHistory && Array.isArray(currentUserProfile.quoteHistory)) {
-        currentUserProfile.quoteHistory.forEach(quote => {
-          if (quote.jobType) {
-            jobTypeCounts[quote.jobType] = (jobTypeCounts[quote.jobType] || 0) + 1;
-          }
-        });
-        
-        // Add the current quote
-        jobTypeCounts[quoteData.jobType] = (jobTypeCounts[quoteData.jobType] || 0) + 1;
-        
-        // Identify most frequent job types (more than 2 occurrences)
-        const frequentJobTypes = Object.keys(jobTypeCounts).filter(type => jobTypeCounts[type] > 2);
-        
-        // Update preferred job types if different
-        if (JSON.stringify(frequentJobTypes.sort()) !== JSON.stringify(preferredJobTypes.sort())) {
-          profileUpdates.preferredJobTypes = frequentJobTypes;
-          needsUpdate = true;
-        }
-      }
-    }
-    
-    // Analyze margins over time
-    if (typeof quoteData.margin === 'number') {
-      // Calculate average margin across history
-      let totalMargin = quoteData.margin;
-      let count = 1;
-      
-      if (currentUserProfile.quoteHistory && Array.isArray(currentUserProfile.quoteHistory)) {
-        currentUserProfile.quoteHistory.forEach(quote => {
-          if (typeof quote.margin === 'number') {
-            totalMargin += quote.margin;
-            count++;
-          }
-        });
-      }
-      
-      const avgMargin = Math.round(totalMargin / count);
-      
-      // If average margin is significantly different from current target, update it
-      if (Math.abs(avgMargin - (currentUserProfile.targetMargin || 30)) > 5) {
-        profileUpdates.targetMargin = avgMargin;
-        needsUpdate = true;
-      }
-    }
-    
-    // Update if needed
-    if (needsUpdate) {
-      console.log('Updating user preferences based on quote history:', profileUpdates);
-      updateUserProfile(profileUpdates).catch(err => {
-        console.error('Error updating profile preferences:', err);
-      });
-    }
   } catch (error) {
-    console.error('Error in updateUserPreferencesFromQuote:', error);
+    console.error('Error getting user basic info:', error);
+    return null;
   }
-}
-
-/**
- * Create a form group with label and input
- * @param {string} labelText - Label text
- * @param {string} name - Input name
- * @param {string} value - Input value
- * @param {string} type - Input type
- * @returns {HTMLElement} Form group element
- */
-function createFormGroup(labelText, name, value, type = 'text') {
-  const group = document.createElement('div');
-  group.className = 'form-group';
-  group.style.marginBottom = '12px';
-  
-  const label = document.createElement('label');
-  label.textContent = labelText;
-  label.htmlFor = name;
-  label.style.display = 'block';
-  label.style.marginBottom = '4px';
-  label.style.fontWeight = '500';
-  
-  const input = document.createElement('input');
-  input.type = type;
-  input.name = name;
-  input.id = name;
-  input.value = value || '';
-  input.style.width = '100%';
-  input.style.padding = '8px';
-  input.style.borderRadius = '4px';
-  input.style.border = '1px solid #ccc';
-  
-  group.appendChild(label);
-  group.appendChild(input);
-  
-  return group;
-}
-
-/**
- * Create a select form group
- * @param {string} labelText - Label text
- * @param {string} name - Select name
- * @param {string} value - Selected value
- * @param {Array} options - Select options array of {value, label} objects
- * @returns {HTMLElement} Form group element
- */
-function createSelectGroup(labelText, name, value, options) {
-  const group = document.createElement('div');
-  group.className = 'form-group';
-  group.style.marginBottom = '12px';
-  
-  const label = document.createElement('label');
-  label.textContent = labelText;
-  label.htmlFor = name;
-  label.style.display = 'block';
-  label.style.marginBottom = '4px';
-  label.style.fontWeight = '500';
-  
-  const select = document.createElement('select');
-  select.name = name;
-  select.id = name;
-  select.style.width = '100%';
-  select.style.padding = '8px';
-  select.style.borderRadius = '4px';
-  select.style.border = '1px solid #ccc';
-  
-  options.forEach(option => {
-    const optionEl = document.createElement('option');
-    optionEl.value = option.value;
-    optionEl.textContent = option.label;
-    if (option.value === value) {
-      optionEl.selected = true;
-    }
-    select.appendChild(optionEl);
-  });
-  
-  group.appendChild(label);
-  group.appendChild(select);
-  
-  return group;
-}
-
-/**
- * Create a range slider form group
- * @param {string} labelText - Label text
- * @param {string} name - Input name
- * @param {number} value - Current value
- * @param {number} min - Minimum value
- * @param {number} max - Maximum value
- * @param {number} step - Step increment
- * @param {string} unit - Unit suffix
- * @returns {HTMLElement} Form group element
- */
-function createRangeGroup(labelText, name, value, min, max, step, unit = '') {
-  const group = document.createElement('div');
-  group.className = 'form-group';
-  group.style.marginBottom = '12px';
-  
-  const labelContainer = document.createElement('div');
-  labelContainer.style.display = 'flex';
-  labelContainer.style.justifyContent = 'space-between';
-  labelContainer.style.marginBottom = '4px';
-  
-  const label = document.createElement('label');
-  label.textContent = labelText;
-  label.htmlFor = name;
-  label.style.fontWeight = '500';
-  
-  const valueDisplay = document.createElement('span');
-  valueDisplay.id = `${name}-value`;
-  valueDisplay.textContent = `${value}${unit}`;
-  
-  const input = document.createElement('input');
-  input.type = 'range';
-  input.name = name;
-  input.id = name;
-  input.min = min;
-  input.max = max;
-  input.step = step;
-  input.value = value;
-  input.style.width = '100%';
-  
-  input.oninput = () => {
-    valueDisplay.textContent = `${input.value}${unit}`;
-  };
-  
-  labelContainer.appendChild(label);
-  labelContainer.appendChild(valueDisplay);
-  
-  group.appendChild(labelContainer);
-  group.appendChild(input);
-  
-  return group;
-}
-
-/**
- * Create a checkbox group
- * @param {string} labelText - Group label text
- * @param {string} name - Checkbox name (will be array)
- * @param {Array} selectedValues - Array of selected values
- * @param {Array} options - Options array of {value, label} objects
- * @returns {HTMLElement} Form group element
- */
-function createCheckboxGroup(labelText, name, selectedValues = [], options) {
-  const group = document.createElement('div');
-  group.className = 'form-group';
-  group.style.marginBottom = '16px';
-  
-  const groupLabel = document.createElement('label');
-  groupLabel.textContent = labelText;
-  groupLabel.style.display = 'block';
-  groupLabel.style.marginBottom = '8px';
-  groupLabel.style.fontWeight = '500';
-  
-  const checkboxContainer = document.createElement('div');
-  checkboxContainer.style.display = 'grid';
-  checkboxContainer.style.gridTemplateColumns = 'repeat(auto-fill, minmax(180px, 1fr))';
-  checkboxContainer.style.gap = '8px';
-  
-  options.forEach(option => {
-    const checkboxWrapper = document.createElement('div');
-    checkboxWrapper.style.display = 'flex';
-    checkboxWrapper.style.alignItems = 'center';
-    
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.name = name;
-    checkbox.id = `${name}-${option.value}`;
-    checkbox.value = option.value;
-    checkbox.checked = selectedValues.includes(option.value);
-    checkbox.style.marginRight = '8px';
-    
-    const label = document.createElement('label');
-    label.htmlFor = `${name}-${option.value}`;
-    label.textContent = option.label;
-    label.style.cursor = 'pointer';
-    
-    checkboxWrapper.appendChild(checkbox);
-    checkboxWrapper.appendChild(label);
-    checkboxContainer.appendChild(checkboxWrapper);
-  });
-  
-  group.appendChild(groupLabel);
-  group.appendChild(checkboxContainer);
-  
-  return group;
-}
-
-/**
- * Create a radio button group
- * @param {string} labelText - Group label text
- * @param {string} name - Radio group name
- * @param {string} selectedValue - Selected radio value
- * @param {Array} options - Options array of {value, label} objects
- * @returns {HTMLElement} Form group element
- */
-function createRadioGroup(labelText, name, selectedValue, options) {
-  const group = document.createElement('div');
-  group.className = 'form-group';
-  group.style.marginBottom = '16px';
-  
-  const groupLabel = document.createElement('label');
-  groupLabel.textContent = labelText;
-  groupLabel.style.display = 'block';
-  groupLabel.style.marginBottom = '8px';
-  groupLabel.style.fontWeight = '500';
-  
-  const radioContainer = document.createElement('div');
-  radioContainer.style.display = 'flex';
-  radioContainer.style.flexDirection = 'column';
-  radioContainer.style.gap = '8px';
-  
-  options.forEach(option => {
-    const radioWrapper = document.createElement('div');
-    radioWrapper.style.display = 'flex';
-    radioWrapper.style.alignItems = 'center';
-    
-    const radio = document.createElement('input');
-    radio.type = 'radio';
-    radio.name = name;
-    radio.id = `${name}-${option.value}`;
-    radio.value = option.value;
-    radio.checked = option.value === selectedValue;
-    radio.style.marginRight = '8px';
-    
-    const label = document.createElement('label');
-    label.htmlFor = `${name}-${option.value}`;
-    label.textContent = option.label;
-    label.style.cursor = 'pointer';
-    
-    radioWrapper.appendChild(radio);
-    radioWrapper.appendChild(label);
-    radioContainer.appendChild(radioWrapper);
-  });
-  
-  group.appendChild(groupLabel);
-  group.appendChild(radioContainer);
-  
-  return group;
 }
