@@ -6206,9 +6206,10 @@ function calculateFuelCost(distanceMiles, pricePerGallon, mpg = 25) {
  * @param {Object} tierData - Data for this specific tier
  * @param {Array} valueProps - Value propositions for this tier
  * @param {boolean} isRecommended - Whether this tier is recommended
+ * @param {string} serviceType - The type of service being quoted
  * @returns {HTMLElement} The tier card element
  */
-function createTierCard(tierData, valueProps, isRecommended) {
+function createTierCard(tierData, valueProps, isRecommended, serviceType) {
   const card = document.createElement('div');
   card.className = 'tier-card';
   // Make cards responsive using viewport utility
@@ -6496,6 +6497,39 @@ function showTierBreakdown(tierData) {
     breakdownList.appendChild(emergencyRow);
   }
   
+  // Service-specific adjustments if any
+  if (tierData.serviceAdjustments) {
+    // Add diagnostic fee if applicable
+    if (tierData.serviceAdjustments.diagnosticFee > 0) {
+      const diagnosticRow = createBreakdownItem('Diagnostic Fee', tierData.serviceAdjustments.diagnosticFee);
+      breakdownList.appendChild(diagnosticRow);
+    }
+    
+    // Add special equipment fee if applicable
+    if (tierData.serviceAdjustments.specialEquipmentFee > 0) {
+      const equipmentRow = createBreakdownItem('Special Equipment Fee', tierData.serviceAdjustments.specialEquipmentFee);
+      breakdownList.appendChild(equipmentRow);
+    }
+    
+    // Add certification fee if applicable
+    if (tierData.serviceAdjustments.certificationFee > 0) {
+      const certRow = createBreakdownItem('Certified Technician Fee', tierData.serviceAdjustments.certificationFee);
+      breakdownList.appendChild(certRow);
+    }
+    
+    // Add rush fee if applicable
+    if (tierData.serviceAdjustments.rushFee > 0) {
+      const rushRow = createBreakdownItem('Priority Rush Fee', tierData.serviceAdjustments.rushFee);
+      breakdownList.appendChild(rushRow);
+    }
+    
+    // Add material quality upgrade if applicable
+    if (tierData.serviceAdjustments.materialQualityUpgrade > 0) {
+      const materialRow = createBreakdownItem('Premium Materials Upgrade', tierData.serviceAdjustments.materialQualityUpgrade);
+      breakdownList.appendChild(materialRow);
+    }
+  }
+  
   // Extra services if any
   if (tierData.extraServices && tierData.extraServices.length > 0) {
     tierData.extraServices.forEach(service => {
@@ -6518,6 +6552,34 @@ function showTierBreakdown(tierData) {
   // Add all rows
   breakdownList.appendChild(laborRow);
   breakdownList.appendChild(partsRow);
+  
+  // Add a service type info tooltip if service-specific adjustments exist
+  if (tierData.serviceAdjustments && Object.values(tierData.serviceAdjustments).some(val => val > 0)) {
+    const serviceInfoRow = document.createElement('div');
+    serviceInfoRow.classList.add('breakdown-item');
+    serviceInfoRow.style.padding = '8px 0';
+    serviceInfoRow.style.borderBottom = '1px dashed var(--color-border)';
+    serviceInfoRow.style.marginTop = '8px';
+    serviceInfoRow.style.marginBottom = '8px';
+    serviceInfoRow.style.fontSize = '13px';
+    serviceInfoRow.style.color = 'var(--color-text-secondary)';
+    serviceInfoRow.style.fontStyle = 'italic';
+    serviceInfoRow.style.display = 'flex';
+    serviceInfoRow.style.alignItems = 'center';
+    serviceInfoRow.style.justifyContent = 'center';
+    
+    const infoIcon = document.createElement('span');
+    infoIcon.textContent = "ℹ️";
+    infoIcon.style.marginRight = '6px';
+    
+    const infoText = document.createElement('span');
+    infoText.textContent = "Service-specific fees reflect the specialized equipment, training, or materials required for this particular job type.";
+    
+    serviceInfoRow.appendChild(infoIcon);
+    serviceInfoRow.appendChild(infoText);
+    breakdownList.appendChild(serviceInfoRow);
+  }
+  
   breakdownList.appendChild(subtotalRow);
   breakdownList.appendChild(taxRow);
   breakdownList.appendChild(totalRow);
