@@ -66,6 +66,62 @@ const marketRates = {
     "southeast": 65,
     "southwest": 75,
     "west": 90
+  },
+  "roofer": {
+    "northeast": 100,
+    "midwest": 85,
+    "southeast": 80,
+    "southwest": 90,
+    "west": 110
+  },
+  "flooring_specialist": {
+    "northeast": 90,
+    "midwest": 75,
+    "southeast": 70,
+    "southwest": 80,
+    "west": 95
+  },
+  "window_installer": {
+    "northeast": 95,
+    "midwest": 80,
+    "southeast": 75,
+    "southwest": 85,
+    "west": 100
+  },
+  "appliance_repair": {
+    "northeast": 90,
+    "midwest": 75,
+    "southeast": 70,
+    "southwest": 80,
+    "west": 95
+  },
+  "pool_service": {
+    "northeast": 85,
+    "midwest": 70,
+    "southeast": 75,
+    "southwest": 85,
+    "west": 90
+  },
+  "handyman": {
+    "northeast": 75,
+    "midwest": 60,
+    "southeast": 55,
+    "southwest": 65,
+    "west": 80
+  },
+  "fence_installer": {
+    "northeast": 85,
+    "midwest": 70,
+    "southeast": 65,
+    "southwest": 75,
+    "west": 90
+  },
+  "pest_control": {
+    "northeast": 80,
+    "midwest": 65,
+    "southeast": 60,
+    "southwest": 70,
+    "west": 85
   }
 };
 
@@ -155,7 +211,15 @@ function renderQuoteGeneratorPage(containerId) {
       { value: 'hvac', label: 'HVAC Services' },
       { value: 'painter', label: 'Painting Services' },
       { value: 'general_contractor', label: 'General Contracting' },
-      { value: 'landscaper', label: 'Landscaping Services' }
+      { value: 'landscaper', label: 'Landscaping Services' },
+      { value: 'roofer', label: 'Roofing Services' },
+      { value: 'flooring_specialist', label: 'Flooring Services' },
+      { value: 'window_installer', label: 'Window Installation' },
+      { value: 'appliance_repair', label: 'Appliance Repair' },
+      { value: 'pool_service', label: 'Pool Services' },
+      { value: 'handyman', label: 'Handyman Services' },
+      { value: 'fence_installer', label: 'Fence Installation' },
+      { value: 'pest_control', label: 'Pest Control Services' }
     ]));
     
     // Location field
@@ -1135,7 +1199,15 @@ function getJobTypeDisplay(jobType) {
     'hvac': 'HVAC Services',
     'painter': 'Painting Services',
     'general_contractor': 'General Contracting',
-    'landscaper': 'Landscaping Services'
+    'landscaper': 'Landscaping Services',
+    'roofer': 'Roofing Services',
+    'flooring_specialist': 'Flooring Services',
+    'window_installer': 'Window Installation',
+    'appliance_repair': 'Appliance Repair',
+    'pool_service': 'Pool Services',
+    'handyman': 'Handyman Services',
+    'fence_installer': 'Fence Installation',
+    'pest_control': 'Pest Control Services'
   };
   
   return displayNames[jobType] || jobType;
