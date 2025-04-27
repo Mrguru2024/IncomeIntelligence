@@ -1224,65 +1224,68 @@ function renderQuoteGeneratorPage(containerId) {
  */
 function initGoogleMapsAutocomplete() {
   try {
-    // Debug: Check Google Maps API status
-    if (typeof google === 'undefined') {
-      console.log('Google object is undefined');
-      setTimeout(initGoogleMapsAutocomplete, 1000);
-      return;
-    } else if (typeof google.maps === 'undefined') {
-      console.log('Google Maps API not loaded yet');
-      setTimeout(initGoogleMapsAutocomplete, 1000);
-      return;
-    } else if (typeof google.maps.places === 'undefined') {
-      console.log('Google Maps Places library not loaded yet');
-      setTimeout(initGoogleMapsAutocomplete, 1000);
-      return;
-    } else if (typeof google.maps.places.Autocomplete === 'undefined') {
-      console.log('Google Maps Autocomplete not available');
-      setTimeout(initGoogleMapsAutocomplete, 1000);
-      return;
-    }
-    
-    console.log('SUCCESS: Google Maps Places API loaded successfully!');
-
-    const addressInput = document.getElementById('auto-address-input');
-    if (!addressInput) {
-      console.error('Address input field not found');
-      return;
-    }
-
-    console.log('Initializing Google Maps autocomplete for address input:', addressInput);
-    
-    // Create the autocomplete object
-    const autocomplete = new google.maps.places.Autocomplete(addressInput, {
-      types: ['address'],
-      componentRestrictions: { country: 'us' },
-      fields: ['formatted_address', 'address_components']
-    });
-    
-    console.log('Google Maps Autocomplete initialized successfully');
-    
-    // Add listener for place changed event
-    autocomplete.addListener('place_changed', function() {
-      const place = autocomplete.getPlace();
-      console.log('Selected place:', place);
-      
-      if (!place.address_components) {
-        console.error('No address details available for this place');
+    // Export our initialization function for the callback
+    window.initializeAddressAutocomplete = function() {
+      const addressInput = document.getElementById('auto-address-input');
+      if (!addressInput) {
+        console.error('Address input field not found');
         return;
       }
       
-      // Update the input field with the formatted address
-      addressInput.value = place.formatted_address;
+      console.log('Initializing Google Maps autocomplete for address input:', addressInput);
       
-      // Trigger an input event to update any validators
-      const event = new Event('input', { bubbles: true });
-      addressInput.dispatchEvent(event);
+      // Create the autocomplete object
+      const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+        types: ['address'],
+        componentRestrictions: { country: 'us' },
+        fields: ['formatted_address', 'address_components']
+      });
       
-      console.log('Address selected:', place.formatted_address);
-    });
+      console.log('Google Maps Autocomplete initialized successfully');
+      
+      // Add listener for place changed event
+      autocomplete.addListener('place_changed', function() {
+        const place = autocomplete.getPlace();
+        console.log('Selected place:', place);
+        
+        if (!place.address_components) {
+          console.error('No address details available for this place');
+          return;
+        }
+        
+        // Update the input field with the formatted address
+        addressInput.value = place.formatted_address;
+        
+        // Trigger an input event to update any validators
+        const event = new Event('input', { bubbles: true });
+        addressInput.dispatchEvent(event);
+        
+        console.log('Address selected:', place.formatted_address);
+      });
+    };
     
-    console.log('Google Maps autocomplete initialized successfully');
+    // If Maps is already loaded, initialize immediately
+    if (window.googleMapsLoaded && typeof google !== 'undefined' && 
+        typeof google.maps !== 'undefined' && 
+        typeof google.maps.places !== 'undefined') {
+      console.log('Google Maps already loaded, initializing autocomplete immediately');
+      window.initializeAddressAutocomplete();
+    } else {
+      console.log('Google Maps not yet loaded, waiting for callback');
+      // Continue checking for Google Maps every 2 seconds for the first 20 seconds
+      let checkCount = 0;
+      const checkInterval = setInterval(() => {
+        checkCount++;
+        if (window.googleMapsLoaded) {
+          console.log('Google Maps loaded via global flag');
+          clearInterval(checkInterval);
+          window.initializeAddressAutocomplete();
+        } else if (checkCount >= 10) { // Stop after 10 attempts
+          console.warn('Google Maps not loaded after multiple attempts, giving up');
+          clearInterval(checkInterval);
+        }
+      }, 2000);
+    }
   } catch (error) {
     console.error('Error initializing Google Maps autocomplete:', error);
     // Don't throw error to avoid breaking the entire application

@@ -440,8 +440,91 @@
   </div>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-  <!-- Load Google Maps API script directly using the API key -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjA-dbugG46P-lI6sPcc84InHa840SWCc&libraries=places"></script>
+  
+  <!-- Create global callback for Google Maps loading -->
+  <script>
+    // Global flag to track Google Maps loading
+    window.googleMapsLoaded = false;
+    
+    // Callback function that will be called when Maps loads
+    window.initGoogleMaps = function() {
+      console.log('Google Maps API has been successfully loaded!');
+      window.googleMapsLoaded = true;
+      
+      // If the quote generator has already been rendered, initialize Maps
+      if (window.initializeAddressAutocomplete) {
+        window.initializeAddressAutocomplete();
+      }
+    };
+    
+    // Function to fetch Google Maps API key from our server
+    async function loadGoogleMapsWithKey() {
+      try {
+        console.log('Fetching Google Maps API key from server...');
+        const response = await fetch('/api/google-maps-key');
+        const data = await response.json();
+        
+        if (data && data.key) {
+          console.log('Successfully retrieved API key, loading Google Maps...');
+          
+          // Create the script element
+          const script = document.createElement('script');
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places&callback=initGoogleMaps`;
+          script.async = true;
+          script.defer = true;
+          
+          // Add error handler
+          script.onerror = function() {
+            console.error('Failed to load Google Maps API. Loading fallback...');
+            loadFallbackMaps();
+          };
+          
+          // Append to document
+          document.head.appendChild(script);
+        } else {
+          console.error('Invalid API key response, using fallback');
+          loadFallbackMaps();
+        }
+      } catch (error) {
+        console.error('Error fetching Google Maps API key:', error);
+        loadFallbackMaps();
+      }
+    }
+    
+    // Function to load fallback Maps implementation
+    function loadFallbackMaps() {
+      console.log('Loading fallback Maps implementation...');
+      
+      fetch('/api/google-maps-fallback')
+        .then(response => response.text())
+        .then(scriptText => {
+          // Create script element and execute the code
+          const script = document.createElement('script');
+          script.textContent = scriptText;
+          document.head.appendChild(script);
+          
+          console.log('Fallback Maps loaded');
+          
+          // Set the global flag to indicate Maps is ready (but using fallback)
+          window.googleMapsLoaded = true;
+          
+          // If the autocomplete initialization function exists, call it
+          if (window.initializeAddressAutocomplete) {
+            console.log('Calling initializeAddressAutocomplete from fallback');
+            window.initializeAddressAutocomplete();
+          }
+        })
+        .catch(error => {
+          console.error('Failed to load Maps fallback:', error);
+        });
+    }
+    
+    // Start loading Google Maps
+    window.addEventListener('DOMContentLoaded', function() {
+      setTimeout(loadGoogleMapsWithKey, 500);
+    });
+  </script>
+  
   <script src="/green/components/toast.js"></script>
   <script src="/green/user-profile.js"></script>
   <script src="/green/quote-generator.js"></script>
