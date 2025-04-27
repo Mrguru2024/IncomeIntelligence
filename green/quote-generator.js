@@ -1059,7 +1059,7 @@ function displayMultiQuoteResults(quotes) {
   title.style.marginBottom = '8px';
   
   const subtitle = document.createElement('p');
-  subtitle.textContent = `${quotes.commonData.jobTypeDisplay} in ${quotes.commonData.location}`;
+  subtitle.textContent = `${quotes.commonData.jobTypeDisplay} - ${quotes.commonData.jobSubtypeDisplay} in ${quotes.commonData.location}`;
   subtitle.style.fontSize = '16px';
   subtitle.style.color = 'var(--color-text-secondary)';
   
@@ -1573,7 +1573,7 @@ function displayQuoteResults(result) {
   title.style.marginBottom = '8px';
   
   const subtitle = document.createElement('p');
-  subtitle.textContent = `${result.jobTypeDisplay} in ${result.location}`;
+  subtitle.textContent = `${result.jobTypeDisplay} - ${result.jobSubtypeDisplay || ''} in ${result.location}`;
   subtitle.style.fontSize = '16px';
   subtitle.style.color = 'var(--color-text-secondary)';
   
@@ -2910,6 +2910,143 @@ function getJobTypeDisplay(jobType) {
   };
   
   return displayNames[jobType] || jobType;
+}
+
+/**
+ * Get the display name for a job subtype based on the job type and subtype value
+ * @param {string} jobType - The job type
+ * @param {string} jobSubtype - The job subtype
+ * @returns {string} The display name for the job subtype
+ */
+function getJobSubtypeDisplay(jobType, jobSubtype) {
+  // These mappings match the ones defined in the serviceSubcategories object
+  const subtypeDisplayNames = {
+    'locksmith': {
+      'rekey': 'Rekey Service',
+      'akl': 'All Keys Lost (AKL)',
+      'duplicate_key': 'Duplicate Key',
+      'lockout': 'Lockout Service',
+      'lock_installation': 'Lock Installation',
+      'lock_repair': 'Lock Repair',
+      'safe_unlock': 'Safe Unlocking',
+      'smart_lock': 'Smart Lock Installation'
+    },
+    'plumber': {
+      'leak_repair': 'Leak Repair',
+      'drain_cleaning': 'Drain Cleaning',
+      'fixture_installation': 'Fixture Installation',
+      'pipe_repair': 'Pipe Repair/Replacement',
+      'water_heater': 'Water Heater Service',
+      'sump_pump': 'Sump Pump Installation/Repair',
+      'backflow': 'Backflow Testing/Prevention'
+    },
+    'electrician': {
+      'outlet_installation': 'Outlet Installation',
+      'panel_upgrade': 'Panel Upgrade',
+      'lighting_install': 'Lighting Installation',
+      'wiring_repair': 'Wiring Repair',
+      'ceiling_fan': 'Ceiling Fan Installation',
+      'generator': 'Generator Installation/Service',
+      'ev_charger': 'EV Charger Installation'
+    },
+    'hvac': {
+      'ac_repair': 'AC Repair',
+      'furnace_repair': 'Furnace Repair',
+      'maintenance': 'Regular Maintenance',
+      'installation': 'New System Installation',
+      'air_quality': 'Air Quality Solutions',
+      'duct_cleaning': 'Duct Cleaning'
+    },
+    'automotive_repair': {
+      'oil_change': 'Oil Change',
+      'brake_service': 'Brake Service',
+      'transmission': 'Transmission Service',
+      'engine_repair': 'Engine Repair',
+      'suspension': 'Suspension Work',
+      'electrical': 'Electrical System Repair',
+      'diagnostics': 'Computer Diagnostics',
+      'tire_service': 'Tire Service'
+    },
+    'electronic_repair': {
+      'diagnostics': 'Diagnostics/Troubleshooting',
+      'circuit_repair': 'Circuit Board Repair',
+      'component_replacement': 'Component Replacement',
+      'water_damage': 'Water Damage Repair',
+      'data_recovery': 'Data Recovery'
+    },
+    'cellphone_repair': {
+      'screen_replacement': 'Screen Replacement',
+      'battery_replacement': 'Battery Replacement',
+      'charging_port': 'Charging Port Repair',
+      'water_damage': 'Water Damage Repair',
+      'camera_repair': 'Camera Repair'
+    },
+    'computer_repair': {
+      'virus_removal': 'Virus/Malware Removal',
+      'hardware_upgrade': 'Hardware Upgrade',
+      'data_recovery': 'Data Recovery',
+      'os_installation': 'OS Installation',
+      'troubleshooting': 'General Troubleshooting'
+    },
+    'tv_repair': {
+      'screen_repair': 'Screen Repair',
+      'power_issues': 'Power Supply Issues',
+      'backlight': 'Backlight Repair',
+      'hdmi_ports': 'HDMI Port Repair',
+      'sound_issues': 'Sound System Repair'
+    },
+    'beauty_services': {
+      'full_service': 'Full Service Package',
+      'consultation': 'Consultation',
+      'special_event': 'Special Event Styling',
+      'bridal': 'Bridal Service'
+    },
+    'hair_stylist': {
+      'haircut': 'Haircut',
+      'color': 'Hair Coloring',
+      'highlights': 'Highlights/Lowlights',
+      'blowout': 'Blowout Styling',
+      'extension': 'Extensions',
+      'treatment': 'Hair Treatment'
+    },
+    'nail_technician': {
+      'manicure': 'Basic Manicure',
+      'pedicure': 'Pedicure',
+      'gel': 'Gel Polish',
+      'acrylic': 'Acrylic Nails',
+      'dip_powder': 'Dip Powder Nails',
+      'nail_art': 'Nail Art'
+    },
+    'makeup_artist': {
+      'everyday': 'Everyday Makeup',
+      'special_event': 'Special Event Makeup',
+      'bridal': 'Bridal Makeup',
+      'photoshoot': 'Photoshoot Makeup',
+      'lesson': 'Makeup Lesson'
+    }
+  };
+  
+  // Default subcategories for services without specific options
+  const defaultSubcategories = {
+    'standard': 'Standard Service',
+    'consultation': 'Consultation',
+    'emergency': 'Emergency Service',
+    'maintenance': 'Regular Maintenance',
+    'specialized': 'Specialized Service'
+  };
+  
+  // Return the display name from specific job type mapping if available
+  if (subtypeDisplayNames[jobType] && subtypeDisplayNames[jobType][jobSubtype]) {
+    return subtypeDisplayNames[jobType][jobSubtype];
+  }
+  
+  // Fall back to default subcategory labels
+  if (defaultSubcategories[jobSubtype]) {
+    return defaultSubcategories[jobSubtype];
+  }
+  
+  // If no mapping found, return the original value with first letter capitalized
+  return jobSubtype.charAt(0).toUpperCase() + jobSubtype.slice(1).replace(/_/g, ' ');
 }
 
 /**
