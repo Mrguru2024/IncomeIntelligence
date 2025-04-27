@@ -528,7 +528,7 @@ function renderQuoteGeneratorPage(containerId) {
     emergencyGroup.appendChild(emergencyLabel);
     
     // Target profit margin field
-    const marginGroup = createFormGroup('Target Profit Margin (%)', createInput('range', 'targetMargin', '25', '', '10', '50', '1'));
+    const marginGroup = createFormGroup('Target Profit Margin (%)', createInput('range', 'targetMargin', '25', '', '10', '100', '1'));
     const marginValue = document.createElement('div');
     marginValue.textContent = '25%';
     marginValue.style.textAlign = 'right';
@@ -1087,24 +1087,34 @@ function generateQuote(data) {
   const materialsCost = data.materialsCost;
   const materialsTax = materialsCost * taxRate;
   
-  // Calculate subtotal and total
+  // Calculate subtotal
   const subtotal = laborCost + materialsCost;
-  const total = subtotal + materialsTax;
   
   // Calculate profit based on target margin
   const targetMarginDecimal = data.targetMargin / 100;
-  const cost = subtotal / (1 - targetMarginDecimal);
-  const profit = total - cost;
+  
+  // Calculating cost basis (materials + labor) excluding tax
+  const costBasis = laborCost + materialsCost;
+  
+  // For target margin calculation, we need to adjust price to achieve the exact margin percentage
+  // Formula: price = cost / (1 - margin)
+  const targetTotal = costBasis / (1 - targetMarginDecimal);
+  
+  // Tax is calculated on materials only
+  const total = targetTotal + materialsTax;
+  
+  // Recalculate actual profit and margin after tax adjustment
+  const profit = total - costBasis;
   const actualProfitMargin = (profit / total) * 100;
   
-  // Profit assessment
+  // Profit assessment based on target margin
   let profitAssessment;
-  if (actualProfitMargin < 15) {
-    profitAssessment = 'Low profit margin. Consider reducing costs or increasing prices.';
-  } else if (actualProfitMargin < 25) {
-    profitAssessment = 'Acceptable profit margin, but could be improved.';
-  } else {
-    profitAssessment = 'Good profit margin. This quote should be profitable.';
+  if (actualProfitMargin < targetMarginDecimal * 100 - 5) {
+    profitAssessment = 'Margin below target due to tax adjustments. Consider increasing base price.';
+  } else if (Math.abs(actualProfitMargin - targetMarginDecimal * 100) <= 5) {
+    profitAssessment = `On target profit margin of approximately ${targetMarginDecimal * 100}%.`;
+  } else if (actualProfitMargin > targetMarginDecimal * 100 + 5) {
+    profitAssessment = 'Margin exceeding target. Good pricing structure.';
   }
   
   return {
