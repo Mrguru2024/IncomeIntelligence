@@ -631,7 +631,8 @@ function generateQuoteForTier(tier, data, commonData, baseRate) {
     targetMargin,
     actualProfitMargin,
     profit,
-    profitAssessment
+    profitAssessment,
+    editable: true  // Make quotes editable
   };
 }
 
@@ -1670,13 +1671,44 @@ function getPremiumDescription(jobType) {
  * @returns {string[]} Features
  */
 function getBasicFeatures(jobType) {
+  // Beauty-specific features
+  if (isBeautyService(jobType)) {
+    return [
+      'Standard service quality',
+      'Basic techniques and products',
+      'Entry-level experience',
+      '30-day service guarantee'
+    ];
+  }
+  
+  // Electronics-specific features
+  if (isElectronicRepair(jobType)) {
+    return [
+      'Basic diagnostic assessment',
+      'Simple component repairs',
+      'Standard testing procedures',
+      '30-day repair warranty'
+    ];
+  }
+  
+  // Automotive-specific features
+  if (isAutomotiveRepair(jobType)) {
+    return [
+      'Basic vehicle diagnostics',
+      'Standard parts when needed',
+      'Essential repairs only',
+      '30-day parts & labor warranty'
+    ];
+  }
+  
+  // Service-specific features for common services
   switch (jobType) {
     case 'cellphone_repair':
       return [
         'Screen replacement with standard parts',
         'Battery replacement',
         'Basic diagnostics',
-        '7-day warranty'
+        '30-day warranty'
       ];
     case 'computer_repair':
       return [
@@ -1692,26 +1724,33 @@ function getBasicFeatures(jobType) {
         'Simple board repairs',
         '30-day limited warranty'
       ];
-    case 'automotive_repair':
+    case 'plumber':
       return [
-        'Basic diagnostics',
-        'Standard parts',
-        'Essential repairs only',
+        'Basic leak repairs',
+        'Simple fixture replacement',
+        'Standard drain clearing',
         '30-day warranty'
       ];
-    case 'electronic_repair':
+    case 'electrician':
       return [
-        'Basic diagnostics',
-        'Simple component repairs',
-        'Basic testing',
-        '30-day limited warranty'
+        'Basic electrical repairs',
+        'Simple fixture installation',
+        'Standard outlet replacement',
+        '30-day warranty'
+      ];
+    case 'hvac':
+      return [
+        'Basic system diagnostics',
+        'Simple maintenance tasks',
+        'Standard filter replacement',
+        '30-day warranty'
       ];
     default:
       return [
         'Essential service coverage',
-        'Standard parts and materials',
-        'Basic warranty',
-        'Standard service time'
+        'Standard service quality',
+        '30-day warranty',
+        'Basic service level'
       ];
   }
 }
@@ -1722,6 +1761,41 @@ function getBasicFeatures(jobType) {
  * @returns {string[]} Features
  */
 function getStandardFeatures(jobType) {
+  // Beauty-specific features
+  if (isBeautyService(jobType)) {
+    return [
+      'Enhanced service techniques',
+      'Premium quality products',
+      'Experienced professional service',
+      'Complimentary consultation',
+      '60-day service guarantee'
+    ];
+  }
+  
+  // Electronics-specific features
+  if (isElectronicRepair(jobType)) {
+    return [
+      'Comprehensive diagnostic testing',
+      'Component-level repairs',
+      'Quality replacement parts when needed',
+      'Full functionality testing',
+      'Data recovery assistance',
+      '60-day repair warranty'
+    ];
+  }
+  
+  // Automotive-specific features
+  if (isAutomotiveRepair(jobType)) {
+    return [
+      'Thorough vehicle diagnostics',
+      'Quality OEM-equivalent parts',
+      'Comprehensive repairs',
+      'Fluids check and top-off',
+      '60-day parts and labor warranty'
+    ];
+  }
+
+  // Service-specific features for common services
   switch (jobType) {
     case 'cellphone_repair':
       return [
@@ -1729,7 +1803,7 @@ function getStandardFeatures(jobType) {
         'High-capacity battery installation',
         'Complete diagnostics',
         'Component-level repairs',
-        '30-day warranty'
+        '60-day warranty'
       ];
     case 'computer_repair':
       return [
@@ -1748,29 +1822,37 @@ function getStandardFeatures(jobType) {
         'Basic calibration',
         '60-day warranty'
       ];
-    case 'automotive_repair':
+    case 'plumber':
       return [
-        'Thorough diagnostics',
-        'Quality OEM-equivalent parts',
-        'Comprehensive repairs',
-        '60-day parts and labor warranty',
-        'Fluids check and top-off'
+        'Comprehensive plumbing services',
+        'Quality fixtures and parts',
+        'Water pressure optimization',
+        'Complete pipe repair',
+        '60-day warranty'
       ];
-    case 'electronic_repair':
+    case 'electrician':
       return [
-        'Thorough diagnostics',
-        'Component-level repairs',
-        'Quality parts',
-        'Full functionality testing',
+        'Full electrical system checks',
+        'Quality fixtures and components',
+        'Panel inspection',
+        'Circuit troubleshooting',
+        '60-day warranty'
+      ];
+    case 'hvac':
+      return [
+        'Complete system diagnostics',
+        'Quality parts replacement',
+        'System efficiency testing',
+        'Duct inspection',
         '60-day warranty'
       ];
     default:
       return [
         'Comprehensive service',
-        'Quality parts and materials',
-        'Extended warranty',
-        'Faster service time',
-        'Basic add-ons included'
+        'Quality service execution',
+        '60-day warranty',
+        'Enhanced service level',
+        'Priority scheduling'
       ];
   }
 }
@@ -1781,6 +1863,45 @@ function getStandardFeatures(jobType) {
  * @returns {string[]} Features
  */
 function getPremiumFeatures(jobType) {
+  // Beauty-specific features
+  if (isBeautyService(jobType)) {
+    return [
+      'Premium service experience',
+      'Luxury-tier products used',
+      'Senior-level specialist',
+      'Complimentary consultation',
+      'Take-home product kit included',
+      '90-day service guarantee'
+    ];
+  }
+  
+  // Electronics-specific features
+  if (isElectronicRepair(jobType)) {
+    return [
+      'Expert-level diagnostic testing',
+      'OEM or premium replacement parts',
+      'Preventative maintenance included',
+      'Performance optimization',
+      'Comprehensive testing protocol',
+      'Data backup assistance',
+      '90-day comprehensive warranty'
+    ];
+  }
+  
+  // Automotive-specific features
+  if (isAutomotiveRepair(jobType)) {
+    return [
+      'Advanced computer diagnostics',
+      'Premium OEM parts',
+      'Complete vehicle system check',
+      'Preventative maintenance',
+      'Courtesy vehicle inspection',
+      'Express service option',
+      '6-month parts and labor warranty'
+    ];
+  }
+
+  // Service-specific features for common services
   switch (jobType) {
     case 'cellphone_repair':
       return [
@@ -1811,34 +1932,41 @@ function getPremiumFeatures(jobType) {
         'HDMI testing with all inputs',
         '90-day comprehensive warranty'
       ];
-    case 'automotive_repair':
+    case 'plumber':
       return [
-        'Advanced computer diagnostics',
-        'Premium OEM parts',
-        'Complete system check',
-        'Preventative maintenance',
-        'Free courtesy vehicle inspection',
-        'Priority scheduling',
-        '6-month parts and labor warranty'
+        'Premium fixtures and parts',
+        'Comprehensive plumbing inspection',
+        'Water efficiency optimization',
+        'Extended 90-day warranty',
+        'Priority emergency response',
+        'Annual maintenance plan'
       ];
-    case 'electronic_repair':
+    case 'electrician':
       return [
-        'Expert-level diagnostics',
-        'OEM replacement parts',
-        'Preventative maintenance',
-        'Cleaning and restoration',
-        'Comprehensive testing',
-        'Setup and tutorial',
-        '90-day comprehensive warranty'
+        'Complete electrical system analysis',
+        'Premium components and fixtures',
+        'Electrical efficiency optimization',
+        'Safety inspection included',
+        'Extended 90-day warranty',
+        'Priority emergency service'
+      ];
+    case 'hvac':
+      return [
+        'Comprehensive system analysis',
+        'Premium components and filters',
+        'Energy efficiency optimization',
+        'Complete duct inspection',
+        'Extended 90-day warranty',
+        'Preventative maintenance package'
       ];
     default:
       return [
         'Premium service coverage',
-        'Top-tier parts and materials',
-        'Extended warranty',
-        'Priority service',
-        'Premium add-ons included',
-        'Follow-up support'
+        'Top-tier quality',
+        '90-day extended warranty',
+        'Priority scheduling',
+        'Premium service level',
+        'Follow-up service included'
       ];
   }
 }
