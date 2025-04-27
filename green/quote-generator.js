@@ -264,8 +264,9 @@ function renderQuoteGeneratorPage(containerId) {
     form.style.display = 'grid';
     form.style.gap = '16px';
     
-    // Define service subcategories
+    // Define service subcategories with detailed options for all service types
     const serviceSubcategories = {
+      // Home Services
       'locksmith': [
         { value: 'rekey', label: 'Rekey Service' },
         { value: 'akl', label: 'All Keys Lost (AKL)' },
@@ -274,7 +275,9 @@ function renderQuoteGeneratorPage(containerId) {
         { value: 'lock_installation', label: 'Lock Installation' },
         { value: 'lock_repair', label: 'Lock Repair' },
         { value: 'safe_unlock', label: 'Safe Unlocking' },
-        { value: 'smart_lock', label: 'Smart Lock Installation' }
+        { value: 'smart_lock', label: 'Smart Lock Installation' },
+        { value: 'commercial_locks', label: 'Commercial Lock Systems' },
+        { value: 'master_key', label: 'Master Key System Setup' }
       ],
       'plumber': [
         { value: 'leak_repair', label: 'Leak Repair' },
@@ -283,7 +286,10 @@ function renderQuoteGeneratorPage(containerId) {
         { value: 'pipe_repair', label: 'Pipe Repair/Replacement' },
         { value: 'water_heater', label: 'Water Heater Service' },
         { value: 'sump_pump', label: 'Sump Pump Installation/Repair' },
-        { value: 'backflow', label: 'Backflow Testing/Prevention' }
+        { value: 'backflow', label: 'Backflow Testing/Prevention' },
+        { value: 'garbage_disposal', label: 'Garbage Disposal Services' },
+        { value: 'gas_line', label: 'Gas Line Installation/Repair' },
+        { value: 'water_treatment', label: 'Water Treatment Systems' }
       ],
       'electrician': [
         { value: 'outlet_installation', label: 'Outlet Installation' },
@@ -292,7 +298,10 @@ function renderQuoteGeneratorPage(containerId) {
         { value: 'wiring_repair', label: 'Wiring Repair' },
         { value: 'ceiling_fan', label: 'Ceiling Fan Installation' },
         { value: 'generator', label: 'Generator Installation/Service' },
-        { value: 'ev_charger', label: 'EV Charger Installation' }
+        { value: 'ev_charger', label: 'EV Charger Installation' },
+        { value: 'electrical_inspection', label: 'Electrical Inspection' },
+        { value: 'surge_protection', label: 'Surge Protection' },
+        { value: 'smart_home', label: 'Smart Home Wiring' }
       ],
       'hvac': [
         { value: 'ac_repair', label: 'AC Repair' },
@@ -300,51 +309,152 @@ function renderQuoteGeneratorPage(containerId) {
         { value: 'maintenance', label: 'Regular Maintenance' },
         { value: 'installation', label: 'New System Installation' },
         { value: 'air_quality', label: 'Air Quality Solutions' },
-        { value: 'duct_cleaning', label: 'Duct Cleaning' }
+        { value: 'duct_cleaning', label: 'Duct Cleaning' },
+        { value: 'thermostat', label: 'Thermostat Installation' },
+        { value: 'zoning_system', label: 'HVAC Zoning System' },
+        { value: 'emergency_repair', label: 'Emergency HVAC Repair' },
+        { value: 'heat_pump', label: 'Heat Pump Service' }
       ],
+      'carpenter': [
+        { value: 'cabinet_install', label: 'Cabinet Installation' },
+        { value: 'furniture_assembly', label: 'Furniture Assembly' },
+        { value: 'door_install', label: 'Door Installation/Repair' },
+        { value: 'deck_build', label: 'Deck Building/Repair' },
+        { value: 'trim_work', label: 'Trim/Molding Installation' },
+        { value: 'stair_repair', label: 'Stair Repair/Building' },
+        { value: 'custom_shelving', label: 'Custom Shelving' },
+        { value: 'framing', label: 'Structural Framing' },
+        { value: 'floor_install', label: 'Floor Installation' },
+        { value: 'wooden_fence', label: 'Wooden Fence Build/Repair' }
+      ],
+      'painter': [
+        { value: 'interior', label: 'Interior Painting' },
+        { value: 'exterior', label: 'Exterior Painting' },
+        { value: 'cabinet_refinish', label: 'Cabinet Refinishing' },
+        { value: 'deck_stain', label: 'Deck Staining/Sealing' },
+        { value: 'fence_painting', label: 'Fence Painting' },
+        { value: 'wallpaper', label: 'Wallpaper Installation/Removal' },
+        { value: 'texture_painting', label: 'Texture Painting' },
+        { value: 'drywall_repair', label: 'Drywall Repair & Painting' },
+        { value: 'commercial', label: 'Commercial Painting' },
+        { value: 'specialty_finish', label: 'Specialty Finish Application' }
+      ],
+      'general_contractor': [
+        { value: 'kitchen_remodel', label: 'Kitchen Remodeling' },
+        { value: 'bathroom_remodel', label: 'Bathroom Remodeling' },
+        { value: 'basement_finish', label: 'Basement Finishing' },
+        { value: 'room_addition', label: 'Room Addition' },
+        { value: 'whole_house_reno', label: 'Whole House Renovation' },
+        { value: 'garage_conversion', label: 'Garage Conversion' },
+        { value: 'commercial_build', label: 'Commercial Build-out' },
+        { value: 'permit_assistance', label: 'Permit Acquisition Assistance' },
+        { value: 'home_repair', label: 'General Home Repair' },
+        { value: 'disaster_restore', label: 'Disaster Restoration' }
+      ],
+      'landscaper': [
+        { value: 'lawn_maintenance', label: 'Lawn Maintenance' },
+        { value: 'garden_design', label: 'Garden Design/Installation' },
+        { value: 'irrigation', label: 'Irrigation System Install/Repair' },
+        { value: 'tree_service', label: 'Tree Service/Trimming' },
+        { value: 'hardscaping', label: 'Hardscaping Installation' },
+        { value: 'sod_installation', label: 'Sod Installation' },
+        { value: 'mulch_gravel', label: 'Mulch/Gravel Installation' },
+        { value: 'seasonal_cleanup', label: 'Seasonal Cleanup' },
+        { value: 'outdoor_lighting', label: 'Outdoor Lighting Installation' },
+        { value: 'fence_installation', label: 'Fence Installation' }
+      ],
+      
+      // Automotive Services
       'automotive_repair': [
-        { value: 'oil_change', label: 'Oil Change' },
-        { value: 'brake_service', label: 'Brake Service' },
-        { value: 'transmission', label: 'Transmission Service' },
-        { value: 'engine_repair', label: 'Engine Repair' },
+        { value: 'oil_change', label: 'Oil Change Service' },
+        { value: 'brake_service', label: 'Brake Service/Replacement' },
+        { value: 'transmission', label: 'Transmission Service/Repair' },
+        { value: 'engine_repair', label: 'Engine Repair/Rebuild' },
         { value: 'suspension', label: 'Suspension Work' },
         { value: 'electrical', label: 'Electrical System Repair' },
         { value: 'diagnostics', label: 'Computer Diagnostics' },
-        { value: 'tire_service', label: 'Tire Service' }
+        { value: 'tire_service', label: 'Tire Service/Replacement' },
+        { value: 'ac_service', label: 'AC Service/Repair' },
+        { value: 'exhaust_repair', label: 'Exhaust System Repair' },
+        { value: 'wheel_alignment', label: 'Wheel Alignment' },
+        { value: 'fuel_system', label: 'Fuel System Service' },
+        { value: 'cooling_system', label: 'Cooling System Service' },
+        { value: 'battery_service', label: 'Battery Service/Replacement' },
+        { value: 'scheduled_maintenance', label: 'Scheduled Maintenance' }
       ],
+      
+      // Electronics Repair
       'electronic_repair': [
         { value: 'diagnostics', label: 'Diagnostics/Troubleshooting' },
         { value: 'circuit_repair', label: 'Circuit Board Repair' },
         { value: 'component_replacement', label: 'Component Replacement' },
         { value: 'water_damage', label: 'Water Damage Repair' },
-        { value: 'data_recovery', label: 'Data Recovery' }
+        { value: 'data_recovery', label: 'Data Recovery' },
+        { value: 'power_supply', label: 'Power Supply Repair' },
+        { value: 'audio_repair', label: 'Audio Equipment Repair' },
+        { value: 'game_console', label: 'Game Console Repair' },
+        { value: 'smart_home_device', label: 'Smart Home Device Repair' },
+        { value: 'drone_repair', label: 'Drone Repair' }
       ],
       'cellphone_repair': [
         { value: 'screen_replacement', label: 'Screen Replacement' },
         { value: 'battery_replacement', label: 'Battery Replacement' },
         { value: 'charging_port', label: 'Charging Port Repair' },
         { value: 'water_damage', label: 'Water Damage Repair' },
-        { value: 'camera_repair', label: 'Camera Repair' }
+        { value: 'camera_repair', label: 'Camera Repair' },
+        { value: 'speaker_repair', label: 'Speaker/Microphone Repair' },
+        { value: 'button_repair', label: 'Button Repair' },
+        { value: 'software_issues', label: 'Software/OS Issues' },
+        { value: 'unlock_service', label: 'Phone Unlocking Service' },
+        { value: 'data_transfer', label: 'Data Transfer/Recovery' }
       ],
       'computer_repair': [
         { value: 'virus_removal', label: 'Virus/Malware Removal' },
         { value: 'hardware_upgrade', label: 'Hardware Upgrade' },
         { value: 'data_recovery', label: 'Data Recovery' },
         { value: 'os_installation', label: 'OS Installation' },
-        { value: 'troubleshooting', label: 'General Troubleshooting' }
+        { value: 'troubleshooting', label: 'General Troubleshooting' },
+        { value: 'network_setup', label: 'Network Setup/Repair' },
+        { value: 'laptop_repair', label: 'Laptop Repair' },
+        { value: 'desktop_repair', label: 'Desktop Repair' },
+        { value: 'mac_repair', label: 'Mac Repair Services' },
+        { value: 'pc_repair', label: 'PC Repair Services' },
+        { value: 'custom_build', label: 'Custom PC Building' },
+        { value: 'remote_support', label: 'Remote Support Services' }
       ],
       'tv_repair': [
         { value: 'screen_repair', label: 'Screen Repair' },
         { value: 'power_issues', label: 'Power Supply Issues' },
         { value: 'backlight', label: 'Backlight Repair' },
         { value: 'hdmi_ports', label: 'HDMI Port Repair' },
-        { value: 'sound_issues', label: 'Sound System Repair' }
+        { value: 'sound_issues', label: 'Sound System Repair' },
+        { value: 'smart_tv_setup', label: 'Smart TV Setup/Configuration' },
+        { value: 'display_calibration', label: 'Display Calibration' },
+        { value: 'motherboard_repair', label: 'Motherboard Repair' },
+        { value: 'remote_control', label: 'Remote Control Issues' },
+        { value: 'mounting_service', label: 'TV Mounting Service' }
       ],
+      'appliance_repair': [
+        { value: 'refrigerator', label: 'Refrigerator Repair' },
+        { value: 'washer', label: 'Washer Repair' },
+        { value: 'dryer', label: 'Dryer Repair' },
+        { value: 'dishwasher', label: 'Dishwasher Repair' },
+        { value: 'oven_stove', label: 'Oven/Stove Repair' },
+        { value: 'microwave', label: 'Microwave Repair' },
+        { value: 'garbage_disposal', label: 'Garbage Disposal Repair' },
+        { value: 'ice_maker', label: 'Ice Maker Repair' },
+        { value: 'wine_cooler', label: 'Wine Cooler Repair' },
+        { value: 'small_appliance', label: 'Small Appliance Repair' }
+      ],
+      
+      // Beauty Services
       'beauty_services': [
         { value: 'full_service', label: 'Full Service Package' },
         { value: 'consultation', label: 'Consultation' },
         { value: 'special_event', label: 'Special Event Styling' },
-        { value: 'bridal', label: 'Bridal Service' }
+        { value: 'bridal', label: 'Bridal Service' },
+        { value: 'seasonal_package', label: 'Seasonal Beauty Package' },
+        { value: 'group_service', label: 'Group Beauty Service' }
       ],
       'hair_stylist': [
         { value: 'haircut', label: 'Haircut' },
@@ -352,7 +462,13 @@ function renderQuoteGeneratorPage(containerId) {
         { value: 'highlights', label: 'Highlights/Lowlights' },
         { value: 'blowout', label: 'Blowout Styling' },
         { value: 'extension', label: 'Extensions' },
-        { value: 'treatment', label: 'Hair Treatment' }
+        { value: 'treatment', label: 'Hair Treatment' },
+        { value: 'updo', label: 'Updo/Formal Styling' },
+        { value: 'keratin', label: 'Keratin Treatment' },
+        { value: 'perm', label: 'Perm/Wave Treatment' },
+        { value: 'balayage', label: 'Balayage/Ombre' },
+        { value: 'scalp_treatment', label: 'Scalp Treatment' },
+        { value: 'mens_styling', label: 'Men\'s Styling Service' }
       ],
       'nail_technician': [
         { value: 'manicure', label: 'Basic Manicure' },
@@ -360,14 +476,116 @@ function renderQuoteGeneratorPage(containerId) {
         { value: 'gel', label: 'Gel Polish' },
         { value: 'acrylic', label: 'Acrylic Nails' },
         { value: 'dip_powder', label: 'Dip Powder Nails' },
-        { value: 'nail_art', label: 'Nail Art' }
+        { value: 'nail_art', label: 'Nail Art' },
+        { value: 'french_tip', label: 'French Tip' },
+        { value: 'polish_change', label: 'Polish Change' },
+        { value: 'paraffin', label: 'Paraffin Treatment' },
+        { value: 'nail_repair', label: 'Nail Repair' },
+        { value: 'removal', label: 'Removal Service' }
       ],
       'makeup_artist': [
         { value: 'everyday', label: 'Everyday Makeup' },
         { value: 'special_event', label: 'Special Event Makeup' },
         { value: 'bridal', label: 'Bridal Makeup' },
         { value: 'photoshoot', label: 'Photoshoot Makeup' },
-        { value: 'lesson', label: 'Makeup Lesson' }
+        { value: 'lesson', label: 'Makeup Lesson' },
+        { value: 'theatrical', label: 'Theatrical/Stage Makeup' },
+        { value: 'halloween', label: 'Halloween/SFX Makeup' },
+        { value: 'airbrush', label: 'Airbrush Makeup' },
+        { value: 'mature_skin', label: 'Mature Skin Makeup' },
+        { value: 'group_service', label: 'Group Makeup Service' }
+      ],
+      'esthetician': [
+        { value: 'facial', label: 'Facial Treatment' },
+        { value: 'microdermabrasion', label: 'Microdermabrasion' },
+        { value: 'chemical_peel', label: 'Chemical Peel' },
+        { value: 'microblading', label: 'Microblading' },
+        { value: 'waxing', label: 'Waxing Services' },
+        { value: 'threading', label: 'Threading Services' },
+        { value: 'tinting', label: 'Brow/Lash Tinting' },
+        { value: 'skin_consult', label: 'Skin Consultation' },
+        { value: 'acne_treatment', label: 'Acne Treatment' },
+        { value: 'anti_aging', label: 'Anti-Aging Treatment' }
+      ],
+      'massage_therapist': [
+        { value: 'swedish', label: 'Swedish Massage' },
+        { value: 'deep_tissue', label: 'Deep Tissue Massage' },
+        { value: 'hot_stone', label: 'Hot Stone Massage' },
+        { value: 'sports', label: 'Sports Massage' },
+        { value: 'prenatal', label: 'Prenatal Massage' },
+        { value: 'reflexology', label: 'Reflexology' },
+        { value: 'couples', label: 'Couples Massage' },
+        { value: 'chair_massage', label: 'Chair Massage' },
+        { value: 'aromatherapy', label: 'Aromatherapy Massage' },
+        { value: 'thai_massage', label: 'Thai Massage' }
+      ],
+      'spa_services': [
+        { value: 'full_day', label: 'Full Day Package' },
+        { value: 'half_day', label: 'Half Day Package' },
+        { value: 'couples', label: 'Couples Package' },
+        { value: 'facial_massage', label: 'Facial & Massage Combo' },
+        { value: 'body_treatment', label: 'Body Treatment' },
+        { value: 'detox_wrap', label: 'Detox Wrap' },
+        { value: 'hydrotherapy', label: 'Hydrotherapy' },
+        { value: 'scrub_treatment', label: 'Body Scrub Treatment' },
+        { value: 'mud_treatment', label: 'Mud Treatment' },
+        { value: 'steam_room', label: 'Steam Room Session' }
+      ],
+      'waxing_services': [
+        { value: 'brow_wax', label: 'Eyebrow Waxing' },
+        { value: 'facial_wax', label: 'Facial Waxing' },
+        { value: 'bikini_wax', label: 'Bikini Waxing' },
+        { value: 'brazilian', label: 'Brazilian Waxing' },
+        { value: 'leg_wax', label: 'Leg Waxing' },
+        { value: 'arm_wax', label: 'Arm Waxing' },
+        { value: 'back_wax', label: 'Back Waxing' },
+        { value: 'chest_wax', label: 'Chest Waxing' },
+        { value: 'full_body', label: 'Full Body Waxing' },
+        { value: 'underarm', label: 'Underarm Waxing' }
+      ],
+      'tanning_services': [
+        { value: 'spray_tan', label: 'Spray Tanning' },
+        { value: 'airbrush_tan', label: 'Airbrush Tanning' },
+        { value: 'bed_tanning', label: 'Tanning Bed Session' },
+        { value: 'mobile_tan', label: 'Mobile Tanning Service' },
+        { value: 'tan_party', label: 'Tanning Party Service' },
+        { value: 'bridal_tan', label: 'Bridal Tanning Package' },
+        { value: 'vacation_prep', label: 'Vacation Prep Package' },
+        { value: 'competition', label: 'Competition Tanning' }
+      ],
+      'eyebrow_threading': [
+        { value: 'brow_thread', label: 'Eyebrow Threading' },
+        { value: 'lip_thread', label: 'Lip Threading' },
+        { value: 'facial_thread', label: 'Full Face Threading' },
+        { value: 'side_face', label: 'Sideburns Threading' },
+        { value: 'chin_thread', label: 'Chin Threading' },
+        { value: 'neck_thread', label: 'Neck Threading' },
+        { value: 'brow_tint', label: 'Brow Tinting & Threading' },
+        { value: 'brow_design', label: 'Brow Design Service' }
+      ],
+      'lash_extensions': [
+        { value: 'classic_set', label: 'Classic Full Set' },
+        { value: 'volume_set', label: 'Volume Full Set' },
+        { value: 'hybrid_set', label: 'Hybrid Full Set' },
+        { value: 'fill_classic', label: 'Classic Fill' },
+        { value: 'fill_volume', label: 'Volume Fill' },
+        { value: 'fill_hybrid', label: 'Hybrid Fill' },
+        { value: 'lash_removal', label: 'Lash Removal' },
+        { value: 'lash_lift', label: 'Lash Lift' },
+        { value: 'lash_tint', label: 'Lash Tinting' },
+        { value: 'bottom_lashes', label: 'Bottom Lash Extensions' }
+      ],
+      'facial_services': [
+        { value: 'basic_facial', label: 'Basic Facial' },
+        { value: 'deep_cleansing', label: 'Deep Cleansing Facial' },
+        { value: 'anti_aging', label: 'Anti-Aging Facial' },
+        { value: 'hydrating', label: 'Hydrating Facial' },
+        { value: 'acne', label: 'Acne Treatment Facial' },
+        { value: 'brightening', label: 'Brightening Facial' },
+        { value: 'sensitive_skin', label: 'Sensitive Skin Facial' },
+        { value: 'mens_facial', label: 'Men\'s Facial' },
+        { value: 'teen_facial', label: 'Teen Facial' },
+        { value: 'facial_massage', label: 'Facial Massage' }
       ]
     };
     
