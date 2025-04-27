@@ -836,6 +836,41 @@ function displayMultiQuoteResults(quotes) {
  * @param {HTMLElement} container - Container to append the card to
  * @param {boolean} recommended - Whether this is the recommended option
  */
+/**
+ * Determines if the job type is a beauty or personal care service
+ * @param {string} jobType - The job type
+ * @returns {boolean} True if it's a beauty service
+ */
+function isBeautyService(jobType) {
+  const beautyServices = [
+    'beauty_services', 'hair_stylist', 'nail_technician', 
+    'makeup_artist', 'esthetician', 'massage_therapist', 
+    'spa_services', 'eyebrow_threading'
+  ];
+  return beautyServices.includes(jobType);
+}
+
+/**
+ * Determines if the job type is an electronic repair service
+ * @param {string} jobType - The job type
+ * @returns {boolean} True if it's an electronic repair service
+ */
+function isElectronicRepair(jobType) {
+  const electronicRepairs = [
+    'electronic_repair', 'cellphone_repair', 'computer_repair'
+  ];
+  return electronicRepairs.includes(jobType);
+}
+
+/**
+ * Determines if the job type is an automotive repair service
+ * @param {string} jobType - The job type
+ * @returns {boolean} True if it's an automotive repair service
+ */
+function isAutomotiveRepair(jobType) {
+  return jobType === 'automotive_repair';
+}
+
 function createQuoteCard(quote, tierName, bgColor, container, recommended = false) {
   // Create card
   const card = document.createElement('div');
@@ -933,27 +968,71 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   breakdownTitle.style.marginBottom = '8px';
   cardBody.appendChild(breakdownTitle);
   
-  // Add breakdown items
-  const breakdownItems = [
-    {
-      label: `Labor (${quote.laborHours.toFixed(1)} hrs @ $${quote.laborRate.toFixed(2)}/hr)${quote.emergency ? ' (Emergency)' : ''}`,
-      value: quote.laborCost
-    },
-    {
+  // Create service-specific breakdown items
+  const breakdownItems = [];
+  
+  // Common for all services: labor costs
+  breakdownItems.push({
+    label: `${isBeautyService(quote.jobType) ? 'Service Time' : 'Labor'} (${quote.laborHours.toFixed(1)} hrs @ $${quote.laborRate.toFixed(2)}/hr)${quote.emergency ? ' (Emergency)' : ''}`,
+    value: quote.laborCost
+  });
+  
+  // For beauty services: use "Products" instead of "Materials"
+  if (isBeautyService(quote.jobType)) {
+    breakdownItems.push({
+      label: 'Products',
+      value: quote.materialsCost
+    });
+  } 
+  // For electronic repair: add parts and diagnostics
+  else if (isElectronicRepair(quote.jobType)) {
+    breakdownItems.push({
+      label: 'Replacement Parts',
+      value: quote.materialsCost * 0.8 // 80% of materials are parts
+    });
+    breakdownItems.push({
+      label: 'Diagnostics Fee',
+      value: quote.materialsCost * 0.2 // 20% of materials are diagnostics
+    });
+  }
+  // For automotive repair: add parts, fluids, and shop supplies
+  else if (isAutomotiveRepair(quote.jobType)) {
+    breakdownItems.push({
+      label: 'Parts',
+      value: quote.materialsCost * 0.7 // 70% of materials are parts
+    });
+    breakdownItems.push({
+      label: 'Fluids & Lubricants',
+      value: quote.materialsCost * 0.2 // 20% of materials are fluids
+    });
+    breakdownItems.push({
+      label: 'Shop Supplies',
+      value: quote.materialsCost * 0.1 // 10% of materials are shop supplies
+    });
+  } 
+  // Default for all other services
+  else {
+    breakdownItems.push({
       label: 'Materials',
       value: quote.materialsCost
-    },
-    {
+    });
+  }
+  
+  // Add tax unless it's being calculated separately
+  if (!isElectronicRepair(quote.jobType) && !isAutomotiveRepair(quote.jobType)) {
+    breakdownItems.push({
       label: `Tax (${(quote.taxRate * 100).toFixed(2)}%)`,
       value: quote.materialsTax
-    },
-    {
-      label: 'Total',
-      value: quote.total,
-      isTotal: true
-    }
-  ];
-  
+    });
+  }
+
+  // Add the total as the last item
+  breakdownItems.push({
+    label: 'Total',
+    value: quote.total,
+    isTotal: true
+  });
+
   breakdownItems.forEach(item => {
     const row = document.createElement('div');
     row.style.display = 'flex';
@@ -1065,30 +1144,74 @@ function displayQuoteResults(result) {
   
   breakdown.appendChild(breakdownTitle);
   
-  // Add breakdown items
-  const breakdownItems = [
-    {
-      label: `Labor (${result.laborHours} hrs @ $${result.laborRate.toFixed(2)}/hr)${result.emergency ? ' (Emergency)' : ''}`,
-      value: result.laborCost
-    },
-    {
+  // Create service-specific breakdown items
+  const breakdownItems = [];
+  
+  // Common for all services: labor costs with service-specific label
+  breakdownItems.push({
+    label: `${isBeautyService(result.jobType) ? 'Service Time' : 'Labor'} (${result.laborHours.toFixed(1)} hrs @ $${result.laborRate.toFixed(2)}/hr)${result.emergency ? ' (Emergency)' : ''}`,
+    value: result.laborCost
+  });
+  
+  // For beauty services: use "Products" instead of "Materials"
+  if (isBeautyService(result.jobType)) {
+    breakdownItems.push({
+      label: 'Products',
+      value: result.materialsCost
+    });
+  } 
+  // For electronic repair: add parts and diagnostics
+  else if (isElectronicRepair(result.jobType)) {
+    breakdownItems.push({
+      label: 'Replacement Parts',
+      value: result.materialsCost * 0.8 // 80% of materials are parts
+    });
+    breakdownItems.push({
+      label: 'Diagnostics Fee',
+      value: result.materialsCost * 0.2 // 20% of materials are diagnostics
+    });
+  }
+  // For automotive repair: add parts, fluids, and shop supplies
+  else if (isAutomotiveRepair(result.jobType)) {
+    breakdownItems.push({
+      label: 'Parts',
+      value: result.materialsCost * 0.7 // 70% of materials are parts
+    });
+    breakdownItems.push({
+      label: 'Fluids & Lubricants',
+      value: result.materialsCost * 0.2 // 20% of materials are fluids
+    });
+    breakdownItems.push({
+      label: 'Shop Supplies',
+      value: result.materialsCost * 0.1 // 10% of materials are shop supplies
+    });
+  } 
+  // Default for all other services
+  else {
+    breakdownItems.push({
       label: 'Materials',
       value: result.materialsCost
-    },
-    {
-      label: 'Subtotal',
-      value: result.subtotal
-    },
-    {
-      label: `Tax (${(result.taxRate * 100).toFixed(2)}%)`,
-      value: result.materialsTax
-    },
-    {
-      label: 'Total',
-      value: result.total,
-      isTotal: true
-    }
-  ];
+    });
+  }
+  
+  // Add subtotal
+  breakdownItems.push({
+    label: 'Subtotal',
+    value: result.subtotal
+  });
+  
+  // Add tax
+  breakdownItems.push({
+    label: `Tax (${(result.taxRate * 100).toFixed(2)}%)`,
+    value: result.materialsTax
+  });
+  
+  // Add total
+  breakdownItems.push({
+    label: 'Total',
+    value: result.total,
+    isTotal: true
+  });
   
   const itemsContainer = document.createElement('div');
   
