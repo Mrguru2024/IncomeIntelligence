@@ -1929,9 +1929,9 @@ function getPriceAwareFeatures(jobType, tier, total, experienceLevel, quantity) 
     highPriceThreshold = 800;
   }
   
-  // Add price-specific features
+  // Add price-specific features that are directly relevant to the job type
   if (total >= highPriceThreshold) {
-    // High-price features
+    // High-price features - only add the ones matching the job type
     if (isBeautyService(jobType)) {
       priceFeatures.push('Complimentary take-home product kit');
       priceFeatures.push('VIP scheduling priority');
@@ -1942,11 +1942,12 @@ function getPriceAwareFeatures(jobType, tier, total, experienceLevel, quantity) 
       priceFeatures.push('Courtesy vehicle during service');
       priceFeatures.push('Comprehensive vehicle inspection included');
     } else {
+      // Only add generic features when we don't have job-specific ones
       priceFeatures.push('Expedited service guarantee');
       priceFeatures.push('Premium material upgrades included');
     }
   } else if (total >= midPriceThreshold) {
-    // Mid-price features
+    // Mid-price features - only add the ones matching the job type
     if (isBeautyService(jobType)) {
       priceFeatures.push('Premium product application');
     } else if (isElectronicRepair(jobType)) {
@@ -1954,11 +1955,12 @@ function getPriceAwareFeatures(jobType, tier, total, experienceLevel, quantity) 
     } else if (isAutomotiveRepair(jobType)) {
       priceFeatures.push('Complimentary vehicle health report');
     } else {
+      // Only add generic features when we don't have job-specific ones
       priceFeatures.push('Quality assurance follow-up');
     }
   }
   
-  // Experience-based features
+  // Experience-based features - job specific only
   const experienceFeatures = [];
   if (experienceLevel === 'expert') {
     if (isBeautyService(jobType)) {
@@ -1968,15 +1970,25 @@ function getPriceAwareFeatures(jobType, tier, total, experienceLevel, quantity) 
     } else if (isAutomotiveRepair(jobType)) {
       experienceFeatures.push('Service by ASE Master certified technician');
     } else {
+      // Only add generic features when we don't have job-specific ones
       experienceFeatures.push('Work completed by industry-certified expert');
     }
   } else if (experienceLevel === 'senior') {
-    experienceFeatures.push('Service by senior professional with 10+ years experience');
+    // Make this service-specific too
+    if (isBeautyService(jobType)) {
+      experienceFeatures.push('Service by senior beauty professional with 10+ years experience');
+    } else if (isElectronicRepair(jobType)) {
+      experienceFeatures.push('Service by senior repair technician with 10+ years experience');
+    } else if (isAutomotiveRepair(jobType)) {
+      experienceFeatures.push('Service by senior automotive specialist with 10+ years experience');
+    } else {
+      experienceFeatures.push('Service by senior professional with 10+ years experience');
+    }
   }
   
   // Quantity-based features (only for product services)
   const quantityFeatures = [];
-  if (quantity > 1) {
+  if (isProductService(jobType) && quantity > 1) {
     if (quantity >= 5) {
       quantityFeatures.push(`Multi-unit discount: ${Math.min(25, quantity * 5)}% savings`);
       quantityFeatures.push('Bulk service efficiency guarantee');
@@ -1987,7 +1999,7 @@ function getPriceAwareFeatures(jobType, tier, total, experienceLevel, quantity) 
     }
   }
   
-  // Combine all features, removing duplicates
+  // Combine all features, removing duplicates and ensuring they're job-specific
   const allFeatures = [...baseFeatures, ...priceFeatures, ...experienceFeatures, ...quantityFeatures];
   return [...new Set(allFeatures)]; // Remove any duplicates
 }
