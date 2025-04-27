@@ -5238,7 +5238,12 @@ function displayAutoQuoteResult(quoteResult) {
   
   tiers.forEach(tier => {
     const isRecommended = recommended === tier.key.replace('tier', '').toLowerCase();
-    const card = createTierCard(tier.data, quoteResult.valueProps[tier.key.replace('tier', '').toLowerCase()], isRecommended);
+    const card = createTierCard(
+      tier.data, 
+      quoteResult.valueProps[tier.key.replace('tier', '').toLowerCase()], 
+      isRecommended,
+      quoteResult.service_type
+    );
     tiersContainer.appendChild(card);
   });
   
@@ -6334,6 +6339,55 @@ function createTierCard(tierData, valueProps, isRecommended, serviceType) {
   warranty.style.textAlign = 'center';
   warranty.innerHTML = `<strong>${tierData.warrantyMonths}-Month Warranty</strong>`;
   
+  // Service-specific information
+  let serviceTypeInfo = null;
+  if (serviceType && tierData.serviceAdjustments) {
+    // Only show if there are actual adjustments for this tier
+    const hasAdjustments = Object.values(tierData.serviceAdjustments).some(val => val > 0);
+    
+    if (hasAdjustments) {
+      serviceTypeInfo = document.createElement('div');
+      serviceTypeInfo.style.backgroundColor = '#EDFAFA';
+      serviceTypeInfo.style.borderLeft = '3px solid var(--color-primary)';
+      serviceTypeInfo.style.padding = '10px';
+      serviceTypeInfo.style.borderRadius = '4px';
+      serviceTypeInfo.style.marginBottom = '16px';
+      serviceTypeInfo.style.fontSize = '13px';
+      
+      // Service type enhancement title
+      const serviceTitle = document.createElement('div');
+      serviceTitle.style.fontWeight = '600';
+      serviceTitle.style.marginBottom = '6px';
+      serviceTitle.textContent = 'Service Enhancements';
+      
+      // Service type message
+      const serviceMsg = document.createElement('div');
+      
+      // Create different messages based on service type
+      let serviceMessage = '';
+      if (['all_keys_lost', 'duplicate_key', 'ignition_repair'].includes(serviceType)) {
+        serviceMessage = 'Includes specialized key programming and security system diagnostics.';
+      } 
+      else if (['engine_repair', 'transmission', 'brake_service'].includes(serviceType)) {
+        serviceMessage = 'Includes computer diagnostics and access to proprietary manufacturer tools.';
+      }
+      else if (['body_repair', 'paint_work', 'detailing'].includes(serviceType)) {
+        serviceMessage = 'Includes premium materials and specialized finishing techniques.';
+      }
+      else if (['window_tinting', 'sound_system', 'vehicle_wrap'].includes(serviceType)) {
+        serviceMessage = 'Includes premium materials and specialized installation equipment.';
+      }
+      else {
+        serviceMessage = 'Includes service-specific tools and materials for optimal results.';
+      }
+      
+      serviceMsg.textContent = serviceMessage;
+      
+      serviceTypeInfo.appendChild(serviceTitle);
+      serviceTypeInfo.appendChild(serviceMsg);
+    }
+  }
+  
   // Extra services list (if any)
   let servicesList = null;
   if (tierData.extraServices && tierData.extraServices.length > 0) {
@@ -6397,6 +6451,10 @@ function createTierCard(tierData, valueProps, isRecommended, serviceType) {
   card.appendChild(header);
   card.appendChild(propsList);
   card.appendChild(warranty);
+  // Add service-specific info if it exists
+  if (serviceTypeInfo) {
+    card.appendChild(serviceTypeInfo);
+  }
   if (servicesList) {
     card.appendChild(servicesList);
   }
