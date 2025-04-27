@@ -3856,7 +3856,7 @@ function createAutomotiveQuoteForm() {
   destAddressContainer.style.position = 'relative';
   
   const destAddressInput = createInput('text', 'destination_address', '', 'Customer or service location');
-  destAddressInput.id = 'destination-input'; // Changed ID to match what autocomplete initialization expects
+  destAddressInput.id = 'auto-destination-input'; // Give this a unique ID to avoid conflicts
   destAddressInput.setAttribute('autocomplete', 'off');
   
   // Special handling for foldable devices (ZFold)
