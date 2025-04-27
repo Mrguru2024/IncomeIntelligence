@@ -2774,6 +2774,19 @@ function generateQuote(quoteData) {
   if (jobType === 'plumber' || jobType === 'electrician' || jobType === 'hvac') {
     // Licensed trade services often require more technical expertise 
     serviceTypeMultiplier = 1.10; // 10% premium for licensed trades
+  } else if (jobType === 'photographer' || jobType === 'videographer') {
+    // Photography and videography services have equipment costs and post-processing time
+    serviceTypeMultiplier = 1.15; // 15% premium for creative services with equipment
+    specialMaterialsPercentage = 0.05; // 5% additional for media storage/delivery
+    additionalFees += 25; // Media processing fee
+  } else if (jobType === 'hair_stylist' || jobType === 'makeup_artist' || jobType === 'esthetician') {
+    // Beauty services often require specialized products
+    serviceTypeMultiplier = 1.05; // 5% premium for specialized beauty services
+    specialMaterialsPercentage = 0.15; // 15% additional for high-quality products
+  } else if (jobType === 'graphic_designer' || jobType === 'web_designer' || jobType === 'illustrator') {
+    // Design services have different hourly structures
+    serviceTypeMultiplier = 1.20; // 20% premium for creative professional services
+    specialMaterialsPercentage = 0.02; // 2% for software/licensing
     
     // Check for emergency service rate for critical utilities
     if (emergency) {
