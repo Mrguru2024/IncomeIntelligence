@@ -7410,6 +7410,266 @@ function getPremiumFeatures(jobType) {
   return [...commonFeatures, ...(serviceSpecificFeatures[jobType] || [])];
 }
 
+/**
+ * Analyze the feature text to determine appropriate category
+ * Uses simple AI logic to understand feature context
+ * @param {string} featureText - The feature text to analyze
+ * @param {string} jobType - Type of job
+ * @returns {string} Feature category
+ */
+function analyzeFeatureCategory(featureText, jobType) {
+  // Map of keywords to categories
+  const categoryKeywords = {
+    'warranty': 'Warranty',
+    'guarantee': 'Warranty',
+    'coverage': 'Coverage',
+    'insured': 'Insurance',
+    'insurance': 'Insurance',
+    'material': 'Materials',
+    'materials': 'Materials',
+    'parts': 'Materials',
+    'supply': 'Materials',
+    'supplies': 'Materials',
+    'consultation': 'Consultation',
+    'consult': 'Consultation',
+    'advice': 'Consultation',
+    'support': 'Support',
+    'assistance': 'Support',
+    'help': 'Support',
+    'emergency': 'Emergency Service',
+    'urgent': 'Emergency Service',
+    'same-day': 'Emergency Service',
+    'inspection': 'Inspection',
+    'assessment': 'Inspection',
+    'evaluation': 'Inspection',
+    'diagnostic': 'Diagnostics',
+    'testing': 'Diagnostics',
+    'analysis': 'Diagnostics',
+    'premium': 'Premium Service',
+    'deluxe': 'Premium Service',
+    'standard': 'Standard Service',
+    'basic': 'Basic Service',
+    'service': 'Service',
+    'maintenance': 'Maintenance',
+    'preventive': 'Maintenance',
+    'quality': 'Quality Assurance'
+  };
+  
+  // Specialized categories by job type
+  const specializationKeywords = {
+    'locksmith': {
+      'key': 'Key Service',
+      'lock': 'Lock Service',
+      'deadbolt': 'Security Hardware',
+      'cylinder': 'Lock Parts'
+    },
+    'plumber': {
+      'pipe': 'Pipe Service',
+      'drain': 'Drain Service',
+      'fixture': 'Fixture Installation',
+      'leak': 'Leak Repair'
+    },
+    'electrician': {
+      'wiring': 'Electrical Wiring',
+      'outlet': 'Outlet Installation',
+      'panel': 'Panel Service',
+      'lighting': 'Lighting'
+    },
+    'automotive_repair': {
+      'oil': 'Oil Service',
+      'brake': 'Brake Service',
+      'tire': 'Tire Service',
+      'engine': 'Engine Service'
+    },
+    'computer_repair': {
+      'virus': 'Virus Protection',
+      'data': 'Data Service',
+      'hardware': 'Hardware Service',
+      'software': 'Software Service'
+    },
+    'hair_stylist': {
+      'cut': 'Hair Cutting',
+      'color': 'Hair Coloring',
+      'style': 'Hair Styling',
+      'treatment': 'Hair Treatment'
+    }
+  };
+  
+  // Normalize feature text
+  const normalizedText = featureText.toLowerCase();
+  
+  // Check specialized keywords first
+  if (jobType in specializationKeywords) {
+    for (const [keyword, category] of Object.entries(specializationKeywords[jobType])) {
+      if (normalizedText.includes(keyword)) {
+        return category;
+      }
+    }
+  }
+  
+  // Then check general keywords
+  for (const [keyword, category] of Object.entries(categoryKeywords)) {
+    if (normalizedText.includes(keyword)) {
+      return category;
+    }
+  }
+  
+  // If no match, return the closest fitting category based on job type
+  if (normalizedText.length < 20) {
+    return 'Added Feature';
+  } else if (normalizedText.includes(' and ') || normalizedText.includes(' with ')) {
+    return 'Service Bundle';
+  } else {
+    // Default categories based on job type
+    const defaultCategoryMap = {
+      'locksmith': 'Security Feature',
+      'plumber': 'Plumbing Service',
+      'electrician': 'Electrical Service',
+      'hvac': 'HVAC Service',
+      'handyman': 'General Service',
+      'painter': 'Painting Service',
+      'general_contractor': 'Construction Service',
+      'landscaper': 'Landscaping Service',
+      'automotive_repair': 'Auto Service',
+      'electronic_repair': 'Electronics Service',
+      'cellphone_repair': 'Phone Service',
+      'computer_repair': 'Computer Service',
+      'tv_repair': 'TV Service',
+      'appliance_repair': 'Appliance Service',
+      'hair_stylist': 'Hair Service',
+      'makeup_artist': 'Makeup Service',
+      'manicurist': 'Nail Service',
+      'esthetician': 'Skin Service',
+      'massage_therapist': 'Massage Service',
+      'personal_trainer': 'Fitness Service',
+      'photographer': 'Photography Service',
+      'graphic_designer': 'Design Service',
+      'web_developer': 'Web Service'
+    };
+    
+    return defaultCategoryMap[jobType] || 'Service Enhancement';
+  }
+}
+
+/**
+ * Generate AI-recommended cost for a given feature
+ * @param {string} featureText - The feature text
+ * @param {string} jobType - Type of job
+ * @param {string} region - Geographic region
+ * @returns {number} Recommended cost
+ */
+function getAIRecommendedCost(featureText, jobType, region) {
+  // Base costs by feature category
+  const baseCostByCategory = {
+    'Warranty': 35,
+    'Coverage': 25,
+    'Insurance': 45,
+    'Materials': 40,
+    'Consultation': 65,
+    'Support': 30,
+    'Emergency Service': 75,
+    'Inspection': 55,
+    'Diagnostics': 60,
+    'Premium Service': 85,
+    'Standard Service': 45,
+    'Basic Service': 25,
+    'Service': 35,
+    'Maintenance': 40,
+    'Quality Assurance': 35,
+    'Added Feature': 15,
+    'Service Bundle': 90,
+    'Service Enhancement': 30
+  };
+  
+  // Specialized costs by job type
+  const specializationCosts = {
+    'locksmith': {
+      'Key Service': 15,
+      'Lock Service': 25,
+      'Security Hardware': 45,
+      'Lock Parts': 20
+    },
+    'plumber': {
+      'Pipe Service': 40,
+      'Drain Service': 35,
+      'Fixture Installation': 55,
+      'Leak Repair': 65
+    },
+    'electrician': {
+      'Electrical Wiring': 70,
+      'Outlet Installation': 40,
+      'Panel Service': 85,
+      'Lighting': 55
+    },
+    'automotive_repair': {
+      'Oil Service': 45,
+      'Brake Service': 75,
+      'Tire Service': 55,
+      'Engine Service': 95
+    },
+    'computer_repair': {
+      'Virus Protection': 50,
+      'Data Service': 65,
+      'Hardware Service': 55,
+      'Software Service': 70
+    },
+    'hair_stylist': {
+      'Hair Cutting': 35,
+      'Hair Coloring': 70,
+      'Hair Styling': 45,
+      'Hair Treatment': 60
+    }
+  };
+  
+  // Get feature category
+  const category = analyzeFeatureCategory(featureText, jobType);
+  
+  // Get base cost from specialization if available, otherwise use category base cost
+  let baseCost = 25; // default fallback
+  
+  if (jobType in specializationCosts && category in specializationCosts[jobType]) {
+    baseCost = specializationCosts[jobType][category];
+  } else if (category in baseCostByCategory) {
+    baseCost = baseCostByCategory[category];
+  }
+  
+  // Adjust based on text length (proxy for complexity)
+  const lengthFactor = Math.min(1.5, Math.max(0.8, featureText.length / 20));
+  
+  // Regional cost of living adjustment
+  const regionalAdjustment = getRegionalCostAdjustment(region);
+  
+  // Randomize slightly (±10%) to avoid uniform pricing
+  const randomFactor = 0.9 + (Math.random() * 0.2); 
+  
+  // Apply all factors
+  const recommendedCost = baseCost * lengthFactor * regionalAdjustment * randomFactor;
+  
+  // Round to nearest dollar, with a minimum of $5
+  return Math.max(5, Math.round(recommendedCost));
+}
+
+/**
+ * Get regional cost adjustment factor based on location
+ * @param {string} region - Geographic region
+ * @returns {number} Cost adjustment factor
+ */
+function getRegionalCostAdjustment(region) {
+  // Extract state from region if available
+  const state = getStateFromLocation(region) || '';
+  
+  // Cost of living index by state
+  const costIndex = {
+    'CA': 1.4, 'NY': 1.3, 'MA': 1.25, 'WA': 1.2, 'DC': 1.3, 
+    'OR': 1.15, 'CO': 1.12, 'IL': 1.1, 'MD': 1.1, 'VA': 1.05,
+    'FL': 1.0, 'TX': 0.95, 'AZ': 0.95, 'NC': 0.9, 'GA': 0.9,
+    'TN': 0.85, 'OH': 0.85, 'MI': 0.85, 'IN': 0.8, 'MO': 0.8
+  };
+  
+  // Return adjustment factor if state is found, otherwise use 1.0
+  return costIndex[state] || 1.0;
+}
+
 // Make functions available globally
 window.renderQuoteGeneratorPage = renderQuoteGeneratorPage;
 window.QuoteGenerator = {
@@ -7429,6 +7689,9 @@ window.QuoteGenerator = {
   getBasicFeatures,
   getStandardFeatures,
   getPremiumFeatures,
+  analyzeFeatureCategory,
+  getAIRecommendedCost,
+  getRegionalCostAdjustment,
   showToast: function(message, type) {
     if (window.showToast) {
       window.showToast(message, type);
