@@ -292,8 +292,9 @@ function initFormStatePreservation() {
 // Initialize our fallback distance calculation function globally
 // This makes it available to other components that need it
 window.useFallbackDistanceCalculation = async function() {
-  const originInput = document.querySelector('input[name="startLocation"]');
-  const destinationInput = document.querySelector('input[name="endLocation"]');
+  // Use the correct IDs for the Quote Generator's input fields
+  const originInput = document.getElementById('auto-address-input');
+  const destinationInput = document.getElementById('auto-destination-input');
   const distanceResultContainer = document.getElementById('distanceResult');
   
   if (!originInput || !destinationInput) {
@@ -6817,7 +6818,9 @@ function calculateAddressDistance() {
     console.log("Using enhanced fallback distance calculation");
     // This will delegate to our advanced useFallbackDistanceCalculation function
     await window.useFallbackDistanceCalculation();
-    return;
+    // The local function below is no longer used since we delegate to the global one
+    // We keep it here commented out for reference
+    /*
     const originZip = extractZipCode(originInput.value);
     const destZip = extractZipCode(destinationInput.value);
     
