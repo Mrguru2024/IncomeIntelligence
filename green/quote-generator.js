@@ -99,7 +99,7 @@ const stateToRegion = {
  * Main function to render the quote generator page
  * @param {string} containerId - The ID of the container to render the page in
  */
-export function renderQuoteGeneratorPage(containerId) {
+function renderQuoteGeneratorPage(containerId) {
   try {
     const container = document.getElementById(containerId);
     if (!container) {
@@ -1140,3 +1140,23 @@ function getJobTypeDisplay(jobType) {
   
   return displayNames[jobType] || jobType;
 }
+
+// Make functions available globally
+window.renderQuoteGeneratorPage = renderQuoteGeneratorPage;
+window.QuoteGenerator = {
+  generateQuote,
+  handleGenerateQuote,
+  displayQuoteResults,
+  createFormGroup,
+  createSelect,
+  createInput,
+  showToast: function(message, type) {
+    if (window.showToast) {
+      window.showToast(message, type);
+    } else {
+      console.log(message);
+      alert(message);
+    }
+  },
+  getStateFromLocation
+};
