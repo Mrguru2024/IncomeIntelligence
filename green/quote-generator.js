@@ -86,6 +86,65 @@ const marketRates = {
   "landscaper": {
     "northeast": 85, "midwest": 70, "southeast": 65, "southwest": 75, "west": 90, "south": 65
   },
+  
+  // Automotive services
+  "automotive_repair": {
+    "northeast": 100, "midwest": 85, "southeast": 80, "southwest": 85, "west": 110, "south": 80
+  },
+  
+  // Electronics repair
+  "electronic_repair": {
+    "northeast": 90, "midwest": 75, "southeast": 70, "southwest": 80, "west": 95, "south": 70
+  },
+  "cellphone_repair": {
+    "northeast": 85, "midwest": 70, "southeast": 65, "southwest": 75, "west": 90, "south": 65
+  },
+  "computer_repair": {
+    "northeast": 95, "midwest": 80, "southeast": 75, "southwest": 85, "west": 100, "south": 75
+  },
+  "tv_repair": {
+    "northeast": 90, "midwest": 75, "southeast": 70, "southwest": 80, "west": 95, "south": 70
+  },
+  "appliance_repair": {
+    "northeast": 95, "midwest": 80, "southeast": 75, "southwest": 85, "west": 100, "south": 75
+  },
+  
+  // Beauty services
+  "hair_stylist": {
+    "northeast": 85, "midwest": 70, "southeast": 65, "southwest": 75, "west": 90, "south": 65
+  },
+  "nail_technician": {
+    "northeast": 75, "midwest": 60, "southeast": 55, "southwest": 65, "west": 80, "south": 55
+  },
+  "makeup_artist": {
+    "northeast": 90, "midwest": 75, "southeast": 70, "southwest": 80, "west": 95, "south": 70
+  },
+  "esthetician": {
+    "northeast": 85, "midwest": 70, "southeast": 65, "southwest": 75, "west": 90, "south": 65
+  },
+  "massage_therapist": {
+    "northeast": 95, "midwest": 80, "southeast": 75, "southwest": 85, "west": 100, "south": 75
+  },
+  "spa_services": {
+    "northeast": 100, "midwest": 85, "southeast": 80, "southwest": 85, "west": 110, "south": 80
+  },
+  "waxing_services": {
+    "northeast": 75, "midwest": 60, "southeast": 55, "southwest": 65, "west": 80, "south": 55
+  },
+  "tanning_services": {
+    "northeast": 70, "midwest": 55, "southeast": 50, "southwest": 60, "west": 75, "south": 50
+  },
+  "eyebrow_threading": {
+    "northeast": 65, "midwest": 50, "southeast": 45, "southwest": 55, "west": 70, "south": 45
+  },
+  "lash_extensions": {
+    "northeast": 80, "midwest": 65, "southeast": 60, "southwest": 70, "west": 85, "south": 60
+  },
+  "facial_services": {
+    "northeast": 110, "midwest": 95, "southeast": 90, "southwest": 95, "west": 115, "south": 90
+  },
+  
+  // Additional home services
   "roofer": {
     "northeast": 100, "midwest": 85, "southeast": 80, "southwest": 90, "west": 110, "south": 80
   },
@@ -94,9 +153,6 @@ const marketRates = {
   },
   "window_installer": {
     "northeast": 95, "midwest": 80, "southeast": 75, "southwest": 85, "west": 100, "south": 75
-  },
-  "appliance_repair": {
-    "northeast": 90, "midwest": 75, "southeast": 70, "southwest": 80, "west": 95, "south": 70
   },
   "pool_service": {
     "northeast": 85, "midwest": 70, "southeast": 65, "southwest": 75, "west": 90, "south": 65
@@ -109,61 +165,6 @@ const marketRates = {
   },
   "pest_control": {
     "northeast": 80, "midwest": 65, "southeast": 60, "southwest": 70, "west": 85, "south": 60
-  },
-  
-  // Beauty services
-  "beauty_services": {
-    "northeast": 90, "midwest": 75, "southeast": 70, "southwest": 75, "west": 95, "south": 70
-  },
-  "hair_stylist": {
-    "northeast": 105, "midwest": 85, "southeast": 80, "southwest": 85, "west": 110, "south": 80
-  },
-  "nail_technician": {
-    "northeast": 75, "midwest": 65, "southeast": 60, "southwest": 65, "west": 80, "south": 60
-  },
-  "makeup_artist": {
-    "northeast": 115, "midwest": 95, "southeast": 90, "southwest": 95, "west": 120, "south": 90
-  },
-  "esthetician": {
-    "northeast": 95, "midwest": 80, "southeast": 75, "southwest": 80, "west": 100, "south": 75
-  },
-  "massage_therapist": {
-    "northeast": 105, "midwest": 90, "southeast": 85, "southwest": 90, "west": 110, "south": 85
-  },
-  "eyebrow_threading": {
-    "northeast": 70, "midwest": 60, "southeast": 55, "southwest": 60, "west": 75, "south": 55
-  },
-  "spa_services": {
-    "northeast": 110, "midwest": 95, "southeast": 90, "southwest": 95, "west": 115, "south": 90
-  },
-  "waxing_services": {
-    "northeast": 75, "midwest": 65, "southeast": 60, "southwest": 65, "west": 80, "south": 60
-  },
-  "tanning_services": {
-    "northeast": 70, "midwest": 60, "southeast": 55, "southwest": 60, "west": 75, "south": 55
-  },
-  "lash_extensions": {
-    "northeast": 95, "midwest": 80, "southeast": 75, "southwest": 80, "west": 100, "south": 75
-  },
-  "facial_services": {
-    "northeast": 110, "midwest": 95, "southeast": 90, "southwest": 95, "west": 115, "south": 90
-  },
-  
-  // Repair services
-  "electronic_repair": {
-    "northeast": 90, "midwest": 75, "southeast": 70, "southwest": 75, "west": 95, "south": 70
-  },
-  "cellphone_repair": {
-    "northeast": 85, "midwest": 70, "southeast": 65, "southwest": 70, "west": 90, "south": 65
-  },
-  "computer_repair": {
-    "northeast": 95, "midwest": 80, "southeast": 75, "southwest": 80, "west": 100, "south": 75
-  },
-  "tv_repair": {
-    "northeast": 100, "midwest": 85, "southeast": 80, "southwest": 85, "west": 105, "south": 80
-  },
-  "automotive_repair": {
-    "northeast": 115, "midwest": 100, "southeast": 95, "southwest": 100, "west": 120, "south": 95
   },
   
   // Professional services
