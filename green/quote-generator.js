@@ -969,6 +969,8 @@ function generateQuoteForTier(tier, data, commonData, baseRate) {
     tier,
     description,
     features,
+    experienceLevel: data.experienceLevel,
+    quantity: isProductService ? data.quantity : 1,
     laborHours,
     laborRate,
     laborCost,
@@ -1228,6 +1230,22 @@ function isElectronicRepair(jobType) {
  */
 function isAutomotiveRepair(jobType) {
   return jobType === 'automotive_repair';
+}
+
+/**
+ * Determines if the job type is a product-based service
+ * @param {string} jobType - The job type
+ * @returns {boolean} True if it's a product-based service
+ */
+function isProductService(jobType) {
+  const productServices = [
+    'locksmith', 
+    'appliance_repair', 
+    'cellphone_repair', 
+    'computer_repair', 
+    'tv_repair'
+  ];
+  return productServices.includes(jobType);
 }
 
 /**
@@ -1588,6 +1606,30 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   // Create service-specific breakdown items
   const breakdownItems = [];
   
+  // Display Provider Experience Level
+  const experienceLevelMap = {
+    'junior': 'Junior Provider (1-2 years)',
+    'intermediate': 'Intermediate Provider (3-5 years)',
+    'senior': 'Senior Provider (6-10 years)',
+    'expert': 'Expert Provider (10+ years)'
+  };
+  
+  const experienceText = experienceLevelMap[quote.experienceLevel] || 'Professional Provider';
+  breakdownItems.push({
+    label: experienceText,
+    value: null, // No direct value, just informational
+    isInfo: true
+  });
+  
+  // If it's a product service with multiple units, show quantity
+  if (isProductService && quote.quantity > 1) {
+    breakdownItems.push({
+      label: `Product Quantity: ${quote.quantity} units`,
+      value: null, // No direct value, just informational
+      isInfo: true
+    });
+  }
+  
   // Common for all services: labor costs
   breakdownItems.push({
     label: `${isBeautyService(quote.jobType) ? 'Service Time' : 'Labor'} (${quote.laborHours.toFixed(1)} hrs @ $${quote.laborRate.toFixed(2)}/hr)${quote.emergency ? ' (Emergency)' : ''}`,
@@ -1794,6 +1836,30 @@ function displayQuoteResults(result) {
   
   // Create service-specific breakdown items
   const breakdownItems = [];
+  
+  // Display Provider Experience Level
+  const experienceLevelMap = {
+    'junior': 'Junior Provider (1-2 years)',
+    'intermediate': 'Intermediate Provider (3-5 years)',
+    'senior': 'Senior Provider (6-10 years)',
+    'expert': 'Expert Provider (10+ years)'
+  };
+  
+  const experienceText = experienceLevelMap[result.experienceLevel] || 'Professional Provider';
+  breakdownItems.push({
+    label: experienceText,
+    value: null, // No direct value, just informational
+    isInfo: true
+  });
+  
+  // If it's a product service with multiple units, show quantity
+  if (isProductService(result.jobType) && result.quantity > 1) {
+    breakdownItems.push({
+      label: `Product Quantity: ${result.quantity} units`,
+      value: null, // No direct value, just informational
+      isInfo: true
+    });
+  }
   
   // Common for all services: labor costs with service-specific label
   breakdownItems.push({
