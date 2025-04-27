@@ -40,11 +40,11 @@ UserProfile.initUserProfile = async function(userId) {
   
   try {
     // Load existing profile or create new one
-    let profile = await loadUserProfile(userId);
+    let profile = await UserProfile.loadUserProfile(userId);
     
     if (!profile) {
       profile = { ...DEFAULT_PROFILE, userId };
-      await saveUserProfile(profile);
+      await UserProfile.saveUserProfile(profile);
     }
     
     return profile;
@@ -125,7 +125,7 @@ UserProfile.updateUserProfile = async function(profileData) {
   
   try {
     // Load existing profile
-    const currentProfile = await loadUserProfile(profileData.userId);
+    const currentProfile = await UserProfile.loadUserProfile(profileData.userId);
     
     if (!currentProfile) {
       console.error('Cannot update profile: Profile not found');
@@ -145,7 +145,7 @@ UserProfile.updateUserProfile = async function(profileData) {
     };
     
     // Save updated profile
-    const success = await saveUserProfile(updatedProfile);
+    const success = await UserProfile.saveUserProfile(updatedProfile);
     
     if (success) {
       return updatedProfile;
@@ -346,6 +346,6 @@ UserProfile.personalizeQuote = function(quoteData) {
   }
 })();
 
-// Expose the UserProfile object globally
-// export default UserProfile; 
+// Expose the UserProfile object globally and also as an ES module export
 window.UserProfile = UserProfile;
+export default UserProfile;

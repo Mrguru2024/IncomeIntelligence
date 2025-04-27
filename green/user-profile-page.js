@@ -33,6 +33,7 @@ async function initializeProfilePage() {
   try {
     // Import user profile module
     const userProfileModule = await import('./user-profile.js');
+    const UserProfile = userProfileModule.default;
     const userId = getCurrentUserId();
     
     if (!userId) {
@@ -41,14 +42,14 @@ async function initializeProfilePage() {
     }
     
     // Load user profile data
-    const profile = await userProfileModule.initUserProfile(userId);
+    const profile = await UserProfile.initUserProfile(userId);
     if (!profile) {
       showError('Failed to load profile data. Please try again later.');
       return;
     }
     
     renderProfilePage(profile);
-    setupProfileEventListeners(userProfileModule);
+    setupProfileEventListeners(UserProfile);
     
   } catch (error) {
     console.error('Error initializing profile page:', error);
