@@ -595,34 +595,80 @@ function generateMultiQuote(data) {
  * @returns {Object} The quote result for this tier
  */
 function generateQuoteForTier(tier, data, commonData, baseRate) {
-  // Adjust parameters based on tier
+  // Default adjustments based on tier
   let laborHours, laborRate, materialsCost, targetMargin;
+  let laborMultiplier = 1.0;
+  let rateMultiplier = 1.0;
+  let materialMultiplier = 1.0;
+  let marginAdjustment = 0;
   
+  // Set initial tier-specific adjustments
   switch (tier) {
     case 'basic':
-      laborHours = data.laborHours * 0.8; // 20% less time for basic
-      laborRate = baseRate * 0.9; // 10% lower rate
-      materialsCost = data.materialsCost * 0.8; // 20% cheaper materials
-      targetMargin = data.targetMargin - 5; // Lower margin
+      laborMultiplier = 0.8;  // 20% less time for basic
+      rateMultiplier = 0.9;   // 10% lower rate
+      materialMultiplier = 0.8; // 20% cheaper materials
+      marginAdjustment = -5;  // Lower margin
       break;
     case 'standard':
-      laborHours = data.laborHours; // Standard time
-      laborRate = baseRate; // Standard rate
-      materialsCost = data.materialsCost; // Standard materials
-      targetMargin = data.targetMargin; // Standard margin
+      laborMultiplier = 1.0;  // Standard time
+      rateMultiplier = 1.0;   // Standard rate
+      materialMultiplier = 1.0; // Standard materials
+      marginAdjustment = 0;   // Standard margin
       break;
     case 'premium':
-      laborHours = data.laborHours * 1.2; // 20% more time for premium
-      laborRate = baseRate * 1.2; // 20% higher rate
-      materialsCost = data.materialsCost * 1.5; // 50% more expensive materials
-      targetMargin = data.targetMargin + 5; // Higher margin
+      laborMultiplier = 1.2;  // 20% more time for premium
+      rateMultiplier = 1.2;   // 20% higher rate
+      materialMultiplier = 1.5; // 50% more expensive materials
+      marginAdjustment = 5;   // Higher margin
       break;
-    default:
-      laborHours = data.laborHours;
-      laborRate = baseRate;
-      materialsCost = data.materialsCost;
-      targetMargin = data.targetMargin;
   }
+  
+  // Apply service-specific adjustments
+  if (isBeautyService(data.jobType)) {
+    // Beauty services have shorter labor times but higher material costs (products)
+    if (tier === 'basic') {
+      laborMultiplier = 0.85;  // Only 15% less time for basic beauty services
+      materialMultiplier = 0.7; // 30% cheaper products
+    } else if (tier === 'premium') {
+      laborMultiplier = 1.15;  // Only 15% more time for premium
+      materialMultiplier = 2.0; // 100% more expensive premium products
+      marginAdjustment = 8;    // Higher margins for premium beauty
+    }
+  } 
+  else if (isElectronicRepair(data.jobType)) {
+    // Electronic repairs have longer diagnostic times and specialized parts
+    if (tier === 'basic') {
+      laborMultiplier = 0.75; // 25% less time (simplified diagnostics)
+      materialMultiplier = 0.7; // 30% cheaper parts (non-OEM)
+    } else if (tier === 'standard') {
+      laborMultiplier = 1.1;  // 10% more time for thorough diagnostics
+    } else if (tier === 'premium') {
+      laborMultiplier = 1.35; // 35% more time for intensive diagnostics
+      materialMultiplier = 1.8; // 80% more expensive parts (OEM)
+      marginAdjustment = 7;   // Higher margins for premium electronics
+    }
+  }
+  else if (isAutomotiveRepair(data.jobType)) {
+    // Automotive repairs have specific parts and labor adjustments
+    if (tier === 'basic') {
+      laborMultiplier = 0.8;  // 20% less time
+      materialMultiplier = 0.75; // 25% cheaper parts
+    } else if (tier === 'standard') {
+      laborMultiplier = 1.0;  // Standard time
+      materialMultiplier = 1.1; // 10% better materials
+    } else if (tier === 'premium') {
+      laborMultiplier = 1.25; // 25% more time
+      materialMultiplier = 1.7; // 70% better materials (OEM)
+      marginAdjustment = 6;   // Higher margins for premium automotive
+    }
+  }
+  
+  // Apply the calculated multipliers
+  laborHours = data.laborHours * laborMultiplier;
+  laborRate = baseRate * rateMultiplier;
+  materialsCost = data.materialsCost * materialMultiplier;
+  targetMargin = data.targetMargin + marginAdjustment;
   
   // Emergency pricing adjustment
   if (data.emergency) {
@@ -900,11 +946,17 @@ function displayMultiQuoteResults(quotes) {
  * @param {string} jobType - The job type
  * @returns {boolean} True if it's a beauty service
  */
+/**
+ * Determines if the job type is a beauty service
+ * @param {string} jobType - The job type
+ * @returns {boolean} True if it's a beauty service
+ */
 function isBeautyService(jobType) {
   const beautyServices = [
     'beauty_services', 'hair_stylist', 'nail_technician', 
     'makeup_artist', 'esthetician', 'massage_therapist', 
-    'spa_services', 'eyebrow_threading'
+    'spa_services', 'eyebrow_threading', 'waxing_services',
+    'tanning_services', 'lash_extensions', 'facial_services'
   ];
   return beautyServices.includes(jobType);
 }
@@ -916,7 +968,8 @@ function isBeautyService(jobType) {
  */
 function isElectronicRepair(jobType) {
   const electronicRepairs = [
-    'electronic_repair', 'cellphone_repair', 'computer_repair'
+    'electronic_repair', 'cellphone_repair', 'computer_repair',
+    'tv_repair', 'appliance_repair'
   ];
   return electronicRepairs.includes(jobType);
 }
