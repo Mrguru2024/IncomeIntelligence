@@ -2796,11 +2796,78 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
         const costKey = costKeys[index % costKeys.length];
         const cost = featureCosts[costKey] / Math.min(originalFeatures.length, 5);
         
+        // Add cost object to quote if it doesn't exist
+        if (!quote.featureCosts) {
+          quote.featureCosts = [];
+        }
+        
+        // Ensure we have a cost for this feature
+        if (!quote.featureCosts[index]) {
+          quote.featureCosts[index] = cost;
+        }
+        
         const costSpan = document.createElement('span');
-        costSpan.textContent = `$${cost.toFixed(2)}`;
+        costSpan.textContent = `$${quote.featureCosts[index].toFixed(2)}`;
         costSpan.style.fontWeight = '500';
         costSpan.style.fontSize = '13px';
         costSpan.style.marginLeft = '10px';
+        costSpan.setAttribute('data-feature-index', index);
+        
+        // Make cost editable if quote is editable
+        if (quote.editable) {
+          costSpan.style.cursor = 'pointer';
+          costSpan.style.textDecoration = 'underline dotted';
+          costSpan.title = 'Click to edit cost';
+          
+          costSpan.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const currentCost = quote.featureCosts[index];
+            const newCost = prompt(`Enter new cost for "${feature}":`, currentCost.toFixed(2));
+            
+            if (newCost !== null && !isNaN(parseFloat(newCost))) {
+              const parsedCost = parseFloat(newCost);
+              if (parsedCost >= 0) {
+                // Update the cost
+                quote.featureCosts[index] = parsedCost;
+                costSpan.textContent = `$${parsedCost.toFixed(2)}`;
+                
+                // Recalculate total based on feature costs
+                const totalFeatureCost = quote.featureCosts.reduce((sum, cost) => sum + cost, 0);
+                
+                // Update quote object
+                const oldMaterialsCost = quote.materialsCost;
+                quote.materialsCost = totalFeatureCost;
+                
+                // Recalculate the quote
+                recalculateQuote(quote);
+                
+                // Update price display
+                price.textContent = `$${quote.total.toFixed(2)}`;
+                
+                // Show toast
+                if (window.showToast) {
+                  window.showToast(`Feature cost updated - Quote recalculated`, 'success');
+                }
+                
+                // Update breakdown items if they exist
+                const breakdownItems = document.querySelectorAll(`[data-quote-id="${quote.id}"] [data-breakdown-item]`);
+                breakdownItems.forEach(item => {
+                  const property = item.getAttribute('data-breakdown-item');
+                  const value = property.includes('.') 
+                    ? quote[property.split('.')[0]][property.split('.')[1]] 
+                    : quote[property];
+                  
+                  if (typeof value === 'number') {
+                    item.textContent = `$${value.toFixed(2)}`;
+                  } else if (typeof value === 'string' && !isNaN(parseFloat(value))) {
+                    item.textContent = `$${parseFloat(value).toFixed(2)}`;
+                  }
+                });
+              }
+            }
+          });
+        }
+        
         item.appendChild(costSpan);
         
         // Make the item look more like a cost item
