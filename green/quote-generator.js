@@ -873,11 +873,9 @@ function initGoogleMapsAutocomplete() {
     // Create the autocomplete object
     const autocomplete = new google.maps.places.Autocomplete(addressInput, {
       types: ['address'],
-      componentRestrictions: { country: 'us' }
+      componentRestrictions: { country: 'us' },
+      fields: ['formatted_address', 'address_components'] // Use fields in options instead of setFields method
     });
-    
-    // Set fields to get formatted address and state
-    autocomplete.setFields(['formatted_address', 'address_components']);
     
     // Add listener for place changed event
     autocomplete.addListener('place_changed', function() {
@@ -2234,14 +2232,14 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   breakdownSection.style.borderRadius = '6px';
   breakdownSection.style.border = '1px dashed #e5e7eb';
   
-  const breakdownTitle = document.createElement('h5');
-  breakdownTitle.textContent = 'Cost Breakdown';
-  breakdownTitle.style.fontSize = '15px';
-  breakdownTitle.style.fontWeight = 'bold';
-  breakdownTitle.style.marginBottom = '10px';
-  breakdownTitle.style.display = 'flex';
-  breakdownTitle.style.justifyContent = 'space-between';
-  breakdownTitle.style.alignItems = 'center';
+  const breakdownTitleElement = document.createElement('h5');
+  breakdownTitleElement.textContent = 'Cost Breakdown';
+  breakdownTitleElement.style.fontSize = '15px';
+  breakdownTitleElement.style.fontWeight = 'bold';
+  breakdownTitleElement.style.marginBottom = '10px';
+  breakdownTitleElement.style.display = 'flex';
+  breakdownTitleElement.style.justifyContent = 'space-between';
+  breakdownTitleElement.style.alignItems = 'center';
   
   // Add toggle button for breakdown
   const toggleButton = document.createElement('button');
@@ -2252,7 +2250,7 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   toggleButton.style.cursor = 'pointer';
   toggleButton.style.fontSize = '12px';
   toggleButton.style.color = 'var(--color-primary, #4F46E5)';
-  breakdownTitle.appendChild(toggleButton);
+  breakdownTitleElement.appendChild(toggleButton);
   
   const breakdownContent = document.createElement('div');
   breakdownContent.style.fontSize = '14px';
@@ -2424,7 +2422,7 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   breakdownContent.appendChild(aiInsightsBtn);
   
   // Assemble breakdown section
-  breakdownSection.appendChild(breakdownTitle);
+  breakdownSection.appendChild(breakdownTitleElement);
   breakdownSection.appendChild(breakdownContent);
   cardBody.appendChild(breakdownSection);
   
@@ -2566,15 +2564,7 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   
   cardBody.appendChild(featuresList);
   
-  // Cost breakdown
-  const breakdownTitle = document.createElement('h5');
-  breakdownTitle.textContent = 'Cost Breakdown';
-  breakdownTitle.style.fontSize = '14px';
-  breakdownTitle.style.fontWeight = 'bold';
-  breakdownTitle.style.marginBottom = '8px';
-  cardBody.appendChild(breakdownTitle);
-  
-  // Create service-specific breakdown items
+  // Create service-specific breakdown items for display
   const breakdownItems = [];
   
   // Display Provider Experience Level
