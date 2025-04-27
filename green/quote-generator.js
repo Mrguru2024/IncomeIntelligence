@@ -7800,6 +7800,9 @@ function showTierBreakdown(tierData) {
   breakdownSection.scrollIntoView({ behavior: 'smooth' });
 } // End of renderQuoteGeneratorPage function
 
-// The simplest possible export that works with dynamic import
-const exportModule = { renderQuoteGeneratorPage };
-export default exportModule;
+// Make the function globally available
+window.QuoteGenerator = { renderQuoteGeneratorPage };
+
+// This approach makes the function accessible both 
+// when script is loaded directly or via dynamic import
+// Avoid using ES Module syntax completely
