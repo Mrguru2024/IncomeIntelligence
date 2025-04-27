@@ -1742,17 +1742,23 @@ function getAverageMaterialRatio(jobType, jobSubtype) {
  * @param {string} tierName - The tier name for context
  */
 function showAIRecommendations(recommendations, tierName) {
-  // Create modal container
+  // Create modal container with fade-in animation
   const modalOverlay = document.createElement('div');
   modalOverlay.style.position = 'fixed';
   modalOverlay.style.top = '0';
   modalOverlay.style.left = '0';
   modalOverlay.style.right = '0';
   modalOverlay.style.bottom = '0';
-  modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0)';
   modalOverlay.style.display = 'flex';
   modalOverlay.style.justifyContent = 'center';
   modalOverlay.style.alignItems = 'center';
+  modalOverlay.style.transition = 'background-color 0.3s ease';
+  
+  // Smooth fade-in animation
+  setTimeout(() => {
+    modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  }, 10);
   modalOverlay.style.zIndex = '9999';
   
   // Create modal content
@@ -1829,6 +1835,40 @@ function showAIRecommendations(recommendations, tierName) {
   disclaimer.style.fontStyle = 'italic';
   disclaimer.style.marginTop = '20px';
   body.appendChild(disclaimer);
+  
+  // Add Apply Recommendations button
+  const applyButton = document.createElement('button');
+  applyButton.textContent = 'Apply Recommendations';
+  applyButton.style.backgroundColor = '#10b981';
+  applyButton.style.color = 'white';
+  applyButton.style.border = 'none';
+  applyButton.style.borderRadius = '6px';
+  applyButton.style.padding = '10px 16px';
+  applyButton.style.fontSize = '14px';
+  applyButton.style.fontWeight = 'bold';
+  applyButton.style.cursor = 'pointer';
+  applyButton.style.width = '100%';
+  applyButton.style.marginTop = '20px';
+  applyButton.style.transition = 'all 0.2s ease';
+  
+  // Add hover effect
+  applyButton.addEventListener('mouseenter', () => {
+    applyButton.style.backgroundColor = '#0d9668';
+  });
+  
+  applyButton.addEventListener('mouseleave', () => {
+    applyButton.style.backgroundColor = '#10b981';
+  });
+  
+  applyButton.addEventListener('click', () => {
+    // Show toast message (using the global toast system if available)
+    if (window.showToast) {
+      window.showToast('Recommendations applied successfully!', 'success');
+    }
+    document.body.removeChild(modalOverlay);
+  });
+  
+  body.appendChild(applyButton);
   
   // Assemble modal
   modalContent.appendChild(header);
@@ -3035,19 +3075,33 @@ if (quote.editable) {
   
   // AI Insights button
   const aiInsightsButton = document.createElement('button');
-  aiInsightsButton.textContent = 'AI Insights';
+  aiInsightsButton.textContent = 'AI Insights & Pricing Analysis';
   aiInsightsButton.style.backgroundColor = '#10b981'; // Green color for AI insights
   aiInsightsButton.style.color = 'white';
   aiInsightsButton.style.border = 'none';
   aiInsightsButton.style.borderRadius = '6px';
-  aiInsightsButton.style.padding = '8px 16px';
+  aiInsightsButton.style.padding = '12px 16px';
   aiInsightsButton.style.fontSize = '14px';
+  aiInsightsButton.style.fontWeight = 'bold';
   aiInsightsButton.style.cursor = 'pointer';
   aiInsightsButton.style.display = 'flex';
   aiInsightsButton.style.alignItems = 'center';
   aiInsightsButton.style.justifyContent = 'center';
   aiInsightsButton.style.width = '100%';
   aiInsightsButton.style.marginBottom = '12px';
+  aiInsightsButton.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+  aiInsightsButton.style.transition = 'all 0.2s ease';
+  
+  // Add hover effect
+  aiInsightsButton.addEventListener('mouseenter', () => {
+    aiInsightsButton.style.backgroundColor = '#0d9668';
+    aiInsightsButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
+  });
+  
+  aiInsightsButton.addEventListener('mouseleave', () => {
+    aiInsightsButton.style.backgroundColor = '#10b981';
+    aiInsightsButton.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+  });
   
   // Add a small icon to the button
   const aiIcon = document.createElement('span');
