@@ -2802,13 +2802,13 @@ function displayQuoteResults(result) {
   const breakdown = document.createElement('div');
   breakdown.style.marginBottom = '24px';
   
-  const breakdownTitle = document.createElement('h4');
-  breakdownTitle.textContent = 'Cost Breakdown';
-  breakdownTitle.style.fontSize = '16px';
-  breakdownTitle.style.fontWeight = 'bold';
-  breakdownTitle.style.marginBottom = '12px';
+  const detailedBreakdownTitle = document.createElement('h4');
+  detailedBreakdownTitle.textContent = 'Cost Breakdown';
+  detailedBreakdownTitle.style.fontSize = '16px';
+  detailedBreakdownTitle.style.fontWeight = 'bold';
+  detailedBreakdownTitle.style.marginBottom = '12px';
   
-  breakdown.appendChild(breakdownTitle);
+  breakdown.appendChild(detailedBreakdownTitle);
   
   // Create service-specific breakdown items
   const breakdownItems = [];
