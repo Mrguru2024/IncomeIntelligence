@@ -9,6 +9,83 @@
 // Add debugging
 console.log('Quote Generator module initialized');
 
+// Global variable to store last form data for refreshes
+let lastQuoteFormData = null;
+
+/**
+ * Refreshes quotes using the last form data
+ * Called by other modules when user profile changes
+ */
+window.refreshQuotes = function() {
+  console.log('Refreshing quotes with updated profile data');
+  
+  // Only proceed if we have prior form data
+  if (lastQuoteFormData) {
+    try {
+      // Display loading indicator
+      const resultsContainer = document.querySelector('.results-container');
+      if (resultsContainer) {
+        const loadingSpinner = document.createElement('div');
+        loadingSpinner.className = 'quote-loading-spinner';
+        loadingSpinner.innerHTML = '<div class="spinner"></div><p>Refreshing quotes with your profile updates...</p>';
+        loadingSpinner.style.display = 'flex';
+        loadingSpinner.style.flexDirection = 'column';
+        loadingSpinner.style.alignItems = 'center';
+        loadingSpinner.style.justifyContent = 'center';
+        loadingSpinner.style.padding = '20px';
+        loadingSpinner.style.textAlign = 'center';
+        
+        const spinner = loadingSpinner.querySelector('.spinner');
+        spinner.style.width = '40px';
+        spinner.style.height = '40px';
+        spinner.style.border = '4px solid rgba(0, 0, 0, 0.1)';
+        spinner.style.borderRadius = '50%';
+        spinner.style.borderTop = '4px solid var(--color-primary, #4F46E5)';
+        spinner.style.animation = 'spin 1s linear infinite';
+        
+        // Add animation style if not already present
+        if (!document.getElementById('spinner-style')) {
+          const style = document.createElement('style');
+          style.id = 'spinner-style';
+          style.textContent = `
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+        
+        // Clear previous content and show spinner
+        resultsContainer.innerHTML = '';
+        resultsContainer.appendChild(loadingSpinner);
+        resultsContainer.style.display = 'block';
+        
+        // Generate new quotes after a short delay to allow UI update
+        setTimeout(() => {
+          // Get fresh user profile data
+          const userProfileModule = window.modules['user-profile'];
+          const updatedProfile = userProfileModule?.getCurrentProfile();
+          console.log('Using updated profile for quote refresh:', updatedProfile);
+          
+          // Generate quotes with the last known form data and updated profile
+          const multiQuote = generateMultiQuote(lastQuoteFormData);
+          
+          // Update the UI with new quotes
+          displayMultiQuote(multiQuote, lastQuoteFormData);
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Error refreshing quotes:', error);
+      if (window.showToast) {
+        window.showToast('Error refreshing quotes. Please try again.', 'error');
+      }
+    }
+  } else {
+    console.log('No form data available to refresh quotes');
+  }
+};
+
 // Import toast component or use it if already global
 let showToastFn;
 
