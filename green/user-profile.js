@@ -142,13 +142,26 @@ export async function addQuoteToHistory(quote) {
   }
   
   try {
+    // Build a comprehensive quote data object with all relevant information
     const quoteData = {
       jobType: quote.jobType,
       jobSubtype: quote.jobSubtype,
-      totalAmount: quote.total,
-      margin: quote.profitMargin
+      totalAmount: typeof quote.totalAmount === 'number' ? quote.totalAmount : 
+                  (typeof quote.total === 'number' ? quote.total : 0),
+      margin: typeof quote.margin === 'number' ? quote.margin : 
+             (typeof quote.actualProfitMargin === 'number' ? quote.actualProfitMargin : 
+             (typeof quote.targetMargin === 'number' ? quote.targetMargin : 0)),
+      tier: quote.tier || 'standard',
+      accepted: quote.accepted || false,
+      date: quote.date || new Date().toISOString(),
+      location: quote.location || '',
+      laborHours: typeof quote.laborHours === 'number' ? quote.laborHours : 0,
+      laborRate: typeof quote.laborRate === 'number' ? quote.laborRate : 0,
+      materialsCost: typeof quote.materialsCost === 'number' ? quote.materialsCost : 0,
+      emergency: quote.emergency || false
     };
     
+    // Update the profile by sending the quote data to the server
     const response = await fetch(`/api/user-profile/${userId}/quotes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -159,6 +172,12 @@ export async function addQuoteToHistory(quote) {
       const updatedProfile = await response.json();
       currentUserProfile = updatedProfile;
       console.log('Quote added to history:', updatedProfile);
+      
+      // Update user preferences based on this quote
+      if (typeof updateUserPreferencesFromQuote === 'function') {
+        updateUserPreferencesFromQuote(quoteData);
+      }
+      
       return updatedProfile;
     } else {
       console.error('Error adding quote to history:', await response.text());
@@ -453,6 +472,85 @@ export function showProfileEditor(onSave) {
   
   // Add modal to document
   document.body.appendChild(modal);
+}
+
+/**
+ * Update user preferences based on quote data
+ * This function analyzes quote history and updates user profile preferences
+ * @param {Object} quoteData - Data from the recently added quote
+ */
+function updateUserPreferencesFromQuote(quoteData) {
+  if (!currentUserProfile) {
+    console.log('No user profile available, cannot update preferences');
+    return;
+  }
+  
+  try {
+    const profileUpdates = {};
+    let needsUpdate = false;
+    
+    // Track frequently quoted job types
+    if (quoteData.jobType) {
+      const preferredJobTypes = currentUserProfile.preferredJobTypes || [];
+      // Count occurrences of job types
+      const jobTypeCounts = {};
+      
+      // If we have quote history, analyze it
+      if (currentUserProfile.quoteHistory && Array.isArray(currentUserProfile.quoteHistory)) {
+        currentUserProfile.quoteHistory.forEach(quote => {
+          if (quote.jobType) {
+            jobTypeCounts[quote.jobType] = (jobTypeCounts[quote.jobType] || 0) + 1;
+          }
+        });
+        
+        // Add the current quote
+        jobTypeCounts[quoteData.jobType] = (jobTypeCounts[quoteData.jobType] || 0) + 1;
+        
+        // Identify most frequent job types (more than 2 occurrences)
+        const frequentJobTypes = Object.keys(jobTypeCounts).filter(type => jobTypeCounts[type] > 2);
+        
+        // Update preferred job types if different
+        if (JSON.stringify(frequentJobTypes.sort()) !== JSON.stringify(preferredJobTypes.sort())) {
+          profileUpdates.preferredJobTypes = frequentJobTypes;
+          needsUpdate = true;
+        }
+      }
+    }
+    
+    // Analyze margins over time
+    if (typeof quoteData.margin === 'number') {
+      // Calculate average margin across history
+      let totalMargin = quoteData.margin;
+      let count = 1;
+      
+      if (currentUserProfile.quoteHistory && Array.isArray(currentUserProfile.quoteHistory)) {
+        currentUserProfile.quoteHistory.forEach(quote => {
+          if (typeof quote.margin === 'number') {
+            totalMargin += quote.margin;
+            count++;
+          }
+        });
+      }
+      
+      const avgMargin = Math.round(totalMargin / count);
+      
+      // If average margin is significantly different from current target, update it
+      if (Math.abs(avgMargin - (currentUserProfile.targetMargin || 30)) > 5) {
+        profileUpdates.targetMargin = avgMargin;
+        needsUpdate = true;
+      }
+    }
+    
+    // Update if needed
+    if (needsUpdate) {
+      console.log('Updating user preferences based on quote history:', profileUpdates);
+      updateUserProfile(profileUpdates).catch(err => {
+        console.error('Error updating profile preferences:', err);
+      });
+    }
+  } catch (error) {
+    console.error('Error in updateUserPreferencesFromQuote:', error);
+  }
 }
 
 /**

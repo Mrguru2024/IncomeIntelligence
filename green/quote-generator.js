@@ -4294,6 +4294,43 @@ function createInvoiceFromQuote(quote) {
       balance: quote.total
     };
     
+    // Update the user profile with the accepted quote information
+    try {
+      // Dynamically import the user profile module
+      import('/green/user-profile.js')
+        .then(module => {
+          if (typeof window.appState !== 'undefined' && window.appState.user && window.appState.user.id) {
+            // Initialize with the current user ID if available
+            module.initUserProfile(window.appState.user.id)
+              .then(() => {
+                // Add this quote to the user's history
+                const quoteData = {
+                  jobType: quote.jobType,
+                  jobSubtype: quote.jobSubtype,
+                  totalAmount: quote.total,
+                  margin: quote.actualProfitMargin || quote.targetMargin,
+                  tier: quote.tier,
+                  accepted: true,
+                  date: new Date().toISOString()
+                };
+                
+                module.addQuoteToHistory(quoteData)
+                  .then(updatedProfile => {
+                    console.log('Quote added to user profile history:', updatedProfile);
+                  })
+                  .catch(err => {
+                    console.error('Error adding quote to history:', err);
+                  });
+              });
+          }
+        })
+        .catch(err => {
+          console.error('Error loading user profile module for quote history:', err);
+        });
+    } catch (profileError) {
+      console.error('Error updating profile with accepted quote:', profileError);
+    }
+    
     // Check if invoiceSystem exists, otherwise save to localStorage
     if (typeof window.invoiceSystem === 'undefined' || 
         typeof window.invoiceSystem.createDraftInvoice !== 'function') {
