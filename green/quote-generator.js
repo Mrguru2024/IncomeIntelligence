@@ -758,6 +758,13 @@ function renderQuoteGeneratorPage(containerId) {
     const marginInput = marginGroup.querySelector('input');
     marginInput.addEventListener('input', (e) => {
       marginValue.textContent = `${e.target.value}%`;
+      
+      // Get current result container - if visible, regenerate quote with new margin
+      const resultsContainer = document.getElementById('quote-results');
+      if (resultsContainer && resultsContainer.style.display === 'block') {
+        // Trigger quote recalculation
+        handleGenerateQuote();
+      }
     });
     
     // Add fields to form
