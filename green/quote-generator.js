@@ -2147,6 +2147,17 @@ function getStandardDescription(jobType) {
     'computer_repair': 'Complete computer repair with detailed diagnostics and quality hardware solutions.',
     'tv_repair': 'Professional TV repair with comprehensive diagnostics and quality component replacement.',
     'beauty_services': 'Complete beauty services with professional techniques and quality products.',
+    'hair_stylist': 'Professional hair styling with quality products and detailed cutting/coloring techniques.',
+    'nail_technician': 'Professional nail care with quality polishes and detailed manicure/pedicure techniques.',
+    'makeup_artist': 'Professional makeup application with quality products and detailed contouring techniques.',
+    'esthetician': 'Professional skincare treatments with quality products and detailed extraction techniques.',
+    'massage_therapist': 'Professional massage therapy with quality techniques and detailed muscle treatment.',
+    'spa_services': 'Professional spa treatments with quality products and detailed relaxation techniques.',
+    'waxing_services': 'Professional waxing with quality products and detailed hair removal techniques.',
+    'tanning_services': 'Professional tanning application with quality products and detailed contouring.',
+    'eyebrow_threading': 'Professional eyebrow shaping with detailed threading and precise techniques.',
+    'lash_extensions': 'Professional lash extensions with quality materials and detailed application.',
+    'facial_services': 'Professional facial treatments with quality products and detailed skincare regimen.',
     'photography': 'Professional photography session with quality equipment and detailed editing.',
     'graphic_design': 'Complete graphic design with professional layouts and thoughtful customization.'
   };
@@ -2179,6 +2190,17 @@ function getPremiumDescription(jobType) {
     'computer_repair': 'Premium computer service with advanced diagnostics and performance optimization.',
     'tv_repair': 'Premium TV repair with advanced calibration and premium component replacement.',
     'beauty_services': 'Premium beauty services with advanced techniques and high-end luxury products.',
+    'hair_stylist': 'Premium hair styling with luxury products and advanced cutting/coloring techniques from master stylists.',
+    'nail_technician': 'Premium nail care with luxury polishes and advanced nail art techniques from certified specialists.',
+    'makeup_artist': 'Premium makeup application with high-end luxury products and advanced techniques from celebrity-trained artists.',
+    'esthetician': 'Premium skincare treatments with medical-grade products and advanced techniques from certified specialists.',
+    'massage_therapist': 'Premium massage therapy with luxury oils and advanced therapeutic techniques from certified therapists.',
+    'spa_services': 'Premium spa treatments with high-end luxury products and advanced holistic wellness techniques.',
+    'waxing_services': 'Premium waxing with luxury products and advanced painless techniques from certified specialists.',
+    'tanning_services': 'Premium tanning application with organic formulas and advanced airbrush techniques from certified specialists.',
+    'eyebrow_threading': 'Premium eyebrow design with advanced threading and brow mapping from certified specialists.',
+    'lash_extensions': 'Premium lash extensions with luxury mink/silk materials and advanced volumizing techniques from certified artists.',
+    'facial_services': 'Premium facial treatments with medical-grade products and advanced technology from certified dermatological specialists.',
     'photography': 'Premium photography with high-end equipment and advanced retouching and artistic editing.',
     'graphic_design': 'Premium graphic design with customized layouts and advanced artistic direction.'
   };
@@ -2265,6 +2287,66 @@ function getBasicFeatures(jobType) {
       'Basic component replacement',
       'Standard picture adjustment',
       'Simple cable connection setup'
+    ],
+    'beauty_services': [
+      'Basic service package',
+      'Standard beauty products',
+      'Essential treatment techniques'
+    ],
+    'hair_stylist': [
+      'Basic cut and style',
+      'Standard shampoo and condition',
+      'Essential styling products'
+    ],
+    'nail_technician': [
+      'Basic manicure or pedicure',
+      'Standard polish application',
+      'Essential nail care'
+    ],
+    'makeup_artist': [
+      'Basic makeup application',
+      'Standard beauty products',
+      'Essential color matching'
+    ],
+    'esthetician': [
+      'Basic facial cleansing',
+      'Standard exfoliation',
+      'Essential moisturizing'
+    ],
+    'massage_therapist': [
+      'Basic 30-minute massage',
+      'Standard relaxation techniques',
+      'Essential pressure points'
+    ],
+    'spa_services': [
+      'Basic treatment package',
+      'Standard spa products',
+      'Essential relaxation techniques'
+    ],
+    'waxing_services': [
+      'Basic waxing service',
+      'Standard wax products',
+      'Essential aftercare'
+    ],
+    'tanning_services': [
+      'Basic spray tan application',
+      'Standard tanning solution',
+      'Essential skin preparation'
+    ],
+    'eyebrow_threading': [
+      'Basic eyebrow shaping',
+      'Standard threading technique',
+      'Essential aftercare'
+    ],
+    'lash_extensions': [
+      'Basic lash application',
+      'Standard synthetic lashes',
+      'Essential aftercare'
+    ],
+    'facial_services': [
+      'Basic facial cleansing',
+      'Standard exfoliation',
+      'Essential moisturizing'
     ]
   };
   
@@ -2364,6 +2446,78 @@ function getStandardFeatures(jobType) {
       'Complete circuit diagnostics',
       'Quality board replacement',
       'Basic calibration service'
+    ],
+    'beauty_services': [
+      'Comprehensive service package',
+      'Quality professional products',
+      'Complete treatment techniques',
+      'Personalized consultation'
+    ],
+    'hair_stylist': [
+      'Professional cut, color, and style',
+      'Quality salon products',
+      'Complete hair treatment',
+      'Style consultation included'
+    ],
+    'nail_technician': [
+      'Complete manicure and pedicure',
+      'Quality gel or acrylic options',
+      'Detailed nail art available',
+      'Extended wear treatments'
+    ],
+    'makeup_artist': [
+      'Professional makeup application',
+      'Quality beauty products',
+      'Complete color matching',
+      'Specialty techniques (contouring, etc.)'
+    ],
+    'esthetician': [
+      'Comprehensive facial treatment',
+      'Professional extraction techniques',
+      'Quality skincare products',
+      'Personalized skin assessment'
+    ],
+    'massage_therapist': [
+      'Professional 60-minute massage',
+      'Comprehensive technique selection',
+      'Quality essential oils included',
+      'Targeted problem area focus'
+    ],
+    'spa_services': [
+      'Complete treatment package',
+      'Professional spa products',
+      'Multiple service combinations',
+      'Aromatherapy included'
+    ],
+    'waxing_services': [
+      'Complete waxing service',
+      'Professional technique',
+      'Quality wax products',
+      'Comprehensive aftercare included'
+    ],
+    'tanning_services': [
+      'Professional spray tan application',
+      'Quality tanning solution',
+      'Comprehensive skin preparation',
+      'Detailed application technique'
+    ],
+    'eyebrow_threading': [
+      'Complete eyebrow shaping and design',
+      'Professional threading technique',
+      'Detailed finishing work',
+      'Shaping consultation included'
+    ],
+    'lash_extensions': [
+      'Professional lash application',
+      'Quality synthetic or silk lashes',
+      'Comprehensive filling technique',
+      'Detailed styling options'
+    ],
+    'facial_services': [
+      'Complete facial treatment',
+      'Professional extraction techniques',
+      'Multiple treatment masking',
+      'Comprehensive moisturizing therapy'
     ]
   };
   
@@ -2477,6 +2631,90 @@ function getPremiumFeatures(jobType) {
       'Complete system diagnostics',
       'Setup and optimization',
       'Home theater integration'
+    ],
+    'beauty_services': [
+      'Luxury service package',
+      'High-end professional products',
+      'Advanced treatment techniques',
+      'VIP private service experience',
+      'Complimentary product samples'
+    ],
+    'hair_stylist': [
+      'Master stylist service',
+      'Luxury salon products',
+      'Advanced cut and coloring techniques',
+      'Comprehensive treatment package',
+      'Styling lesson included'
+    ],
+    'nail_technician': [
+      'Master nail artist service',
+      'Premium product application',
+      'Advanced nail art techniques',
+      'Hand/foot treatment package',
+      'Take-home care kit included'
+    ],
+    'makeup_artist': [
+      'Celebrity makeup artist service',
+      'Luxury brand products',
+      'Advanced application techniques',
+      'Complete look styling',
+      'Mini product kit included'
+    ],
+    'esthetician': [
+      'Medical-grade facial treatment',
+      'Advanced technology services',
+      'Premium product application',
+      'Comprehensive skin analysis',
+      'Personalized treatment plan'
+    ],
+    'massage_therapist': [
+      'Master therapist 90-minute session',
+      'Advanced therapeutic techniques',
+      'Premium oils and hot stones',
+      'Full body treatment package',
+      'Personalized aftercare consultation'
+    ],
+    'spa_services': [
+      'VIP spa experience package',
+      'Premium product suite',
+      'Multiple deluxe treatments',
+      'Private room service',
+      'Complimentary refreshments'
+    ],
+    'waxing_services': [
+      'Master esthetician service',
+      'Premium painless techniques',
+      'Luxury pre/post products',
+      'Full body treatment options',
+      'Personalized aftercare kit'
+    ],
+    'tanning_services': [
+      'Advanced airbrush application',
+      'Premium organic formula',
+      'Custom color matching',
+      'Extended wear protection',
+      'Take-home maintenance kit'
+    ],
+    'eyebrow_threading': [
+      'Celebrity brow artist service',
+      'Advanced mapping technique',
+      'Premium tinting included',
+      'Precision detailing package',
+      'Maintenance kit included'
+    ],
+    'lash_extensions': [
+      'Master lash artist service',
+      'Premium silk or mink lashes',
+      'Volume application technique',
+      'Customized design package',
+      'Aftercare kit included'
+    ],
+    'facial_services': [
+      'Medical-grade facial system',
+      'Advanced technology treatment',
+      'Premium product suite',
+      'Multiple targeted therapies',
+      'Personalized skin regimen consultation'
     ]
   };
   
