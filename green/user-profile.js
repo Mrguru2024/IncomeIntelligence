@@ -233,3 +233,112 @@ export async function getUserBasicInfo(userId) {
     return null;
   }
 }
+
+/**
+ * Get current user profile with synchronous access
+ * Uses cached profile data for immediate access
+ * @returns {Object|null} User profile or null if not available
+ */
+let cachedProfile = null;
+
+export function getCurrentProfile() {
+  return cachedProfile;
+}
+
+/**
+ * Load and cache the current user profile
+ * @returns {Promise<Object|null>} User profile or null if error
+ */
+export async function loadCurrentUserProfile() {
+  try {
+    const userId = getCurrentUserId();
+    if (!userId) return null;
+    
+    const profile = await loadUserProfile(userId);
+    if (profile) {
+      cachedProfile = profile;
+      return profile;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error loading current user profile:', error);
+    return null;
+  }
+}
+
+/**
+ * Personalize quote data based on user profile
+ * @param {Object} quoteData - Original quote data
+ * @returns {Object} Personalized quote data
+ */
+export function personalizeQuote(quoteData) {
+  // If no cached profile, return original data
+  if (!cachedProfile) return quoteData;
+  
+  // Create a copy to avoid modifying the original
+  const personalizedData = { ...quoteData };
+  
+  // Apply user profile settings if they exist
+  if (cachedProfile.experienceLevel) {
+    personalizedData.experienceLevel = cachedProfile.experienceLevel;
+  }
+  
+  if (cachedProfile.targetMargin) {
+    personalizedData.targetMargin = cachedProfile.targetMargin;
+  }
+  
+  if (cachedProfile.location && !personalizedData.location) {
+    personalizedData.location = cachedProfile.location;
+  }
+  
+  // Apply industry-specific adjustments if available
+  if (cachedProfile.industry) {
+    // Adjust material costs based on industry knowledge
+    if (personalizedData.materialsCost > 0) {
+      const industryFactors = {
+        'construction': 1.1,   // 10% higher materials for construction
+        'automotive': 1.05,    // 5% higher for automotive
+        'beauty': 0.95,        // 5% lower for beauty
+        'technology': 1.2,     // 20% higher for technology
+        'healthcare': 1.15     // 15% higher for healthcare
+      };
+      
+      const factor = industryFactors[cachedProfile.industry.toLowerCase()] || 1;
+      personalizedData.materialsCost *= factor;
+    }
+  }
+  
+  // Apply AI-enhanced adjustment based on business goals
+  if (cachedProfile.businessGoals && cachedProfile.businessGoals.length > 0) {
+    // Check for specific business goals
+    if (cachedProfile.businessGoals.some(goal => 
+        goal.toLowerCase().includes('growth') || 
+        goal.toLowerCase().includes('expansion'))) {
+      // Growth-focused businesses might have more competitive pricing
+      personalizedData.targetMargin = Math.max(15, personalizedData.targetMargin - 5);
+    }
+    
+    if (cachedProfile.businessGoals.some(goal => 
+        goal.toLowerCase().includes('premium') || 
+        goal.toLowerCase().includes('luxury'))) {
+      // Premium service providers have higher margins
+      personalizedData.targetMargin = Math.min(50, personalizedData.targetMargin + 8);
+    }
+  }
+  
+  return personalizedData;
+}
+
+/**
+ * Initialize the profile module 
+ * Loads current user profile and sets up listeners
+ */
+(async function initProfileModule() {
+  try {
+    // Load the current user's profile
+    await loadCurrentUserProfile();
+    console.log('User profile module initialized successfully');
+  } catch (error) {
+    console.error('Error initializing user profile module:', error);
+  }
+})();
