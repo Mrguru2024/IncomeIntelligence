@@ -1767,37 +1767,44 @@ function initializeAutocompleteFields() {
     style.textContent = `
       .pac-container {
         z-index: 10000 !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
-        border-radius: 4px !important;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+        border-radius: 8px !important;
         position: absolute !important;
-        width: auto !important;
-        min-width: 300px !important;
+        width: 90% !important;
+        min-width: 250px !important;
+        max-width: 400px !important;
         margin-top: 2px !important;
-        background-color: white !important;
-        border: 1px solid #d4d4d4 !important;
+        background-color: var(--color-card-bg, #ffffff) !important;
+        border: 1px solid var(--color-border, #d4d4d4) !important;
         font-family: inherit !important;
         font-size: 14px !important;
         overflow: hidden !important;
         display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
       }
       .pac-container:empty {
         display: none !important;
       }
       .pac-item {
-        padding: 8px 10px !important;
+        padding: 12px 16px !important;
         cursor: pointer !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
-        border-bottom: 1px solid #e6e6e6 !important;
+        border-bottom: 1px solid var(--color-border, #e6e6e6) !important;
+        color: var(--color-text, #333333) !important;
       }
-      .pac-item:hover {
-        background-color: #f5f5f5 !important;
+      .pac-item:hover, .pac-item-selected {
+        background-color: var(--color-hover, #f5f5f5) !important;
       }
       .pac-item-query {
         font-size: 14px !important;
         font-weight: 500 !important;
-        color: #333 !important;
+        color: var(--color-text, #333333) !important;
+        padding: 2px 0 !important;
       }
       .pac-icon {
         display: none !important;
@@ -2017,9 +2024,51 @@ export function renderQuoteGeneratorPage(containerId) {
   // Check Google Maps API status directly
   if (window.google && window.google.maps && window.google.maps.places) {
     console.log('Google Places API already loaded');
+    
+    // Initialize autocomplete with a delay to ensure the DOM is ready
+    setTimeout(() => {
+      initializeAutocompleteFields();
+      
+      // Add a helper function to force the autocomplete dropdown to be visible
+      const addressInputs = [
+        document.getElementById('general-location-input'),
+        document.getElementById('auto-address-input'),
+        document.getElementById('auto-destination-input')
+      ];
+      
+      // Helper function to force show the autocomplete dropdown
+      function forceShowAutocompleteDropdown(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        
+        input.addEventListener('focus', function() {
+          console.log('[Maps Autocomplete] Input focused:', inputId);
+        });
+        
+        input.addEventListener('input', function() {
+          if (input.value.length >= 2) {
+            setTimeout(() => {
+              const pacContainers = document.querySelectorAll('.pac-container');
+              pacContainers.forEach(container => {
+                container.style.display = 'block';
+                container.style.visibility = 'visible';
+                container.style.opacity = '1';
+                container.style.width = (input.offsetWidth * 0.9) + 'px';
+                console.log('[Maps Autocomplete] Positioned dropdown at: 0px, 2px, width: 0px');
+              });
+            }, 300);
+          }
+        });
+      }
+      
+      // Apply to all relevant address inputs
+      forceShowAutocompleteDropdown('general-location-input');
+      forceShowAutocompleteDropdown('auto-address-input');
+      forceShowAutocompleteDropdown('auto-destination-input');
+    }, 500);
   } else {
     console.log('Loading Google Places API...');
-    loadGooglePlacesAPI();
+    loadGooglePlacesAPI(initializeAutocompleteFields); // Pass callback to initialize once loaded
   }
   
   // Log detailed diagnostics for debugging form resets
