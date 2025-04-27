@@ -3686,28 +3686,27 @@ function renderPageContent(container) {
           console.log("Created app-container for quote generator:", appContainer);
           
           // Load the script using dynamic script loading instead of ES modules
-          // Use the simplified quote generator instead
+          // Load the original quote generator script
           const scriptElement = document.createElement('script');
-          scriptElement.src = '../quote-generator-simple.js'; 
+          scriptElement.src = '../quote-generator.js'; 
           scriptElement.async = true;
           
           // When script loads, call the global function
           scriptElement.onload = function() {
             console.log('Quote Generator script loaded successfully');
             
-            // Check if the global object is available
-            if (window.QuoteGenerator && typeof window.QuoteGenerator.renderPage === 'function') {
-              try {
-                // Call the global function
-                window.QuoteGenerator.renderPage('app-container');
-                console.log('Quote Generator page rendered successfully using global object');
-              } catch (renderError) {
-                console.error('Error rendering Quote Generator:', renderError);
-                container.appendChild(createErrorMessage('Failed to render Quote Generator. Please try again.'));
+            try {
+              // Use the global function directly
+              if (typeof window.renderQuoteGeneratorPage === 'function') {
+                window.renderQuoteGeneratorPage('app-container');
+                console.log('Quote Generator page rendered successfully');
+              } else {
+                console.error('Quote Generator function not available');
+                container.appendChild(createErrorMessage('Quote Generator function not available. Please try again.'));
               }
-            } else {
-              console.error('QuoteGenerator global object not found after loading script');
-              container.appendChild(createErrorMessage('Quote Generator functions not available. Please try again.'));
+            } catch (renderError) {
+              console.error('Error rendering Quote Generator:', renderError);
+              container.appendChild(createErrorMessage('Failed to render Quote Generator. Please try again.'));
             }
           };
           

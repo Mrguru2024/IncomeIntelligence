@@ -7833,3 +7833,6 @@ function showTierBreakdown(tierData) {
 window.QuoteGenerator = { 
   renderQuoteGeneratorPage: renderQuoteGeneratorPage 
 };
+
+// Also make the function directly available at window scope
+window.renderQuoteGeneratorPage = renderQuoteGeneratorPage;
