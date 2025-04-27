@@ -1030,6 +1030,236 @@ function showToast(message, type = 'success') {
 }
 
 /**
+ * Get basic description based on job type
+ * @param {string} jobType - The job type
+ * @returns {string} Description
+ */
+function getBasicDescription(jobType) {
+  const descriptions = {
+    'cellphone_repair': 'Basic screen and battery repairs with standard parts',
+    'computer_repair': 'Essential diagnostics and basic hardware repairs',
+    'tv_repair': 'Basic troubleshooting and simple component replacement',
+    'automotive_repair': 'Basic maintenance and simple repairs',
+    'electronic_repair': 'Basic troubleshooting and simple component replacement'
+  };
+  
+  return descriptions[jobType] || 'Essential service covering the basics';
+}
+
+/**
+ * Get standard description based on job type
+ * @param {string} jobType - The job type
+ * @returns {string} Description
+ */
+function getStandardDescription(jobType) {
+  const descriptions = {
+    'cellphone_repair': 'Complete repair with quality parts and 30-day warranty',
+    'computer_repair': 'Full diagnostics, repairs and basic software optimization',
+    'tv_repair': 'Full repair service with mid-range replacement parts',
+    'automotive_repair': 'Comprehensive service with quality parts',
+    'electronic_repair': 'Complete repair with quality parts and testing'
+  };
+  
+  return descriptions[jobType] || 'Our most popular option with great value';
+}
+
+/**
+ * Get premium description based on job type
+ * @param {string} jobType - The job type
+ * @returns {string} Description
+ */
+function getPremiumDescription(jobType) {
+  const descriptions = {
+    'cellphone_repair': 'Premium OEM parts with 90-day warranty and water resistance treatment',
+    'computer_repair': 'Complete repair, performance upgrades, and premium software optimization',
+    'tv_repair': 'Premium service with OEM parts, calibration, and extended warranty',
+    'automotive_repair': 'Premium service with extended warranty and premium parts',
+    'electronic_repair': 'Premium repair with OEM parts, thorough testing and extended warranty'
+  };
+  
+  return descriptions[jobType] || 'Premium service with top-tier materials and extended warranty';
+}
+
+/**
+ * Get basic features based on job type
+ * @param {string} jobType - The job type
+ * @returns {string[]} Features
+ */
+function getBasicFeatures(jobType) {
+  switch (jobType) {
+    case 'cellphone_repair':
+      return [
+        'Screen replacement with standard parts',
+        'Battery replacement',
+        'Basic diagnostics',
+        '7-day warranty'
+      ];
+    case 'computer_repair':
+      return [
+        'Hardware diagnostics',
+        'Basic virus removal',
+        'Basic component replacement',
+        'Standard testing'
+      ];
+    case 'tv_repair':
+      return [
+        'Basic diagnostics',
+        'Power supply issues',
+        'Simple board repairs',
+        '30-day limited warranty'
+      ];
+    case 'automotive_repair':
+      return [
+        'Basic diagnostics',
+        'Standard parts',
+        'Essential repairs only',
+        '30-day warranty'
+      ];
+    case 'electronic_repair':
+      return [
+        'Basic diagnostics',
+        'Simple component repairs',
+        'Basic testing',
+        '30-day limited warranty'
+      ];
+    default:
+      return [
+        'Essential service coverage',
+        'Standard parts and materials',
+        'Basic warranty',
+        'Standard service time'
+      ];
+  }
+}
+
+/**
+ * Get standard features based on job type
+ * @param {string} jobType - The job type
+ * @returns {string[]} Features
+ */
+function getStandardFeatures(jobType) {
+  switch (jobType) {
+    case 'cellphone_repair':
+      return [
+        'Premium screen replacement',
+        'High-capacity battery installation',
+        'Complete diagnostics',
+        'Component-level repairs',
+        '30-day warranty'
+      ];
+    case 'computer_repair':
+      return [
+        'Full hardware diagnostics',
+        'Complete virus removal',
+        'Hardware upgrades available',
+        'Data recovery',
+        'OS optimization',
+        '60-day warranty'
+      ];
+    case 'tv_repair':
+      return [
+        'Comprehensive diagnostics',
+        'Board-level repairs',
+        'Component replacement',
+        'Basic calibration',
+        '60-day warranty'
+      ];
+    case 'automotive_repair':
+      return [
+        'Thorough diagnostics',
+        'Quality OEM-equivalent parts',
+        'Comprehensive repairs',
+        '60-day parts and labor warranty',
+        'Fluids check and top-off'
+      ];
+    case 'electronic_repair':
+      return [
+        'Thorough diagnostics',
+        'Component-level repairs',
+        'Quality parts',
+        'Full functionality testing',
+        '60-day warranty'
+      ];
+    default:
+      return [
+        'Comprehensive service',
+        'Quality parts and materials',
+        'Extended warranty',
+        'Faster service time',
+        'Basic add-ons included'
+      ];
+  }
+}
+
+/**
+ * Get premium features based on job type
+ * @param {string} jobType - The job type
+ * @returns {string[]} Features
+ */
+function getPremiumFeatures(jobType) {
+  switch (jobType) {
+    case 'cellphone_repair':
+      return [
+        'OEM screen with enhanced protection',
+        'Premium battery with extended life',
+        'Water resistance treatment',
+        'Performance optimization',
+        'Preventative maintenance',
+        '90-day warranty with accidental coverage'
+      ];
+    case 'computer_repair':
+      return [
+        'Premium diagnostics with specialized tools',
+        'Performance SSD upgrade',
+        'RAM optimization',
+        'Complete system security setup',
+        'Professional cable management',
+        'Phone support for 90 days',
+        '90-day comprehensive warranty'
+      ];
+    case 'tv_repair':
+      return [
+        'Advanced diagnostics with specialized equipment',
+        'OEM replacement parts',
+        'Professional calibration',
+        'Firmware updates',
+        'Dust removal and cleaning',
+        'HDMI testing with all inputs',
+        '90-day comprehensive warranty'
+      ];
+    case 'automotive_repair':
+      return [
+        'Advanced computer diagnostics',
+        'Premium OEM parts',
+        'Complete system check',
+        'Preventative maintenance',
+        'Free courtesy vehicle inspection',
+        'Priority scheduling',
+        '6-month parts and labor warranty'
+      ];
+    case 'electronic_repair':
+      return [
+        'Expert-level diagnostics',
+        'OEM replacement parts',
+        'Preventative maintenance',
+        'Cleaning and restoration',
+        'Comprehensive testing',
+        'Setup and tutorial',
+        '90-day comprehensive warranty'
+      ];
+    default:
+      return [
+        'Premium service coverage',
+        'Top-tier parts and materials',
+        'Extended warranty',
+        'Priority service',
+        'Premium add-ons included',
+        'Follow-up support'
+      ];
+  }
+}
+
+/**
  * Save the quote to local storage
  * @param {Object} quote - The quote to save
  */
