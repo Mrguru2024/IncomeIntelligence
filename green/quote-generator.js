@@ -264,8 +264,125 @@ function renderQuoteGeneratorPage(containerId) {
     form.style.display = 'grid';
     form.style.gap = '16px';
     
+    // Define service subcategories
+    const serviceSubcategories = {
+      'locksmith': [
+        { value: 'rekey', label: 'Rekey Service' },
+        { value: 'akl', label: 'All Keys Lost (AKL)' },
+        { value: 'duplicate_key', label: 'Duplicate Key' },
+        { value: 'lockout', label: 'Lockout Service' },
+        { value: 'lock_installation', label: 'Lock Installation' },
+        { value: 'lock_repair', label: 'Lock Repair' },
+        { value: 'safe_unlock', label: 'Safe Unlocking' },
+        { value: 'smart_lock', label: 'Smart Lock Installation' }
+      ],
+      'plumber': [
+        { value: 'leak_repair', label: 'Leak Repair' },
+        { value: 'drain_cleaning', label: 'Drain Cleaning' },
+        { value: 'fixture_installation', label: 'Fixture Installation' },
+        { value: 'pipe_repair', label: 'Pipe Repair/Replacement' },
+        { value: 'water_heater', label: 'Water Heater Service' },
+        { value: 'sump_pump', label: 'Sump Pump Installation/Repair' },
+        { value: 'backflow', label: 'Backflow Testing/Prevention' }
+      ],
+      'electrician': [
+        { value: 'outlet_installation', label: 'Outlet Installation' },
+        { value: 'panel_upgrade', label: 'Panel Upgrade' },
+        { value: 'lighting_install', label: 'Lighting Installation' },
+        { value: 'wiring_repair', label: 'Wiring Repair' },
+        { value: 'ceiling_fan', label: 'Ceiling Fan Installation' },
+        { value: 'generator', label: 'Generator Installation/Service' },
+        { value: 'ev_charger', label: 'EV Charger Installation' }
+      ],
+      'hvac': [
+        { value: 'ac_repair', label: 'AC Repair' },
+        { value: 'furnace_repair', label: 'Furnace Repair' },
+        { value: 'maintenance', label: 'Regular Maintenance' },
+        { value: 'installation', label: 'New System Installation' },
+        { value: 'air_quality', label: 'Air Quality Solutions' },
+        { value: 'duct_cleaning', label: 'Duct Cleaning' }
+      ],
+      'automotive_repair': [
+        { value: 'oil_change', label: 'Oil Change' },
+        { value: 'brake_service', label: 'Brake Service' },
+        { value: 'transmission', label: 'Transmission Service' },
+        { value: 'engine_repair', label: 'Engine Repair' },
+        { value: 'suspension', label: 'Suspension Work' },
+        { value: 'electrical', label: 'Electrical System Repair' },
+        { value: 'diagnostics', label: 'Computer Diagnostics' },
+        { value: 'tire_service', label: 'Tire Service' }
+      ],
+      'electronic_repair': [
+        { value: 'diagnostics', label: 'Diagnostics/Troubleshooting' },
+        { value: 'circuit_repair', label: 'Circuit Board Repair' },
+        { value: 'component_replacement', label: 'Component Replacement' },
+        { value: 'water_damage', label: 'Water Damage Repair' },
+        { value: 'data_recovery', label: 'Data Recovery' }
+      ],
+      'cellphone_repair': [
+        { value: 'screen_replacement', label: 'Screen Replacement' },
+        { value: 'battery_replacement', label: 'Battery Replacement' },
+        { value: 'charging_port', label: 'Charging Port Repair' },
+        { value: 'water_damage', label: 'Water Damage Repair' },
+        { value: 'camera_repair', label: 'Camera Repair' }
+      ],
+      'computer_repair': [
+        { value: 'virus_removal', label: 'Virus/Malware Removal' },
+        { value: 'hardware_upgrade', label: 'Hardware Upgrade' },
+        { value: 'data_recovery', label: 'Data Recovery' },
+        { value: 'os_installation', label: 'OS Installation' },
+        { value: 'troubleshooting', label: 'General Troubleshooting' }
+      ],
+      'tv_repair': [
+        { value: 'screen_repair', label: 'Screen Repair' },
+        { value: 'power_issues', label: 'Power Supply Issues' },
+        { value: 'backlight', label: 'Backlight Repair' },
+        { value: 'hdmi_ports', label: 'HDMI Port Repair' },
+        { value: 'sound_issues', label: 'Sound System Repair' }
+      ],
+      'beauty_services': [
+        { value: 'full_service', label: 'Full Service Package' },
+        { value: 'consultation', label: 'Consultation' },
+        { value: 'special_event', label: 'Special Event Styling' },
+        { value: 'bridal', label: 'Bridal Service' }
+      ],
+      'hair_stylist': [
+        { value: 'haircut', label: 'Haircut' },
+        { value: 'color', label: 'Hair Coloring' },
+        { value: 'highlights', label: 'Highlights/Lowlights' },
+        { value: 'blowout', label: 'Blowout Styling' },
+        { value: 'extension', label: 'Extensions' },
+        { value: 'treatment', label: 'Hair Treatment' }
+      ],
+      'nail_technician': [
+        { value: 'manicure', label: 'Basic Manicure' },
+        { value: 'pedicure', label: 'Pedicure' },
+        { value: 'gel', label: 'Gel Polish' },
+        { value: 'acrylic', label: 'Acrylic Nails' },
+        { value: 'dip_powder', label: 'Dip Powder Nails' },
+        { value: 'nail_art', label: 'Nail Art' }
+      ],
+      'makeup_artist': [
+        { value: 'everyday', label: 'Everyday Makeup' },
+        { value: 'special_event', label: 'Special Event Makeup' },
+        { value: 'bridal', label: 'Bridal Makeup' },
+        { value: 'photoshoot', label: 'Photoshoot Makeup' },
+        { value: 'lesson', label: 'Makeup Lesson' }
+      ]
+    };
+    
+    // Add more subcategories for other service types
+    // Default subcategory for services without specific options
+    const defaultSubcategories = [
+      { value: 'standard', label: 'Standard Service' },
+      { value: 'consultation', label: 'Consultation' },
+      { value: 'emergency', label: 'Emergency Service' },
+      { value: 'maintenance', label: 'Regular Maintenance' },
+      { value: 'specialized', label: 'Specialized Service' }
+    ];
+    
     // Job type field
-    const jobTypeGroup = createFormGroup('Service Type', createSelect('jobType', [
+    const jobTypeSelect = createSelect('jobType', [
       { value: 'locksmith', label: 'Locksmith Services' },
       { value: 'plumber', label: 'Plumbing Services' },
       { value: 'electrician', label: 'Electrical Services' },
@@ -308,7 +425,38 @@ function renderQuoteGeneratorPage(containerId) {
       { value: 'interior_design', label: 'Interior Design' },
       { value: 'moving_services', label: 'Moving Services' },
       { value: 'cleaning_services', label: 'Cleaning Services' }
-    ]));
+    ]);
+    
+    // Create the job subtype field (hidden initially)
+    const jobSubtypeSelect = createSelect('jobSubtype', []);
+    jobSubtypeSelect.disabled = true; // Disabled until a job type is selected
+    const jobSubtypeGroup = createFormGroup('Service Subcategory', jobSubtypeSelect);
+    jobSubtypeGroup.style.display = 'none'; // Hide until job type is selected
+    
+    // Add event listener to job type select to populate the subtype dropdown
+    jobTypeSelect.addEventListener('change', () => {
+      const selectedJobType = jobTypeSelect.value;
+      const subcategories = serviceSubcategories[selectedJobType] || defaultSubcategories;
+      
+      // Clear existing options
+      while (jobSubtypeSelect.options.length > 1) {
+        jobSubtypeSelect.remove(1);
+      }
+      
+      // Add new options
+      subcategories.forEach(option => {
+        const optionElement = document.createElement('option');
+        optionElement.value = option.value;
+        optionElement.textContent = option.label;
+        jobSubtypeSelect.appendChild(optionElement);
+      });
+      
+      // Enable and show the subtype field
+      jobSubtypeSelect.disabled = false;
+      jobSubtypeGroup.style.display = 'block';
+    });
+    
+    const jobTypeGroup = createFormGroup('Service Type', jobTypeSelect);
     
     // Location field
     const locationInput = createInput('text', 'location', '', 'ZIP code or City, State');
@@ -354,6 +502,7 @@ function renderQuoteGeneratorPage(containerId) {
     
     // Add fields to form
     form.appendChild(jobTypeGroup);
+    form.appendChild(jobSubtypeGroup); // Add the subcategory field
     form.appendChild(locationGroup);
     form.appendChild(laborHoursGroup);
     form.appendChild(materialsGroup);
@@ -494,6 +643,7 @@ function handleGenerateQuote() {
   try {
     // Get form values
     const jobTypeSelect = document.querySelector('#quote-form select[name="jobType"]');
+    const jobSubtypeSelect = document.querySelector('#quote-form select[name="jobSubtype"]');
     const locationInput = document.querySelector('#quote-form input[name="location"]');
     const laborHoursInput = document.querySelector('#quote-form input[name="laborHours"]');
     const materialsCostInput = document.querySelector('#quote-form input[name="materialsCost"]');
@@ -504,6 +654,12 @@ function handleGenerateQuote() {
     if (!jobTypeSelect.value) {
       showToast('Please select a service type', 'error');
       jobTypeSelect.focus();
+      return;
+    }
+    
+    if (!jobSubtypeSelect.value) {
+      showToast('Please select a service subcategory', 'error');
+      jobSubtypeSelect.focus();
       return;
     }
     
@@ -522,6 +678,7 @@ function handleGenerateQuote() {
     // Collect form data
     const formData = {
       jobType: jobTypeSelect.value,
+      jobSubtype: jobSubtypeSelect.value,
       location: locationInput.value,
       laborHours: parseFloat(laborHoursInput.value),
       materialsCost: parseFloat(materialsCostInput.value) || 0,
@@ -560,7 +717,9 @@ function generateMultiQuote(data) {
   // Common data for all quotes
   const commonData = {
     jobType: data.jobType,
+    jobSubtype: data.jobSubtype,
     jobTypeDisplay: getJobTypeDisplay(data.jobType),
+    jobSubtypeDisplay: getJobSubtypeDisplay(data.jobType, data.jobSubtype),
     location: data.location,
     state,
     region,
