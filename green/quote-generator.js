@@ -6,6 +6,208 @@
  * market rates, and other factors.
  */
 
+// Add CSS styles for the business profile modal
+const businessProfileStyles = `
+  /* Modal styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 0;
+    border: 1px solid #ddd;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #333;
+  }
+  
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: #333;
+    text-decoration: none;
+  }
+  
+  .modal-body {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  
+  .modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    background-color: #f8f9fa;
+    border-radius: 0 0 8px 8px;
+  }
+  
+  .modal-footer button {
+    margin-left: 10px;
+  }
+  
+  .btn-link {
+    margin-left: 15px;
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .btn-link:hover {
+    text-decoration: underline;
+  }
+  
+  /* Form styles */
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #495057;
+  }
+  
+  .form-control {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  
+  .form-control:focus {
+    color: #495057;
+    background-color: #fff;
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  
+  /* Buttons */
+  .btn {
+    display: inline-block;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    user-select: none;
+    border: 1px solid transparent;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0.25rem;
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+  }
+  
+  .btn-primary {
+    color: #fff;
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+  .btn-primary:hover {
+    color: #fff;
+    background-color: #0069d9;
+    border-color: #0062cc;
+  }
+  
+  .btn-secondary {
+    color: #fff;
+    background-color: #6c757d;
+    border-color: #6c757d;
+  }
+  
+  .btn-secondary:hover {
+    color: #fff;
+    background-color: #5a6268;
+    border-color: #545b62;
+  }
+  
+  .btn-outline {
+    color: #007bff;
+    background-color: transparent;
+    background-image: none;
+    border-color: #007bff;
+  }
+  
+  .btn-outline:hover {
+    color: #fff;
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .modal-content {
+      width: 95%;
+      margin: 5% auto;
+    }
+    
+    .modal-body {
+      max-height: 70vh;
+    }
+    
+    .modal-footer {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .modal-footer button,
+    .modal-footer .btn-link {
+      margin: 5px 0;
+    }
+  }
+`;
+
+// Add styles to document
+const styleElement = document.createElement('style');
+styleElement.textContent = businessProfileStyles;
+document.head.appendChild(styleElement);
+
 // Add debugging
 console.log('Quote Generator module initialized');
 
@@ -1196,7 +1398,11 @@ function generateMultiQuote(data) {
   try {
     // Dynamically import the user profile module
     import('/green/user-profile.js')
-      .then(module => {
+      .then(async module => {
+        // First load the current profile data
+        await module.loadCurrentUserProfile();
+        
+        // Now we can access the cached profile
         const currentProfile = module.getCurrentProfile();
         
         // If we have a profile, use it to personalize the data
@@ -1213,6 +1419,30 @@ function generateMultiQuote(data) {
           if (hasSignificantChanges) {
             console.log('Significant profile changes detected, regenerating quotes');
             updateQuotesWithPersonalizedData();
+          }
+          
+          // Add business profile button to the quote form section
+          const formContainer = document.querySelector('.quote-form-container');
+          if (formContainer && !document.getElementById('business-profile-btn')) {
+            const profileBtn = document.createElement('button');
+            profileBtn.id = 'business-profile-btn';
+            profileBtn.className = 'btn btn-outline';
+            profileBtn.innerHTML = '<i class="fas fa-building mr-2"></i> Business Profile';
+            profileBtn.style.marginLeft = '10px';
+            
+            // Insert button after the generate quote button
+            const generateBtn = formContainer.querySelector('button[type="submit"]');
+            if (generateBtn && generateBtn.parentNode) {
+              generateBtn.parentNode.insertBefore(profileBtn, generateBtn.nextSibling);
+            } else {
+              formContainer.appendChild(profileBtn);
+            }
+            
+            // Add click handler to open business profile modal
+            profileBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              openBusinessProfileModal(module, currentProfile);
+            });
           }
         }
       })
@@ -7670,6 +7900,214 @@ function getRegionalCostAdjustment(region) {
   return costIndex[state] || 1.0;
 }
 
+/**
+ * Gets the current form data from the quote form
+ * @returns {Object|null} Form data object or null if form not found/incomplete
+ */
+function getFormData() {
+  // Check if form exists
+  const form = document.querySelector('form.quote-form');
+  if (!form) return null;
+  
+  try {
+    // Get form inputs
+    const jobType = form.querySelector('#job-type')?.value;
+    const jobSubtype = form.querySelector('#job-subtype')?.value;
+    const location = form.querySelector('#auto-address-input')?.value;
+    const experienceLevel = form.querySelector('#experience-level')?.value;
+    const laborHours = parseFloat(form.querySelector('#labor-hours')?.value) || 0;
+    const quantity = parseInt(form.querySelector('#quantity')?.value) || 1;
+    const materialsCost = parseFloat(form.querySelector('#materials-cost')?.value) || 0;
+    const emergency = form.querySelector('#emergency')?.checked || false;
+    const targetMargin = parseInt(form.querySelector('#target-margin')?.value) || 25;
+    
+    // Validate required fields
+    if (!jobType || !location || !experienceLevel || !laborHours) {
+      return null;
+    }
+    
+    // Return form data object
+    return {
+      jobType,
+      jobSubtype,
+      location,
+      experienceLevel,
+      laborHours,
+      quantity,
+      materialsCost,
+      emergency,
+      targetMargin
+    };
+  } catch (error) {
+    console.error('Error getting form data:', error);
+    return null;
+  }
+}
+
+/**
+ * Opens the business profile modal with current profile data
+ * @param {Object} profileModule - User profile module
+ * @param {Object} currentProfile - Current user profile data
+ */
+function openBusinessProfileModal(profileModule, currentProfile) {
+  // Create modal container if it doesn't exist
+  let modal = document.getElementById('business-profile-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'business-profile-modal';
+    modal.className = 'modal';
+    document.body.appendChild(modal);
+  }
+  
+  // Experience level options
+  const experienceLevels = [
+    { value: 'beginner', label: 'Beginner (0-2 years)' },
+    { value: 'intermediate', label: 'Intermediate (3-5 years)' },
+    { value: 'advanced', label: 'Advanced (6-10 years)' },
+    { value: 'expert', label: 'Expert (10+ years)' }
+  ];
+  
+  // Industry options
+  const industries = [
+    'Automotive', 'Beauty', 'Construction', 'Electronic Repair',
+    'Healthcare', 'Home Services', 'Locksmith', 'Personal Training',
+    'Photography', 'Plumbing', 'Technology', 'Other'
+  ];
+  
+  // Populate modal with form
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Business Profile</h2>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="business-profile-form">
+          <div class="form-group">
+            <label for="display-name">Display Name</label>
+            <input type="text" id="display-name" value="${currentProfile?.displayName || ''}" placeholder="How you want to be known" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label for="business-name">Business Name</label>
+            <input type="text" id="business-name" value="${currentProfile?.businessName || ''}" placeholder="Your business name" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label for="industry">Industry</label>
+            <select id="industry" class="form-control">
+              <option value="">Select Industry</option>
+              ${industries.map(industry => 
+                `<option value="${industry.toLowerCase()}" ${(currentProfile?.industry || '').toLowerCase() === industry.toLowerCase() ? 'selected' : ''}>${industry}</option>`
+              ).join('')}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="experience-level">Experience Level</label>
+            <select id="experience-level" class="form-control">
+              ${experienceLevels.map(level => 
+                `<option value="${level.value}" ${(currentProfile?.experienceLevel || 'intermediate') === level.value ? 'selected' : ''}>${level.label}</option>`
+              ).join('')}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="target-margin">Target Profit Margin (%)</label>
+            <input type="number" id="target-margin" value="${currentProfile?.targetMargin || 30}" min="0" max="100" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label for="location">Primary Service Area</label>
+            <input type="text" id="location" value="${currentProfile?.location || ''}" placeholder="City, State" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label for="business-goals">Business Goals (comma separated)</label>
+            <textarea id="business-goals" class="form-control" placeholder="Example: Growth, Premium Service">${(currentProfile?.businessGoals || []).join(', ')}</textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary close-btn">Cancel</button>
+        <button type="button" class="btn btn-primary save-btn">Save Profile</button>
+        <a href="/user-profile" class="btn-link">View Full Profile</a>
+      </div>
+    </div>
+  `;
+  
+  // Show modal
+  modal.style.display = 'block';
+  
+  // Close modal handling
+  const closeBtn = modal.querySelector('.close');
+  const cancelBtn = modal.querySelector('.close-btn');
+  closeBtn.onclick = () => { modal.style.display = 'none'; };
+  cancelBtn.onclick = () => { modal.style.display = 'none'; };
+  
+  // Close modal when clicking outside content
+  window.onclick = (event) => {
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  };
+  
+  // Handle save
+  const saveBtn = modal.querySelector('.save-btn');
+  saveBtn.onclick = async () => {
+    // Get form values
+    const displayName = modal.querySelector('#display-name').value;
+    const businessName = modal.querySelector('#business-name').value;
+    const industry = modal.querySelector('#industry').value;
+    const experienceLevel = modal.querySelector('#experience-level').value;
+    const targetMargin = parseInt(modal.querySelector('#target-margin').value) || 30;
+    const location = modal.querySelector('#location').value;
+    const businessGoals = modal.querySelector('#business-goals').value
+      .split(',')
+      .map(goal => goal.trim())
+      .filter(goal => goal.length > 0);
+    
+    // Build updated profile
+    const updatedProfile = {
+      ...currentProfile,
+      displayName,
+      businessName,
+      industry,
+      experienceLevel,
+      targetMargin,
+      location,
+      businessGoals
+    };
+    
+    try {
+      // Save updated profile
+      const userId = profileModule.getCurrentUserId();
+      if (userId) {
+        updatedProfile.userId = userId;
+        await profileModule.updateUserProfile(updatedProfile);
+        await profileModule.loadCurrentUserProfile(); // Reload profile
+        
+        // Show success toast
+        showToast('Business profile updated successfully', 'success');
+        
+        // Close modal
+        modal.style.display = 'none';
+        
+        // Reload quotes with new profile data
+        const formData = getFormData();
+        if (formData) {
+          displayQuoteResults(formData);
+        }
+      } else {
+        showToast('Failed to update profile: User ID not found', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating business profile:', error);
+      showToast('Failed to update profile: ' + error.message, 'error');
+    }
+  };
+}
+
 // Make functions available globally
 window.renderQuoteGeneratorPage = renderQuoteGeneratorPage;
 window.QuoteGenerator = {
@@ -7692,6 +8130,7 @@ window.QuoteGenerator = {
   analyzeFeatureCategory,
   getAIRecommendedCost,
   getRegionalCostAdjustment,
+  openBusinessProfileModal,
   showToast: function(message, type) {
     if (window.showToast) {
       window.showToast(message, type);
