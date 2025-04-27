@@ -1667,6 +1667,22 @@ function loadGooglePlacesAPI(callback) {
       script.onload = () => {
         console.log('Google Maps API loaded successfully via direct script');
         cleanupDirectLoad();
+        
+        // Initialize autocomplete fields immediately after loading the script
+        setTimeout(() => {
+          if (window.google && window.google.maps && window.google.maps.places) {
+            console.log('Google Maps Places API ready - initializing autocomplete');
+            initializeAutocompleteFields();
+            
+            // Call the callback if provided
+            if (typeof callback === 'function') {
+              callback();
+            }
+          } else {
+            console.error('Google Maps loaded but Places API not available');
+            loadFallbackImplementation();
+          }
+        }, 500);
       };
       
       // Handle load error
@@ -1733,6 +1749,15 @@ function loadGooglePlacesAPI(callback) {
               try {
                 if (typeof initializeGooglePlaces === 'function') {
                   initializeGooglePlaces();
+                } else if (window.google && window.google.maps && window.google.maps.places) {
+                  // If Google Maps API is available but our helper function isn't, initialize directly
+                  console.log('Fallback: Google Maps available, initializing autocomplete directly');
+                  initializeAutocompleteFields();
+                  
+                  // Call the callback if provided
+                  if (typeof callback === 'function') {
+                    callback();
+                  }
                 }
               } catch (e) {
                 console.error('Error in manual initialization:', e);
