@@ -24,12 +24,15 @@ const DEFAULT_PROFILE = {
   lastUpdated: new Date().toISOString()
 };
 
+// Create a UserProfile module object
+const UserProfile = {};
+
 /**
  * Initialize user profile
  * @param {string} userId - User ID
  * @returns {Promise<Object>} User profile data
  */
-export async function initUserProfile(userId) {
+UserProfile.initUserProfile = async function(userId) {
   if (!userId) {
     console.error('Cannot initialize profile: No user ID provided');
     return null;
@@ -56,7 +59,7 @@ export async function initUserProfile(userId) {
  * @param {string} userId - User ID
  * @returns {Promise<Object|null>} User profile or null if not found
  */
-export async function loadUserProfile(userId) {
+UserProfile.loadUserProfile = async function(userId) {
   if (!userId) {
     console.error('Cannot load profile: No user ID provided');
     return null;
@@ -86,7 +89,7 @@ export async function loadUserProfile(userId) {
  * @param {Object} profile - User profile data
  * @returns {Promise<boolean>} Success status
  */
-export async function saveUserProfile(profile) {
+UserProfile.saveUserProfile = async function(profile) {
   if (!profile || !profile.userId) {
     console.error('Cannot save profile: No user ID in profile data');
     return false;
@@ -114,7 +117,7 @@ export async function saveUserProfile(profile) {
  * @param {Object} profileData - New profile data
  * @returns {Promise<Object|null>} Updated profile or null if failed
  */
-export async function updateUserProfile(profileData) {
+UserProfile.updateUserProfile = async function(profileData) {
   if (!profileData || !profileData.userId) {
     console.error('Cannot update profile: No user ID in profile data');
     return null;
@@ -159,7 +162,7 @@ export async function updateUserProfile(profileData) {
  * Get user's current ID
  * @returns {string|null} User ID or null if not found
  */
-export function getCurrentUserId() {
+UserProfile.getCurrentUserId = function() {
   // Try to get from window.appState first
   if (window.appState && window.appState.user && window.appState.user.id) {
     return window.appState.user.id;
@@ -184,7 +187,7 @@ export function getCurrentUserId() {
  * @param {string} userId - User ID
  * @returns {Promise<boolean>} True if user is a service provider
  */
-export async function isServiceProvider(userId) {
+UserProfile.isServiceProvider = async function(userId) {
   if (!userId) {
     return false;
   }
@@ -209,7 +212,7 @@ export async function isServiceProvider(userId) {
  * @param {string} userId - User ID
  * @returns {Promise<Object|null>} User basic info or null if not found
  */
-export async function getUserBasicInfo(userId) {
+UserProfile.getUserBasicInfo = async function(userId) {
   if (!userId) {
     return null;
   }
@@ -241,7 +244,7 @@ export async function getUserBasicInfo(userId) {
  */
 let cachedProfile = null;
 
-export function getCurrentProfile() {
+UserProfile.getCurrentProfile = function() {
   return cachedProfile;
 }
 
@@ -249,7 +252,7 @@ export function getCurrentProfile() {
  * Load and cache the current user profile
  * @returns {Promise<Object|null>} User profile or null if error
  */
-export async function loadCurrentUserProfile() {
+UserProfile.loadCurrentUserProfile = async function() {
   try {
     const userId = getCurrentUserId();
     if (!userId) return null;
