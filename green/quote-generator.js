@@ -309,20 +309,18 @@ function initToastSystem() {
     if (typeof createToast === 'function') {
       showToastFn = createToast;
     } else {
-      // Try to import the toast module
-      import('/green/components/toast.js')
-        .then(module => {
-          showToastFn = module.createToast;
-          console.log('Toast module imported successfully');
-        })
-        .catch(err => {
-          console.error('Failed to import toast module:', err);
-          // Fallback toast function
-          showToastFn = (message, type = 'info') => {
-            console.log(`TOAST [${type}]: ${message}`);
-            alert(message);
-          };
-        });
+      // Use global toast function instead of importing
+      if (typeof window.createToast === 'function') {
+        showToastFn = window.createToast;
+        console.log('Using global toast function');
+      } else {
+        console.error('Global toast function not available');
+        // Fallback toast function
+        showToastFn = (message, type = 'info') => {
+          console.log(`TOAST [${type}]: ${message}`);
+          alert(message);
+        };
+      }
     }
   } catch (error) {
     console.error('Error initializing toast system:', error);
@@ -574,30 +572,32 @@ function renderQuoteGeneratorPage(containerId) {
     // Event listener for profile button
     profileButton.addEventListener('click', () => {
       try {
-        // Import the user profile module dynamically
-        import('/green/user-profile.js')
-          .then(module => {
-            if (typeof window.appState !== 'undefined' && window.appState.user && window.appState.user.id) {
-              // Initialize with the current user ID if available
-              module.initUserProfile(window.appState.user.id)
-                .then(() => {
-                  // Show the profile editor
-                  module.showProfileEditor((updatedProfile) => {
-                    console.log('Profile updated:', updatedProfile);
-                    showToast('Profile updated! Your quotes will now be personalized.', 'success');
-                  });
+        // Use global UserProfile object directly
+        if (typeof window.UserProfile !== 'undefined') {
+          if (typeof window.appState !== 'undefined' && window.appState.user && window.appState.user.id) {
+            // Initialize with the current user ID if available
+            window.UserProfile.initUserProfile(window.appState.user.id)
+              .then(() => {
+                // Show the profile editor
+                window.UserProfile.showProfileEditor((updatedProfile) => {
+                  console.log('Profile updated:', updatedProfile);
+                  showToast('Profile updated! Your quotes will now be personalized.', 'success');
                 });
-            } else {
-              // Fallback for testing if user ID isn't available
-              module.showProfileEditor(() => {
-                showToast('Profile updated! Your quotes will now be personalized.', 'success');
+              })
+              .catch(err => {
+                console.error('Error initializing user profile:', err);
+                showToast('Unable to initialize profile. Please try again later.', 'error');
               });
-            }
-          })
-          .catch(err => {
-            console.error('Failed to load user profile module:', err);
-            showToast('Unable to load profile editor. Please try again later.', 'error');
-          });
+          } else {
+            // Fallback for testing if user ID isn't available
+            window.UserProfile.showProfileEditor(() => {
+              showToast('Profile updated! Your quotes will now be personalized.', 'success');
+            });
+          }
+        } else {
+          console.error('UserProfile not found in global scope');
+          showToast('Unable to load profile editor. Please try again later.', 'error');
+        }
       } catch (error) {
         console.error('Error opening profile editor:', error);
         showToast('Unable to open profile editor. Please try again later.', 'error');
