@@ -454,6 +454,33 @@ function renderQuoteGeneratorPage(containerId) {
       // Enable and show the subtype field
       jobSubtypeSelect.disabled = false;
       jobSubtypeGroup.style.display = 'block';
+      
+      // Show/hide quantity field for product-based services
+      if (selectedJobType === 'locksmith' || 
+          selectedJobType === 'appliance_repair' || 
+          selectedJobType === 'cellphone_repair' || 
+          selectedJobType === 'computer_repair' || 
+          selectedJobType === 'tv_repair') {
+        quantityGroup.style.display = 'block';
+        
+        // Update material cost field label based on service type
+        const materialCostLabel = materialsGroup.querySelector('label');
+        if (materialCostLabel) {
+          materialCostLabel.textContent = 'Parts/Products Cost ($)';
+        }
+      } else {
+        quantityGroup.style.display = 'none';
+        
+        // Reset material cost field label based on service type
+        const materialCostLabel = materialsGroup.querySelector('label');
+        if (materialCostLabel) {
+          if (isBeautyService(selectedJobType)) {
+            materialCostLabel.textContent = 'Products Cost ($)';
+          } else {
+            materialCostLabel.textContent = 'Materials Cost ($)';
+          }
+        }
+      }
     });
     
     const jobTypeGroup = createFormGroup('Service Type', jobTypeSelect);
@@ -463,8 +490,22 @@ function renderQuoteGeneratorPage(containerId) {
     locationInput.id = 'auto-address-input'; // Add ID for Google Maps autocomplete
     const locationGroup = createFormGroup('Location', locationInput);
     
+    // Experience level field
+    const experienceSelect = createSelect('experienceLevel', [
+      { value: 'junior', label: 'Junior (1-2 years)' },
+      { value: 'intermediate', label: 'Intermediate (3-5 years)' },
+      { value: 'senior', label: 'Senior (6-10 years)' },
+      { value: 'expert', label: 'Expert (10+ years)' }
+    ]);
+    const experienceGroup = createFormGroup('Experience Level', experienceSelect);
+    
     // Labor hours field
     const laborHoursGroup = createFormGroup('Labor Hours', createInput('number', 'laborHours', '1', 'Estimated hours', '0.5', '100', '0.5'));
+    
+    // Product quantity field (initially hidden, will show for product-based services)
+    const quantityInput = createInput('number', 'quantity', '1', 'Number of items/products', '1', '100', '1');
+    const quantityGroup = createFormGroup('Product Quantity', quantityInput);
+    quantityGroup.style.display = 'none'; // Hidden by default
     
     // Materials cost field
     const materialsGroup = createFormGroup('Materials Cost ($)', createInput('number', 'materialsCost', '0', 'Cost in dollars', '0', '10000', '0.01'));
@@ -504,7 +545,9 @@ function renderQuoteGeneratorPage(containerId) {
     form.appendChild(jobTypeGroup);
     form.appendChild(jobSubtypeGroup); // Add the subcategory field
     form.appendChild(locationGroup);
+    form.appendChild(experienceGroup); // Add experience level field
     form.appendChild(laborHoursGroup);
+    form.appendChild(quantityGroup); // Add quantity field (initially hidden)
     form.appendChild(materialsGroup);
     form.appendChild(emergencyGroup);
     form.appendChild(marginGroup);
@@ -645,7 +688,9 @@ function handleGenerateQuote() {
     const jobTypeSelect = document.querySelector('#quote-form select[name="jobType"]');
     const jobSubtypeSelect = document.querySelector('#quote-form select[name="jobSubtype"]');
     const locationInput = document.querySelector('#quote-form input[name="location"]');
+    const experienceSelect = document.querySelector('#quote-form select[name="experienceLevel"]');
     const laborHoursInput = document.querySelector('#quote-form input[name="laborHours"]');
+    const quantityInput = document.querySelector('#quote-form input[name="quantity"]');
     const materialsCostInput = document.querySelector('#quote-form input[name="materialsCost"]');
     const emergencyCheckbox = document.querySelector('#quote-form input[name="emergency"]');
     const targetMarginInput = document.querySelector('#quote-form input[name="targetMargin"]');
@@ -669,9 +714,23 @@ function handleGenerateQuote() {
       return;
     }
     
+    if (!experienceSelect.value) {
+      showToast('Please select experience level', 'error');
+      experienceSelect.focus();
+      return;
+    }
+    
     if (!laborHoursInput.value || parseFloat(laborHoursInput.value) <= 0) {
       showToast('Please enter valid labor hours', 'error');
       laborHoursInput.focus();
+      return;
+    }
+    
+    // Check quantity if the service requires it
+    const isProductService = ['locksmith', 'appliance_repair', 'cellphone_repair', 'computer_repair', 'tv_repair'].includes(jobTypeSelect.value);
+    if (isProductService && (!quantityInput.value || parseInt(quantityInput.value) < 1)) {
+      showToast('Please enter valid product quantity', 'error');
+      quantityInput.focus();
       return;
     }
     
@@ -680,7 +739,9 @@ function handleGenerateQuote() {
       jobType: jobTypeSelect.value,
       jobSubtype: jobSubtypeSelect.value,
       location: locationInput.value,
+      experienceLevel: experienceSelect.value,
       laborHours: parseFloat(laborHoursInput.value),
+      quantity: parseInt(quantityInput.value) || 1,
       materialsCost: parseFloat(materialsCostInput.value) || 0,
       emergency: emergencyCheckbox.checked,
       targetMargin: parseInt(targetMarginInput.value)
@@ -823,10 +884,37 @@ function generateQuoteForTier(tier, data, commonData, baseRate) {
     }
   }
   
+  // Apply experience level multiplier to rate
+  let experienceMultiplier = 1.0;
+  switch (data.experienceLevel) {
+    case 'junior':
+      experienceMultiplier = 0.8; // Junior providers charge 20% less
+      break;
+    case 'intermediate':
+      experienceMultiplier = 1.0; // Intermediate is the baseline
+      break;
+    case 'senior':
+      experienceMultiplier = 1.2; // Senior providers charge 20% more
+      break;
+    case 'expert':
+      experienceMultiplier = 1.4; // Expert providers charge 40% more
+      break;
+  }
+  
   // Apply the calculated multipliers
   laborHours = data.laborHours * laborMultiplier;
-  laborRate = baseRate * rateMultiplier;
-  materialsCost = data.materialsCost * materialMultiplier;
+  laborRate = baseRate * rateMultiplier * experienceMultiplier;
+  
+  // If it's a product-based service, adjust materials cost based on quantity
+  const isProductService = ['locksmith', 'appliance_repair', 'cellphone_repair', 'computer_repair', 'tv_repair'].includes(data.jobType);
+  if (isProductService && data.quantity > 1) {
+    // Apply a slight discount for multiple items (5% per additional item, max 25%)
+    const quantityDiscount = Math.min(0.25, (data.quantity - 1) * 0.05);
+    materialsCost = data.materialsCost * materialMultiplier * data.quantity * (1 - quantityDiscount);
+  } else {
+    materialsCost = data.materialsCost * materialMultiplier;
+  }
+  
   targetMargin = data.targetMargin + marginAdjustment;
   
   // Emergency pricing adjustment
