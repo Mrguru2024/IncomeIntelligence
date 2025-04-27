@@ -3840,7 +3840,7 @@ if (quote.editable) {
       row.style.color = 'var(--color-text-secondary, #4b5563)';
       
       // Only show the label for info items
-      cardBody.appendChild(row);
+      breakdownContainer.appendChild(row);
       return;
     }
     
@@ -3849,7 +3849,7 @@ if (quote.editable) {
     
     row.appendChild(label);
     row.appendChild(value);
-    cardBody.appendChild(row);
+    breakdownContainer.appendChild(row);
   });
   
   // Actions
