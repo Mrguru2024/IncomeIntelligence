@@ -1709,6 +1709,21 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
     const label = document.createElement('span');
     label.textContent = item.label;
     
+    // For info items, display differently
+    if (item.isInfo) {
+      row.style.backgroundColor = 'rgba(243, 244, 246, 0.5)';
+      row.style.padding = '4px 6px';
+      row.style.borderRadius = '4px';
+      row.style.margin = '2px 0';
+      row.style.fontSize = '12px';
+      row.style.fontStyle = 'italic';
+      row.style.color = 'var(--color-text-secondary, #4b5563)';
+      
+      // Only show the label for info items
+      cardBody.appendChild(row);
+      return;
+    }
+    
     const value = document.createElement('span');
     value.textContent = `$${item.value.toFixed(2)}`;
     
@@ -1940,12 +1955,27 @@ function displayQuoteResults(result) {
       row.style.marginTop = '8px';
       row.style.paddingTop = '16px';
       row.style.fontWeight = 'bold';
-    } else {
+    } else if (!item.isInfo) {
       row.style.borderBottom = '1px solid var(--color-border-light, #f3f4f6)';
     }
     
     const label = document.createElement('span');
     label.textContent = item.label;
+    
+    // For info items, display differently
+    if (item.isInfo) {
+      row.style.backgroundColor = 'rgba(243, 244, 246, 0.5)';
+      row.style.padding = '6px 8px';
+      row.style.borderRadius = '4px';
+      row.style.margin = '4px 0';
+      row.style.fontSize = '13px';
+      row.style.fontStyle = 'italic';
+      row.style.color = 'var(--color-text-secondary, #4b5563)';
+      
+      // Only show the label for info items
+      itemsContainer.appendChild(row);
+      return;
+    }
     
     const value = document.createElement('span');
     value.textContent = `$${item.value.toFixed(2)}`;
@@ -2941,6 +2971,26 @@ function printQuote(quote) {
             <div><strong>Location:</strong></div>
             <div>${quote.location}</div>
           </div>
+          ${quote.experienceLevel ? `
+          <div class="quote-info-row">
+            <div><strong>Provider Experience:</strong></div>
+            <div>${(() => {
+              const experienceLevelMap = {
+                'junior': 'Junior Provider (1-2 years)',
+                'intermediate': 'Intermediate Provider (3-5 years)',
+                'senior': 'Senior Provider (6-10 years)',
+                'expert': 'Expert Provider (10+ years)'
+              };
+              return experienceLevelMap[quote.experienceLevel] || 'Professional Provider';
+            })()}</div>
+          </div>
+          ` : ''}
+          ${isProductService(quote.jobType) && quote.quantity > 1 ? `
+          <div class="quote-info-row">
+            <div><strong>Product Quantity:</strong></div>
+            <div>${quote.quantity} units</div>
+          </div>
+          ` : ''}
           ${quote.description ? `
           <div class="quote-info-row">
             <div><strong>Description:</strong></div>
@@ -3040,13 +3090,24 @@ function createInvoiceFromQuote(quote) {
           quantity: quote.laborHours,
           unit: 'hours',
           unitPrice: quote.laborRate,
-          amount: quote.laborCost
+          amount: quote.laborCost,
+          notes: quote.experienceLevel ? (() => {
+            const experienceLevelMap = {
+              'junior': 'Junior Provider (1-2 years)',
+              'intermediate': 'Intermediate Provider (3-5 years)',
+              'senior': 'Senior Provider (6-10 years)',
+              'expert': 'Expert Provider (10+ years)'
+            };
+            return experienceLevelMap[quote.experienceLevel] || 'Professional Provider';
+          })() : ''
         },
         {
-          description: 'Materials',
-          quantity: 1,
+          description: isProductService(quote.jobType) && quote.quantity > 1 ? 
+            `Materials (${quote.quantity} units)` : 'Materials',
+          quantity: isProductService(quote.jobType) ? quote.quantity : 1,
           unit: 'lot',
-          unitPrice: quote.materialsCost,
+          unitPrice: isProductService(quote.jobType) && quote.quantity > 1 ? 
+            quote.materialsCost / quote.quantity : quote.materialsCost,
           amount: quote.materialsCost
         }
       ],
