@@ -1155,6 +1155,35 @@ function displayMultiQuoteResults(quotes) {
   
   header.appendChild(title);
   header.appendChild(subtitle);
+  
+  // Display Provider Experience Level if available
+  if (quotes.basic.experienceLevel) {
+    const experienceLevelMap = {
+      'junior': 'Junior Provider (1-2 years)',
+      'intermediate': 'Intermediate Provider (3-5 years)',
+      'senior': 'Senior Provider (6-10 years)',
+      'expert': 'Expert Provider (10+ years)'
+    };
+    
+    const experienceText = experienceLevelMap[quotes.basic.experienceLevel] || 'Professional Provider';
+    const experienceInfo = document.createElement('p');
+    experienceInfo.textContent = `Provider Experience: ${experienceText}`;
+    experienceInfo.style.fontSize = '15px';
+    experienceInfo.style.marginTop = '4px';
+    experienceInfo.style.color = 'var(--color-text)';
+    header.appendChild(experienceInfo);
+  }
+  
+  // Display Product Quantity if applicable
+  if (isProductService(quotes.basic.jobType) && quotes.basic.quantity > 1) {
+    const quantityInfo = document.createElement('p');
+    quantityInfo.textContent = `Product Quantity: ${quotes.basic.quantity} units`;
+    quantityInfo.style.fontSize = '15px';
+    quantityInfo.style.marginTop = '4px';
+    quantityInfo.style.color = 'var(--color-text)';
+    header.appendChild(quantityInfo);
+  }
+  
   resultsContainer.appendChild(header);
   
   // Create quotes container
