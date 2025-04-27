@@ -2912,14 +2912,42 @@ function renderSettingsPage() {
   
   // Profile form
   const profileForm = document.createElement('form');
-  profileForm.onsubmit = (e) => {
+  profileForm.onsubmit = async (e) => {
     e.preventDefault();
     
     const name = document.getElementById('user-name').value;
     
     if (name) {
+      // Update local state
       appState.user.name = name;
       saveStateToStorage();
+      
+      // Update user profile in the API if available
+      try {
+        const userProfileModule = await import('../user-profile.js');
+        if (userProfileModule && userProfileModule.updateUserProfile) {
+          const profileUpdates = {
+            displayName: name,
+            lastUpdated: new Date().toISOString()
+          };
+          
+          const result = await userProfileModule.updateUserProfile(profileUpdates);
+          if (result) {
+            console.log('Profile updated successfully:', result);
+            if (window.showToast) {
+              window.showToast('Profile settings saved successfully', 'success');
+            }
+          } else {
+            console.error('Failed to update profile');
+            if (window.showToast) {
+              window.showToast('Failed to save profile settings', 'error');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error updating profile:', error);
+      }
+      
       renderApp();
     }
   };
@@ -2959,7 +2987,7 @@ function renderSettingsPage() {
   // Split adjustment form
   const splitForm = document.createElement('form');
   splitForm.style.marginTop = '20px';
-  splitForm.onsubmit = (e) => {
+  splitForm.onsubmit = async (e) => {
     e.preventDefault();
     
     const needs = parseInt(document.getElementById('needs-percent').value);
@@ -2967,11 +2995,43 @@ function renderSettingsPage() {
     const savings = parseInt(document.getElementById('savings-percent').value);
     
     if (needs + investments + savings === 100) {
+      // Update local state
       appState.user.splitRatio = { needs, investments, savings };
       saveStateToStorage();
+      
+      // Update user profile via API if available
+      try {
+        const userProfileModule = await import('../user-profile.js');
+        if (userProfileModule && userProfileModule.updateUserProfile) {
+          const profileUpdates = {
+            splitRatio: { needs, investments, savings },
+            lastUpdated: new Date().toISOString()
+          };
+          
+          const result = await userProfileModule.updateUserProfile(profileUpdates);
+          if (result) {
+            console.log('Income split settings updated successfully:', result);
+            if (window.showToast) {
+              window.showToast('Income split settings saved successfully', 'success');
+            }
+          } else {
+            console.error('Failed to update income split settings');
+            if (window.showToast) {
+              window.showToast('Failed to save income split settings', 'error');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error updating income split settings:', error);
+      }
+      
       renderApp();
     } else {
-      alert('The total percentage must equal 100%');
+      if (window.showToast) {
+        window.showToast('The total percentage must equal 100%', 'error');
+      } else {
+        alert('The total percentage must equal 100%');
+      }
     }
   };
   

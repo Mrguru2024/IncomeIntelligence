@@ -1,0 +1,21 @@
+[
+  {
+    "userId": "google-1745767720544",
+    "experienceLevel": "intermediate",
+    "targetMargin": 30,
+    "businessGoals": [
+      "increase_revenue",
+      "retain_existing_clients"
+    ],
+    "businessChallenges": [
+      "pricing_strategy",
+      "finding_clients"
+    ],
+    "servicePreferences": [
+      "value_oriented",
+      "reliability_oriented"
+    ],
+    "lastUpdated": "2025-04-27T15:28:52.154Z",
+    "createdAt": "2025-04-27T15:28:52.154Z"
+  }
+]
