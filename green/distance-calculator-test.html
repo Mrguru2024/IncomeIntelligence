@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distance Calculator Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      color: #2563EB;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #2563EB;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #1D4ED8;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      min-height: 100px;
+    }
+    .method-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-left: 8px;
+    }
+    .method-google {
+      background-color: #34A853;
+      color: white;
+    }
+    .method-zip {
+      background-color: #FBBC05;
+      color: #333;
+    }
+    .method-fallback {
+      background-color: #EA4335;
+      color: white;
+    }
+    .tabs {
+      display: flex;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #ccc;
+    }
+    .tab {
+      padding: 10px 15px;
+      cursor: pointer;
+      background-color: #f5f5f5;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      margin-right: 5px;
+    }
+    .tab.active {
+      background-color: white;
+      border-bottom: 1px solid white;
+      margin-bottom: -1px;
+      font-weight: bold;
+    }
+    .panel {
+      display: none;
+    }
+    .panel.active {
+      display: block;
+    }
+    code {
+      background-color: #f0f0f0;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    .code-block {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Distance Calculator Test</h1>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="calculator">Calculator</div>
+    <div class="tab" data-tab="api">API Test</div>
+    <div class="tab" data-tab="info">Information</div>
+  </div>
+  
+  <div class="panel active" id="calculator-panel">
+    <div class="form-group">
+      <label for="origin">Origin Address or ZIP Code:</label>
+      <input type="text" id="origin" placeholder="Enter origin address (e.g., 90210 or 123 Main St, Boston, MA)">
+    </div>
+    
+    <div class="form-group">
+      <label for="destination">Destination Address or ZIP Code:</label>
+      <input type="text" id="destination" placeholder="Enter destination address (e.g., 10001 or 456 Park Ave, New York, NY)">
+    </div>
+    
+    <button id="calculate">Calculate Distance</button>
+    <button id="clear">Clear</button>
+    
+    <div class="result" id="result">
+      <p>Enter addresses or ZIP codes above and click "Calculate Distance" to test the distance calculation system.</p>
+    </div>
+  </div>
+  
+  <div class="panel" id="api-panel">
+    <h2>Direct API Test</h2>
+    <p>Test the distance calculation API endpoint directly:</p>
+    
+    <div class="form-group">
+      <label for="api-origin">Origin:</label>
+      <input type="text" id="api-origin" placeholder="Enter origin" value="New York, NY">
+    </div>
+    
+    <div class="form-group">
+      <label for="api-destination">Destination:</label>
+      <input type="text" id="api-destination" placeholder="Enter destination" value="Los Angeles, CA">
+    </div>
+    
+    <button id="test-api">Test API</button>
+    
+    <div class="result" id="api-result">
+      <p>Click "Test API" to make a direct request to the API endpoint.</p>
+    </div>
+  </div>
+  
+  <div class="panel" id="info-panel">
+    <h2>About the Distance Calculator</h2>
+    <p>This system calculates distances using a multi-tiered approach with fallbacks:</p>
+    
+    <ol>
+      <li><strong>Google Maps Distance Matrix API</strong> - Used when available and valid</li>
+      <li><strong>ZIP Code Based Estimation</strong> - Fallback when Maps API fails but ZIP codes are provided</li>
+      <li><strong>Address Complexity Estimation</strong> - Last resort when other methods fail</li>
+    </ol>
+    
+    <h3>JavaScript Usage Example</h3>
+    <div class="code-block">// Calculate distance between two locations
+async function calculateDistance(origin, destination) {
+  try {
+    const url = `/api/distance-matrix?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error calculating distance:', error);
+    return { status: 'ERROR', error: error.message };
+  }
+}</div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Tab switching
+      const tabs = document.querySelectorAll('.tab');
+      const panels = document.querySelectorAll('.panel');
+      
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active class from all tabs and panels
+          tabs.forEach(t => t.classList.remove('active'));
+          panels.forEach(p => p.classList.remove('active'));
+          
+          // Add active class to current tab
+          tab.classList.add('active');
+          
+          // Show corresponding panel
+          const panelId = `${tab.dataset.tab}-panel`;
+          document.getElementById(panelId).classList.add('active');
+        });
+      });
+      
+      // Calculator functionality
+      const originInput = document.getElementById('origin');
+      const destinationInput = document.getElementById('destination');
+      const calculateButton = document.getElementById('calculate');
+      const clearButton = document.getElementById('clear');
+      const resultDiv = document.getElementById('result');
+      
+      calculateButton.addEventListener('click', async () => {
+        const origin = originInput.value.trim();
+        const destination = destinationInput.value.trim();
+        
+        if (!origin || !destination) {
+          resultDiv.innerHTML = '<p style="color: #EA4335;">Please enter both origin and destination.</p>';
+          return;
+        }
+        
+        resultDiv.innerHTML = '<p>Calculating distance...</p>';
+        
+        try {
+          // Call our custom distance calculation API
+          await testWindowFallback(origin, destination);
+        } catch (error) {
+          resultDiv.innerHTML = `<p style="color: #EA4335;">Error: ${error.message}</p>`;
+        }
+      });
+      
+      clearButton.addEventListener('click', () => {
+        originInput.value = '';
+        destinationInput.value = '';
+        resultDiv.innerHTML = '<p>Enter addresses or ZIP codes above and click "Calculate Distance" to test the distance calculation system.</p>';
+      });
+      
+      // API Test functionality
+      const apiOriginInput = document.getElementById('api-origin');
+      const apiDestinationInput = document.getElementById('api-destination');
+      const testApiButton = document.getElementById('test-api');
+      const apiResultDiv = document.getElementById('api-result');
+      
+      testApiButton.addEventListener('click', async () => {
+        const origin = apiOriginInput.value.trim();
+        const destination = apiDestinationInput.value.trim();
+        
+        if (!origin || !destination) {
+          apiResultDiv.innerHTML = '<p style="color: #EA4335;">Please enter both origin and destination.</p>';
+          return;
+        }
+        
+        apiResultDiv.innerHTML = '<p>Making API request...</p>';
+        
+        try {
+          const url = `/api/distance-matrix?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          
+          let methodBadge = '';
+          if (data.source === 'google-maps-api') {
+            methodBadge = '<span class="method-badge method-google">Google Maps API</span>';
+          } else if (data.source === 'zip-estimation') {
+            methodBadge = '<span class="method-badge method-zip">ZIP Estimation</span>';
+          } else {
+            methodBadge = '<span class="method-badge method-fallback">Fallback Method</span>';
+          }
+          
+          let html = `<p><strong>Status:</strong> ${data.status} ${methodBadge}</p>`;
+          
+          if (data.status === 'OK' && data.results) {
+            html += `
+              <p><strong>Distance:</strong> ${data.results.distance.text}</p>
+              <p><strong>Duration:</strong> ${data.results.duration.text}</p>
+              <p><strong>Raw Response:</strong></p>
+              <pre style="background-color: #f5f5f5; padding: 10px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+            `;
+          } else {
+            html += `<p style="color: #EA4335;"><strong>Error:</strong> ${data.error || 'Unknown error'}</p>`;
+          }
+          
+          apiResultDiv.innerHTML = html;
+        } catch (error) {
+          apiResultDiv.innerHTML = `<p style="color: #EA4335;">Error: ${error.message}</p>`;
+        }
+      });
+      
+      // Test our window.useFallbackDistanceCalculation function
+      async function testWindowFallback(origin, destination) {
+        // Create temporary input elements that match the expected form field structure
+        const container = document.createElement('div');
+        container.style.display = 'none';
+        document.body.appendChild(container);
+        
+        // Create fake input fields with the same name attributes as expected
+        const originInput = document.createElement('input');
+        originInput.name = 'startLocation';
+        originInput.value = origin;
+        container.appendChild(originInput);
+        
+        const destInput = document.createElement('input');
+        destInput.name = 'endLocation';
+        destInput.value = destination;
+        container.appendChild(destInput);
+        
+        const distanceInput = document.createElement('input');
+        distanceInput.name = 'travelDistance';
+        container.appendChild(distanceInput);
+        
+        // Create results container
+        const distanceResult = document.createElement('div');
+        distanceResult.id = 'distanceResult';
+        container.appendChild(distanceResult);
+        
+        // Check if the window.useFallbackDistanceCalculation function is available
+        if (typeof window.useFallbackDistanceCalculation !== 'function') {
+          resultDiv.innerHTML = `
+            <p style="color: #EA4335;">Error: The fallback calculation function is not available.</p>
+            <p>Make sure you've included the quote-generator.js script.</p>
+          `;
+          document.body.removeChild(container);
+          return;
+        }
+        
+        try {
+          // Call the fallback function
+          await window.useFallbackDistanceCalculation();
+          
+          // Get the results
+          const html = distanceResult.innerHTML;
+          resultDiv.innerHTML = html || '<p style="color: #EA4335;">No result returned from calculation function.</p>';
+          
+          // Get the calculated distance
+          const calculatedDistance = distanceInput.value;
+          if (calculatedDistance) {
+            resultDiv.innerHTML += `<p><strong>Calculated Round-Trip Distance:</strong> ${calculatedDistance} miles</p>`;
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `<p style="color: #EA4335;">Error during calculation: ${error.message || error}</p>`;
+        } finally {
+          // Clean up
+          document.body.removeChild(container);
+        }
+      }
+    });
+  </script>
+  
+  <!-- Include the distance calculator utility scripts -->
+  <script src="/green/distance-calculator.js"></script>
+  
+  <!-- Optional: Include the quote generator for full testing -->
+  <script src="/green/quote-generator.js" type="module"></script>
+</body>
+</html>
