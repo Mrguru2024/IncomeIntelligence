@@ -39,7 +39,8 @@ function initToastContainer() {
  * @param {number} duration - How long to display the toast (ms)
  * @returns {HTMLElement} - The toast element
  */
-export function createToast(message, type = 'info', duration = 3000) {
+// Expose functions globally
+window.createToast = function(message, type = 'info', duration = 3000) {
   // Initialize container if needed
   const container = initToastContainer();
   
@@ -205,7 +206,7 @@ export function createToast(message, type = 'info', duration = 3000) {
 /**
  * Remove all active toasts
  */
-export function clearAllToasts() {
+window.clearAllToasts = function() {
   if (!toastContainer) return;
   
   // Remove each toast
