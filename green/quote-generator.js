@@ -234,6 +234,11 @@ function renderQuoteGeneratorPage(containerId) {
     const header = document.createElement('div');
     header.className = 'quote-generator-header';
     header.style.marginBottom = '24px';
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'flex-start';
+    
+    const titleArea = document.createElement('div');
     
     const title = document.createElement('h2');
     title.textContent = 'Professional Quote Generator';
@@ -246,8 +251,71 @@ function renderQuoteGeneratorPage(containerId) {
     subtitle.style.fontSize = '16px';
     subtitle.style.color = 'var(--color-text-secondary)';
     
-    header.appendChild(title);
-    header.appendChild(subtitle);
+    titleArea.appendChild(title);
+    titleArea.appendChild(subtitle);
+    
+    // Create profile button
+    const profileButton = document.createElement('button');
+    profileButton.type = 'button';
+    profileButton.textContent = 'Business Profile';
+    profileButton.style.display = 'flex';
+    profileButton.style.alignItems = 'center';
+    profileButton.style.backgroundColor = 'var(--color-card-bg, #ffffff)';
+    profileButton.style.color = 'var(--color-primary, #34A853)';
+    profileButton.style.border = '1px solid var(--color-primary, #34A853)';
+    profileButton.style.borderRadius = '6px';
+    profileButton.style.padding = '8px 16px';
+    profileButton.style.fontSize = '14px';
+    profileButton.style.cursor = 'pointer';
+    profileButton.style.marginLeft = '16px';
+    
+    // Add icon for profile button
+    const profileIcon = document.createElement('span');
+    profileIcon.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+    `;
+    profileIcon.style.marginRight = '8px';
+    
+    profileButton.prepend(profileIcon);
+    
+    // Event listener for profile button
+    profileButton.addEventListener('click', () => {
+      try {
+        // Import the user profile module dynamically
+        import('/green/user-profile.js')
+          .then(module => {
+            if (typeof window.appState !== 'undefined' && window.appState.user && window.appState.user.id) {
+              // Initialize with the current user ID if available
+              module.initUserProfile(window.appState.user.id)
+                .then(() => {
+                  // Show the profile editor
+                  module.showProfileEditor((updatedProfile) => {
+                    console.log('Profile updated:', updatedProfile);
+                    showToast('Profile updated! Your quotes will now be personalized.', 'success');
+                  });
+                });
+            } else {
+              // Fallback for testing if user ID isn't available
+              module.showProfileEditor(() => {
+                showToast('Profile updated! Your quotes will now be personalized.', 'success');
+              });
+            }
+          })
+          .catch(err => {
+            console.error('Failed to load user profile module:', err);
+            showToast('Unable to load profile editor. Please try again later.', 'error');
+          });
+      } catch (error) {
+        console.error('Error opening profile editor:', error);
+        showToast('Unable to open profile editor. Please try again later.', 'error');
+      }
+    });
+    
+    header.appendChild(titleArea);
+    header.appendChild(profileButton);
     container.appendChild(header);
     
     // Create form container
@@ -1012,10 +1080,63 @@ function generateMultiQuote(data) {
     taxRate
   };
   
+  // Try to get user profile for personalization if available
+  let personalizedData = { ...data };
+  
+  // Try to personalize the data using the user profile
+  try {
+    // Dynamically import the user profile module
+    import('/green/user-profile.js')
+      .then(module => {
+        const currentProfile = module.getCurrentProfile();
+        
+        // If we have a profile, use it to personalize the data
+        if (currentProfile) {
+          console.log('Personalizing quotes based on user profile:', currentProfile);
+          personalizedData = module.personalizeQuote(personalizedData);
+          
+          // Use the personalized data to regenerate quotes if significant changes were made
+          const hasSignificantChanges = 
+            personalizedData.experienceLevel !== data.experienceLevel ||
+            personalizedData.targetMargin !== data.targetMargin ||
+            personalizedData.laborRate !== data.laborRate;
+          
+          if (hasSignificantChanges) {
+            console.log('Significant profile changes detected, regenerating quotes');
+            updateQuotesWithPersonalizedData();
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Error loading user profile module:', err);
+      });
+  } catch (error) {
+    console.error('Error during profile personalization:', error);
+  }
+  
   // Generate the three quote options
-  const basicQuote = generateQuoteForTier('basic', data, commonData, baseRate);
-  const standardQuote = generateQuoteForTier('standard', data, commonData, baseRate);
-  const premiumQuote = generateQuoteForTier('premium', data, commonData, baseRate);
+  let basicQuote = generateQuoteForTier('basic', data, commonData, baseRate);
+  let standardQuote = generateQuoteForTier('standard', data, commonData, baseRate);
+  let premiumQuote = generateQuoteForTier('premium', data, commonData, baseRate);
+  
+  // Function to update quotes with personalized data if needed
+  function updateQuotesWithPersonalizedData() {
+    // Only regenerate if personalizedData is different from original data
+    basicQuote = generateQuoteForTier('basic', personalizedData, commonData, baseRate);
+    standardQuote = generateQuoteForTier('standard', personalizedData, commonData, baseRate);
+    premiumQuote = generateQuoteForTier('premium', personalizedData, commonData, baseRate);
+    
+    // Refresh the displayed quotes
+    displayQuotes({
+      basic: basicQuote,
+      standard: standardQuote,
+      premium: premiumQuote,
+      commonData
+    });
+    
+    // Show notification about personalization
+    showToast('Quotes personalized based on your business profile', 'info');
+  }
   
   // Add editable flag to each quote for customization
   basicQuote.editable = true;
