@@ -88,7 +88,11 @@ if (stripeSecretKey) {
 }
 
 // JWT Authentication is now handled by the auth middleware
-import { validateGoogleMapsApiKey, resetGoogleMapsApiKeyValidation } from './services/google-maps-service';
+import { 
+  validateGoogleMapsApiKey, 
+  resetGoogleMapsApiKeyValidation,
+  getDistanceMatrix
+} from './services/google-maps-service';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Provide Google Maps API key securely

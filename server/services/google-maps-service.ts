@@ -138,3 +138,88 @@ export async function getValidatedMapsApiKey(): Promise<string | null> {
   const result = await validateGoogleMapsApiKey();
   return result.isValid ? apiKey : null;
 }
+
+/**
+ * Get distance and duration between two locations using Google Maps Distance Matrix API
+ * @param origin Origin address or coordinates
+ * @param destination Destination address or coordinates
+ * @returns Distance matrix results with status, distance and duration
+ */
+export async function getDistanceMatrix(
+  origin: string,
+  destination: string
+): Promise<{
+  status: string;
+  results?: {
+    distance: { text: string; value: number };
+    duration: { text: string; value: number };
+    status: string;
+  };
+  error?: string;
+}> {
+  try {
+    const apiKey = await getValidatedMapsApiKey();
+    
+    if (!apiKey) {
+      return {
+        status: 'ERROR',
+        error: 'Invalid or missing Google Maps API key'
+      };
+    }
+    
+    // Make DistanceMatrix API request
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&mode=driving&units=imperial&key=${apiKey}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+    
+    const data = await response.json();
+    
+    // Check for API errors
+    if (data.status !== 'OK') {
+      return {
+        status: 'ERROR',
+        error: data.error_message || `Distance Matrix API returned status: ${data.status}`
+      };
+    }
+    
+    // Check if we have any results
+    if (!data.rows || !data.rows[0] || !data.rows[0].elements || !data.rows[0].elements[0]) {
+      return {
+        status: 'ERROR',
+        error: 'No results found from Distance Matrix API'
+      };
+    }
+    
+    const element = data.rows[0].elements[0];
+    
+    // Check element status
+    if (element.status !== 'OK') {
+      return {
+        status: 'ERROR',
+        error: `Element status: ${element.status}`
+      };
+    }
+    
+    // Return formatted results
+    return {
+      status: 'OK',
+      results: {
+        distance: element.distance,
+        duration: element.duration,
+        status: 'OK'
+      }
+    };
+  } catch (error: any) {
+    console.error('Error getting distance matrix:', error);
+    return {
+      status: 'ERROR',
+      error: error.message || 'Unknown error getting distance matrix'
+    };
+  }
+}
