@@ -2531,6 +2531,38 @@ function showAIRecommendations(recommendations, tierName) {
   });
   
   applyButton.addEventListener('click', () => {
+    // Apply the recommendations to the quote
+    const currentQuote = document.querySelector(`[data-tier="${tierName}"]`);
+    if (currentQuote) {
+      const quoteId = currentQuote.getAttribute('data-quote-id');
+      const activeQuote = savedQuotes[quoteId];
+      
+      // Apply each recommendation to the active quote
+      recommendations.forEach(rec => {
+        if (rec.type === 'labor_rate') {
+          activeQuote.laborRate = rec.suggestedValue;
+        } else if (rec.type === 'profit_margin') {
+          activeQuote.targetMargin = rec.suggestedValue;
+        } else if (rec.type === 'materials') {
+          activeQuote.materialsCost = rec.suggestedValue;
+        }
+      });
+      
+      // Recalculate and redraw the quote
+      const updatedQuote = calculateQuote(activeQuote);
+      savedQuotes[quoteId] = updatedQuote;
+      
+      // Redraw the quote card
+      const container = document.getElementById('quote-tiers');
+      if (container) {
+        const existingCard = document.querySelector(`[data-tier="${tierName}"]`);
+        if (existingCard) {
+          existingCard.remove();
+        }
+        createQuoteCard(updatedQuote, tierName, container);
+      }
+    }
+    
     // Show toast message (using the global toast system if available)
     if (window.showToast) {
       window.showToast('Recommendations applied successfully!', 'success');
