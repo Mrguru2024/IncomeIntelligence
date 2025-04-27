@@ -7800,9 +7800,8 @@ function showTierBreakdown(tierData) {
   breakdownSection.scrollIntoView({ behavior: 'smooth' });
 } // End of renderQuoteGeneratorPage function
 
-// Make the function globally available
-window.QuoteGenerator = { renderQuoteGeneratorPage };
-
-// This approach makes the function accessible both 
-// when script is loaded directly or via dynamic import
-// Avoid using ES Module syntax completely
+// Make the function globally available through the window object
+// This allows access from any script without module syntax
+window.QuoteGenerator = { 
+  renderQuoteGeneratorPage: renderQuoteGeneratorPage 
+};

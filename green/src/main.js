@@ -3669,34 +3669,60 @@ function renderPageContent(container) {
         break;
         
       case 'quote-generator':
-        // Import the Quote Generator module
-        import('../quote-generator.js').then(module => {
-          try {
-            // Update page title
-            const titleElement = document.getElementById('page-title');
-            if (titleElement) {
-              titleElement.textContent = 'Quote Generator';
-            }
-            
-            // Clear container first for clean rendering
-            container.innerHTML = '';
-            // Create app container for the quote generator page
-            const appContainer = document.createElement('div');
-            appContainer.id = 'app-container';
-            container.appendChild(appContainer);
-            console.log("Created app-container for quote generator:", appContainer);
-            
-            // Render quote generator in the container
-            module.renderQuoteGeneratorPage('app-container');
-            console.log('Quote Generator page rendered successfully');
-          } catch (error) {
-            console.error('Error rendering Quote Generator page:', error);
-            container.appendChild(createErrorMessage('Failed to load Quote Generator. Please try again.'));
+        try {
+          // Update page title
+          const titleElement = document.getElementById('page-title');
+          if (titleElement) {
+            titleElement.textContent = 'Quote Generator';
           }
-        }).catch(error => {
-          console.error('Error loading Quote Generator module:', error);
-          container.appendChild(createErrorMessage('Failed to load Quote Generator module'));
-        });
+          
+          // Clear container first for clean rendering
+          container.innerHTML = '';
+          
+          // Create app container for the quote generator page
+          const appContainer = document.createElement('div');
+          appContainer.id = 'app-container';
+          container.appendChild(appContainer);
+          console.log("Created app-container for quote generator:", appContainer);
+          
+          // Load the script using dynamic script loading instead of ES modules
+          const scriptElement = document.createElement('script');
+          scriptElement.src = '../quote-generator.js'; 
+          scriptElement.async = true;
+          
+          // When script loads, call the global function
+          scriptElement.onload = function() {
+            console.log('Quote Generator script loaded successfully');
+            
+            // Check if the global object is available
+            if (window.QuoteGenerator && typeof window.QuoteGenerator.renderQuoteGeneratorPage === 'function') {
+              try {
+                // Call the global function
+                window.QuoteGenerator.renderQuoteGeneratorPage('app-container');
+                console.log('Quote Generator page rendered successfully using global object');
+              } catch (renderError) {
+                console.error('Error rendering Quote Generator:', renderError);
+                container.appendChild(createErrorMessage('Failed to render Quote Generator. Please try again.'));
+              }
+            } else {
+              console.error('QuoteGenerator global object not found after loading script');
+              container.appendChild(createErrorMessage('Quote Generator functions not available. Please try again.'));
+            }
+          };
+          
+          // Handle script loading errors
+          scriptElement.onerror = function(err) {
+            console.error('Failed to load Quote Generator script:', err);
+            container.appendChild(createErrorMessage('Failed to load Quote Generator script. Please try again.'));
+          };
+          
+          // Add script to page
+          document.head.appendChild(scriptElement);
+          
+        } catch (error) {
+          console.error('Error setting up Quote Generator:', error);
+          container.appendChild(createErrorMessage('Failed to set up Quote Generator. Please try again.'));
+        }
         break;
         
       case 'aipersonalization':
