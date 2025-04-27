@@ -193,7 +193,7 @@ UserProfile.isServiceProvider = async function(userId) {
   }
   
   try {
-    const profile = await loadUserProfile(userId);
+    const profile = await UserProfile.loadUserProfile(userId);
     
     if (!profile) {
       return false;
@@ -218,7 +218,7 @@ UserProfile.getUserBasicInfo = async function(userId) {
   }
   
   try {
-    const profile = await loadUserProfile(userId);
+    const profile = await UserProfile.loadUserProfile(userId);
     
     if (!profile) {
       return null;
@@ -254,10 +254,10 @@ UserProfile.getCurrentProfile = function() {
  */
 UserProfile.loadCurrentUserProfile = async function() {
   try {
-    const userId = getCurrentUserId();
+    const userId = UserProfile.getCurrentUserId();
     if (!userId) return null;
     
-    const profile = await loadUserProfile(userId);
+    const profile = await UserProfile.loadUserProfile(userId);
     if (profile) {
       cachedProfile = profile;
       return profile;
@@ -274,7 +274,7 @@ UserProfile.loadCurrentUserProfile = async function() {
  * @param {Object} quoteData - Original quote data
  * @returns {Object} Personalized quote data
  */
-export function personalizeQuote(quoteData) {
+UserProfile.personalizeQuote = function(quoteData) {
   // If no cached profile, return original data
   if (!cachedProfile) return quoteData;
   
@@ -339,9 +339,12 @@ export function personalizeQuote(quoteData) {
 (async function initProfileModule() {
   try {
     // Load the current user's profile
-    await loadCurrentUserProfile();
+    await UserProfile.loadCurrentUserProfile();
     console.log('User profile module initialized successfully');
   } catch (error) {
     console.error('Error initializing user profile module:', error);
   }
 })();
+
+// Export the UserProfile object
+export default UserProfile;
