@@ -949,15 +949,15 @@ function generateQuoteForTier(tier, data, commonData, baseRate) {
   switch (tier) {
     case 'basic':
       description = getBasicDescription(data.jobType);
-      features = getBasicFeatures(data.jobType);
+      features = getPriceAwareFeatures(data.jobType, tier, total, data.experienceLevel, isProductService ? data.quantity : 0);
       break;
     case 'standard':
       description = getStandardDescription(data.jobType);
-      features = getStandardFeatures(data.jobType);
+      features = getPriceAwareFeatures(data.jobType, tier, total, data.experienceLevel, isProductService ? data.quantity : 0);
       break;
     case 'premium':
       description = getPremiumDescription(data.jobType);
-      features = getPremiumFeatures(data.jobType);
+      features = getPriceAwareFeatures(data.jobType, tier, total, data.experienceLevel, isProductService ? data.quantity : 0);
       break;
     default:
       description = '';
@@ -1228,6 +1228,117 @@ function isElectronicRepair(jobType) {
  */
 function isAutomotiveRepair(jobType) {
   return jobType === 'automotive_repair';
+}
+
+/**
+ * Generate features based on price tier, actual price, experience level, and quantity
+ * This creates more realistic features that properly reflect the quote value
+ * @param {string} jobType - Type of job/service
+ * @param {string} tier - Service tier (basic, standard, premium)
+ * @param {number} total - Total price of the quote
+ * @param {string} experienceLevel - Provider experience level
+ * @param {number} quantity - Product quantity (for product services)
+ * @returns {string[]} List of features appropriate for the quote
+ */
+function getPriceAwareFeatures(jobType, tier, total, experienceLevel, quantity) {
+  // Base features based on the tier
+  let baseFeatures = [];
+  switch (tier) {
+    case 'basic':
+      baseFeatures = getBasicFeatures(jobType);
+      break;
+    case 'standard':
+      baseFeatures = getStandardFeatures(jobType);
+      break;
+    case 'premium':
+      baseFeatures = getPremiumFeatures(jobType);
+      break;
+  }
+  
+  // Price-based features (more expensive quotes get better features)
+  const priceFeatures = [];
+  
+  // Price thresholds - different for different service types
+  let lowPriceThreshold = 100;
+  let midPriceThreshold = 250;
+  let highPriceThreshold = 500;
+  
+  // Adjust thresholds based on service type
+  if (isBeautyService(jobType)) {
+    lowPriceThreshold = 75;
+    midPriceThreshold = 150;
+    highPriceThreshold = 300;
+  } else if (isElectronicRepair(jobType)) {
+    lowPriceThreshold = 120;
+    midPriceThreshold = 300;
+    highPriceThreshold = 600;
+  } else if (isAutomotiveRepair(jobType)) {
+    lowPriceThreshold = 150;
+    midPriceThreshold = 400;
+    highPriceThreshold = 800;
+  }
+  
+  // Add price-specific features
+  if (total >= highPriceThreshold) {
+    // High-price features
+    if (isBeautyService(jobType)) {
+      priceFeatures.push('Complimentary take-home product kit');
+      priceFeatures.push('VIP scheduling priority');
+    } else if (isElectronicRepair(jobType)) {
+      priceFeatures.push('Extended 1-year parts and labor warranty');
+      priceFeatures.push('Priority technical support');
+    } else if (isAutomotiveRepair(jobType)) {
+      priceFeatures.push('Courtesy vehicle during service');
+      priceFeatures.push('Comprehensive vehicle inspection included');
+    } else {
+      priceFeatures.push('Expedited service guarantee');
+      priceFeatures.push('Premium material upgrades included');
+    }
+  } else if (total >= midPriceThreshold) {
+    // Mid-price features
+    if (isBeautyService(jobType)) {
+      priceFeatures.push('Premium product application');
+    } else if (isElectronicRepair(jobType)) {
+      priceFeatures.push('90-day warranty on parts and labor');
+    } else if (isAutomotiveRepair(jobType)) {
+      priceFeatures.push('Complimentary vehicle health report');
+    } else {
+      priceFeatures.push('Quality assurance follow-up');
+    }
+  }
+  
+  // Experience-based features
+  const experienceFeatures = [];
+  if (experienceLevel === 'expert') {
+    if (isBeautyService(jobType)) {
+      experienceFeatures.push('Service by master-certified beauty professional');
+    } else if (isElectronicRepair(jobType)) {
+      experienceFeatures.push('Repair by certified master technician');
+    } else if (isAutomotiveRepair(jobType)) {
+      experienceFeatures.push('Service by ASE Master certified technician');
+    } else {
+      experienceFeatures.push('Work completed by industry-certified expert');
+    }
+  } else if (experienceLevel === 'senior') {
+    experienceFeatures.push('Service by senior professional with 10+ years experience');
+  }
+  
+  // Quantity-based features (only for product services)
+  const quantityFeatures = [];
+  if (quantity > 1) {
+    if (quantity >= 5) {
+      quantityFeatures.push(`Multi-unit discount: ${Math.min(25, quantity * 5)}% savings`);
+      quantityFeatures.push('Bulk service efficiency guarantee');
+    } else if (quantity >= 3) {
+      quantityFeatures.push(`Multi-unit discount: ${quantity * 5}% savings`);
+    } else if (quantity === 2) {
+      quantityFeatures.push('Second unit discount applied');
+    }
+  }
+  
+  // Combine all features, removing duplicates
+  const allFeatures = [...baseFeatures, ...priceFeatures, ...experienceFeatures, ...quantityFeatures];
+  return [...new Set(allFeatures)]; // Remove any duplicates
 }
 
 function createQuoteCard(quote, tierName, bgColor, container, recommended = false) {
