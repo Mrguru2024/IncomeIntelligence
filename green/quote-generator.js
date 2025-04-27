@@ -1920,9 +1920,9 @@ function initializeAutocompleteFields() {
     }
     
     // Initialize Automotive Quote Form destination address input
-    const destAddressInput = document.getElementById('destination-address-input');
+    const destAddressInput = document.getElementById('auto-destination-input'); // Use the correct ID
     if (destAddressInput) {
-      console.log('Initializing autocomplete for automotive quote destination address field');
+      console.log('Initializing autocomplete for automotive quote destination address field (auto-destination-input)');
       
       // Add input event listener for manual lookup if needed
       destAddressInput.addEventListener('input', function() {
@@ -1964,12 +1964,13 @@ function initializeAutocompleteFields() {
           let longitude = place.geometry.location.lng();
           
           // Store location data in hidden field for later use
-          const placeDataElement = document.getElementById('destination-place-data');
+          // Use auto-destination-place-data instead of destination-place-data for the automotive form
+          const placeDataElement = document.getElementById('auto-destination-place-data');
           if (placeDataElement) {
             placeDataElement.dataset.state = state || '';
             placeDataElement.dataset.lat = latitude || '';
             placeDataElement.dataset.lng = longitude || '';
-            console.log('Google Places found destination location data:', state, latitude, longitude);
+            console.log('Google Places found destination location data (auto form):', state, latitude, longitude);
             
             // Calculate and display distance if both locations are available
             const startPlaceData = document.getElementById('auto-address-place-data').dataset;
@@ -4046,7 +4047,7 @@ function createAutomotiveQuoteForm() {
   
   // Add hidden element to store destination place data
   const destPlaceDataElement = document.createElement('div');
-  destPlaceDataElement.id = 'destination-place-data';
+  destPlaceDataElement.id = 'auto-destination-place-data'; // Use the correct ID
   destPlaceDataElement.style.display = 'none';
   destAddressContainer.appendChild(destPlaceDataElement);
   
@@ -4192,7 +4193,7 @@ function handleAutoQuoteFormSubmit(e) {
   try {
     // Get location data for distance calculation with safe access
     const startPlaceDataEl = document.getElementById('auto-address-place-data');
-    const destPlaceDataEl = document.getElementById('destination-place-data');
+    const destPlaceDataEl = document.getElementById('auto-destination-place-data'); // Updated to match the correct ID
     
     // Use empty objects as fallbacks if elements don't exist
     const startPlaceData = startPlaceDataEl ? startPlaceDataEl.dataset : {};
