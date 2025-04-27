@@ -3,6 +3,9 @@
  * Provides simple toast notifications for the application
  */
 
+// Export functions for ES Module support
+export { createToast, clearAllToasts };
+
 // Keep track of active toasts
 let activeToasts = [];
 let toastContainer;
@@ -39,8 +42,8 @@ function initToastContainer() {
  * @param {number} duration - How long to display the toast (ms)
  * @returns {HTMLElement} - The toast element
  */
-// Expose functions globally
-window.createToast = function(message, type = 'info', duration = 3000) {
+// Define function to be exported and also attached to window
+function createToast(message, type = 'info', duration = 3000) {
   // Initialize container if needed
   const container = initToastContainer();
   
@@ -206,7 +209,7 @@ window.createToast = function(message, type = 'info', duration = 3000) {
 /**
  * Remove all active toasts
  */
-window.clearAllToasts = function() {
+function clearAllToasts() {
   if (!toastContainer) return;
   
   // Remove each toast
@@ -225,3 +228,7 @@ window.clearAllToasts = function() {
     toastContainer = null;
   }
 }
+
+// Also attach functions to window for non-module script access
+window.createToast = createToast;
+window.clearAllToasts = clearAllToasts;
