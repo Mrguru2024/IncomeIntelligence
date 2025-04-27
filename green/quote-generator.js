@@ -137,6 +137,27 @@ const marketRates = {
     "southwest": 85,
     "west": 100
   },
+  "cellphone_repair": {
+    "northeast": 85,
+    "midwest": 70,
+    "southeast": 65,
+    "southwest": 75,
+    "west": 90
+  },
+  "computer_repair": {
+    "northeast": 90,
+    "midwest": 75,
+    "southeast": 70,
+    "southwest": 80,
+    "west": 95
+  },
+  "tv_repair": {
+    "northeast": 100,
+    "midwest": 85,
+    "southeast": 80,
+    "southwest": 90,
+    "west": 105
+  },
   "beauty_services": {
     "northeast": 85,
     "midwest": 70,
@@ -171,13 +192,6 @@ const marketRates = {
     "southeast": 85,
     "southwest": 95,
     "west": 120
-  },
-  "computer_repair": {
-    "northeast": 90,
-    "midwest": 75,
-    "southeast": 70,
-    "southwest": 80,
-    "west": 95
   },
   "moving_services": {
     "northeast": 100,
@@ -291,13 +305,15 @@ function renderQuoteGeneratorPage(containerId) {
       { value: 'fence_installer', label: 'Fence Installation' },
       { value: 'pest_control', label: 'Pest Control Services' },
       { value: 'automotive_repair', label: 'Automotive Repair' },
-      { value: 'electronic_repair', label: 'Electronic Repair' },
+      { value: 'electronic_repair', label: 'Electronic Repair (General)' },
+      { value: 'cellphone_repair', label: 'Cellphone Repair' },
+      { value: 'computer_repair', label: 'Computer Repair' },
+      { value: 'tv_repair', label: 'TV Repair' },
       { value: 'beauty_services', label: 'Beauty Services' },
       { value: 'photography', label: 'Photography Services' },
       { value: 'graphic_design', label: 'Graphic Design' },
       { value: 'catering', label: 'Catering Services' },
       { value: 'interior_design', label: 'Interior Design' },
-      { value: 'computer_repair', label: 'Computer Repair' },
       { value: 'moving_services', label: 'Moving Services' },
       { value: 'cleaning_services', label: 'Cleaning Services' }
     ]));
@@ -1352,13 +1368,15 @@ function getJobTypeDisplay(jobType) {
     'fence_installer': 'Fence Installation',
     'pest_control': 'Pest Control Services',
     'automotive_repair': 'Automotive Repair',
-    'electronic_repair': 'Electronic Repair',
+    'electronic_repair': 'Electronic Repair (General)',
+    'cellphone_repair': 'Cellphone Repair',
+    'computer_repair': 'Computer Repair',
+    'tv_repair': 'TV Repair',
     'beauty_services': 'Beauty Services',
     'photography': 'Photography Services',
     'graphic_design': 'Graphic Design',
     'catering': 'Catering Services',
     'interior_design': 'Interior Design',
-    'computer_repair': 'Computer Repair',
     'moving_services': 'Moving Services',
     'cleaning_services': 'Cleaning Services'
   };
