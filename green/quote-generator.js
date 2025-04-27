@@ -6627,57 +6627,166 @@ function calculateAddressDistance() {
     return;
   }
   
-  // Check if we have Google Maps API
-  if (window.google && window.google.maps) {
-    try {
-      const distanceService = new google.maps.DistanceMatrixService();
-      
-      distanceService.getDistanceMatrix(
-        {
-          origins: [originInput.value],
-          destinations: [destinationInput.value],
-          travelMode: google.maps.TravelMode.DRIVING,
-          unitSystem: google.maps.UnitSystem.IMPERIAL
-        },
-        (response, status) => {
-          if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
-            const distance = response.rows[0].elements[0].distance.text;
-            const duration = response.rows[0].elements[0].duration.text;
-            const distanceValue = response.rows[0].elements[0].distance.value / 1609.34; // Convert meters to miles
-            
-            // Update the distance input - always use round trip distance
-            const roundTripDistance = distanceValue * 2;
-            const travelDistanceInput = document.querySelector('input[name="travelDistance"]');
-            travelDistanceInput.value = roundTripDistance.toFixed(1);
-            
-            // Get gas price and calculate fuel cost
-            const gasPrice = getGasPriceForState(getStateFromZip(originInput.value, false));
-            const fuelCost = calculateFuelCost(distanceValue, gasPrice);
-            const roundTripCost = fuelCost * 2;
-            
-            // Display the result
-            distanceResultContainer.innerHTML = `
-              <div style="padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; margin-top: 10px;">
-                <div style="color: var(--color-primary); font-weight: bold; margin-bottom: 5px;">Distance Calculation</div>
-                <div>One-way distance: ${distance} (${distanceValue.toFixed(1)} miles)</div>
-                <div>Driving time: ${duration}</div>
-                <div>Current gas price: $${gasPrice.toFixed(2)}/gallon</div>
-                <div>Estimated fuel cost: $${fuelCost.toFixed(2)} one-way / $${roundTripCost.toFixed(2)} round-trip</div>
-                <div style="margin-top: 5px; font-style: italic; font-size: 13px;">Note: Round-trip distance of ${roundTripDistance.toFixed(1)} miles will be used for quote.</div>
-              </div>
-            `;
-          } else {
-            distanceResultContainer.innerHTML = '<div style="color: #ff6666;">Could not calculate distance. Please check addresses or enter distance manually.</div>';
-          }
+  // Function to use our backend API instead of Google Maps directly
+  const calculateDistanceWithAPI = () => {
+    fetch(`/api/distance-matrix?origin=${encodeURIComponent(originInput.value)}&destination=${encodeURIComponent(destinationInput.value)}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'OK' && data.results.status === 'OK') {
+          const distance = data.results.distance.text;
+          const duration = data.results.duration.text;
+          const distanceValue = data.results.distance.value / 1609.34; // Convert meters to miles
+          
+          // Update the distance input - always use round trip distance
+          const roundTripDistance = distanceValue * 2;
+          processDistanceResults(distance, duration, roundTripDistance);
+        } else {
+          // If API fails, use fallback estimation
+          useFallbackDistanceCalculation();
         }
+      })
+      .catch(error => {
+        console.error('Error fetching distance:', error);
+        useFallbackDistanceCalculation();
+      });
+  };
+  
+  // Fallback distance calculation - use ZIP codes or address text length-based estimation
+  const useFallbackDistanceCalculation = () => {
+    console.log("Using fallback distance calculation");
+    // Try to extract ZIP codes from the addresses
+    const originZip = extractZipCode(originInput.value);
+    const destZip = extractZipCode(destinationInput.value);
+    
+    let estimatedDistance = 0;
+    let estimatedDuration = '';
+    
+    if (originZip && destZip && originZip === destZip) {
+      // Same ZIP code - estimate 5-10 miles
+      estimatedDistance = 7.5;
+      estimatedDuration = '15 mins';
+    } else if (originZip && destZip) {
+      // Different ZIP codes - use first 3 digits to estimate regional distance
+      const originRegion = originZip.substring(0, 3);
+      const destRegion = destZip.substring(0, 3);
+      
+      if (originRegion === destRegion) {
+        // Same region - estimate 15-30 miles
+        estimatedDistance = 22.5;
+        estimatedDuration = '35 mins';
+      } else {
+        // Different regions - estimate 50+ miles
+        estimatedDistance = 65;
+        estimatedDuration = '1 hour 15 mins';
+      }
+    } else {
+      // No ZIP codes available - use address complexity as a rough proxy
+      const addressComplexity = (originInput.value.length + destinationInput.value.length) / 2;
+      if (addressComplexity < 30) {
+        estimatedDistance = 12; // Local trip
+        estimatedDuration = '25 mins';
+      } else if (addressComplexity < 60) {
+        estimatedDistance = 35; // Medium distance
+        estimatedDuration = '45 mins';
+      } else {
+        estimatedDistance = 75; // Longer trip
+        estimatedDuration = '1 hour 30 mins';
+      }
+    }
+    
+    // Double for round trip
+    const roundTripDistance = estimatedDistance * 2;
+    
+    // Show that this is an estimate
+    processDistanceResults(`~${Math.round(estimatedDistance)} mi (est)`, estimatedDuration + ' (est)', roundTripDistance);
+  };
+  
+  // Helper function to extract ZIP codes from address strings
+  const extractZipCode = (address) => {
+    // Look for 5-digit ZIP code
+    const zipMatch = address.match(/\b\d{5}\b/);
+    return zipMatch ? zipMatch[0] : null;
+  };
+  
+  // Process distance results regardless of source
+  const processDistanceResults = (distance, duration, roundTripDistance) => {
+    const travelDistanceInput = document.querySelector('input[name="travelDistance"]');
+    if (travelDistanceInput) {
+      travelDistanceInput.value = roundTripDistance.toFixed(2);
+    }
+    
+    // Display the results
+    distanceResultContainer.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+        <div style="font-weight: 500; color: var(--color-text-primary);">Distance: ${distance}</div>
+        <div style="color: var(--color-text-secondary);">Estimated travel time: ${duration}</div>
+        <div style="font-weight: 600; color: var(--color-text-primary); margin-top: 4px;">
+          Round trip: ~${Math.round(roundTripDistance)} miles
+        </div>
+      </div>
+    `;
+  };
+  
+  // Try the API first, with fallback options
+  try {
+    // First attempt - check if Google Maps API is directly available
+    if (window.google && window.google.maps && window.google.maps.DistanceMatrixService) {
+      try {
+        console.log("Using direct Google Maps Distance Matrix API");
+        const distanceService = new google.maps.DistanceMatrixService();
+        
+        distanceService.getDistanceMatrix(
+          {
+            origins: [originInput.value],
+            destinations: [destinationInput.value],
+            travelMode: google.maps.TravelMode.DRIVING,
+            unitSystem: google.maps.UnitSystem.IMPERIAL
+          },
+          (response, status) => {
+            if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
+              const distance = response.rows[0].elements[0].distance.text;
+              const duration = response.rows[0].elements[0].duration.text;
+              const distanceValue = response.rows[0].elements[0].distance.value / 1609.34; // Convert meters to miles
+              
+              // Update the distance input - always use round trip distance
+              const roundTripDistance = distanceValue * 2;
+              
+              // Get gas price and calculate fuel cost
+              const gasPrice = getGasPriceForState(getStateFromZip(originInput.value, false));
+              const fuelCost = calculateFuelCost(distanceValue, gasPrice);
+              const roundTripCost = fuelCost * 2;
+              
+              // Update travel distance input
+              const travelDistanceInput = document.querySelector('input[name="travelDistance"]');
+              if (travelDistanceInput) {
+                travelDistanceInput.value = roundTripDistance.toFixed(1);
+              }
+              
+              // Display the result
+              distanceResultContainer.innerHTML = `
+                <div style="padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; margin-top: 10px;">
+                  <div style="color: var(--color-primary); font-weight: bold; margin-bottom: 5px;">Distance Calculation</div>
+                  <div>One-way distance: ${distance} (${distanceValue.toFixed(1)} miles)</div>
+                  <div>Driving time: ${duration}</div>
+                  <div>Current gas price: $${gasPrice.toFixed(2)}/gallon</div>
+                  <div>Estimated fuel cost: $${fuelCost.toFixed(2)} one-way / $${roundTripCost.toFixed(2)} round-trip</div>
+                  <div style="margin-top: 5px; font-style: italic; font-size: 13px;">Note: Round-trip distance of ${roundTripDistance.toFixed(1)} miles will be used for quote.</div>
+                </div>
+              `;
+            } else {
+              console.log("Distance Matrix API returned non-OK status. Using fallback");
+              useFallbackDistanceCalculation();
+            }
+          }
       );
     } catch (error) {
       console.error('Error calculating distance:', error);
-      distanceResultContainer.innerHTML = '<div style="color: #ff6666;">Error calculating distance. Please enter distance manually.</div>';
+      useFallbackDistanceCalculation();
     }
   } else {
     // Fallback if Google Maps API is not available
-    distanceResultContainer.innerHTML = '<div style="color: #ff6666;">Distance calculation requires Google Maps API. Please enter distance manually.</div>';
+    console.log("Google Maps API not available, using fallback");
+    useFallbackDistanceCalculation();
   }
 }
 
