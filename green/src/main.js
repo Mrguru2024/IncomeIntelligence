@@ -3664,6 +3664,36 @@ function renderPageContent(container) {
           container.appendChild(createErrorMessage('Failed to load guardrails module'));
         });
         break;
+      
+      case 'user-profile':
+        // Import and render the user profile page
+        console.log('Loading user profile page...');
+        const profileContainer = document.createElement('div');
+        profileContainer.id = 'profile-page-container';
+        container.appendChild(profileContainer);
+        
+        import('../user-profile-page.js').then(module => {
+          module.initializeProfilePage();
+        }).catch(error => {
+          console.error('Error loading user profile module:', error);
+          container.appendChild(createErrorMessage('Failed to load user profile module'));
+        });
+        break;
+        
+      case 'mentorship':
+        // Import and render the financial mentorship platform
+        console.log('Loading financial mentorship platform...');
+        const mentorshipContainer = document.createElement('div');
+        mentorshipContainer.id = 'mentorship-container';
+        container.appendChild(mentorshipContainer);
+        
+        import('../financial-mentorship.js').then(module => {
+          module.initializeMentorshipPlatform();
+        }).catch(error => {
+          console.error('Error loading financial mentorship module:', error);
+          container.appendChild(createErrorMessage('Failed to load financial mentorship module'));
+        });
+        break;
       case 'gigs':
         container.appendChild(renderGigsPage());
         break;
