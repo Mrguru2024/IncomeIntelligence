@@ -2605,8 +2605,11 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
     materialsCost: quote.materialsCost * 0.3,
     serviceFee: quote.total * 0.05,
     warrantyFee: tierName === 'Premium' ? quote.total * 0.08 : (tierName === 'Standard' ? quote.total * 0.05 : 0),
-    consultationFee: tierName === 'Premium' ? 35 : (tierName === 'Standard' ? 25 : 0),
-    emergencyFee: quote.emergency ? quote.total * 0.1 : 0
+    consultationFee: tierName === 'Premium' ? 35 : (tierName === 'Standard' ? 25 : 15),
+    emergencyFee: quote.emergency ? quote.total * 0.1 : 0,
+    expertiseFee: quote.experienceLevel === 'expert' ? 45 : (quote.experienceLevel === 'senior' ? 35 : 20),
+    insuranceCost: tierName === 'Premium' ? 30 : (tierName === 'Standard' ? 20 : 10),
+    supportFee: tierName === 'Premium' ? 25 : (tierName === 'Standard' ? 15 : 5)
   };
   
   const featuresList = document.createElement('ul');
@@ -2741,13 +2744,62 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   
   // Add itemized cost calculations if toggled on
   if (showCosts) {
+    // Add a section header for the cost breakdown
+    const breakdownHeader = document.createElement('li');
+    breakdownHeader.style.paddingTop = '12px';
+    breakdownHeader.style.marginTop = '8px';
+    breakdownHeader.style.marginBottom = '8px';
+    breakdownHeader.style.borderTop = '1px dashed var(--color-border-light, #e5e7eb)';
+    breakdownHeader.style.fontSize = '14px';
+    breakdownHeader.style.fontWeight = '600';
+    breakdownHeader.style.color = 'var(--color-text-secondary, #4b5563)';
+    breakdownHeader.textContent = 'Feature Cost Breakdown';
+    featuresList.appendChild(breakdownHeader);
+    
     // Calculate the total of all feature costs
     let featureTotal = 0;
-    displayFeatures.forEach((_, index) => {
+    const featureCostItems = [];
+    
+    displayFeatures.forEach((feature, index) => {
       const costKeys = Object.keys(featureCosts);
       const costKey = costKeys[index % costKeys.length];
       const cost = featureCosts[costKey] / Math.min(originalFeatures.length, 5);
       featureTotal += cost;
+      
+      // Store the cost with feature name for itemized display
+      featureCostItems.push({
+        feature: feature,
+        costName: costKey,
+        cost: cost
+      });
+    });
+    
+    // Add itemized feature costs
+    featureCostItems.forEach(item => {
+      const costItem = document.createElement('li');
+      costItem.style.display = 'flex';
+      costItem.style.justifyContent = 'space-between';
+      costItem.style.padding = '4px 8px';
+      costItem.style.fontSize = '13px';
+      
+      const costLabel = document.createElement('span');
+      // Format the cost key for display (e.g., "serviceCost" -> "Service Cost")
+      const formattedCostName = item.costName
+        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+        .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+        .replace(/Cost$|Fee$/i, '') // Remove "Cost" or "Fee" suffix
+        .trim();
+      
+      costLabel.textContent = `${formattedCostName}`;
+      costLabel.style.color = 'var(--color-text-secondary, #4b5563)';
+      
+      const costValue = document.createElement('span');
+      costValue.textContent = `$${item.cost.toFixed(2)}`;
+      costValue.style.fontWeight = '500';
+      
+      costItem.appendChild(costLabel);
+      costItem.appendChild(costValue);
+      featuresList.appendChild(costItem);
     });
     
     // Add a total line
@@ -2755,9 +2807,11 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
     totalItem.style.display = 'flex';
     totalItem.style.justifyContent = 'space-between';
     totalItem.style.alignItems = 'center';
-    totalItem.style.marginTop = '10px';
-    totalItem.style.padding = '6px 8px';
+    totalItem.style.marginTop = '12px';
+    totalItem.style.padding = '8px';
     totalItem.style.borderTop = '1px solid var(--color-border-light, #e5e7eb)';
+    totalItem.style.backgroundColor = 'rgba(243, 244, 246, 0.5)';
+    totalItem.style.borderRadius = '4px';
     totalItem.style.fontWeight = 'bold';
     
     const totalText = document.createElement('span');
@@ -2819,6 +2873,18 @@ if (quote.editable) {
   }
   
   cardBody.appendChild(featuresList);
+  
+  // Add a heading for the quote breakdown section
+  const breakdownHeading = document.createElement('div');
+  breakdownHeading.style.fontSize = '15px';
+  breakdownHeading.style.fontWeight = 'bold';
+  breakdownHeading.style.marginTop = '24px';
+  breakdownHeading.style.marginBottom = '12px';
+  breakdownHeading.style.padding = '8px';
+  breakdownHeading.style.borderBottom = '2px solid var(--color-border-light, #e5e7eb)';
+  breakdownHeading.style.color = 'var(--color-text, #111827)';
+  breakdownHeading.textContent = 'Quote Breakdown';
+  cardBody.appendChild(breakdownHeading);
   
   // Create service-specific breakdown items for display
   const breakdownItems = [];
@@ -2967,6 +3033,34 @@ if (quote.editable) {
   actions.style.gap = '8px';
   actions.style.flexWrap = 'wrap';
   
+  // AI Insights button
+  const aiInsightsButton = document.createElement('button');
+  aiInsightsButton.textContent = 'AI Insights';
+  aiInsightsButton.style.backgroundColor = '#10b981'; // Green color for AI insights
+  aiInsightsButton.style.color = 'white';
+  aiInsightsButton.style.border = 'none';
+  aiInsightsButton.style.borderRadius = '6px';
+  aiInsightsButton.style.padding = '8px 16px';
+  aiInsightsButton.style.fontSize = '14px';
+  aiInsightsButton.style.cursor = 'pointer';
+  aiInsightsButton.style.display = 'flex';
+  aiInsightsButton.style.alignItems = 'center';
+  aiInsightsButton.style.justifyContent = 'center';
+  aiInsightsButton.style.width = '100%';
+  aiInsightsButton.style.marginBottom = '12px';
+  
+  // Add a small icon to the button
+  const aiIcon = document.createElement('span');
+  aiIcon.textContent = '🧠 ';
+  aiIcon.style.marginRight = '4px';
+  aiInsightsButton.prepend(aiIcon);
+  
+  aiInsightsButton.addEventListener('click', () => {
+    // Generate AI recommendations for this specific tier
+    const recommendations = generateAIRecommendations(quote);
+    showAIRecommendations(recommendations, tierName);
+  });
+  
   // Select button
   const selectButton = document.createElement('button');
   selectButton.textContent = 'Select';
@@ -3015,6 +3109,15 @@ if (quote.editable) {
     saveQuote(quote, tierName);
   });
   
+  // First add the AI Insights button in its own row
+  const aiButtonRow = document.createElement('div');
+  aiButtonRow.style.display = 'flex';
+  aiButtonRow.style.width = '100%';
+  aiButtonRow.style.marginBottom = '12px';
+  aiButtonRow.appendChild(aiInsightsButton);
+  actions.appendChild(aiButtonRow);
+  
+  // Then add the other buttons
   actions.appendChild(selectButton);
   actions.appendChild(printButton);
   
