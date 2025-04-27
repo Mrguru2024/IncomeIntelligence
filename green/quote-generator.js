@@ -122,6 +122,76 @@ const marketRates = {
     "southeast": 60,
     "southwest": 70,
     "west": 85
+  },
+  "automotive_repair": {
+    "northeast": 110,
+    "midwest": 90,
+    "southeast": 85,
+    "southwest": 95,
+    "west": 115
+  },
+  "electronic_repair": {
+    "northeast": 95,
+    "midwest": 80,
+    "southeast": 75,
+    "southwest": 85,
+    "west": 100
+  },
+  "beauty_services": {
+    "northeast": 85,
+    "midwest": 70,
+    "southeast": 65,
+    "southwest": 75,
+    "west": 90
+  },
+  "photography": {
+    "northeast": 125,
+    "midwest": 100,
+    "southeast": 95,
+    "southwest": 110,
+    "west": 135
+  },
+  "graphic_design": {
+    "northeast": 115,
+    "midwest": 95,
+    "southeast": 90,
+    "southwest": 100,
+    "west": 125
+  },
+  "catering": {
+    "northeast": 95,
+    "midwest": 80,
+    "southeast": 75,
+    "southwest": 85,
+    "west": 100
+  },
+  "interior_design": {
+    "northeast": 110,
+    "midwest": 90,
+    "southeast": 85,
+    "southwest": 95,
+    "west": 120
+  },
+  "computer_repair": {
+    "northeast": 90,
+    "midwest": 75,
+    "southeast": 70,
+    "southwest": 80,
+    "west": 95
+  },
+  "moving_services": {
+    "northeast": 100,
+    "midwest": 85,
+    "southeast": 80,
+    "southwest": 90,
+    "west": 110
+  },
+  "cleaning_services": {
+    "northeast": 80,
+    "midwest": 65,
+    "southeast": 60,
+    "southwest": 70,
+    "west": 85
   }
 };
 
@@ -219,11 +289,23 @@ function renderQuoteGeneratorPage(containerId) {
       { value: 'pool_service', label: 'Pool Services' },
       { value: 'handyman', label: 'Handyman Services' },
       { value: 'fence_installer', label: 'Fence Installation' },
-      { value: 'pest_control', label: 'Pest Control Services' }
+      { value: 'pest_control', label: 'Pest Control Services' },
+      { value: 'automotive_repair', label: 'Automotive Repair' },
+      { value: 'electronic_repair', label: 'Electronic Repair' },
+      { value: 'beauty_services', label: 'Beauty Services' },
+      { value: 'photography', label: 'Photography Services' },
+      { value: 'graphic_design', label: 'Graphic Design' },
+      { value: 'catering', label: 'Catering Services' },
+      { value: 'interior_design', label: 'Interior Design' },
+      { value: 'computer_repair', label: 'Computer Repair' },
+      { value: 'moving_services', label: 'Moving Services' },
+      { value: 'cleaning_services', label: 'Cleaning Services' }
     ]));
     
     // Location field
-    const locationGroup = createFormGroup('Location', createInput('text', 'location', '', 'ZIP code or City, State'));
+    const locationInput = createInput('text', 'location', '', 'ZIP code or City, State');
+    locationInput.id = 'auto-address-input'; // Add ID for Google Maps autocomplete
+    const locationGroup = createFormGroup('Location', locationInput);
     
     // Labor hours field
     const laborHoursGroup = createFormGroup('Labor Hours', createInput('number', 'laborHours', '1', 'Estimated hours', '0.5', '100', '0.5'));
@@ -329,10 +411,71 @@ function renderQuoteGeneratorPage(containerId) {
       resultsContainer.style.display = 'none';
     });
     
+    // Initialize Google Maps autocomplete if available
+    initGoogleMapsAutocomplete();
+    
     console.log('Quote Generator page rendered successfully');
   } catch (error) {
     console.error('Error rendering Quote Generator page:', error);
     throw error;
+  }
+}
+
+/**
+ * Initialize Google Maps Autocomplete for the location field
+ */
+function initGoogleMapsAutocomplete() {
+  try {
+    // Check if Google Maps API is loaded
+    if (typeof google === 'undefined' || typeof google.maps === 'undefined' || 
+        typeof google.maps.places === 'undefined') {
+      console.log('Google Maps Places API not loaded yet, will try again shortly');
+      
+      // Try again in 1 second
+      setTimeout(initGoogleMapsAutocomplete, 1000);
+      return;
+    }
+
+    const addressInput = document.getElementById('auto-address-input');
+    if (!addressInput) {
+      console.error('Address input field not found');
+      return;
+    }
+
+    console.log('Initializing Google Maps autocomplete for address input');
+    
+    // Create the autocomplete object
+    const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+      types: ['address'],
+      componentRestrictions: { country: 'us' }
+    });
+    
+    // Set fields to get formatted address and state
+    autocomplete.setFields(['formatted_address', 'address_components']);
+    
+    // Add listener for place changed event
+    autocomplete.addListener('place_changed', function() {
+      const place = autocomplete.getPlace();
+      
+      if (!place.address_components) {
+        console.error('No address details available for this place');
+        return;
+      }
+      
+      // Update the input field with the formatted address
+      addressInput.value = place.formatted_address;
+      
+      // Trigger an input event to update any validators
+      const event = new Event('input', { bubbles: true });
+      addressInput.dispatchEvent(event);
+      
+      console.log('Address selected:', place.formatted_address);
+    });
+    
+    console.log('Google Maps autocomplete initialized successfully');
+  } catch (error) {
+    console.error('Error initializing Google Maps autocomplete:', error);
+    // Don't throw error to avoid breaking the entire application
   }
 }
 
@@ -1207,7 +1350,17 @@ function getJobTypeDisplay(jobType) {
     'pool_service': 'Pool Services',
     'handyman': 'Handyman Services',
     'fence_installer': 'Fence Installation',
-    'pest_control': 'Pest Control Services'
+    'pest_control': 'Pest Control Services',
+    'automotive_repair': 'Automotive Repair',
+    'electronic_repair': 'Electronic Repair',
+    'beauty_services': 'Beauty Services',
+    'photography': 'Photography Services',
+    'graphic_design': 'Graphic Design',
+    'catering': 'Catering Services',
+    'interior_design': 'Interior Design',
+    'computer_repair': 'Computer Repair',
+    'moving_services': 'Moving Services',
+    'cleaning_services': 'Cleaning Services'
   };
   
   return displayNames[jobType] || jobType;
@@ -1222,6 +1375,7 @@ window.QuoteGenerator = {
   createFormGroup,
   createSelect,
   createInput,
+  initGoogleMapsAutocomplete,
   showToast: function(message, type) {
     if (window.showToast) {
       window.showToast(message, type);
