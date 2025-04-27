@@ -12,6 +12,17 @@ console.log('Quote Generator module initialized');
 // Global variable to store last form data for refreshes
 let lastQuoteFormData = null;
 
+// Add event listener for user profile updates
+window.addEventListener('userProfileUpdated', (event) => {
+  console.log('User profile updated event received in quote generator:', event.detail);
+  
+  // If we have form data, refresh the quotes with the updated profile
+  if (lastQuoteFormData) {
+    console.log('Refreshing quotes with updated profile data');
+    window.refreshQuotes();
+  }
+});
+
 /**
  * Refreshes quotes using the last form data
  * Called by other modules when user profile changes
@@ -1067,6 +1078,9 @@ function initGoogleMapsAutocomplete() {
  */
 function handleGenerateQuote() {
   try {
+    // Ensure user profile is initialized
+    ensureUserProfileInitialized();
+    
     // Get form values
     const jobTypeSelect = document.querySelector('#quote-form select[name="jobType"]');
     const jobSubtypeSelect = document.querySelector('#quote-form select[name="jobSubtype"]');
@@ -1129,6 +1143,10 @@ function handleGenerateQuote() {
       emergency: emergencyCheckbox.checked,
       targetMargin: parseInt(targetMarginInput.value)
     };
+    
+    // Store form data for later refreshes
+    lastQuoteFormData = {...formData};
+    console.log('Storing form data for future refreshes:', lastQuoteFormData);
     
     // Generate multiple quotes
     const quotes = generateMultiQuote(formData);
@@ -4736,6 +4754,110 @@ function createInvoiceFromQuote(quote) {
  * Get state abbreviation from location string
  * @param {string} location - Location string (ZIP or City, State)
  * @returns {string} Two-letter state code
+ */
+/**
+ * Ensures that a user profile is initialized
+ * Will attempt to initialize if not already done
+ */
+function ensureUserProfileInitialized() {
+  try {
+    // Check if user profile module is available in window.modules
+    if (window.modules && window.modules['user-profile']) {
+      const userProfileModule = window.modules['user-profile'];
+      const currentProfile = userProfileModule.getCurrentProfile();
+      
+      // If no profile is loaded, try to initialize it
+      if (!currentProfile) {
+        console.log('No user profile found, attempting to initialize');
+        
+        // Try to get user ID from various sources
+        let userId = null;
+        
+        // First try window.appState
+        if (window.appState && window.appState.user && window.appState.user.id) {
+          userId = window.appState.user.id;
+          console.log('Using user ID from window.appState:', userId);
+        } 
+        // Then try localStorage
+        else {
+          try {
+            const userData = localStorage.getItem('stackrUser');
+            if (userData) {
+              const user = JSON.parse(userData);
+              if (user && user.id) {
+                userId = user.id;
+                console.log('Using user ID from localStorage:', userId);
+              }
+            }
+          } catch (error) {
+            console.error('Error parsing user data from localStorage:', error);
+          }
+        }
+        
+        // If we found a user ID, initialize the profile
+        if (userId) {
+          userProfileModule.initUserProfile(userId)
+            .then(profile => {
+              console.log('User profile initialized from quote generator:', profile ? 'success' : 'failed');
+            })
+            .catch(err => {
+              console.error('Error initializing user profile from quote generator:', err);
+            });
+        } else {
+          // Create a temporary ID if none found
+          const tempId = `temp-${Date.now()}`;
+          console.log('Creating temporary user ID for profile:', tempId);
+          
+          userProfileModule.initUserProfile(tempId)
+            .then(profile => {
+              console.log('User profile initialized with temporary ID:', profile ? 'success' : 'failed');
+            })
+            .catch(err => {
+              console.error('Error initializing user profile with temporary ID:', err);
+            });
+        }
+      } else {
+        console.log('User profile already loaded:', currentProfile);
+      }
+    } else {
+      console.log('User profile module not available in window.modules');
+      
+      // Try to dynamically import the module
+      import('/green/user-profile.js')
+        .then(module => {
+          // Store for future use
+          if (!window.modules) window.modules = {};
+          window.modules['user-profile'] = module;
+          
+          console.log('User profile module imported dynamically');
+          
+          // Initialize user profile from various sources
+          const userId = window.appState?.user?.id || 
+                        (localStorage.getItem('stackrUser') ? 
+                          JSON.parse(localStorage.getItem('stackrUser'))?.id : null) || 
+                        `temp-${Date.now()}`;
+                        
+          module.initUserProfile(userId)
+            .then(profile => {
+              console.log('User profile initialized after dynamic import:', profile ? 'success' : 'failed');
+            })
+            .catch(err => {
+              console.error('Error initializing user profile after dynamic import:', err);
+            });
+        })
+        .catch(err => {
+          console.error('Error importing user profile module:', err);
+        });
+    }
+  } catch (error) {
+    console.error('Error in ensureUserProfileInitialized:', error);
+  }
+}
+
+/**
+ * Get state abbreviation from a full location string
+ * @param {string} location - Full address string
+ * @returns {string} State abbreviation or default "NY"
  */
 function getStateFromLocation(location) {
   // Check if location includes a comma (City, State format)

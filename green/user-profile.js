@@ -8,6 +8,90 @@
 let currentUserProfile = null;
 let userId = null;
 
+// Auto-initialize with default user ID on load if window.appState exists
+(function initializeUserProfileOnLoad() {
+  try {
+    console.log('Auto-initializing user profile module...');
+    
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeUserProfileFromWindowState);
+    } else {
+      initializeUserProfileFromWindowState();
+    }
+    
+    // Also set up a window event listener for when appState might be updated later
+    window.addEventListener('appStateUpdated', function(event) {
+      console.log('App state updated, reinitializing user profile');
+      initializeUserProfileFromWindowState();
+    });
+  } catch (error) {
+    console.error('Error in auto-initialization of user profile:', error);
+  }
+})();
+
+/**
+ * Initialize user profile from window state
+ * This runs automatically and also when app state changes
+ */
+function initializeUserProfileFromWindowState() {
+  try {
+    // Check if appState and user exist
+    if (window.appState && window.appState.user && window.appState.user.id) {
+      console.log('Found user ID in window.appState:', window.appState.user.id);
+      
+      // Only initialize if it's not already initialized or if ID changed
+      if (!userId || userId !== window.appState.user.id) {
+        initUserProfile(window.appState.user.id)
+          .then(profile => {
+            console.log('User profile automatically initialized:', profile ? 'success' : 'failed');
+          })
+          .catch(err => {
+            console.error('Error auto-initializing user profile:', err);
+          });
+      }
+    } else {
+      // Try to get user ID from localStorage as fallback
+      const userData = localStorage.getItem('stackrUser');
+      if (userData) {
+        try {
+          const user = JSON.parse(userData);
+          if (user && user.id) {
+            console.log('Found user ID in localStorage:', user.id);
+            
+            // Only initialize if it's not already initialized or if ID changed
+            if (!userId || userId !== user.id) {
+              initUserProfile(user.id)
+                .then(profile => {
+                  console.log('User profile initialized from localStorage:', profile ? 'success' : 'failed');
+                })
+                .catch(err => {
+                  console.error('Error initializing user profile from localStorage:', err);
+                });
+            }
+          }
+        } catch (error) {
+          console.error('Error parsing user data from localStorage:', error);
+        }
+      } else {
+        console.log('No user ID found in window.appState or localStorage, using temporary ID');
+        
+        // Create a temporary ID and initialize
+        const tempId = `temp-${Date.now()}`;
+        initUserProfile(tempId)
+          .then(profile => {
+            console.log('User profile initialized with temporary ID:', profile ? 'success' : 'failed');
+          })
+          .catch(err => {
+            console.error('Error initializing user profile with temporary ID:', err);
+          });
+      }
+    }
+  } catch (error) {
+    console.error('Error in initializeUserProfileFromWindowState:', error);
+  }
+}
+
 /**
  * Initialize the user profile module
  * @param {string} currentUserId - The current user's ID
