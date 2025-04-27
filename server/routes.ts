@@ -58,8 +58,8 @@ import { registerPerplexityRoutes } from "./routes/perplexity-routes";
 import { registerOpenAIRoutes } from "./routes/openai-routes";
 import { registerAIStatusRoutes } from "./routes/ai-status-routes";
 import { registerExportRoutes } from "./routes/export-routes";
-import { sendEmail, sendPaymentConfirmationEmail } from "./email-service";
 import userProfileRoutes from "./routes/user-profile-routes";
+import { sendEmail, sendPaymentConfirmationEmail } from "./email-service";
 // Guardrails removed as requested
 import Stripe from "stripe";
 // Express already imported at top
