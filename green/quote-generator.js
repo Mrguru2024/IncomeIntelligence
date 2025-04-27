@@ -6791,6 +6791,340 @@ function calculateAddressDistance() {
 }
 
 /**
+ * Uses the server-side API to get distance between two locations
+ * @param {string} origin - Origin address or ZIP code
+ * @param {string} destination - Destination address or ZIP code
+ * @returns {Promise<Object>} - Distance calculation result
+ */
+async function getDistanceFromApi(origin, destination) {
+  try {
+    // Make a request to our server-side distance matrix endpoint
+    const url = `/api/distance-matrix?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('Server returned error:', response.status);
+      return { status: 'ERROR', error: `Server returned status ${response.status}` };
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting distance from API:', error);
+    return { status: 'ERROR', error: error.message || 'Network error occurred' };
+  }
+}
+
+/**
+ * Calculate distance between locations using fallback methods when the maps API is unavailable
+ * @param {string} origin - Origin address or ZIP code
+ * @param {string} destination - Destination address or ZIP code
+ */
+async function useFallbackDistanceCalculation() {
+  const originInput = document.querySelector('input[name="startLocation"]');
+  const destinationInput = document.querySelector('input[name="endLocation"]');
+  const distanceResultContainer = document.getElementById('distanceResult');
+  
+  if (!originInput || !destinationInput) {
+    console.error('Location inputs not found');
+    return;
+  }
+  
+  // Attempt to use our server-side API first (which has its own fallbacks)
+  try {
+    console.log('Using server-side distance matrix API');
+    const result = await getDistanceFromApi(originInput.value, destinationInput.value);
+    
+    if (result.status === 'OK' && result.results) {
+      const distance = result.results.distance.text;
+      const duration = result.results.duration.text;
+      const distanceValue = result.results.distance.value / 1609.34; // Convert meters to miles
+      
+      // Update the distance input - always use round trip distance
+      const roundTripDistance = distanceValue * 2;
+      
+      // Get gas price and calculate fuel cost
+      const gasPrice = getGasPriceForState(getStateFromZip(originInput.value, false));
+      const fuelCost = calculateFuelCost(distanceValue, gasPrice);
+      const roundTripCost = fuelCost * 2;
+      
+      // Update travel distance input
+      const travelDistanceInput = document.querySelector('input[name="travelDistance"]');
+      if (travelDistanceInput) {
+        travelDistanceInput.value = roundTripDistance.toFixed(1);
+      }
+      
+      // Display the result
+      distanceResultContainer.innerHTML = `
+        <div style="padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; margin-top: 10px;">
+          <div style="color: var(--color-primary); font-weight: bold; margin-bottom: 5px;">Distance Calculation</div>
+          <div>One-way distance: ${distance} (${distanceValue.toFixed(1)} miles)</div>
+          <div>Driving time: ${duration}</div>
+          <div>Current gas price: $${gasPrice.toFixed(2)}/gallon</div>
+          <div>Estimated fuel cost: $${fuelCost.toFixed(2)} one-way / $${roundTripCost.toFixed(2)} round-trip</div>
+          <div style="margin-top: 5px; font-style: italic; font-size: 13px;">Note: Round-trip distance of ${roundTripDistance.toFixed(1)} miles will be used for quote.</div>
+        </div>
+      `;
+      return;
+    }
+  } catch (error) {
+    console.error('Server API fallback failed:', error);
+  }
+  
+  // If server-side API fails, use ZIP code distance calculation as fallback
+  try {
+    console.log('Using ZIP code distance fallback');
+    // Check if both inputs might be ZIP codes
+    const originZip = extractZipCode(originInput.value);
+    const destZip = extractZipCode(destinationInput.value);
+    
+    if (originZip && destZip) {
+      // We have what look like ZIP codes, use ZIP distance calculation
+      const distance = estimateDistanceByZip(originZip, destZip);
+      
+      if (distance > 0) {
+        // We got a valid distance estimation
+        // Get gas price and calculate fuel cost
+        const gasPrice = getGasPriceForState(getStateFromZip(originZip, false));
+        const fuelCost = calculateFuelCost(distance, gasPrice);
+        const roundTripDistance = distance * 2;
+        const roundTripCost = fuelCost * 2;
+        
+        // Approximate driving time (average 50 mph)
+        const drivingHours = Math.floor(distance / 50);
+        const drivingMinutes = Math.round((distance / 50 - drivingHours) * 60);
+        const drivingTime = drivingHours > 0 
+          ? `${drivingHours} hour${drivingHours > 1 ? 's' : ''} ${drivingMinutes} min` 
+          : `${drivingMinutes} min`;
+        
+        // Update travel distance input
+        const travelDistanceInput = document.querySelector('input[name="travelDistance"]');
+        if (travelDistanceInput) {
+          travelDistanceInput.value = roundTripDistance.toFixed(1);
+        }
+        
+        // Display the result
+        distanceResultContainer.innerHTML = `
+          <div style="padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; margin-top: 10px;">
+            <div style="color: var(--color-primary); font-weight: bold; margin-bottom: 5px;">Distance Calculation (Estimated from ZIP Codes)</div>
+            <div>One-way distance: ~${distance.toFixed(1)} miles</div>
+            <div>Approx. driving time: ${drivingTime}</div>
+            <div>Current gas price: $${gasPrice.toFixed(2)}/gallon</div>
+            <div>Estimated fuel cost: $${fuelCost.toFixed(2)} one-way / $${roundTripCost.toFixed(2)} round-trip</div>
+            <div style="margin-top: 5px; font-style: italic; font-size: 13px;">Note: Round-trip distance of ${roundTripDistance.toFixed(1)} miles will be used for quote.</div>
+          </div>
+        `;
+        return;
+      }
+    }
+  } catch (zipError) {
+    console.error('ZIP code fallback failed:', zipError);
+  }
+  
+  // Last resort - estimate based on address complexity
+  try {
+    console.log('Using address complexity fallback');
+    // Rough estimate based on address complexity and whether it looks like same city
+    let estimatedDistance = 15; // Default to 15 miles
+    
+    // Adjust based on if they appear to be in the same city
+    if (isSameCity(originInput.value, destinationInput.value)) {
+      estimatedDistance = 8; // Shorter if same city
+    } else if (isDifferentState(originInput.value, destinationInput.value)) {
+      estimatedDistance = 50; // Much longer if different states
+    }
+    
+    // Get gas price and calculate fuel cost
+    const gasPrice = 3.85; // Use national average
+    const fuelCost = calculateFuelCost(estimatedDistance, gasPrice);
+    const roundTripDistance = estimatedDistance * 2;
+    const roundTripCost = fuelCost * 2;
+    
+    // Update travel distance input
+    const travelDistanceInput = document.querySelector('input[name="travelDistance"]');
+    if (travelDistanceInput) {
+      travelDistanceInput.value = roundTripDistance.toFixed(1);
+    }
+    
+    // Display the result
+    distanceResultContainer.innerHTML = `
+      <div style="padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; margin-top: 10px;">
+        <div style="color: var(--color-primary); font-weight: bold; margin-bottom: 5px;">Distance Calculation (Rough Estimate)</div>
+        <div>One-way distance: ~${estimatedDistance.toFixed(1)} miles</div>
+        <div>Approx. driving time: ${Math.ceil(estimatedDistance / 30)} min</div>
+        <div>Est. fuel cost: $${fuelCost.toFixed(2)} one-way / $${roundTripCost.toFixed(2)} round-trip</div>
+        <div style="margin-top: 5px; font-style: italic; font-size: 13px; color: #664;">This is a rough estimate. Please adjust manually if needed.</div>
+      </div>
+    `;
+  } catch (finalError) {
+    console.error('All fallbacks failed:', finalError);
+    distanceResultContainer.innerHTML = `
+      <div style="padding: 10px; border: 1px solid #fcc; background: #fff6f6; border-radius: 8px; margin-top: 10px;">
+        <div style="color: #c33; font-weight: bold; margin-bottom: 5px;">Unable to Calculate Distance</div>
+        <div>Please enter the estimated travel distance manually or try more specific addresses.</div>
+      </div>
+    `;
+  }
+}
+
+/**
+ * Helper functions for fallback distance calculation
+ */
+function extractZipCode(address) {
+  // Extract US ZIP code (5 digits, optionally followed by hyphen and 4 more digits)
+  const zipMatch = address.match(/\b\d{5}(-\d{4})?\b/);
+  return zipMatch ? zipMatch[0].substring(0, 5) : null;
+}
+
+function isSameCity(addr1, addr2) {
+  // Check if both addresses contain the same city name
+  const cleanAddr1 = addr1.toLowerCase();
+  const cleanAddr2 = addr2.toLowerCase();
+  
+  // Common city-state pairs that might appear in addresses
+  const cityMatches = [
+    'new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia', 'san antonio',
+    'san diego', 'dallas', 'san jose', 'austin', 'jacksonville', 'fort worth', 'columbus', 
+    'san francisco', 'charlotte', 'indianapolis', 'seattle', 'denver', 'washington dc'
+  ];
+  
+  // Check if any city name appears in both addresses
+  return cityMatches.some(city => cleanAddr1.includes(city) && cleanAddr2.includes(city));
+}
+
+function isDifferentState(addr1, addr2) {
+  // Check if addresses contain different state abbreviations
+  const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 
+                 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 
+                 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 
+                 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
+  
+  // Get state abbreviations from each address
+  const state1 = states.find(st => new RegExp(`\\b${st}\\b`).test(addr1.toUpperCase()));
+  const state2 = states.find(st => new RegExp(`\\b${st}\\b`).test(addr2.toUpperCase()));
+  
+  // If we found state abbreviations in both and they're different, return true
+  return state1 && state2 && state1 !== state2;
+}
+
+/**
+ * Estimate driving distance between two US ZIP codes
+ * @param {string} zipcode1 - First ZIP code
+ * @param {string} zipcode2 - Second ZIP code
+ * @returns {number} Estimated distance in miles
+ */
+function estimateDistanceByZip(zipcode1, zipcode2) {
+  // If same ZIP code, return a small local distance
+  if (zipcode1 === zipcode2) {
+    return 5; // 5 miles within same ZIP
+  }
+  
+  // Get latitude and longitude for ZIP codes
+  const coords1 = getZipCoordinates(zipcode1);
+  const coords2 = getZipCoordinates(zipcode2);
+  
+  if (!coords1 || !coords2) {
+    return -1; // Invalid ZIP code
+  }
+  
+  // Calculate distance using Haversine formula
+  const distance = calculateHaversineDistance(
+    coords1.latitude, coords1.longitude,
+    coords2.latitude, coords2.longitude
+  );
+  
+  // Add 30% to the straight-line distance to account for road routes
+  return distance * 1.3;
+}
+
+/**
+ * Get latitude and longitude for a ZIP code
+ * @param {string} zipcode - ZIP code
+ * @returns {Object|null} Coordinates or null if not found
+ */
+function getZipCoordinates(zipcode) {
+  // Approximate coordinates for common ZIP code prefixes (first 3 digits)
+  // This is a simplified version - a full system would have all ZIP code coordinates
+  const zipPrefixCoords = {
+    // Northeast
+    '100': { latitude: 40.7128, longitude: -74.0060 }, // NYC
+    '021': { latitude: 42.3601, longitude: -71.0589 }, // Boston
+    '191': { latitude: 39.9526, longitude: -75.1652 }, // Philadelphia
+    
+    // South
+    '302': { latitude: 38.9072, longitude: -77.0369 }, // DC
+    '770': { latitude: 33.7490, longitude: -84.3880 }, // Atlanta
+    '330': { latitude: 25.7617, longitude: -80.1918 }, // Miami
+    
+    // Midwest
+    '606': { latitude: 41.8781, longitude: -87.6298 }, // Chicago
+    '482': { latitude: 42.3314, longitude: -83.0458 }, // Detroit
+    '631': { latitude: 38.6270, longitude: -90.1994 }, // St. Louis
+    
+    // West
+    '900': { latitude: 34.0522, longitude: -118.2437 }, // Los Angeles
+    '941': { latitude: 37.7749, longitude: -122.4194 }, // San Francisco
+    '980': { latitude: 47.6062, longitude: -122.3321 }, // Seattle
+    
+    // Southwest
+    '750': { latitude: 32.7767, longitude: -96.7970 }, // Dallas
+    '770': { latitude: 29.7604, longitude: -95.3698 }, // Houston
+    '850': { latitude: 33.4484, longitude: -112.0740 }  // Phoenix
+  };
+  
+  // Get prefix (first 3 digits)
+  const prefix = zipcode.substring(0, 3);
+  
+  // If exact prefix isn't found, try to find the closest
+  if (zipPrefixCoords[prefix]) {
+    return zipPrefixCoords[prefix];
+  }
+  
+  // If we don't have the specific prefix, approximate based on first digit
+  const firstDigit = zipcode.charAt(0);
+  switch (firstDigit) {
+    case '0': return { latitude: 42.5, longitude: -71.5 }; // Northeast
+    case '1': return { latitude: 40.8, longitude: -74.0 }; // Northeast
+    case '2': return { latitude: 37.5, longitude: -79.0 }; // Mid-Atlantic
+    case '3': return { latitude: 32.0, longitude: -83.0 }; // Southeast
+    case '4': return { latitude: 39.0, longitude: -84.0 }; // Midwest
+    case '5': return { latitude: 38.0, longitude: -90.0 }; // Midwest/South
+    case '6': return { latitude: 36.0, longitude: -97.0 }; // South/Southwest
+    case '7': return { latitude: 31.0, longitude: -97.0 }; // Southwest
+    case '8': return { latitude: 35.0, longitude: -106.0 }; // Mountain
+    case '9': return { latitude: 38.0, longitude: -121.0 }; // West Coast
+    default: return null;
+  }
+}
+
+/**
+ * Calculate distance between two lat/lng points using Haversine formula
+ * @param {number} lat1 - Latitude of first point
+ * @param {number} lon1 - Longitude of first point
+ * @param {number} lat2 - Latitude of second point
+ * @param {number} lon2 - Longitude of second point
+ * @returns {number} Distance in miles
+ */
+function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+  // Earth's radius in miles
+  const earthRadius = 3958.8;
+  
+  // Convert latitude and longitude from degrees to radians
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  
+  // Convert latitudes to radians
+  lat1 = lat1 * Math.PI / 180;
+  lat2 = lat2 * Math.PI / 180;
+  
+  // Haversine formula
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  
+  return earthRadius * c;
+}
+
+/**
  * Get current gas price for a state
  * @param {string} state - Two-letter state code
  * @returns {number} Gas price per gallon

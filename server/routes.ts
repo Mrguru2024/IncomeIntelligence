@@ -5264,6 +5264,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Fallback implementation for address validation
+  // Distance Matrix API endpoint
+  app.get('/api/distance-matrix', async (req, res) => {
+    try {
+      const { origin, destination } = req.query;
+      
+      if (!origin || !destination) {
+        return res.status(400).json({
+          status: 'ERROR',
+          error: 'Both origin and destination parameters are required'
+        });
+      }
+      
+      const result = await getDistanceMatrix(origin.toString(), destination.toString());
+      res.json(result);
+    } catch (error: any) {
+      console.error('Error in distance matrix API:', error);
+      res.status(500).json({
+        status: 'ERROR',
+        error: error.message || 'An unexpected error occurred'
+      });
+    }
+  });
+
   app.get('/api/google-maps-fallback', async (req, res) => {
     try {
       // Import our clean fallback implementation from a separate JS file
