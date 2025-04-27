@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quote Generator | Stackr</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/green/public/css/styles.css">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      padding: 0;
+      margin: 0;
+      color: #333;
+      background-color: #f9fafb;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .quote-generator-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .header {
+      background-color: #4F46E5;
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 1.75rem;
+    }
+    
+    .header p {
+      margin-top: 8px;
+      opacity: 0.8;
+    }
+    
+    .main-content {
+      display: flex;
+      gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+      .main-content {
+        flex-direction: column;
+      }
+    }
+    
+    .quote-form-container {
+      flex: 1;
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .results-container {
+      flex: 1;
+      display: none;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    
+    .card-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .card-body {
+      padding: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.875rem;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #4F46E5;
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 10px 16px;
+      background-color: #4F46E5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: background-color 0.2s;
+    }
+    
+    .btn:hover {
+      background-color: #4338ca;
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid #4F46E5;
+      color: #4F46E5;
+    }
+    
+    .btn-outline:hover {
+      background-color: rgba(79, 70, 229, 0.1);
+    }
+    
+    .quote-card {
+      margin-bottom: 20px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .quote-card-header {
+      padding: 15px;
+      border-bottom: 1px solid #e5e7eb;
+      background-color: #f9fafb;
+    }
+    
+    .quote-card-body {
+      padding: 15px;
+    }
+    
+    .quote-card-footer {
+      padding: 15px;
+      border-top: 1px solid #e5e7eb;
+      background-color: #f9fafb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .quote-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .price-tag {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #4F46E5;
+    }
+    
+    .feature-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .feature-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+    
+    .feature-list i {
+      color: #10b981;
+    }
+    
+    .tier-basic .quote-card-header {
+      background-color: #f3f4f6;
+    }
+    
+    .tier-standard .quote-card-header {
+      background-color: #eef2ff;
+    }
+    
+    .tier-premium .quote-card-header {
+      background-color: #ede9fe;
+    }
+    
+    .small-text {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+    
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: white;
+      background-color: #4F46E5;
+    }
+    
+    .tag-success {
+      background-color: #10b981;
+    }
+    
+    .tag-warning {
+      background-color: #f59e0b;
+    }
+    
+    .breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .breakdown-table th,
+    .breakdown-table td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .breakdown-table th {
+      font-weight: 500;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+    
+    .features-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    
+    .features-table td {
+      padding: 8px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .features-table td:last-child {
+      text-align: right;
+    }
+    
+    .detailed-breakdown-toggle {
+      cursor: pointer;
+      font-size: 0.875rem;
+      color: #4F46E5;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .detailed-breakdown {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background-color: #f9fafb;
+      border-radius: 6px;
+    }
+    
+    .spinner {
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border-top-color: #4F46E5;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      .quote-card-footer {
+        flex-direction: column;
+        gap: 10px;
+        align-items: start;
+      }
+      
+      .quote-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  
+  <div class="container">
+    <div class="quote-generator-container">
+      <div class="header">
+        <h1>Professional Quote Generator</h1>
+        <p>Create detailed, accurate quotes for your services</p>
+      </div>
+      
+      <div class="main-content">
+        <div class="quote-form-container">
+          <h2>Quote Details</h2>
+          <form class="quote-form">
+            <div class="form-group">
+              <label for="job-type">Service Type</label>
+              <select id="job-type" class="form-control" required>
+                <option value="">Select a service type</option>
+                <optgroup label="Home Services">
+                  <option value="locksmith">Locksmith</option>
+                  <option value="plumber">Plumber</option>
+                  <option value="electrician">Electrician</option>
+                  <option value="carpenter">Carpenter</option>
+                  <option value="hvac">HVAC Technician</option>
+                  <option value="painter">Painter</option>
+                  <option value="general_contractor">General Contractor</option>
+                  <option value="landscaper">Landscaper</option>
+                </optgroup>
+                <optgroup label="Automotive Services">
+                  <option value="automotive_repair">Automotive Repair</option>
+                </optgroup>
+                <optgroup label="Electronics Repair">
+                  <option value="electronic_repair">Electronic Repair</option>
+                  <option value="cellphone_repair">Cellphone Repair</option>
+                  <option value="computer_repair">Computer Repair</option>
+                  <option value="tv_repair">TV Repair</option>
+                  <option value="appliance_repair">Appliance Repair</option>
+                </optgroup>
+                <optgroup label="Beauty Services">
+                  <option value="hair_stylist">Hair Stylist</option>
+                  <option value="barber">Barber</option>
+                  <option value="makeup_artist">Makeup Artist</option>
+                  <option value="nail_technician">Nail Technician</option>
+                  <option value="esthetician">Esthetician</option>
+                </optgroup>
+                <optgroup label="Professional Services">
+                  <option value="photographer">Photographer</option>
+                  <option value="videographer">Videographer</option>
+                  <option value="web_developer">Web Developer</option>
+                  <option value="graphic_designer">Graphic Designer</option>
+                  <option value="consultant">Consultant</option>
+                </optgroup>
+              </select>
+            </div>
+            
+            <div class="form-group" id="job-subtype-container" style="display: none;">
+              <label for="job-subtype">Specific Service</label>
+              <select id="job-subtype" class="form-control">
+                <option value="">Select specific service</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="auto-address-input">Location</label>
+              <input type="text" id="auto-address-input" class="form-control" placeholder="Enter service location" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="experience-level">Experience Level</label>
+              <select id="experience-level" class="form-control" required>
+                <option value="">Select experience level</option>
+                <option value="junior">Junior (0-2 years)</option>
+                <option value="intermediate" selected>Intermediate (3-5 years)</option>
+                <option value="senior">Senior (6-10 years)</option>
+                <option value="expert">Expert (10+ years)</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="labor-hours">Estimated Labor Hours</label>
+              <input type="number" id="labor-hours" class="form-control" placeholder="Estimated time required" min="0.5" step="0.5" value="2" required>
+            </div>
+            
+            <div class="form-group" id="quantity-container">
+              <label for="quantity">Quantity</label>
+              <input type="number" id="quantity" class="form-control" placeholder="Number of items/services" min="1" value="1" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="materials-cost">Materials Cost ($)</label>
+              <input type="number" id="materials-cost" class="form-control" placeholder="Cost of materials" min="0" step="0.01" value="50" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="target-margin">Target Margin (%)</label>
+              <input type="number" id="target-margin" class="form-control" placeholder="Target profit margin" min="0" max="100" value="30" required>
+            </div>
+            
+            <div class="form-check form-group">
+              <input type="checkbox" id="emergency" class="form-check-input">
+              <label for="emergency" class="form-check-label">Emergency Service (after hours/weekend)</label>
+            </div>
+            
+            <button type="submit" class="btn">Generate Quote</button>
+          </form>
+        </div>
+        
+        <div class="results-container">
+          <!-- Quote results will be displayed here -->
+          <h2>Quote Results</h2>
+          <p>Your quotes will appear here after generation</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script src="/green/components/toast.js"></script>
+  <script src="/green/user-profile.js"></script>
+  <script src="/green/quote-generator.js"></script>
+  <script src="/green/sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize sidebar
+      if (typeof renderSidebar === 'function') {
+        renderSidebar('sidebar-container');
+      }
+      
+      // Initialize quote generator
+      if (typeof renderQuoteGeneratorPage === 'function') {
+        renderQuoteGeneratorPage('quote-generator-container');
+      }
+    });
+  </script>
+</body>
+</html>
