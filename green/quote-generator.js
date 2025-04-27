@@ -1224,7 +1224,186 @@ function renderQuoteGeneratorPage(containerId) {
  */
 function initGoogleMapsAutocomplete() {
   try {
-    // Export our initialization function for the callback
+    // Function to create our custom simplified autocomplete
+    function createSimplifiedAutocomplete(inputElement) {
+      if (!inputElement) {
+        console.error('Address input element not found');
+        return;
+      }
+      
+      console.log('Creating simplified address autocomplete for:', inputElement.id);
+      
+      // Create container for suggestions
+      const suggestionsContainer = document.createElement('div');
+      suggestionsContainer.className = 'address-suggestions';
+      suggestionsContainer.style.display = 'none';
+      suggestionsContainer.style.position = 'absolute';
+      suggestionsContainer.style.zIndex = '1000';
+      suggestionsContainer.style.backgroundColor = '#fff';
+      suggestionsContainer.style.border = '1px solid #ccc';
+      suggestionsContainer.style.borderRadius = '4px';
+      suggestionsContainer.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+      suggestionsContainer.style.width = '100%';
+      suggestionsContainer.style.maxHeight = '200px';
+      suggestionsContainer.style.overflowY = 'auto';
+      
+      // Insert after the input element
+      inputElement.parentNode.style.position = 'relative';
+      inputElement.parentNode.insertBefore(suggestionsContainer, inputElement.nextSibling);
+      
+      // Common US city/state combinations for quick selection
+      const commonAddresses = [
+        "New York, NY",
+        "Los Angeles, CA",
+        "Chicago, IL",
+        "Houston, TX",
+        "Phoenix, AZ",
+        "Philadelphia, PA",
+        "San Antonio, TX", 
+        "San Diego, CA",
+        "Dallas, TX",
+        "San Jose, CA",
+        "Austin, TX",
+        "Jacksonville, FL",
+        "Fort Worth, TX",
+        "Columbus, OH",
+        "Charlotte, NC",
+        "San Francisco, CA",
+        "Indianapolis, IN",
+        "Seattle, WA",
+        "Denver, CO",
+        "Boston, MA"
+      ];
+      
+      // Predefined addresses with corresponding states for selection
+      function getSuggestedAddresses(input) {
+        input = input.toLowerCase();
+        return commonAddresses.filter(address => 
+          address.toLowerCase().includes(input)
+        );
+      }
+      
+      // Show suggestions based on input
+      function showSuggestions() {
+        const input = inputElement.value.trim();
+        if (input.length < 2) {
+          suggestionsContainer.style.display = 'none';
+          return;
+        }
+        
+        const suggestions = getSuggestedAddresses(input);
+        
+        if (suggestions.length === 0) {
+          suggestionsContainer.style.display = 'none';
+          return;
+        }
+        
+        // Clear previous suggestions
+        suggestionsContainer.innerHTML = '';
+        
+        // Add new suggestions
+        suggestions.forEach(suggestion => {
+          const item = document.createElement('div');
+          item.className = 'suggestion-item';
+          item.textContent = suggestion;
+          item.style.padding = '8px 12px';
+          item.style.cursor = 'pointer';
+          item.style.borderBottom = '1px solid #eee';
+          
+          // Highlight on hover
+          item.addEventListener('mouseover', () => {
+            item.style.backgroundColor = '#f0f0f0';
+          });
+          
+          item.addEventListener('mouseout', () => {
+            item.style.backgroundColor = 'transparent';
+          });
+          
+          // Select address on click
+          item.addEventListener('click', () => {
+            inputElement.value = suggestion;
+            suggestionsContainer.style.display = 'none';
+            
+            // Trigger input event to update form validation
+            const event = new Event('input', { bubbles: true });
+            inputElement.dispatchEvent(event);
+            
+            // Focus next field
+            const form = inputElement.closest('form');
+            if (form) {
+              const inputs = Array.from(form.querySelectorAll('input, select, textarea'));
+              const currentIndex = inputs.indexOf(inputElement);
+              if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
+                inputs[currentIndex + 1].focus();
+              }
+            }
+          });
+          
+          suggestionsContainer.appendChild(item);
+        });
+        
+        // Show suggestions container
+        suggestionsContainer.style.display = 'block';
+      }
+      
+      // Add input event listener
+      inputElement.addEventListener('input', showSuggestions);
+      
+      // Hide suggestions when clicking outside
+      document.addEventListener('click', (event) => {
+        if (!inputElement.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+          suggestionsContainer.style.display = 'none';
+        }
+      });
+      
+      // Show suggestions on focus
+      inputElement.addEventListener('focus', showSuggestions);
+      
+      // Handle keyboard navigation
+      inputElement.addEventListener('keydown', (event) => {
+        if (suggestionsContainer.style.display === 'none') return;
+        
+        const items = suggestionsContainer.querySelectorAll('.suggestion-item');
+        let activeIndex = Array.from(items).findIndex(item => 
+          item.style.backgroundColor === '#f0f0f0'
+        );
+        
+        switch (event.key) {
+          case 'ArrowDown':
+            event.preventDefault();
+            if (activeIndex < items.length - 1) {
+              if (activeIndex >= 0) items[activeIndex].style.backgroundColor = 'transparent';
+              items[activeIndex + 1].style.backgroundColor = '#f0f0f0';
+            }
+            break;
+            
+          case 'ArrowUp':
+            event.preventDefault();
+            if (activeIndex > 0) {
+              items[activeIndex].style.backgroundColor = 'transparent';
+              items[activeIndex - 1].style.backgroundColor = '#f0f0f0';
+            }
+            break;
+            
+          case 'Enter':
+            event.preventDefault();
+            if (activeIndex >= 0) {
+              items[activeIndex].click();
+            } else if (items.length > 0) {
+              items[0].click();
+            }
+            break;
+            
+          case 'Escape':
+            suggestionsContainer.style.display = 'none';
+            break;
+        }
+      });
+      
+      console.log('Simplified address autocomplete initialized successfully');
+    }
+    
+    // Try to initialize with Google Maps API if available
     window.initializeAddressAutocomplete = function() {
       const addressInput = document.getElementById('auto-address-input');
       if (!addressInput) {
@@ -1232,62 +1411,75 @@ function initGoogleMapsAutocomplete() {
         return;
       }
       
-      console.log('Initializing Google Maps autocomplete for address input:', addressInput);
-      
-      // Create the autocomplete object
-      const autocomplete = new google.maps.places.Autocomplete(addressInput, {
-        types: ['address'],
-        componentRestrictions: { country: 'us' },
-        fields: ['formatted_address', 'address_components']
-      });
-      
-      console.log('Google Maps Autocomplete initialized successfully');
-      
-      // Add listener for place changed event
-      autocomplete.addListener('place_changed', function() {
-        const place = autocomplete.getPlace();
-        console.log('Selected place:', place);
+      // Check if the Google Maps API is available
+      if (typeof google !== 'undefined' && 
+          typeof google.maps !== 'undefined' && 
+          typeof google.maps.places !== 'undefined' &&
+          typeof google.maps.places.Autocomplete === 'function') {
         
-        if (!place.address_components) {
-          console.error('No address details available for this place');
-          return;
-        }
+        console.log('Using Google Maps Places API for address autocomplete');
         
-        // Update the input field with the formatted address
-        addressInput.value = place.formatted_address;
+        // Create the autocomplete object
+        const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+          types: ['address'],
+          componentRestrictions: { country: 'us' },
+          fields: ['formatted_address', 'address_components']
+        });
         
-        // Trigger an input event to update any validators
-        const event = new Event('input', { bubbles: true });
-        addressInput.dispatchEvent(event);
+        // Add listener for place changed event
+        autocomplete.addListener('place_changed', function() {
+          const place = autocomplete.getPlace();
+          
+          if (place && place.formatted_address) {
+            // Update the input field with the formatted address
+            addressInput.value = place.formatted_address;
+            
+            // Trigger an input event to update any validators
+            const event = new Event('input', { bubbles: true });
+            addressInput.dispatchEvent(event);
+            
+            console.log('Address selected:', place.formatted_address);
+          }
+        });
         
-        console.log('Address selected:', place.formatted_address);
-      });
+        console.log('Google Maps Places autocomplete initialized successfully');
+      } else {
+        // Fall back to simplified autocomplete
+        console.log('Google Maps Places API not available, using simplified autocomplete');
+        createSimplifiedAutocomplete(addressInput);
+      }
     };
     
-    // If Maps is already loaded, initialize immediately
-    if (window.googleMapsLoaded && typeof google !== 'undefined' && 
+    // Try first approach: check if Google Maps is already loaded
+    if (typeof google !== 'undefined' && 
         typeof google.maps !== 'undefined' && 
         typeof google.maps.places !== 'undefined') {
       console.log('Google Maps already loaded, initializing autocomplete immediately');
       window.initializeAddressAutocomplete();
     } else {
-      console.log('Google Maps not yet loaded, waiting for callback');
-      // Continue checking for Google Maps every 2 seconds for the first 20 seconds
-      let checkCount = 0;
+      // Second approach: initialize our simplified version right away
+      console.log('Google Maps not detected, using simplified autocomplete');
+      const addressInput = document.getElementById('auto-address-input');
+      createSimplifiedAutocomplete(addressInput);
+      
+      // Keep checking if Google Maps becomes available (in case it loads later)
       const checkInterval = setInterval(() => {
-        checkCount++;
-        if (window.googleMapsLoaded) {
-          console.log('Google Maps loaded via global flag');
+        if (typeof google !== 'undefined' && 
+            typeof google.maps !== 'undefined' && 
+            typeof google.maps.places !== 'undefined') {
+          console.log('Google Maps loaded later, reinitializing with real API');
           clearInterval(checkInterval);
           window.initializeAddressAutocomplete();
-        } else if (checkCount >= 10) { // Stop after 10 attempts
-          console.warn('Google Maps not loaded after multiple attempts, giving up');
-          clearInterval(checkInterval);
         }
       }, 2000);
+      
+      // Stop checking after 20 seconds
+      setTimeout(() => {
+        clearInterval(checkInterval);
+      }, 20000);
     }
   } catch (error) {
-    console.error('Error initializing Google Maps autocomplete:', error);
+    console.error('Error initializing address autocomplete:', error);
     // Don't throw error to avoid breaking the entire application
   }
 }
@@ -5851,10 +6043,13 @@ function loadSavedQuotes() {
  * @param {string} type - The type of toast (success or error)
  */
 function showToast(message, type = 'success') {
-  // First, try to use the global showToast if available
-  if (window.showToast && window.showToast !== showToast) {
-    return window.showToast(message, type);
+  // First, try to use the createToast function from our imported toast component
+  if (typeof window.createToast === 'function') {
+    window.createToast(message, type);
+    return;
   }
+  
+  console.log('Using built-in toast implementation');
   
   // Check if toast container exists, create if not
   let toastContainer = document.getElementById('toast-container');
