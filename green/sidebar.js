@@ -289,7 +289,7 @@ export function createSidebar(appState) {
   });
   
   editProfileButton.addEventListener('click', () => {
-    navigateTo('settings');
+    navigateTo('user-profile');
   });
   
   profileSection.appendChild(editProfileButton);
