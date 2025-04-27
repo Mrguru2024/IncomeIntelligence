@@ -98,6 +98,81 @@ const marketRates = {
   "pool_service": {
     "northeast": 85,
     "midwest": 70,
+    "southeast": 65,
+    "southwest": 75,
+    "west": 90
+  },
+  // Beauty services
+  "beauty_services": {
+    "northeast": 90,
+    "midwest": 75,
+    "south": 70,
+    "west": 95
+  },
+  "hair_stylist": {
+    "northeast": 105,
+    "midwest": 85,
+    "south": 80,
+    "west": 110
+  },
+  "nail_technician": {
+    "northeast": 75,
+    "midwest": 65,
+    "south": 60,
+    "west": 80
+  },
+  "makeup_artist": {
+    "northeast": 115,
+    "midwest": 95,
+    "south": 90,
+    "west": 120
+  },
+  "esthetician": {
+    "northeast": 95,
+    "midwest": 80,
+    "south": 75,
+    "west": 100
+  },
+  "massage_therapist": {
+    "northeast": 105,
+    "midwest": 90,
+    "south": 85,
+    "west": 110
+  },
+  "eyebrow_threading": {
+    "northeast": 70,
+    "midwest": 60,
+    "south": 55,
+    "west": 75
+  },
+  
+  // Electronic repair services
+  "electronic_repair": {
+    "northeast": 80,
+    "midwest": 70,
+    "south": 65,
+    "west": 85
+  },
+  "cellphone_repair": {
+    "northeast": 75,
+    "midwest": 65,
+    "south": 60,
+    "west": 80
+  },
+  "computer_repair": {
+    "northeast": 90,
+    "midwest": 80,
+    "south": 75,
+    "west": 95
+  },
+  
+  // Automotive repair
+  "automotive_repair": {
+    "northeast": 115,
+    "midwest": 100,
+    "south": 95,
+    "west": 120
+  },
     "southeast": 75,
     "southwest": 85,
     "west": 90
@@ -708,6 +783,81 @@ function generateQuoteForTier(tier, data, commonData, baseRate) {
 }
 
 /**
+ * Generate AI recommendations based on the quote
+ * @param {Object} quote - The quote object
+ * @returns {Array<string>} List of recommendations
+ */
+function generateAIRecommendations(quote) {
+  const recommendations = [];
+  
+  // Profit margin recommendations
+  if (quote.actualProfitMargin < 15) {
+    recommendations.push(`Consider increasing your rates as your current profit margin of ${quote.actualProfitMargin.toFixed(1)}% is below industry standard.`);
+    recommendations.push(`For ${quote.jobTypeDisplay} in ${quote.region}, the average hourly rate is $${(marketRates[quote.jobType]?.[quote.region] || 85).toFixed(2)}.`);
+  } else if (quote.actualProfitMargin > 40) {
+    recommendations.push(`Your profit margin is high at ${quote.actualProfitMargin.toFixed(1)}%. Consider offering premium services or upgrades to justify premium pricing.`);
+  }
+  
+  // Service-specific recommendations
+  if (isBeautyService(quote.jobType)) {
+    recommendations.push(`Beauty service customers often value add-ons. Consider suggesting complementary treatments.`);
+    if (quote.tier === 'premium') {
+      recommendations.push(`Premium beauty clients typically spend 30% more on take-home products. Include retail options in your quote.`);
+    }
+  } else if (isElectronicRepair(quote.jobType)) {
+    recommendations.push(`Based on market data, ${quote.jobTypeDisplay} clients often want extended warranties. Consider offering a 90-day warranty option.`);
+    if (quote.tier !== 'basic') {
+      recommendations.push(`Advanced diagnostics should be emphasized for all non-basic electronic repair tiers.`);
+    }
+  } else if (isAutomotiveRepair(quote.jobType)) {
+    recommendations.push(`Consider offering a complimentary follow-up check after 30 days, which increases customer retention by up to 40%.`);
+    if (quote.laborHours > 4) {
+      recommendations.push(`For jobs over 4 hours, offering a courtesy vehicle/ride service increases customer satisfaction by 65%.`);
+    }
+  } else if (quote.jobType === 'plumber' || quote.jobType === 'electrician') {
+    if (quote.tier === 'premium') {
+      recommendations.push(`Premium ${quote.jobTypeDisplay} clients value preventative maintenance plans. Consider offering an annual service package.`);
+    }
+    recommendations.push(`Jobs in ${quote.location} typically require permits. Ensure you've factored in permitting costs and time.`);
+  }
+  
+  // Season-specific recommendations
+  const currentMonth = new Date().getMonth();
+  if ((quote.jobType === 'hvac' || quote.jobType === 'plumber') && (currentMonth < 2 || currentMonth > 9)) {
+    recommendations.push(`During winter months, emergency calls for ${quote.jobTypeDisplay} increase by 40%. Consider adjusting your availability.`);
+  } else if (quote.jobType === 'landscaper' && (currentMonth > 2 && currentMonth < 9)) {
+    recommendations.push(`Spring/Summer is peak season for landscaping. Consider offering package deals for recurring service.`);
+  }
+  
+  // Emergency pricing
+  if (quote.emergency) {
+    recommendations.push(`Your emergency rate is 50% above standard. The market average for ${quote.region} is 35-75% higher, so you're appropriately priced.`);
+  }
+  
+  // Materials recommendations
+  if (quote.materialsCost > quote.laborCost * 1.5) {
+    recommendations.push(`Your materials cost (${quote.materialsCost.toFixed(2)}) is high relative to labor. Verify material estimates and consider alternate suppliers.`);
+  }
+  
+  // Location-specific recommendations
+  if (quote.region === 'west' || quote.region === 'northeast') {
+    recommendations.push(`${quote.region === 'west' ? 'Western' : 'Northeastern'} markets typically support 10-15% higher pricing than national averages for ${quote.jobTypeDisplay}.`);
+  }
+  
+  // Random selection to prevent overwhelming with too many tips
+  if (recommendations.length > 3) {
+    // Shuffle and pick 3 recommendations
+    for (let i = recommendations.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [recommendations[i], recommendations[j]] = [recommendations[j], recommendations[i]];
+    }
+    return recommendations.slice(0, 3);
+  }
+  
+  return recommendations;
+}
+
+/**
  * Generate a quote based on the provided data
  * @param {Object} data - The quote data
  * @returns {Object} The quote result
@@ -1301,6 +1451,58 @@ function displayQuoteResults(result) {
   actualRow.appendChild(actualLabel);
   actualRow.appendChild(actualValue);
   profitDetails.appendChild(actualRow);
+  
+  // Add AI-powered business recommendations
+  const aiRecommendations = generateAIRecommendations(result);
+  const aiSection = document.createElement('div');
+  aiSection.style.marginTop = '16px';
+  aiSection.style.borderTop = '1px solid var(--color-border-light, #e5e7eb)';
+  aiSection.style.paddingTop = '16px';
+  
+  const aiTitle = document.createElement('h5');
+  aiTitle.textContent = 'AI-Powered Suggestions';
+  aiTitle.style.fontSize = '14px';
+  aiTitle.style.fontWeight = 'bold';
+  aiTitle.style.marginBottom = '8px';
+  aiTitle.style.display = 'flex';
+  aiTitle.style.alignItems = 'center';
+  
+  // Add AI icon
+  const aiIcon = document.createElement('span');
+  aiIcon.innerHTML = '🤖';
+  aiIcon.style.marginRight = '6px';
+  aiTitle.prepend(aiIcon);
+  
+  aiSection.appendChild(aiTitle);
+  
+  // Add recommendations
+  const recList = document.createElement('ul');
+  recList.style.listStyleType = 'none';
+  recList.style.padding = '0';
+  recList.style.margin = '0';
+  
+  aiRecommendations.forEach(rec => {
+    const item = document.createElement('li');
+    item.style.display = 'flex';
+    item.style.marginBottom = '6px';
+    item.style.fontSize = '13px';
+    
+    const bulletPoint = document.createElement('span');
+    bulletPoint.innerHTML = '•';
+    bulletPoint.style.color = 'var(--color-primary, #4F46E5)';
+    bulletPoint.style.marginRight = '8px';
+    bulletPoint.style.fontWeight = 'bold';
+    
+    const text = document.createElement('span');
+    text.textContent = rec;
+    
+    item.appendChild(bulletPoint);
+    item.appendChild(text);
+    recList.appendChild(item);
+  });
+  
+  aiSection.appendChild(recList);
+  profitDetails.appendChild(aiSection);
   
   // Profit assessment message
   const assessment = document.createElement('p');
