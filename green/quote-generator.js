@@ -289,6 +289,164 @@ function initFormStatePreservation() {
   window.quoteFormPreservationSetup = true;
 }
 
+// Initialize our fallback distance calculation function globally
+// This makes it available to other components that need it
+window.useFallbackDistanceCalculation = async function() {
+  const originInput = document.querySelector('input[name="startLocation"]');
+  const destinationInput = document.querySelector('input[name="endLocation"]');
+  const distanceResultContainer = document.getElementById('distanceResult');
+  
+  if (!originInput || !destinationInput) {
+    console.error('Location inputs not found');
+    return false;
+  }
+  
+  // Attempt to use our server-side API first (which has its own fallbacks)
+  try {
+    console.log('Using server-side distance matrix API');
+    const url = `/api/distance-matrix?origin=${encodeURIComponent(originInput.value)}&destination=${encodeURIComponent(destinationInput.value)}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Server returned status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.status === 'OK' && data.results) {
+      const distance = data.results.distance.text;
+      const duration = data.results.duration.text;
+      const distanceValue = data.results.distance.value / 1609.34; // Convert meters to miles
+      
+      // Update the distance input - always use round trip distance
+      const roundTripDistance = distanceValue * 2;
+      
+      // Get gas price and calculate fuel cost
+      const gasPrice = getGasPriceForState(getStateFromZip(originInput.value, false));
+      const fuelCost = calculateFuelCost(distanceValue, gasPrice);
+      const roundTripCost = fuelCost * 2;
+      
+      // Update travel distance input
+      const travelDistanceInput = document.querySelector('input[name="travelDistance"]');
+      if (travelDistanceInput) {
+        travelDistanceInput.value = roundTripDistance.toFixed(1);
+      }
+      
+      // Display the result
+      distanceResultContainer.innerHTML = `
+        <div style="padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; margin-top: 10px;">
+          <div style="color: var(--color-primary); font-weight: bold; margin-bottom: 5px;">Distance Calculation</div>
+          <div>One-way distance: ${distance} (${distanceValue.toFixed(1)} miles)</div>
+          <div>Driving time: ${duration}</div>
+          <div>Current gas price: $${gasPrice.toFixed(2)}/gallon</div>
+          <div>Estimated fuel cost: $${fuelCost.toFixed(2)} one-way / $${roundTripCost.toFixed(2)} round-trip</div>
+          <div style="margin-top: 5px; font-style: italic; font-size: 13px;">Note: Round-trip distance of ${roundTripDistance.toFixed(1)} miles will be used for quote.</div>
+        </div>
+      `;
+      return true;
+    }
+  } catch (error) {
+    console.error('Server API fallback failed:', error);
+  }
+  
+  // If server-side API fails, use ZIP code distance calculation as fallback
+  try {
+    console.log('Using ZIP code distance fallback');
+    // Check if both inputs might be ZIP codes
+    const originZip = extractZipCode(originInput.value);
+    const destZip = extractZipCode(destinationInput.value);
+    
+    if (originZip && destZip) {
+      // We have what look like ZIP codes, use ZIP distance calculation
+      const distance = estimateDistanceByZip(originZip, destZip);
+      
+      if (distance > 0) {
+        // We got a valid distance estimation
+        // Get gas price and calculate fuel cost
+        const gasPrice = getGasPriceForState(getStateFromZip(originZip, false));
+        const fuelCost = calculateFuelCost(distance, gasPrice);
+        const roundTripDistance = distance * 2;
+        const roundTripCost = fuelCost * 2;
+        
+        // Approximate driving time (average 50 mph)
+        const drivingHours = Math.floor(distance / 50);
+        const drivingMinutes = Math.round((distance / 50 - drivingHours) * 60);
+        const drivingTime = drivingHours > 0 
+          ? `${drivingHours} hour${drivingHours > 1 ? 's' : ''} ${drivingMinutes} min` 
+          : `${drivingMinutes} min`;
+        
+        // Update travel distance input
+        const travelDistanceInput = document.querySelector('input[name="travelDistance"]');
+        if (travelDistanceInput) {
+          travelDistanceInput.value = roundTripDistance.toFixed(1);
+        }
+        
+        // Display the result
+        distanceResultContainer.innerHTML = `
+          <div style="padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; margin-top: 10px;">
+            <div style="color: var(--color-primary); font-weight: bold; margin-bottom: 5px;">Distance Calculation (Estimated from ZIP Codes)</div>
+            <div>One-way distance: ~${distance.toFixed(1)} miles</div>
+            <div>Approx. driving time: ${drivingTime}</div>
+            <div>Current gas price: $${gasPrice.toFixed(2)}/gallon</div>
+            <div>Estimated fuel cost: $${fuelCost.toFixed(2)} one-way / $${roundTripCost.toFixed(2)} round-trip</div>
+            <div style="margin-top: 5px; font-style: italic; font-size: 13px;">Note: Round-trip distance of ${roundTripDistance.toFixed(1)} miles will be used for quote.</div>
+          </div>
+        `;
+        return true;
+      }
+    }
+  } catch (zipError) {
+    console.error('ZIP code fallback failed:', zipError);
+  }
+  
+  // Last resort - estimate based on address complexity
+  try {
+    console.log('Using address complexity fallback');
+    // Rough estimate based on address complexity and whether it looks like same city
+    let estimatedDistance = 15; // Default to 15 miles
+    
+    // Adjust based on if they appear to be in the same city
+    if (isSameCity(originInput.value, destinationInput.value)) {
+      estimatedDistance = 8; // Shorter if same city
+    } else if (isDifferentState(originInput.value, destinationInput.value)) {
+      estimatedDistance = 50; // Much longer if different states
+    }
+    
+    // Get gas price and calculate fuel cost
+    const gasPrice = 3.85; // Use national average
+    const fuelCost = calculateFuelCost(estimatedDistance, gasPrice);
+    const roundTripDistance = estimatedDistance * 2;
+    const roundTripCost = fuelCost * 2;
+    
+    // Update travel distance input
+    const travelDistanceInput = document.querySelector('input[name="travelDistance"]');
+    if (travelDistanceInput) {
+      travelDistanceInput.value = roundTripDistance.toFixed(1);
+    }
+    
+    // Display the result
+    distanceResultContainer.innerHTML = `
+      <div style="padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; margin-top: 10px;">
+        <div style="color: var(--color-primary); font-weight: bold; margin-bottom: 5px;">Distance Calculation (Rough Estimate)</div>
+        <div>One-way distance: ~${estimatedDistance.toFixed(1)} miles</div>
+        <div>Approx. driving time: ${Math.ceil(estimatedDistance / 30)} min</div>
+        <div>Est. fuel cost: $${fuelCost.toFixed(2)} one-way / $${roundTripCost.toFixed(2)} round-trip</div>
+        <div style="margin-top: 5px; font-style: italic; font-size: 13px; color: #664;">This is a rough estimate. Please adjust manually if needed.</div>
+      </div>
+    `;
+    return true;
+  } catch (finalError) {
+    console.error('All fallbacks failed:', finalError);
+    distanceResultContainer.innerHTML = `
+      <div style="padding: 10px; border: 1px solid #fcc; background: #fff6f6; border-radius: 8px; margin-top: 10px;">
+        <div style="color: #c33; font-weight: bold; margin-bottom: 5px;">Unable to Calculate Distance</div>
+        <div>Please enter the estimated travel distance manually or try more specific addresses.</div>
+      </div>
+    `;
+    return false;
+  }
+};
+
 // Add special handling for ZFold and other foldable devices
 // This is a global fix for form submission issues on foldable devices
 window.addEventListener('DOMContentLoaded', () => {
@@ -6627,34 +6785,38 @@ function calculateAddressDistance() {
     return;
   }
   
-  // Function to use our backend API instead of Google Maps directly
-  const calculateDistanceWithAPI = () => {
-    fetch(`/api/distance-matrix?origin=${encodeURIComponent(originInput.value)}&destination=${encodeURIComponent(destinationInput.value)}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === 'OK' && data.results.status === 'OK') {
-          const distance = data.results.distance.text;
-          const duration = data.results.duration.text;
-          const distanceValue = data.results.distance.value / 1609.34; // Convert meters to miles
-          
-          // Update the distance input - always use round trip distance
-          const roundTripDistance = distanceValue * 2;
-          processDistanceResults(distance, duration, roundTripDistance);
-        } else {
-          // If API fails, use fallback estimation
-          useFallbackDistanceCalculation();
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching distance:', error);
-        useFallbackDistanceCalculation();
-      });
+  // Function to use our enhanced backend API with improved reliability
+  const calculateDistanceWithAPI = async () => {
+    try {
+      // Use the new getDistanceFromApi function which has built-in error handling
+      const data = await getDistanceFromApi(originInput.value, destinationInput.value);
+      
+      if (data.status === 'OK' && data.results) {
+        const distance = data.results.distance.text;
+        const duration = data.results.duration.text;
+        const distanceValue = data.results.distance.value / 1609.34; // Convert meters to miles
+        
+        // Update the distance input - always use round trip distance
+        const roundTripDistance = distanceValue * 2;
+        processDistanceResults(distance, duration, roundTripDistance);
+      } else {
+        // If server-side API fails, use our robust fallback system
+        console.log('Server API returned error, using fallback');
+        await useFallbackDistanceCalculation();
+      }
+    } catch (error) {
+      console.error('Error calling distance API:', error);
+      await useFallbackDistanceCalculation();
+    }
   };
   
-  // Fallback distance calculation - use ZIP codes or address text length-based estimation
-  const useFallbackDistanceCalculation = () => {
-    console.log("Using fallback distance calculation");
-    // Try to extract ZIP codes from the addresses
+  // Use our new comprehensive fallback distance calculation system
+  // This will attempt multiple fallback methods in a prioritized sequence
+  const useFallbackDistanceCalculation = async () => {
+    console.log("Using enhanced fallback distance calculation");
+    // This will delegate to our advanced useFallbackDistanceCalculation function
+    await window.useFallbackDistanceCalculation();
+    return;
     const originZip = extractZipCode(originInput.value);
     const destZip = extractZipCode(destinationInput.value);
     
