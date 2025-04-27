@@ -8,7 +8,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const profileContainer = document.getElementById('profile-page-container');
   if (!profileContainer) return;
 
-  initializeProfilePage();
+  // Initialize the toast system
+  try {
+    import('./components/toast.js').then(toastModule => {
+      // Make the showToast function globally available
+      window.showToast = toastModule.showToast;
+      initializeProfilePage();
+    }).catch(error => {
+      console.error('Error importing toast module:', error);
+      initializeProfilePage();
+    });
+  } catch (error) {
+    console.error('Error setting up toast system:', error);
+    initializeProfilePage();
+  }
 });
 
 /**
@@ -501,10 +514,24 @@ function getCheckboxGroupValues(groupName) {
  * @param {string} message - Error message
  */
 function showError(message) {
-  if (window.showToast) {
-    window.showToast(message, 'error');
-  } else {
-    alert(message);
+  try {
+    import('./components/toast.js').then(toast => {
+      toast.showToast(message, 'error');
+    }).catch(() => {
+      // Fallback to window.showToast or alert
+      if (window.showToast) {
+        window.showToast(message, 'error');
+      } else {
+        alert(message);
+      }
+    });
+  } catch (e) {
+    // If import fails, use fallback
+    if (window.showToast) {
+      window.showToast(message, 'error');
+    } else {
+      alert(message);
+    }
   }
 }
 
@@ -513,10 +540,24 @@ function showError(message) {
  * @param {string} message - Success message
  */
 function showSuccess(message) {
-  if (window.showToast) {
-    window.showToast(message, 'success');
-  } else {
-    alert(message);
+  try {
+    import('./components/toast.js').then(toast => {
+      toast.showToast(message, 'success');
+    }).catch(() => {
+      // Fallback to window.showToast or alert
+      if (window.showToast) {
+        window.showToast(message, 'success');
+      } else {
+        alert(message);
+      }
+    });
+  } catch (e) {
+    // If import fails, use fallback
+    if (window.showToast) {
+      window.showToast(message, 'success');
+    } else {
+      alert(message);
+    }
   }
 }
 
