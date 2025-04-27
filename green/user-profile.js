@@ -15,10 +15,31 @@ let userId = null;
 export async function initUserProfile(currentUserId) {
   if (!currentUserId) {
     console.error('Cannot initialize user profile without a user ID');
+    try {
+      // Try to get user ID from localStorage as a fallback
+      const userData = localStorage.getItem('stackrUser');
+      if (userData) {
+        const user = JSON.parse(userData);
+        currentUserId = user.id || `google-${Date.now()}`;
+        console.log('Retrieved user ID from localStorage:', currentUserId);
+      } else {
+        // Create a temporary user ID if none exists
+        currentUserId = `temp-${Date.now()}`;
+        console.log('Created temporary user ID:', currentUserId);
+      }
+    } catch (error) {
+      console.error('Error retrieving user ID from localStorage:', error);
+      return null;
+    }
+  }
+  
+  if (!currentUserId) {
+    console.error('Failed to determine user ID, cannot initialize profile');
     return null;
   }
   
   userId = currentUserId;
+  console.log('Initializing user profile for:', userId);
   
   try {
     // Try to fetch existing profile
@@ -27,12 +48,34 @@ export async function initUserProfile(currentUserId) {
     if (profile) {
       console.log('User profile loaded:', profile);
       currentUserProfile = profile;
+      
+      // Dispatch an event to notify other components
+      const event = new CustomEvent('userProfileLoaded', { detail: profile });
+      window.dispatchEvent(event);
+      
       return profile;
     } else {
       // Create a new profile with default values
       const newProfile = await createDefaultUserProfile(userId);
       console.log('Created new user profile:', newProfile);
       currentUserProfile = newProfile;
+      
+      // Check if we should show the onboarding UI
+      const isFirstLogin = !localStorage.getItem('stackrOnboardingCompleted');
+      if (isFirstLogin && typeof window.navigateTo === 'function') {
+        // Show a toast notification about profile creation
+        if (window.showToast) {
+          window.showToast('Welcome! We\'ve created a default profile for you.', 'info');
+        }
+        
+        // You may choose to navigate to onboarding here
+        // window.navigateTo('onboarding');
+      }
+      
+      // Dispatch an event to notify other components
+      const event = new CustomEvent('userProfileCreated', { detail: newProfile });
+      window.dispatchEvent(event);
+      
       return newProfile;
     }
   } catch (error) {
@@ -104,12 +147,34 @@ export async function createDefaultUserProfile(profileUserId) {
  * @returns {Object|null} Updated profile or null if failed
  */
 export async function updateUserProfile(profileUpdates) {
+  // Get user ID from localStorage if not already set
   if (!userId) {
-    console.error('Cannot update profile: No user ID set');
-    return null;
+    try {
+      const userData = localStorage.getItem('stackrUser');
+      if (userData) {
+        const user = JSON.parse(userData);
+        userId = user.id || `google-${Date.now()}`;
+        console.log('Set user ID from localStorage:', userId);
+      } else {
+        // Create a temporary ID if none exists
+        userId = `temp-${Date.now()}`;
+        console.log('Created temporary user ID:', userId);
+      }
+    } catch (error) {
+      console.error('Error retrieving user ID from localStorage:', error);
+      // Create a fallback ID
+      userId = `fallback-${Date.now()}`;
+    }
+    
+    if (!userId) {
+      console.error('Cannot update profile: Failed to determine user ID');
+      return null;
+    }
   }
   
   try {
+    console.log('Updating profile for user:', userId, 'with data:', profileUpdates);
+    
     const response = await fetch(`/api/user-profile/${userId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -119,6 +184,14 @@ export async function updateUserProfile(profileUpdates) {
     if (response.ok) {
       const updatedProfile = await response.json();
       currentUserProfile = updatedProfile;
+      
+      // Cache the updated profile for immediate use in the app
+      console.log('Profile updated successfully:', updatedProfile);
+      
+      // Dispatch a custom event to notify other components
+      const event = new CustomEvent('userProfileUpdated', { detail: updatedProfile });
+      window.dispatchEvent(event);
+      
       return updatedProfile;
     } else {
       console.error('Error updating user profile:', await response.text());
@@ -415,6 +488,30 @@ export function showProfileEditor(onSave) {
   form.onsubmit = async (e) => {
     e.preventDefault();
     
+    // Show loading indicator on save button
+    saveButton.innerHTML = '<span class="spinner"></span> Saving...';
+    saveButton.disabled = true;
+    
+    // Add spinner style
+    const style = document.createElement('style');
+    style.textContent = `
+      .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+    
     // Collect form data
     const formData = new FormData(form);
     const profileData = {
@@ -426,6 +523,8 @@ export function showProfileEditor(onSave) {
       businessGoals: Array.from(formData.getAll('businessGoals')),
       businessChallenges: Array.from(formData.getAll('businessChallenges'))
     };
+    
+    console.log('Saving profile data:', profileData);
     
     try {
       // Update the profile
@@ -439,9 +538,23 @@ export function showProfileEditor(onSave) {
           alert('Profile updated successfully');
         }
         
+        // Important: Update the cached profile
+        currentUserProfile = updatedProfile;
+        
+        console.log('Profile updated and cached:', currentUserProfile);
+        
         // Call callback function if provided
         if (typeof onSave === 'function') {
           onSave(updatedProfile);
+        }
+        
+        // Refresh quote generation if we're on the quote page
+        const quotePage = document.getElementById('quote-generator-page');
+        if (quotePage) {
+          console.log('Quote page detected, refreshing quotes with updated profile');
+          if (typeof window.refreshQuotes === 'function') {
+            window.refreshQuotes();
+          }
         }
         
         // Close modal
