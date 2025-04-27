@@ -346,5 +346,6 @@ UserProfile.personalizeQuote = function(quoteData) {
   }
 })();
 
-// Export the UserProfile object
-export default UserProfile;
+// Expose the UserProfile object globally
+// export default UserProfile; 
+window.UserProfile = UserProfile;
