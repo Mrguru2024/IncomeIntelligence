@@ -1462,6 +1462,285 @@ function generateQuoteForTier(tier, data, commonData, baseRate) {
  * @returns {Array<string>} List of recommendations
  */
 /**
+ * Shows quote options modal for contractors with send options
+ * @param {Object} quote - Quote data
+ * @param {string} tierName - The tier name (Basic, Standard, Premium)
+ */
+function showQuoteOptionsModal(quote, tierName) {
+  // Create modal container
+  const modalOverlay = document.createElement('div');
+  modalOverlay.style.position = 'fixed';
+  modalOverlay.style.top = '0';
+  modalOverlay.style.left = '0';
+  modalOverlay.style.width = '100%';
+  modalOverlay.style.height = '100%';
+  modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modalOverlay.style.display = 'flex';
+  modalOverlay.style.alignItems = 'center';
+  modalOverlay.style.justifyContent = 'center';
+  modalOverlay.style.zIndex = '9999';
+  
+  // Create modal
+  const modal = document.createElement('div');
+  modal.style.backgroundColor = 'white';
+  modal.style.borderRadius = '8px';
+  modal.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+  modal.style.width = '90%';
+  modal.style.maxWidth = '500px';
+  modal.style.maxHeight = '90vh';
+  modal.style.overflow = 'auto';
+  modal.style.position = 'relative';
+  
+  // Modal header
+  const header = document.createElement('div');
+  header.style.padding = '20px 24px';
+  header.style.borderBottom = '1px solid var(--color-border, #e5e7eb)';
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'center';
+  
+  const title = document.createElement('h3');
+  title.textContent = 'Quote Selected - Send Options';
+  title.style.margin = '0';
+  title.style.fontSize = '18px';
+  title.style.fontWeight = 'bold';
+  
+  const closeButton = document.createElement('button');
+  closeButton.innerHTML = '×';
+  closeButton.style.background = 'none';
+  closeButton.style.border = 'none';
+  closeButton.style.fontSize = '24px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.color = 'var(--color-text-secondary, #6b7280)';
+  closeButton.addEventListener('click', () => {
+    document.body.removeChild(modalOverlay);
+  });
+  
+  header.appendChild(title);
+  header.appendChild(closeButton);
+  
+  // Modal content
+  const content = document.createElement('div');
+  content.style.padding = '24px';
+  
+  // Quote info
+  const quoteInfo = document.createElement('div');
+  quoteInfo.style.marginBottom = '20px';
+  quoteInfo.style.padding = '16px';
+  quoteInfo.style.backgroundColor = 'rgba(243, 244, 246, 0.7)';
+  quoteInfo.style.borderRadius = '6px';
+  
+  const tierBadge = document.createElement('div');
+  tierBadge.textContent = tierName;
+  tierBadge.style.display = 'inline-block';
+  tierBadge.style.backgroundColor = tierName === 'Premium' ? '#4F46E5' : (tierName === 'Standard' ? '#0891b2' : '#6b7280');
+  tierBadge.style.color = 'white';
+  tierBadge.style.padding = '4px 10px';
+  tierBadge.style.borderRadius = '4px';
+  tierBadge.style.fontSize = '13px';
+  tierBadge.style.fontWeight = 'bold';
+  tierBadge.style.marginBottom = '12px';
+  
+  const serviceType = document.createElement('div');
+  serviceType.textContent = `${quote.jobTypeDisplay} - ${quote.jobSubtypeDisplay || ''}`;
+  serviceType.style.fontWeight = 'bold';
+  serviceType.style.marginBottom = '8px';
+  serviceType.style.fontSize = '16px';
+  
+  const quoteAmount = document.createElement('div');
+  quoteAmount.style.display = 'flex';
+  quoteAmount.style.justifyContent = 'space-between';
+  quoteAmount.style.alignItems = 'center';
+  quoteAmount.style.marginBottom = '4px';
+  
+  const amountLabel = document.createElement('span');
+  amountLabel.textContent = 'Quote Total:';
+  
+  const amountValue = document.createElement('span');
+  amountValue.textContent = `$${quote.total.toFixed(2)}`;
+  amountValue.style.fontWeight = 'bold';
+  amountValue.style.fontSize = '18px';
+  
+  quoteAmount.appendChild(amountLabel);
+  quoteAmount.appendChild(amountValue);
+  
+  quoteInfo.appendChild(tierBadge);
+  quoteInfo.appendChild(serviceType);
+  quoteInfo.appendChild(quoteAmount);
+  
+  // Send options
+  const optionsTitle = document.createElement('h4');
+  optionsTitle.textContent = 'Send Options';
+  optionsTitle.style.fontSize = '16px';
+  optionsTitle.style.fontWeight = 'bold';
+  optionsTitle.style.marginBottom = '16px';
+  
+  // Option 1: Send as Invoice
+  const invoiceOption = document.createElement('div');
+  invoiceOption.style.border = '1px solid var(--color-border, #e5e7eb)';
+  invoiceOption.style.borderRadius = '8px';
+  invoiceOption.style.padding = '16px';
+  invoiceOption.style.marginBottom = '16px';
+  invoiceOption.style.cursor = 'pointer';
+  invoiceOption.style.transition = 'all 0.2s ease';
+  
+  const invoiceHeader = document.createElement('div');
+  invoiceHeader.style.display = 'flex';
+  invoiceHeader.style.alignItems = 'center';
+  invoiceHeader.style.marginBottom = '10px';
+  
+  const invoiceIcon = document.createElement('span');
+  invoiceIcon.innerHTML = '📄';
+  invoiceIcon.style.fontSize = '20px';
+  invoiceIcon.style.marginRight = '12px';
+  
+  const invoiceTitle = document.createElement('h5');
+  invoiceTitle.textContent = 'Send as Payable Invoice';
+  invoiceTitle.style.margin = '0';
+  invoiceTitle.style.fontSize = '15px';
+  invoiceTitle.style.fontWeight = 'bold';
+  
+  invoiceHeader.appendChild(invoiceIcon);
+  invoiceHeader.appendChild(invoiceTitle);
+  
+  const invoiceDesc = document.createElement('p');
+  invoiceDesc.textContent = 'Send a professional invoice that clients can pay online with a credit card or bank transfer.';
+  invoiceDesc.style.margin = '0';
+  invoiceDesc.style.fontSize = '14px';
+  invoiceDesc.style.color = 'var(--color-text-secondary, #6b7280)';
+  
+  invoiceOption.appendChild(invoiceHeader);
+  invoiceOption.appendChild(invoiceDesc);
+  
+  // Option 2: Collect Payment In Person
+  const manualOption = document.createElement('div');
+  manualOption.style.border = '1px solid var(--color-border, #e5e7eb)';
+  manualOption.style.borderRadius = '8px';
+  manualOption.style.padding = '16px';
+  manualOption.style.cursor = 'pointer';
+  manualOption.style.transition = 'all 0.2s ease';
+  
+  const manualHeader = document.createElement('div');
+  manualHeader.style.display = 'flex';
+  manualHeader.style.alignItems = 'center';
+  manualHeader.style.marginBottom = '10px';
+  
+  const manualIcon = document.createElement('span');
+  manualIcon.innerHTML = '💵';
+  manualIcon.style.fontSize = '20px';
+  manualIcon.style.marginRight = '12px';
+  
+  const manualTitle = document.createElement('h5');
+  manualTitle.textContent = 'Collect Payment In Person';
+  manualTitle.style.margin = '0';
+  manualTitle.style.fontSize = '15px';
+  manualTitle.style.fontWeight = '600';
+  
+  manualHeader.appendChild(manualIcon);
+  manualHeader.appendChild(manualTitle);
+  
+  const manualDesc = document.createElement('p');
+  manualDesc.textContent = 'Send quote details and collect payment manually via cash, check, or in-person card payment.';
+  manualDesc.style.margin = '0';
+  manualDesc.style.fontSize = '14px';
+  manualDesc.style.color = 'var(--color-text-secondary, #6b7280)';
+  
+  manualOption.appendChild(manualHeader);
+  manualOption.appendChild(manualDesc);
+  
+  // Add hover effects
+  invoiceOption.addEventListener('mouseenter', () => {
+    invoiceOption.style.borderColor = 'var(--color-primary, #4F46E5)';
+    invoiceOption.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
+  });
+  
+  invoiceOption.addEventListener('mouseleave', () => {
+    invoiceOption.style.borderColor = 'var(--color-border, #e5e7eb)';
+    invoiceOption.style.backgroundColor = 'transparent';
+  });
+  
+  manualOption.addEventListener('mouseenter', () => {
+    manualOption.style.borderColor = 'var(--color-primary, #4F46E5)';
+    manualOption.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
+  });
+  
+  manualOption.addEventListener('mouseleave', () => {
+    manualOption.style.borderColor = 'var(--color-border, #e5e7eb)';
+    manualOption.style.backgroundColor = 'transparent';
+  });
+  
+  // Button row for actions
+  const buttonRow = document.createElement('div');
+  buttonRow.style.display = 'flex';
+  buttonRow.style.justifyContent = 'flex-end';
+  buttonRow.style.marginTop = '20px';
+  
+  const cancelButton = document.createElement('button');
+  cancelButton.textContent = 'Cancel';
+  cancelButton.style.padding = '8px 16px';
+  cancelButton.style.marginRight = '10px';
+  cancelButton.style.backgroundColor = 'transparent';
+  cancelButton.style.border = '1px solid var(--color-border, #e5e7eb)';
+  cancelButton.style.borderRadius = '6px';
+  cancelButton.style.cursor = 'pointer';
+  cancelButton.addEventListener('click', () => {
+    document.body.removeChild(modalOverlay);
+  });
+  
+  const saveButton = document.createElement('button');
+  saveButton.textContent = 'Save Quote';
+  saveButton.style.padding = '8px 16px';
+  saveButton.style.backgroundColor = '#10b981';
+  saveButton.style.color = 'white';
+  saveButton.style.border = 'none';
+  saveButton.style.borderRadius = '6px';
+  saveButton.style.cursor = 'pointer';
+  saveButton.addEventListener('click', () => {
+    saveQuote(quote, tierName);
+    if (window.showToast) {
+      window.showToast('Quote saved successfully', 'success');
+    }
+  });
+  
+  buttonRow.appendChild(cancelButton);
+  buttonRow.appendChild(saveButton);
+  
+  // Add click handlers for the options
+  invoiceOption.addEventListener('click', () => {
+    // Handle send as invoice
+    if (quote.total >= 300) {
+      showDepositPaymentModal(quote, tierName);
+    } else {
+      // Send normal invoice
+      if (window.showToast) {
+        window.showToast('Invoice sent to client', 'success');
+      }
+      document.body.removeChild(modalOverlay);
+    }
+  });
+  
+  manualOption.addEventListener('click', () => {
+    // Handle manual payment collection
+    if (window.showToast) {
+      window.showToast('Quote sent to client for manual payment', 'success');
+    }
+    document.body.removeChild(modalOverlay);
+  });
+  
+  // Assemble modal
+  content.appendChild(quoteInfo);
+  content.appendChild(optionsTitle);
+  content.appendChild(invoiceOption);
+  content.appendChild(manualOption);
+  content.appendChild(buttonRow);
+  
+  modal.appendChild(header);
+  modal.appendChild(content);
+  modalOverlay.appendChild(modal);
+  document.body.appendChild(modalOverlay);
+}
+
+/**
  * Shows payment terms modal for quotes requiring deposits
  * @param {Object} quote - Quote data
  * @param {string} tierName - The tier name (Basic, Standard, Premium)
@@ -3281,12 +3560,24 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
       costItem.style.fontSize = '13px';
       
       const costLabel = document.createElement('span');
-      // Format the cost key for display (e.g., "serviceCost" -> "Service Cost")
-      const formattedCostName = item.costName
+      // Format the cost key for display (e.g., "serviceCost" -> "Service Cost") 
+      // with special handling to avoid duplicate "Service" labels
+      let formattedCostName = item.costName
         .replace(/([A-Z])/g, ' $1') // Add space before capital letters
         .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
         .replace(/Cost$|Fee$/i, '') // Remove "Cost" or "Fee" suffix
         .trim();
+        
+      // Prevent duplicate "Service" labels by making them more specific
+      if (formattedCostName === 'Service') {
+        // Use the feature name instead if available
+        if (item.feature) {
+          formattedCostName = item.feature;
+        } else {
+          // Or use "Base Service" if this is a serviceCost
+          formattedCostName = 'Base Service';
+        }
+      }
       
       costLabel.textContent = `${formattedCostName}`;
       costLabel.style.color = 'var(--color-text-secondary, #4b5563)';
@@ -3372,17 +3663,54 @@ if (quote.editable) {
   
   cardBody.appendChild(featuresList);
   
-  // Add a heading for the quote breakdown section
-  const breakdownHeading = document.createElement('div');
-  breakdownHeading.style.fontSize = '15px';
-  breakdownHeading.style.fontWeight = 'bold';
-  breakdownHeading.style.marginTop = '24px';
-  breakdownHeading.style.marginBottom = '12px';
-  breakdownHeading.style.padding = '8px';
-  breakdownHeading.style.borderBottom = '2px solid var(--color-border-light, #e5e7eb)';
-  breakdownHeading.style.color = 'var(--color-text, #111827)';
-  breakdownHeading.textContent = 'Quote Breakdown';
-  cardBody.appendChild(breakdownHeading);
+  // Add a heading for the quote breakdown section with toggle
+  const breakdownHeader = document.createElement('div');
+  breakdownHeader.style.display = 'flex';
+  breakdownHeader.style.justifyContent = 'space-between';
+  breakdownHeader.style.alignItems = 'center';
+  breakdownHeader.style.fontSize = '15px';
+  breakdownHeader.style.fontWeight = 'bold';
+  breakdownHeader.style.marginTop = '24px';
+  breakdownHeader.style.marginBottom = '12px';
+  breakdownHeader.style.padding = '8px';
+  breakdownHeader.style.borderBottom = '2px solid var(--color-border-light, #e5e7eb)';
+  breakdownHeader.style.color = 'var(--color-text, #111827)';
+  breakdownHeader.style.cursor = 'pointer';
+  
+  const breakdownTitle = document.createElement('span');
+  breakdownTitle.textContent = 'Quote Breakdown';
+  
+  const toggleBreakdown = document.createElement('div');
+  toggleBreakdown.innerHTML = '▼';
+  toggleBreakdown.style.fontSize = '12px';
+  toggleBreakdown.style.transition = 'transform 0.2s ease';
+  
+  breakdownHeader.appendChild(breakdownTitle);
+  breakdownHeader.appendChild(toggleBreakdown);
+  cardBody.appendChild(breakdownHeader);
+  
+  // Create a container for the breakdown items
+  const breakdownContainer = document.createElement('div');
+  breakdownContainer.style.transition = 'max-height 0.3s ease-out, opacity 0.2s ease-out';
+  breakdownContainer.style.overflow = 'hidden';
+  breakdownContainer.style.maxHeight = '500px'; // Start expanded
+  breakdownContainer.style.opacity = '1';
+  cardBody.appendChild(breakdownContainer);
+  
+  // Add toggle functionality
+  breakdownHeader.addEventListener('click', () => {
+    if (breakdownContainer.style.maxHeight === '0px') {
+      // Expand
+      breakdownContainer.style.maxHeight = '500px';
+      breakdownContainer.style.opacity = '1';
+      toggleBreakdown.style.transform = 'rotate(0deg)';
+    } else {
+      // Collapse
+      breakdownContainer.style.maxHeight = '0px';
+      breakdownContainer.style.opacity = '0';
+      toggleBreakdown.style.transform = 'rotate(-90deg)';
+    }
+  });
   
   // Create service-specific breakdown items for display
   const breakdownItems = [];
@@ -3573,11 +3901,11 @@ if (quote.editable) {
     showAIRecommendations(recommendations, tierName);
   });
   
-  // Select/Accept button
+  // Select Quote button for contractors
   const selectButton = document.createElement('button');
   
-  // Change button text based on quote value
-  selectButton.textContent = quote.total >= 300 ? 'Accept & Pay Deposit' : 'Accept Quote';
+  // Use "Select Quote" for contractors
+  selectButton.textContent = 'Select Quote';
   
   selectButton.style.flex = '1';
   selectButton.style.backgroundColor = 'var(--color-primary, #4F46E5)';
@@ -3590,39 +3918,34 @@ if (quote.editable) {
   selectButton.style.cursor = 'pointer';
   selectButton.style.minWidth = '80px';
   
-  // Add deposit info to quote for quotes over $300
+  // Add deposit info to quote for quotes over $300 (for later use)
   if (quote.total >= 300) {
     // Calculate deposit (25% of total)
     quote.depositAmount = Math.round(quote.total * 0.25);
     quote.remainingAmount = quote.total - quote.depositAmount;
-    
-    // Add visual indicator for deposit required
-    const buttonContent = document.createElement('div');
-    buttonContent.style.display = 'flex';
-    buttonContent.style.alignItems = 'center';
-    buttonContent.style.justifyContent = 'center';
-    
-    const payIcon = document.createElement('span');
-    payIcon.innerHTML = '💳';
-    payIcon.style.marginRight = '6px';
-    
-    const buttonText = document.createElement('span');
-    buttonText.textContent = 'Accept & Pay Deposit';
-    
-    buttonContent.appendChild(payIcon);
-    buttonContent.appendChild(buttonText);
-    selectButton.innerHTML = '';
-    selectButton.appendChild(buttonContent);
   }
   
+  // Add checkmark icon to select button
+  const buttonContent = document.createElement('div');
+  buttonContent.style.display = 'flex';
+  buttonContent.style.alignItems = 'center';
+  buttonContent.style.justifyContent = 'center';
+  
+  const selectIcon = document.createElement('span');
+  selectIcon.innerHTML = '✓';
+  selectIcon.style.marginRight = '6px';
+  
+  const buttonText = document.createElement('span');
+  buttonText.textContent = 'Select Quote';
+  
+  buttonContent.appendChild(selectIcon);
+  buttonContent.appendChild(buttonText);
+  selectButton.innerHTML = '';
+  selectButton.appendChild(buttonContent);
+  
   selectButton.addEventListener('click', () => {
-    if (quote.total >= 300) {
-      // Show payment terms modal for quotes requiring deposit
-      showDepositPaymentModal(quote, tierName);
-    } else {
-      // Regular quote display
-      displayQuoteResults(quote);
-    }
+    // Show quote options modal for contractors
+    showQuoteOptionsModal(quote, tierName);
   });
   
   // Print button
