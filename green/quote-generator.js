@@ -9,6 +9,56 @@
 // Add debugging
 console.log('Quote Generator module initialized');
 
+// Import toast component or use it if already global
+let showToastFn;
+
+// Initialize toast function for notifications
+function initToastSystem() {
+  try {
+    // Check if toast is already available globally
+    if (typeof createToast === 'function') {
+      showToastFn = createToast;
+    } else {
+      // Try to import the toast module
+      import('/green/components/toast.js')
+        .then(module => {
+          showToastFn = module.createToast;
+          console.log('Toast module imported successfully');
+        })
+        .catch(err => {
+          console.error('Failed to import toast module:', err);
+          // Fallback toast function
+          showToastFn = (message, type = 'info') => {
+            console.log(`TOAST [${type}]: ${message}`);
+            alert(message);
+          };
+        });
+    }
+  } catch (error) {
+    console.error('Error initializing toast system:', error);
+    // Fallback toast function
+    showToastFn = (message, type = 'info') => {
+      console.log(`TOAST [${type}]: ${message}`);
+      alert(message);
+    };
+  }
+}
+
+// Expose the show toast function globally
+window.showToast = (message, type = 'info', duration = 3000) => {
+  if (!showToastFn) {
+    initToastSystem();
+    // If still initializing, use fallback
+    console.log(`TOAST [${type}]: ${message}`);
+    alert(message);
+    return;
+  }
+  return showToastFn(message, type, duration);
+};
+
+// Initialize toast system
+initToastSystem();
+
 // Define regional market rates for different job types
 const marketRates = {
   // Home services
@@ -1266,7 +1316,7 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   saveButton.style.cursor = 'pointer';
   
   saveButton.addEventListener('click', () => {
-    saveQuote(quote);
+    saveQuote(quote, tierName);
   });
   
   actions.appendChild(selectButton);
@@ -1583,7 +1633,7 @@ function displayQuoteResults(result) {
   saveButton.style.flex = '1';
   
   saveButton.addEventListener('click', () => {
-    saveQuote(result);
+    saveQuote(result, 'Standard');
   });
   
   // Print button
@@ -1721,11 +1771,93 @@ function createInput(type, name, value = '', placeholder = '', min = '', max = '
 }
 
 /**
+ * Save a quote to local storage
+ * @param {Object} quote - The quote object to save
+ * @param {string} tierName - The tier name (Basic, Standard, Premium)
+ */
+function saveQuote(quote, tierName) {
+  try {
+    // Create a unique identifier for the quote based on job type, location, and timestamp
+    const timestamp = new Date().getTime();
+    const quoteId = `quote_${quote.jobType}_${timestamp}`;
+    
+    // Add timestamp and tier information
+    const quoteToSave = {
+      ...quote,
+      id: quoteId,
+      tierName: tierName,
+      savedAt: timestamp
+    };
+    
+    // Get existing quotes from localStorage or initialize empty array
+    let savedQuotes = [];
+    const savedQuotesJson = localStorage.getItem('savedQuotes');
+    if (savedQuotesJson) {
+      try {
+        savedQuotes = JSON.parse(savedQuotesJson);
+      } catch (e) {
+        console.error('Error parsing saved quotes:', e);
+        savedQuotes = [];
+      }
+    }
+    
+    // Add the new quote to the array
+    savedQuotes.push(quoteToSave);
+    
+    // Save back to localStorage
+    localStorage.setItem('savedQuotes', JSON.stringify(savedQuotes));
+    
+    // Show success message
+    if (window.showToast) {
+      window.showToast(`${tierName} quote saved successfully`, 'success');
+    } else {
+      console.log(`${tierName} quote saved successfully`);
+      alert(`${tierName} quote saved successfully`);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error saving quote:', error);
+    
+    // Show error message
+    if (window.showToast) {
+      window.showToast('Error saving quote: ' + error.message, 'error');
+    } else {
+      console.error('Error saving quote:', error);
+      alert('Error saving quote: ' + error.message);
+    }
+    
+    return false;
+  }
+}
+
+/**
+ * Load saved quotes from local storage
+ * @returns {Array} Array of saved quotes
+ */
+function loadSavedQuotes() {
+  try {
+    const savedQuotesJson = localStorage.getItem('savedQuotes');
+    if (!savedQuotesJson) return [];
+    
+    return JSON.parse(savedQuotesJson);
+  } catch (error) {
+    console.error('Error loading saved quotes:', error);
+    return [];
+  }
+}
+
+/**
  * Display a toast notification
  * @param {string} message - The message to display
  * @param {string} type - The type of toast (success or error)
  */
 function showToast(message, type = 'success') {
+  // First, try to use the global showToast if available
+  if (window.showToast && window.showToast !== showToast) {
+    return window.showToast(message, type);
+  }
+  
   // Check if toast container exists, create if not
   let toastContainer = document.getElementById('toast-container');
   if (!toastContainer) {
