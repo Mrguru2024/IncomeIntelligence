@@ -1707,24 +1707,15 @@ function showQuoteOptionsModal(quote, tierName) {
   
   // Add click handlers for the options
   invoiceOption.addEventListener('click', () => {
-    // Handle send as invoice
-    if (quote.total >= 300) {
-      showDepositPaymentModal(quote, tierName);
-    } else {
-      // Send normal invoice
-      if (window.showToast) {
-        window.showToast('Invoice sent to client', 'success');
-      }
-      document.body.removeChild(modalOverlay);
-    }
+    // Handle send as invoice by redirecting to invoice workflow
+    document.body.removeChild(modalOverlay);
+    showInvoiceWorkflowModal(quote, tierName);
   });
   
   manualOption.addEventListener('click', () => {
-    // Handle manual payment collection
-    if (window.showToast) {
-      window.showToast('Quote sent to client for manual payment', 'success');
-    }
+    // Handle manual payment collection by redirecting to payment terminal
     document.body.removeChild(modalOverlay);
+    showPaymentTerminalModal(quote, tierName);
   });
   
   // Assemble modal
@@ -2022,6 +2013,862 @@ function showDepositPaymentModal(quote, tierName) {
   content.appendChild(termsSection);
   content.appendChild(paymentSection);
   content.appendChild(payButton);
+  
+  modal.appendChild(header);
+  modal.appendChild(content);
+  modalOverlay.appendChild(modal);
+  
+  // Add to DOM
+  document.body.appendChild(modalOverlay);
+}
+
+/**
+ * Shows invoice workflow modal for sending professional invoices
+ * @param {Object} quote - Quote data
+ * @param {string} tierName - The tier name (Basic, Standard, Premium)
+ */
+function showInvoiceWorkflowModal(quote, tierName) {
+  // Create modal container
+  const modalOverlay = document.createElement('div');
+  modalOverlay.style.position = 'fixed';
+  modalOverlay.style.top = '0';
+  modalOverlay.style.left = '0';
+  modalOverlay.style.width = '100%';
+  modalOverlay.style.height = '100%';
+  modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modalOverlay.style.display = 'flex';
+  modalOverlay.style.alignItems = 'center';
+  modalOverlay.style.justifyContent = 'center';
+  modalOverlay.style.zIndex = '9999';
+  
+  // Create modal
+  const modal = document.createElement('div');
+  modal.style.backgroundColor = 'white';
+  modal.style.borderRadius = '8px';
+  modal.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+  modal.style.width = '90%';
+  modal.style.maxWidth = '600px';
+  modal.style.maxHeight = '90vh';
+  modal.style.overflow = 'auto';
+  modal.style.position = 'relative';
+  
+  // Modal header
+  const header = document.createElement('div');
+  header.style.padding = '20px 24px';
+  header.style.borderBottom = '1px solid var(--color-border, #e5e7eb)';
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'center';
+  
+  const title = document.createElement('h3');
+  title.textContent = 'Create Professional Invoice';
+  title.style.margin = '0';
+  title.style.fontSize = '18px';
+  title.style.fontWeight = 'bold';
+  
+  const closeButton = document.createElement('button');
+  closeButton.innerHTML = '×';
+  closeButton.style.background = 'none';
+  closeButton.style.border = 'none';
+  closeButton.style.fontSize = '24px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.color = 'var(--color-text-secondary, #6b7280)';
+  closeButton.addEventListener('click', () => {
+    document.body.removeChild(modalOverlay);
+  });
+  
+  header.appendChild(title);
+  header.appendChild(closeButton);
+  
+  // Modal content
+  const content = document.createElement('div');
+  content.style.padding = '24px';
+  
+  // Invoice form
+  const form = document.createElement('form');
+  form.id = 'invoice-form';
+  
+  // Client information section
+  const clientSection = document.createElement('div');
+  clientSection.style.marginBottom = '24px';
+  
+  const clientSectionTitle = document.createElement('h4');
+  clientSectionTitle.textContent = 'Client Information';
+  clientSectionTitle.style.fontSize = '16px';
+  clientSectionTitle.style.fontWeight = 'bold';
+  clientSectionTitle.style.marginBottom = '16px';
+  
+  const clientNameGroup = document.createElement('div');
+  clientNameGroup.style.marginBottom = '16px';
+  
+  const clientNameLabel = document.createElement('label');
+  clientNameLabel.htmlFor = 'client-name';
+  clientNameLabel.textContent = 'Client Name';
+  clientNameLabel.style.display = 'block';
+  clientNameLabel.style.marginBottom = '8px';
+  clientNameLabel.style.fontSize = '14px';
+  
+  const clientNameInput = document.createElement('input');
+  clientNameInput.type = 'text';
+  clientNameInput.id = 'client-name';
+  clientNameInput.name = 'clientName';
+  clientNameInput.placeholder = 'Enter client name';
+  clientNameInput.style.width = '100%';
+  clientNameInput.style.padding = '10px';
+  clientNameInput.style.borderRadius = '6px';
+  clientNameInput.style.border = '1px solid var(--color-border, #e5e7eb)';
+  clientNameInput.required = true;
+  
+  clientNameGroup.appendChild(clientNameLabel);
+  clientNameGroup.appendChild(clientNameInput);
+  
+  const clientEmailGroup = document.createElement('div');
+  clientEmailGroup.style.marginBottom = '16px';
+  
+  const clientEmailLabel = document.createElement('label');
+  clientEmailLabel.htmlFor = 'client-email';
+  clientEmailLabel.textContent = 'Client Email';
+  clientEmailLabel.style.display = 'block';
+  clientEmailLabel.style.marginBottom = '8px';
+  clientEmailLabel.style.fontSize = '14px';
+  
+  const clientEmailInput = document.createElement('input');
+  clientEmailInput.type = 'email';
+  clientEmailInput.id = 'client-email';
+  clientEmailInput.name = 'clientEmail';
+  clientEmailInput.placeholder = 'Enter client email';
+  clientEmailInput.style.width = '100%';
+  clientEmailInput.style.padding = '10px';
+  clientEmailInput.style.borderRadius = '6px';
+  clientEmailInput.style.border = '1px solid var(--color-border, #e5e7eb)';
+  clientEmailInput.required = true;
+  
+  clientEmailGroup.appendChild(clientEmailLabel);
+  clientEmailGroup.appendChild(clientEmailInput);
+  
+  clientSection.appendChild(clientSectionTitle);
+  clientSection.appendChild(clientNameGroup);
+  clientSection.appendChild(clientEmailGroup);
+  
+  // Quote details section
+  const quoteSection = document.createElement('div');
+  quoteSection.style.marginBottom = '24px';
+  
+  const quoteSectionTitle = document.createElement('h4');
+  quoteSectionTitle.textContent = 'Quote Details';
+  quoteSectionTitle.style.fontSize = '16px';
+  quoteSectionTitle.style.fontWeight = 'bold';
+  quoteSectionTitle.style.marginBottom = '16px';
+  
+  // Create table for line items
+  const lineItemsTable = document.createElement('table');
+  lineItemsTable.style.width = '100%';
+  lineItemsTable.style.borderCollapse = 'collapse';
+  lineItemsTable.style.marginBottom = '16px';
+  
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  
+  ['Description', 'Quantity', 'Unit Price', 'Total'].forEach(text => {
+    const th = document.createElement('th');
+    th.textContent = text;
+    th.style.textAlign = 'left';
+    th.style.padding = '8px';
+    th.style.borderBottom = '1px solid var(--color-border, #e5e7eb)';
+    headerRow.appendChild(th);
+  });
+  
+  thead.appendChild(headerRow);
+  lineItemsTable.appendChild(thead);
+  
+  const tbody = document.createElement('tbody');
+  
+  // Add line items from quote
+  let lineItems = [];
+  
+  // Base service
+  lineItems.push({
+    description: `${quote.jobTypeDisplay} - ${quote.jobSubtypeDisplay}`,
+    quantity: 1,
+    unitPrice: quote.baseAmount || quote.total,
+    total: quote.baseAmount || quote.total
+  });
+  
+  // Features and services
+  if (quote.selectedFeatures && quote.selectedFeatures.length) {
+    quote.selectedFeatures.forEach(feature => {
+      if (feature.selected) {
+        lineItems.push({
+          description: feature.name,
+          quantity: 1,
+          unitPrice: feature.price,
+          total: feature.price
+        });
+      }
+    });
+  }
+  
+  // Add rows to the table
+  lineItems.forEach(item => {
+    const row = document.createElement('tr');
+    
+    const descCell = document.createElement('td');
+    descCell.textContent = item.description;
+    descCell.style.padding = '8px';
+    descCell.style.borderBottom = '1px solid var(--color-border, #e5e7eb)';
+    
+    const qtyCell = document.createElement('td');
+    qtyCell.textContent = item.quantity;
+    qtyCell.style.padding = '8px';
+    qtyCell.style.borderBottom = '1px solid var(--color-border, #e5e7eb)';
+    
+    const priceCell = document.createElement('td');
+    priceCell.textContent = `$${item.unitPrice.toFixed(2)}`;
+    priceCell.style.padding = '8px';
+    priceCell.style.borderBottom = '1px solid var(--color-border, #e5e7eb)';
+    
+    const totalCell = document.createElement('td');
+    totalCell.textContent = `$${item.total.toFixed(2)}`;
+    totalCell.style.padding = '8px';
+    totalCell.style.borderBottom = '1px solid var(--color-border, #e5e7eb)';
+    
+    row.appendChild(descCell);
+    row.appendChild(qtyCell);
+    row.appendChild(priceCell);
+    row.appendChild(totalCell);
+    
+    tbody.appendChild(row);
+  });
+  
+  lineItemsTable.appendChild(tbody);
+  
+  // Total row
+  const totalDiv = document.createElement('div');
+  totalDiv.style.display = 'flex';
+  totalDiv.style.justifyContent = 'flex-end';
+  totalDiv.style.padding = '12px 0';
+  totalDiv.style.borderTop = '2px solid var(--color-border, #e5e7eb)';
+  totalDiv.style.marginTop = '8px';
+  
+  const totalLabel = document.createElement('span');
+  totalLabel.textContent = 'Total:';
+  totalLabel.style.fontWeight = 'bold';
+  totalLabel.style.marginRight = '16px';
+  
+  const totalValue = document.createElement('span');
+  totalValue.textContent = `$${quote.total.toFixed(2)}`;
+  totalValue.style.fontWeight = 'bold';
+  
+  totalDiv.appendChild(totalLabel);
+  totalDiv.appendChild(totalValue);
+  
+  // Payment terms
+  const termsSection = document.createElement('div');
+  termsSection.style.marginBottom = '24px';
+  
+  const termsTitle = document.createElement('h4');
+  termsTitle.textContent = 'Payment Terms';
+  termsTitle.style.fontSize = '16px';
+  termsTitle.style.fontWeight = 'bold';
+  termsTitle.style.marginBottom = '16px';
+  
+  const dueDateGroup = document.createElement('div');
+  dueDateGroup.style.marginBottom = '16px';
+  
+  const dueDateLabel = document.createElement('label');
+  dueDateLabel.htmlFor = 'due-date';
+  dueDateLabel.textContent = 'Due Date';
+  dueDateLabel.style.display = 'block';
+  dueDateLabel.style.marginBottom = '8px';
+  dueDateLabel.style.fontSize = '14px';
+  
+  // Default to 14 days from now
+  const defaultDueDate = new Date();
+  defaultDueDate.setDate(defaultDueDate.getDate() + 14);
+  const dueDateString = defaultDueDate.toISOString().split('T')[0];
+  
+  const dueDateInput = document.createElement('input');
+  dueDateInput.type = 'date';
+  dueDateInput.id = 'due-date';
+  dueDateInput.name = 'dueDate';
+  dueDateInput.value = dueDateString;
+  dueDateInput.style.width = '100%';
+  dueDateInput.style.padding = '10px';
+  dueDateInput.style.borderRadius = '6px';
+  dueDateInput.style.border = '1px solid var(--color-border, #e5e7eb)';
+  dueDateInput.required = true;
+  
+  dueDateGroup.appendChild(dueDateLabel);
+  dueDateGroup.appendChild(dueDateInput);
+  
+  const notesGroup = document.createElement('div');
+  notesGroup.style.marginBottom = '16px';
+  
+  const notesLabel = document.createElement('label');
+  notesLabel.htmlFor = 'invoice-notes';
+  notesLabel.textContent = 'Notes';
+  notesLabel.style.display = 'block';
+  notesLabel.style.marginBottom = '8px';
+  notesLabel.style.fontSize = '14px';
+  
+  const notesInput = document.createElement('textarea');
+  notesInput.id = 'invoice-notes';
+  notesInput.name = 'notes';
+  notesInput.placeholder = 'Enter additional notes or payment instructions';
+  notesInput.style.width = '100%';
+  notesInput.style.padding = '10px';
+  notesInput.style.borderRadius = '6px';
+  notesInput.style.border = '1px solid var(--color-border, #e5e7eb)';
+  notesInput.style.minHeight = '80px';
+  
+  notesGroup.appendChild(notesLabel);
+  notesGroup.appendChild(notesInput);
+  
+  termsSection.appendChild(termsTitle);
+  termsSection.appendChild(dueDateGroup);
+  termsSection.appendChild(notesGroup);
+  
+  // Assemble the form
+  quoteSection.appendChild(quoteSectionTitle);
+  quoteSection.appendChild(lineItemsTable);
+  quoteSection.appendChild(totalDiv);
+  
+  form.appendChild(clientSection);
+  form.appendChild(quoteSection);
+  form.appendChild(termsSection);
+  
+  // Submit button
+  const submitButton = document.createElement('button');
+  submitButton.type = 'submit';
+  submitButton.textContent = 'Send Invoice';
+  submitButton.style.backgroundColor = 'var(--color-primary, #4F46E5)';
+  submitButton.style.color = 'white';
+  submitButton.style.border = 'none';
+  submitButton.style.borderRadius = '6px';
+  submitButton.style.padding = '12px 24px';
+  submitButton.style.fontSize = '16px';
+  submitButton.style.fontWeight = 'bold';
+  submitButton.style.cursor = 'pointer';
+  submitButton.style.width = '100%';
+  
+  form.appendChild(submitButton);
+  
+  // Handle form submission
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(form);
+    const invoiceData = {
+      clientName: formData.get('clientName'),
+      clientEmail: formData.get('clientEmail'),
+      dueDate: formData.get('dueDate'),
+      notes: formData.get('notes'),
+      lineItems: lineItems,
+      total: quote.total,
+      quoteId: quote.id || `quote-${Date.now()}`,
+      invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
+      createdAt: new Date().toISOString()
+    };
+    
+    // In a real application, this would send the invoice data to the server
+    // and trigger an email to the client
+    
+    // Show success message
+    if (window.showToast) {
+      window.showToast('Invoice sent successfully!', 'success');
+    }
+    
+    // Store the invoice in localStorage for demo purposes
+    try {
+      const savedInvoices = JSON.parse(localStorage.getItem('stackrInvoices') || '[]');
+      savedInvoices.push(invoiceData);
+      localStorage.setItem('stackrInvoices', JSON.stringify(savedInvoices));
+    } catch (error) {
+      console.error('Error saving invoice:', error);
+    }
+    
+    // Close the modal
+    document.body.removeChild(modalOverlay);
+  });
+  
+  content.appendChild(form);
+  
+  modal.appendChild(header);
+  modal.appendChild(content);
+  modalOverlay.appendChild(modal);
+  
+  // Add to DOM
+  document.body.appendChild(modalOverlay);
+}
+
+/**
+ * Shows payment terminal modal for collecting payments
+ * @param {Object} quote - Quote data
+ * @param {string} tierName - The tier name (Basic, Standard, Premium)
+ */
+function showPaymentTerminalModal(quote, tierName) {
+  // Create modal container
+  const modalOverlay = document.createElement('div');
+  modalOverlay.style.position = 'fixed';
+  modalOverlay.style.top = '0';
+  modalOverlay.style.left = '0';
+  modalOverlay.style.width = '100%';
+  modalOverlay.style.height = '100%';
+  modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modalOverlay.style.display = 'flex';
+  modalOverlay.style.alignItems = 'center';
+  modalOverlay.style.justifyContent = 'center';
+  modalOverlay.style.zIndex = '9999';
+  
+  // Create modal
+  const modal = document.createElement('div');
+  modal.style.backgroundColor = 'white';
+  modal.style.borderRadius = '8px';
+  modal.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+  modal.style.width = '90%';
+  modal.style.maxWidth = '500px';
+  modal.style.maxHeight = '90vh';
+  modal.style.overflow = 'auto';
+  modal.style.position = 'relative';
+  
+  // Modal header
+  const header = document.createElement('div');
+  header.style.padding = '20px 24px';
+  header.style.borderBottom = '1px solid var(--color-border, #e5e7eb)';
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'center';
+  
+  const title = document.createElement('h3');
+  title.textContent = 'Payment Terminal';
+  title.style.margin = '0';
+  title.style.fontSize = '18px';
+  title.style.fontWeight = 'bold';
+  
+  const closeButton = document.createElement('button');
+  closeButton.innerHTML = '×';
+  closeButton.style.background = 'none';
+  closeButton.style.border = 'none';
+  closeButton.style.fontSize = '24px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.color = 'var(--color-text-secondary, #6b7280)';
+  closeButton.addEventListener('click', () => {
+    document.body.removeChild(modalOverlay);
+  });
+  
+  header.appendChild(title);
+  header.appendChild(closeButton);
+  
+  // Modal content
+  const content = document.createElement('div');
+  content.style.padding = '24px';
+  
+  // Amount section
+  const amountSection = document.createElement('div');
+  amountSection.style.marginBottom = '24px';
+  amountSection.style.textAlign = 'center';
+  
+  const amountTitle = document.createElement('p');
+  amountTitle.textContent = 'Total Amount';
+  amountTitle.style.fontSize = '14px';
+  amountTitle.style.color = 'var(--color-text-secondary, #6b7280)';
+  amountTitle.style.margin = '0 0 8px 0';
+  
+  const amountValue = document.createElement('div');
+  amountValue.textContent = `$${quote.total.toFixed(2)}`;
+  amountValue.style.fontSize = '36px';
+  amountValue.style.fontWeight = 'bold';
+  amountValue.style.color = 'var(--color-primary, #4F46E5)';
+  amountValue.style.marginBottom = '16px';
+  
+  const quoteRef = document.createElement('p');
+  quoteRef.textContent = `Quote #${quote.id || 'Q-' + Date.now().toString().slice(-6)}`;
+  quoteRef.style.fontSize = '14px';
+  quoteRef.style.color = 'var(--color-text-secondary, #6b7280)';
+  quoteRef.style.margin = '0';
+  
+  amountSection.appendChild(amountTitle);
+  amountSection.appendChild(amountValue);
+  amountSection.appendChild(quoteRef);
+  
+  // Payment method tabs
+  const tabsContainer = document.createElement('div');
+  tabsContainer.style.marginBottom = '24px';
+  tabsContainer.style.borderBottom = '1px solid var(--color-border, #e5e7eb)';
+  tabsContainer.style.display = 'flex';
+  
+  const tabs = [
+    { id: 'card', name: 'Credit Card', icon: '💳' },
+    { id: 'cash', name: 'Cash', icon: '💵' },
+    { id: 'transfer', name: 'Bank Transfer', icon: '🏦' }
+  ];
+  
+  const tabPanels = {};
+  
+  tabs.forEach((tab, index) => {
+    const tabButton = document.createElement('button');
+    tabButton.id = `tab-${tab.id}`;
+    tabButton.style.flex = '1';
+    tabButton.style.padding = '12px';
+    tabButton.style.background = 'none';
+    tabButton.style.border = 'none';
+    tabButton.style.borderBottom = index === 0 ? '2px solid var(--color-primary, #4F46E5)' : '2px solid transparent';
+    tabButton.style.color = index === 0 ? 'var(--color-primary, #4F46E5)' : 'var(--color-text, #111827)';
+    tabButton.style.fontWeight = index === 0 ? 'bold' : 'normal';
+    tabButton.style.cursor = 'pointer';
+    tabButton.style.transition = 'all 0.3s ease';
+    
+    const tabIcon = document.createElement('span');
+    tabIcon.textContent = tab.icon;
+    tabIcon.style.display = 'block';
+    tabIcon.style.fontSize = '20px';
+    tabIcon.style.marginBottom = '4px';
+    
+    const tabText = document.createElement('span');
+    tabText.textContent = tab.name;
+    tabText.style.fontSize = '14px';
+    
+    tabButton.appendChild(tabIcon);
+    tabButton.appendChild(tabText);
+    
+    // Create panel for this tab
+    const panel = document.createElement('div');
+    panel.id = `panel-${tab.id}`;
+    panel.style.display = index === 0 ? 'block' : 'none';
+    panel.style.padding = '16px 0';
+    
+    tabPanels[tab.id] = panel;
+    
+    // Add click event
+    tabButton.addEventListener('click', () => {
+      // Reset all tabs
+      tabsContainer.querySelectorAll('button').forEach(btn => {
+        btn.style.borderBottom = '2px solid transparent';
+        btn.style.color = 'var(--color-text, #111827)';
+        btn.style.fontWeight = 'normal';
+      });
+      
+      // Hide all panels
+      Object.values(tabPanels).forEach(p => {
+        p.style.display = 'none';
+      });
+      
+      // Activate clicked tab
+      tabButton.style.borderBottom = '2px solid var(--color-primary, #4F46E5)';
+      tabButton.style.color = 'var(--color-primary, #4F46E5)';
+      tabButton.style.fontWeight = 'bold';
+      
+      // Show panel
+      panel.style.display = 'block';
+    });
+    
+    tabsContainer.appendChild(tabButton);
+  });
+  
+  // Credit Card Panel
+  const cardPanel = tabPanels['card'];
+  
+  const cardForm = document.createElement('form');
+  cardForm.id = 'card-payment-form';
+  
+  const cardNumberGroup = document.createElement('div');
+  cardNumberGroup.style.marginBottom = '16px';
+  
+  const cardNumberLabel = document.createElement('label');
+  cardNumberLabel.htmlFor = 'card-number';
+  cardNumberLabel.textContent = 'Card Number';
+  cardNumberLabel.style.display = 'block';
+  cardNumberLabel.style.marginBottom = '8px';
+  cardNumberLabel.style.fontSize = '14px';
+  
+  const cardNumberInput = document.createElement('input');
+  cardNumberInput.type = 'text';
+  cardNumberInput.id = 'card-number';
+  cardNumberInput.placeholder = '•••• •••• •••• ••••';
+  cardNumberInput.style.width = '100%';
+  cardNumberInput.style.padding = '10px';
+  cardNumberInput.style.borderRadius = '6px';
+  cardNumberInput.style.border = '1px solid var(--color-border, #e5e7eb)';
+  
+  cardNumberGroup.appendChild(cardNumberLabel);
+  cardNumberGroup.appendChild(cardNumberInput);
+  
+  // Expiry and CVC row
+  const cardRowGroup = document.createElement('div');
+  cardRowGroup.style.display = 'flex';
+  cardRowGroup.style.gap = '16px';
+  cardRowGroup.style.marginBottom = '16px';
+  
+  const expiryGroup = document.createElement('div');
+  expiryGroup.style.flex = '1';
+  
+  const expiryLabel = document.createElement('label');
+  expiryLabel.htmlFor = 'card-expiry';
+  expiryLabel.textContent = 'Expiry Date';
+  expiryLabel.style.display = 'block';
+  expiryLabel.style.marginBottom = '8px';
+  expiryLabel.style.fontSize = '14px';
+  
+  const expiryInput = document.createElement('input');
+  expiryInput.type = 'text';
+  expiryInput.id = 'card-expiry';
+  expiryInput.placeholder = 'MM/YY';
+  expiryInput.style.width = '100%';
+  expiryInput.style.padding = '10px';
+  expiryInput.style.borderRadius = '6px';
+  expiryInput.style.border = '1px solid var(--color-border, #e5e7eb)';
+  
+  expiryGroup.appendChild(expiryLabel);
+  expiryGroup.appendChild(expiryInput);
+  
+  const cvcGroup = document.createElement('div');
+  cvcGroup.style.flex = '1';
+  
+  const cvcLabel = document.createElement('label');
+  cvcLabel.htmlFor = 'card-cvc';
+  cvcLabel.textContent = 'CVC';
+  cvcLabel.style.display = 'block';
+  cvcLabel.style.marginBottom = '8px';
+  cvcLabel.style.fontSize = '14px';
+  
+  const cvcInput = document.createElement('input');
+  cvcInput.type = 'text';
+  cvcInput.id = 'card-cvc';
+  cvcInput.placeholder = '•••';
+  cvcInput.style.width = '100%';
+  cvcInput.style.padding = '10px';
+  cvcInput.style.borderRadius = '6px';
+  cvcInput.style.border = '1px solid var(--color-border, #e5e7eb)';
+  
+  cvcGroup.appendChild(cvcLabel);
+  cvcGroup.appendChild(cvcInput);
+  
+  cardRowGroup.appendChild(expiryGroup);
+  cardRowGroup.appendChild(cvcGroup);
+  
+  cardForm.appendChild(cardNumberGroup);
+  cardForm.appendChild(cardRowGroup);
+  
+  cardPanel.appendChild(cardForm);
+  
+  // Cash Panel
+  const cashPanel = tabPanels['cash'];
+  
+  const cashInstructions = document.createElement('div');
+  cashInstructions.style.backgroundColor = 'rgba(243, 244, 246, 0.7)';
+  cashInstructions.style.borderRadius = '6px';
+  cashInstructions.style.padding = '16px';
+  cashInstructions.style.marginBottom = '20px';
+  
+  const cashIcon = document.createElement('span');
+  cashIcon.textContent = '📝';
+  cashIcon.style.fontSize = '24px';
+  cashIcon.style.display = 'block';
+  cashIcon.style.textAlign = 'center';
+  cashIcon.style.marginBottom = '12px';
+  
+  const cashText = document.createElement('p');
+  cashText.textContent = 'Enter the amount received from the customer. Any change due will be calculated automatically.';
+  cashText.style.margin = '0';
+  cashText.style.fontSize = '14px';
+  cashText.style.textAlign = 'center';
+  cashText.style.color = 'var(--color-text-secondary, #6b7280)';
+  
+  cashInstructions.appendChild(cashIcon);
+  cashInstructions.appendChild(cashText);
+  
+  const amountReceivedGroup = document.createElement('div');
+  amountReceivedGroup.style.marginBottom = '16px';
+  
+  const amountReceivedLabel = document.createElement('label');
+  amountReceivedLabel.htmlFor = 'amount-received';
+  amountReceivedLabel.textContent = 'Amount Received';
+  amountReceivedLabel.style.display = 'block';
+  amountReceivedLabel.style.marginBottom = '8px';
+  amountReceivedLabel.style.fontSize = '14px';
+  
+  const amountReceivedInput = document.createElement('input');
+  amountReceivedInput.type = 'number';
+  amountReceivedInput.step = '0.01';
+  amountReceivedInput.id = 'amount-received';
+  amountReceivedInput.value = quote.total.toFixed(2);
+  amountReceivedInput.style.width = '100%';
+  amountReceivedInput.style.padding = '10px';
+  amountReceivedInput.style.borderRadius = '6px';
+  amountReceivedInput.style.border = '1px solid var(--color-border, #e5e7eb)';
+  
+  // Calculate change
+  const changeGroup = document.createElement('div');
+  changeGroup.style.marginBottom = '16px';
+  
+  const changeLabel = document.createElement('label');
+  changeLabel.htmlFor = 'change-amount';
+  changeLabel.textContent = 'Change Due';
+  changeLabel.style.display = 'block';
+  changeLabel.style.marginBottom = '8px';
+  changeLabel.style.fontSize = '14px';
+  
+  const changeInput = document.createElement('input');
+  changeInput.type = 'text';
+  changeInput.id = 'change-amount';
+  changeInput.readOnly = true;
+  changeInput.value = '$0.00';
+  changeInput.style.width = '100%';
+  changeInput.style.padding = '10px';
+  changeInput.style.borderRadius = '6px';
+  changeInput.style.backgroundColor = '#f9fafb';
+  changeInput.style.border = '1px solid var(--color-border, #e5e7eb)';
+  
+  // Update change amount when received amount changes
+  amountReceivedInput.addEventListener('input', () => {
+    const received = parseFloat(amountReceivedInput.value) || 0;
+    const change = Math.max(0, received - quote.total);
+    changeInput.value = `$${change.toFixed(2)}`;
+  });
+  
+  amountReceivedGroup.appendChild(amountReceivedLabel);
+  amountReceivedGroup.appendChild(amountReceivedInput);
+  
+  changeGroup.appendChild(changeLabel);
+  changeGroup.appendChild(changeInput);
+  
+  cashPanel.appendChild(cashInstructions);
+  cashPanel.appendChild(amountReceivedGroup);
+  cashPanel.appendChild(changeGroup);
+  
+  // Bank Transfer Panel
+  const transferPanel = tabPanels['transfer'];
+  
+  const transferInstructions = document.createElement('div');
+  transferInstructions.style.backgroundColor = 'rgba(243, 244, 246, 0.7)';
+  transferInstructions.style.borderRadius = '6px';
+  transferInstructions.style.padding = '16px';
+  transferInstructions.style.textAlign = 'center';
+  
+  const transferIcon = document.createElement('span');
+  transferIcon.textContent = '🏦';
+  transferIcon.style.fontSize = '32px';
+  transferIcon.style.display = 'block';
+  transferIcon.style.marginBottom = '12px';
+  
+  const transferTitle = document.createElement('h4');
+  transferTitle.textContent = 'Bank Account Details';
+  transferTitle.style.margin = '0 0 12px 0';
+  transferTitle.style.fontSize = '16px';
+  transferTitle.style.fontWeight = 'bold';
+  
+  // Bank details
+  const bankDetails = document.createElement('div');
+  bankDetails.style.fontSize = '14px';
+  bankDetails.style.lineHeight = '1.6';
+  bankDetails.style.marginBottom = '16px';
+  
+  const accountName = document.createElement('p');
+  accountName.innerHTML = '<strong>Account Name:</strong> Your Business Name';
+  accountName.style.margin = '0';
+  
+  const accountNumber = document.createElement('p');
+  accountNumber.innerHTML = '<strong>Account Number:</strong> 123456789';
+  accountNumber.style.margin = '4px 0';
+  
+  const routingNumber = document.createElement('p');
+  routingNumber.innerHTML = '<strong>Routing Number:</strong> 987654321';
+  routingNumber.style.margin = '0';
+  
+  bankDetails.appendChild(accountName);
+  bankDetails.appendChild(accountNumber);
+  bankDetails.appendChild(routingNumber);
+  
+  const transferNote = document.createElement('p');
+  transferNote.textContent = `Please reference quote number ${quote.id || 'Q-' + Date.now().toString().slice(-6)} in your transfer.`;
+  transferNote.style.margin = '0';
+  transferNote.style.fontSize = '14px';
+  transferNote.style.color = 'var(--color-text-secondary, #6b7280)';
+  
+  transferInstructions.appendChild(transferIcon);
+  transferInstructions.appendChild(transferTitle);
+  transferInstructions.appendChild(bankDetails);
+  transferInstructions.appendChild(transferNote);
+  
+  transferPanel.appendChild(transferInstructions);
+  
+  // Process payment button
+  const processButton = document.createElement('button');
+  processButton.textContent = 'Process Payment';
+  processButton.style.backgroundColor = 'var(--color-primary, #4F46E5)';
+  processButton.style.color = 'white';
+  processButton.style.border = 'none';
+  processButton.style.borderRadius = '6px';
+  processButton.style.padding = '12px 24px';
+  processButton.style.fontSize = '16px';
+  processButton.style.fontWeight = 'bold';
+  processButton.style.cursor = 'pointer';
+  processButton.style.width = '100%';
+  processButton.style.marginTop = '24px';
+  
+  processButton.addEventListener('click', () => {
+    const activeTabId = Object.keys(tabPanels).find(key => 
+      tabPanels[key].style.display === 'block'
+    );
+    
+    let message;
+    switch (activeTabId) {
+      case 'card':
+        message = 'Card payment processed successfully';
+        break;
+      case 'cash':
+        message = 'Cash payment recorded successfully';
+        break;
+      case 'transfer':
+        message = 'Bank transfer details sent to client';
+        break;
+      default:
+        message = 'Payment processed successfully';
+    }
+    
+    // Show processing state
+    processButton.disabled = true;
+    processButton.textContent = 'Processing...';
+    
+    // Simulate payment processing
+    setTimeout(() => {
+      // Show success
+      if (window.showToast) {
+        window.showToast(message, 'success');
+      }
+      
+      // Save payment record
+      const paymentRecord = {
+        quoteId: quote.id || `quote-${Date.now().toString().slice(-6)}`,
+        amount: quote.total,
+        method: activeTabId,
+        timestamp: new Date().toISOString(),
+        status: 'completed'
+      };
+      
+      try {
+        const savedPayments = JSON.parse(localStorage.getItem('stackrPayments') || '[]');
+        savedPayments.push(paymentRecord);
+        localStorage.setItem('stackrPayments', JSON.stringify(savedPayments));
+      } catch (error) {
+        console.error('Error saving payment record:', error);
+      }
+      
+      // Close modal
+      document.body.removeChild(modalOverlay);
+    }, 1500);
+  });
+  
+  // Assemble everything
+  content.appendChild(amountSection);
+  content.appendChild(tabsContainer);
+  
+  // Add the tab panels
+  Object.values(tabPanels).forEach(panel => {
+    content.appendChild(panel);
+  });
+  
+  content.appendChild(processButton);
   
   modal.appendChild(header);
   modal.appendChild(content);

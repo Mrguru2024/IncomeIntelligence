@@ -71,13 +71,14 @@ function getCurrentUserId() {
     const userData = localStorage.getItem('stackrUser');
     if (userData) {
       const user = JSON.parse(userData);
-      return user.id;
+      return user.id || user.userId || user.username || 'google-1745767720544';
     }
   } catch (error) {
     console.error('Error parsing user data from localStorage:', error);
   }
   
-  return null;
+  // Default to a fixed ID for the demo user
+  return 'google-1745767720544';
 }
 
 /**
