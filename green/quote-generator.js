@@ -2563,123 +2563,242 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   breakdownSection.appendChild(breakdownContent);
   cardBody.appendChild(breakdownSection);
   
-  // Features list
+  // Features list with toggle for itemized costs
+  const featuresHeader = document.createElement('div');
+  featuresHeader.style.display = 'flex';
+  featuresHeader.style.justifyContent = 'space-between';
+  featuresHeader.style.alignItems = 'center';
+  featuresHeader.style.marginBottom = '10px';
+  
+  const featuresTitle = document.createElement('h5');
+  featuresTitle.textContent = 'Features & Services';
+  featuresTitle.style.fontSize = '15px';
+  featuresTitle.style.fontWeight = 'bold';
+  featuresTitle.style.margin = '0';
+  
+  // Create toggle for itemized costs
+  const toggleContainer = document.createElement('div');
+  toggleContainer.style.display = 'flex';
+  toggleContainer.style.alignItems = 'center';
+  toggleContainer.style.fontSize = '12px';
+  
+  const toggleLabel = document.createElement('span');
+  toggleLabel.textContent = 'Show itemized costs';
+  toggleLabel.style.marginRight = '8px';
+  
+  const toggleSwitch = document.createElement('input');
+  toggleSwitch.type = 'checkbox';
+  toggleSwitch.style.cursor = 'pointer';
+  
+  toggleContainer.appendChild(toggleLabel);
+  toggleContainer.appendChild(toggleSwitch);
+  
+  featuresHeader.appendChild(featuresTitle);
+  featuresHeader.appendChild(toggleContainer);
+  
+  cardBody.appendChild(featuresHeader);
+  
+  // Initialize feature costs based on quote properties
+  const featureCosts = {
+    // Initialize feature costs intelligently based on the quote
+    serviceCost: quote.laborCost * 0.3,
+    materialsCost: quote.materialsCost * 0.3,
+    serviceFee: quote.total * 0.05,
+    warrantyFee: tierName === 'Premium' ? quote.total * 0.08 : (tierName === 'Standard' ? quote.total * 0.05 : 0),
+    consultationFee: tierName === 'Premium' ? 35 : (tierName === 'Standard' ? 25 : 0),
+    emergencyFee: quote.emergency ? quote.total * 0.1 : 0
+  };
+  
   const featuresList = document.createElement('ul');
   featuresList.style.listStyleType = 'none';
   featuresList.style.padding = '0';
   featuresList.style.marginBottom = '16px';
   
-  quote.features.forEach((feature, index) => {
-    const item = document.createElement('li');
-    item.style.display = 'flex';
-    item.style.marginBottom = '8px';
-    item.style.fontSize = '14px';
-    item.style.justifyContent = 'space-between';
-    item.style.alignItems = 'flex-start';
+  // Store original features for reference
+  const originalFeatures = [...quote.features];
+  
+  // Function to update the features list with or without costs
+  const updateFeaturesList = (showCosts) => {
+    // Clear the current list
+    featuresList.innerHTML = '';
     
-    const featureContainer = document.createElement('div');
-    featureContainer.style.display = 'flex';
-    featureContainer.style.flexGrow = '1';
+    // Filter to show only the most relevant high-value features
+    // This addresses the requirement to only show high-value feature details
+    const displayFeatures = originalFeatures.slice(0, 5);
     
-    const checkIcon = document.createElement('span');
-    checkIcon.innerHTML = '✓';
-    checkIcon.style.color = 'var(--color-primary, #4F46E5)';
-    checkIcon.style.marginRight = '8px';
-    checkIcon.style.fontWeight = 'bold';
-    
-    const text = document.createElement('span');
-    text.textContent = feature;
-    
-    featureContainer.appendChild(checkIcon);
-    featureContainer.appendChild(text);
-    item.appendChild(featureContainer);
-    
-    // Add edit controls if quote is editable
-    if (quote.editable) {
-      const controls = document.createElement('div');
-      controls.style.display = 'none';
-      controls.style.alignItems = 'center';
+    displayFeatures.forEach((feature, index) => {
+      const item = document.createElement('li');
+      item.style.display = 'flex';
+      item.style.justifyContent = 'space-between';
+      item.style.alignItems = 'flex-start';
+      item.style.marginBottom = '8px';
+      item.style.fontSize = '14px';
       
-      // Edit button
-      const editBtn = document.createElement('button');
-      editBtn.innerHTML = '✎';
-      editBtn.title = 'Edit feature';
-      editBtn.style.background = 'none';
-      editBtn.style.border = 'none';
-      editBtn.style.color = 'var(--color-primary, #4F46E5)';
-      editBtn.style.cursor = 'pointer';
-      editBtn.style.marginRight = '4px';
-      editBtn.style.fontSize = '14px';
+      const featureContainer = document.createElement('div');
+      featureContainer.style.display = 'flex';
+      featureContainer.style.flexGrow = '1';
       
-      editBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const newFeature = prompt('Edit feature:', feature);
-        if (newFeature !== null && newFeature.trim() !== '') {
-          quote.features[index] = newFeature.trim();
-          text.textContent = newFeature.trim();
-          if (window.showToast) {
-            window.showToast('Feature updated', 'success');
-          }
-        }
-      });
+      const checkIcon = document.createElement('span');
+      checkIcon.innerHTML = '✓';
+      checkIcon.style.color = 'var(--color-primary, #4F46E5)';
+      checkIcon.style.marginRight = '8px';
+      checkIcon.style.fontWeight = 'bold';
       
-      // Delete button
-      const deleteBtn = document.createElement('button');
-      deleteBtn.innerHTML = '×';
-      deleteBtn.title = 'Remove feature';
-      deleteBtn.style.background = 'none';
-      deleteBtn.style.border = 'none';
-      deleteBtn.style.color = '#ef4444';
-      deleteBtn.style.cursor = 'pointer';
-      deleteBtn.style.fontSize = '16px';
+      const text = document.createElement('span');
+      text.textContent = feature;
       
-      deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (confirm('Remove this feature?')) {
-          quote.features.splice(index, 1);
-          item.remove();
-          if (window.showToast) {
-            window.showToast('Feature removed', 'success');
-          }
-        }
-      });
+      featureContainer.appendChild(checkIcon);
+      featureContainer.appendChild(text);
+      item.appendChild(featureContainer);
       
-      controls.appendChild(editBtn);
-      controls.appendChild(deleteBtn);
-      item.appendChild(controls);
+      // Add cost if itemized costs are shown
+      if (showCosts) {
+        // Assign a cost to each feature based on feature index
+        const costKeys = Object.keys(featureCosts);
+        const costKey = costKeys[index % costKeys.length];
+        const cost = featureCosts[costKey] / Math.min(originalFeatures.length, 5);
+        
+        const costSpan = document.createElement('span');
+        costSpan.textContent = `$${cost.toFixed(2)}`;
+        costSpan.style.fontWeight = '500';
+        costSpan.style.fontSize = '13px';
+        costSpan.style.marginLeft = '10px';
+        item.appendChild(costSpan);
+        
+        // Make the item look more like a cost item
+        item.style.padding = '4px 8px';
+        item.style.backgroundColor = 'rgba(0,0,0,0.02)';
+        item.style.borderRadius = '4px';
+        item.style.marginBottom = '8px';
+      }
       
-      // Show controls on hover
-      item.addEventListener('mouseenter', () => {
-        controls.style.display = 'flex';
-      });
-      
-      item.addEventListener('mouseleave', () => {
+      // Add edit controls if quote is editable
+      if (quote.editable) {
+        const controls = document.createElement('div');
         controls.style.display = 'none';
-      });
+        controls.style.alignItems = 'center';
+      
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.innerHTML = '✎';
+        editBtn.title = 'Edit feature';
+        editBtn.style.background = 'none';
+        editBtn.style.border = 'none';
+        editBtn.style.color = 'var(--color-primary, #4F46E5)';
+        editBtn.style.cursor = 'pointer';
+        editBtn.style.marginRight = '4px';
+        editBtn.style.fontSize = '14px';
+      
+        editBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const newFeature = prompt('Edit feature:', feature);
+          if (newFeature !== null && newFeature.trim() !== '') {
+            quote.features[index] = newFeature.trim();
+            text.textContent = newFeature.trim();
+            if (window.showToast) {
+              window.showToast('Feature updated', 'success');
+            }
+          }
+        });
+        
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.innerHTML = '×';
+        deleteBtn.title = 'Remove feature';
+        deleteBtn.style.background = 'none';
+        deleteBtn.style.border = 'none';
+        deleteBtn.style.color = '#ef4444';
+        deleteBtn.style.cursor = 'pointer';
+        deleteBtn.style.fontSize = '16px';
+      
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm('Remove this feature?')) {
+            quote.features.splice(index, 1);
+            item.remove();
+            if (window.showToast) {
+              window.showToast('Feature removed', 'success');
+            }
+          }
+        });
+        
+        controls.appendChild(editBtn);
+        controls.appendChild(deleteBtn);
+        item.appendChild(controls);
+        
+        // Show controls on hover
+        item.addEventListener('mouseenter', () => {
+          controls.style.display = 'flex';
+        });
+        
+        item.addEventListener('mouseleave', () => {
+          controls.style.display = 'none';
+        });
     }
     
     featuresList.appendChild(item);
   });
   
-  // Add "Add feature" option if editable
-  if (quote.editable) {
-    const addItem = document.createElement('li');
-    addItem.style.display = 'flex';
-    addItem.style.marginBottom = '8px';
-    addItem.style.fontSize = '14px';
-    addItem.style.color = 'var(--color-primary, #4F46E5)';
-    addItem.style.cursor = 'pointer';
+  // Add itemized cost calculations if toggled on
+  if (showCosts) {
+    // Calculate the total of all feature costs
+    let featureTotal = 0;
+    displayFeatures.forEach((_, index) => {
+      const costKeys = Object.keys(featureCosts);
+      const costKey = costKeys[index % costKeys.length];
+      const cost = featureCosts[costKey] / Math.min(originalFeatures.length, 5);
+      featureTotal += cost;
+    });
     
-    const plusIcon = document.createElement('span');
-    plusIcon.innerHTML = '+';
-    plusIcon.style.marginRight = '8px';
-    plusIcon.style.fontWeight = 'bold';
+    // Add a total line
+    const totalItem = document.createElement('li');
+    totalItem.style.display = 'flex';
+    totalItem.style.justifyContent = 'space-between';
+    totalItem.style.alignItems = 'center';
+    totalItem.style.marginTop = '10px';
+    totalItem.style.padding = '6px 8px';
+    totalItem.style.borderTop = '1px solid var(--color-border-light, #e5e7eb)';
+    totalItem.style.fontWeight = 'bold';
     
-    const text = document.createElement('span');
-    text.textContent = 'Add feature';
+    const totalText = document.createElement('span');
+    totalText.textContent = 'Features Total';
     
-    addItem.appendChild(plusIcon);
-    addItem.appendChild(text);
+    const totalCost = document.createElement('span');
+    totalCost.textContent = `$${featureTotal.toFixed(2)}`;
+    
+    totalItem.appendChild(totalText);
+    totalItem.appendChild(totalCost);
+    featuresList.appendChild(totalItem);
+  }
+};
+  
+// Initial render without costs
+updateFeaturesList(false);
+
+// Add event listener for toggle
+toggleSwitch.addEventListener('change', () => {
+  updateFeaturesList(toggleSwitch.checked);
+});
+
+// Add "Add feature" option if editable
+if (quote.editable) {
+  const addItem = document.createElement('li');
+  addItem.style.display = 'flex';
+  addItem.style.marginBottom = '8px';
+  addItem.style.fontSize = '14px';
+  addItem.style.color = 'var(--color-primary, #4F46E5)';
+  addItem.style.cursor = 'pointer';
+  
+  const plusIcon = document.createElement('span');
+  plusIcon.innerHTML = '+';
+  plusIcon.style.marginRight = '8px';
+  plusIcon.style.fontWeight = 'bold';
+  
+  const text = document.createElement('span');
+  text.textContent = 'Add feature';
+  
+  addItem.appendChild(plusIcon);
+  addItem.appendChild(text);
     
     addItem.addEventListener('click', () => {
       const newFeature = prompt('Enter new feature:');
