@@ -4417,9 +4417,31 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
     const featureCostItems = [];
     
     displayFeatures.forEach((feature, index) => {
-      const costKeys = Object.keys(featureCosts);
-      const costKey = costKeys[index % costKeys.length];
-      const cost = featureCosts[costKey] / Math.min(originalFeatures.length, 5);
+      // Use the existing quote.featureCosts values if available, otherwise calculate fresh
+      let cost;
+      let costKey;
+      
+      if (quote.featureCosts && quote.featureCosts[index] !== undefined) {
+        // Use the existing cost that may have been edited by the user
+        cost = quote.featureCosts[index];
+        // Get the cost key from the original mapping or use a default
+        const costKeys = Object.keys(featureCosts);
+        costKey = costKeys[index % costKeys.length];
+      } else {
+        // Calculate a fresh cost if none exists
+        const costKeys = Object.keys(featureCosts);
+        costKey = costKeys[index % costKeys.length];
+        cost = featureCosts[costKey] / Math.min(originalFeatures.length, 5);
+        
+        // Initialize feature costs array if it doesn't exist
+        if (!quote.featureCosts) {
+          quote.featureCosts = [];
+        }
+        
+        // Store the cost for future reference
+        quote.featureCosts[index] = cost;
+      }
+      
       featureTotal += cost;
       
       // Store the cost with feature name for itemized display
@@ -4431,12 +4453,14 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
     });
     
     // Add itemized feature costs
-    featureCostItems.forEach(item => {
+    featureCostItems.forEach((item, index) => {
       const costItem = document.createElement('li');
       costItem.style.display = 'flex';
       costItem.style.justifyContent = 'space-between';
       costItem.style.padding = '4px 8px';
       costItem.style.fontSize = '13px';
+      costItem.className = 'feature-cost-item';
+      costItem.setAttribute('data-feature-index', index);
       
       const costLabel = document.createElement('span');
       // Format the cost key for display (e.g., "serviceCost" -> "Service Cost") 
@@ -4464,6 +4488,51 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
       const costValue = document.createElement('span');
       costValue.textContent = `$${item.cost.toFixed(2)}`;
       costValue.style.fontWeight = '500';
+      costValue.className = 'feature-cost-value';
+      
+      // Make the cost editable if the quote is editable
+      if (quote.editable) {
+        costValue.style.cursor = 'pointer';
+        costValue.style.textDecoration = 'underline dotted';
+        costValue.title = 'Click to edit cost';
+        
+        costValue.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const costIndex = parseInt(costItem.getAttribute('data-feature-index'));
+          const currentCost = featureCostItems[costIndex].cost;
+          const newCost = prompt(`Enter new cost for "${formattedCostName}":`, currentCost.toFixed(2));
+          
+          if (newCost !== null && !isNaN(parseFloat(newCost))) {
+            const parsedCost = parseFloat(newCost);
+            if (parsedCost >= 0) {
+              // Update the cost
+              featureCostItems[costIndex].cost = parsedCost;
+              costValue.textContent = `$${parsedCost.toFixed(2)}`;
+              
+              // Also update the feature cost in the quote object
+              if (quote.featureCosts && quote.featureCosts[costIndex] !== undefined) {
+                quote.featureCosts[costIndex] = parsedCost;
+              }
+              
+              // Recalculate total feature cost
+              featureTotal = featureCostItems.reduce((sum, item) => sum + item.cost, 0);
+              totalCost.textContent = `$${featureTotal.toFixed(2)}`;
+              
+              // Update the overall quote calculation if needed
+              if (quote.materialsCost !== featureTotal) {
+                quote.materialsCost = featureTotal;
+                recalculateQuote(quote);
+                
+                // Update the displayed total price at the top
+                const priceElement = container.querySelector('.quote-price');
+                if (priceElement) {
+                  priceElement.textContent = `$${quote.total.toFixed(2)}`;
+                }
+              }
+            }
+          }
+        });
+      }
       
       costItem.appendChild(costLabel);
       costItem.appendChild(costValue);
@@ -4525,14 +4594,32 @@ if (quote.editable) {
     addItem.addEventListener('click', () => {
       const newFeature = prompt('Enter new feature:');
       if (newFeature !== null && newFeature.trim() !== '') {
-        quote.features.push(newFeature.trim());
+        const featureText = newFeature.trim();
+        
+        // AI-enhanced feature analysis for better category understanding
+        const featureCategory = analyzeFeatureCategory(featureText, quote.jobType);
+        
+        // Parse any AI-recommended cost for this feature
+        const recommendedCost = getAIRecommendedCost(featureText, quote.jobType, quote.region);
+        
+        // Add the feature to the quote
+        quote.features.push(featureText);
+        
+        // Initialize feature costs array if it doesn't exist
+        if (!quote.featureCosts) {
+          quote.featureCosts = [];
+        }
+        
+        // Store the recommended cost for this feature
+        const featureIndex = quote.features.length - 1;
+        quote.featureCosts[featureIndex] = recommendedCost;
         
         // Clear and rebuild the features list
         featuresList.innerHTML = '';
         createQuoteCard(quote, tierName, bgColor, container, recommended);
         
         if (window.showToast) {
-          window.showToast('Feature added', 'success');
+          window.showToast(`Feature "${featureText}" added (${featureCategory})`, 'success');
         }
       }
     });
