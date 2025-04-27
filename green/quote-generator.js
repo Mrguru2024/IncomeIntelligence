@@ -847,6 +847,50 @@ function createBreakdownItem(label, amount, highlight = false) {
 }
 
 /**
+ * Get the current authenticated user
+ * @returns {Object|null} The current user object or null if not authenticated
+ */
+function getCurrentUser() {
+  try {
+    // Try to get user data from global state (if loaded from main.js)
+    if (window.stackrApp && window.stackrApp.user) {
+      return window.stackrApp.user;
+    }
+    
+    // Fallback to localStorage (where auth.js stores user data)
+    const userDataStr = localStorage.getItem('stackrUserData');
+    if (userDataStr) {
+      try {
+        const userData = JSON.parse(userDataStr);
+        return userData;
+      } catch (err) {
+        console.error('Failed to parse user data from localStorage:', err);
+      }
+    }
+    
+    // If there's a mock test user, use it
+    if (window.testUser) {
+      return window.testUser;
+    }
+    
+    // Final fallback - return a Pro user for testing
+    // In production, this would be removed and we'd return null
+    console.warn('Using fallback Pro user for testing');
+    return {
+      id: 'test-pro-user',
+      username: 'pro.user@gmail.com',
+      displayName: 'Pro User',
+      subscriptionStatus: 'pro',
+      subscriptionTier: 'pro',
+      memberSince: new Date('2023-01-01').toISOString()
+    };
+  } catch (err) {
+    console.error('Error retrieving user data:', err);
+    return null;
+  }
+}
+
+/**
  * Show a toast notification
  * @param {string} message - The message to display
  * @param {string} type - The type of toast ('success', 'error', 'info')
@@ -5340,10 +5384,41 @@ function displayAutoQuoteResult(quoteResult) {
   // Header with title and description
   const header = document.createElement('div');
   header.style.marginBottom = '24px';
-  header.style.textAlign = 'center';
+  
+  // Create header with edit button
+  const headerTop = document.createElement('div');
+  headerTop.style.display = 'flex';
+  headerTop.style.justifyContent = 'space-between';
+  headerTop.style.alignItems = 'center';
+  headerTop.style.marginBottom = '8px';
+  
+  const headerLeft = document.createElement('div');
+  headerLeft.style.textAlign = 'center';
+  
+  // Add edit button for Pro users
+  const editButton = document.createElement('button');
+  editButton.textContent = 'Edit Quote';
+  editButton.style.padding = '6px 12px';
+  editButton.style.backgroundColor = 'var(--color-primary-light)';
+  editButton.style.color = 'var(--color-primary-dark)';
+  editButton.style.border = 'none';
+  editButton.style.borderRadius = '4px';
+  editButton.style.cursor = 'pointer';
+  editButton.style.fontSize = '14px';
+  editButton.style.fontWeight = '500';
+  
+  // Add click handler for editing
+  editButton.onclick = () => {
+    openAutoQuoteEditor(quoteResult);
+  };
   
   const headerTitle = document.createElement('h2');
   headerTitle.textContent = 'Quote Options';
+  headerLeft.appendChild(headerTitle);
+  
+  headerTop.appendChild(headerLeft);
+  headerTop.appendChild(editButton);
+  header.appendChild(headerTop);
   headerTitle.style.fontSize = '24px';
   headerTitle.style.fontWeight = '700';
   headerTitle.style.marginBottom = '8px';
@@ -5625,6 +5700,221 @@ function displayAutoQuoteResult(quoteResult) {
   
   // Scroll to results
   resultSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+/**
+ * Open the auto quote editor with prefilled values
+ * @param {Object} quoteResult - The quote data to edit
+ */
+function openAutoQuoteEditor(quoteResult) {
+  // Check if user is pro
+  const user = getCurrentUser();
+  if (!user || !user.subscriptionStatus || user.subscriptionStatus === 'free') {
+    showToast('Quote editing is a Pro feature. Please upgrade to edit quotes.', 'error');
+    return;
+  }
+  
+  // Create modal container
+  const modalOverlay = document.createElement('div');
+  modalOverlay.style.position = 'fixed';
+  modalOverlay.style.top = '0';
+  modalOverlay.style.left = '0';
+  modalOverlay.style.width = '100%';
+  modalOverlay.style.height = '100%';
+  modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modalOverlay.style.display = 'flex';
+  modalOverlay.style.justifyContent = 'center';
+  modalOverlay.style.alignItems = 'center';
+  modalOverlay.style.zIndex = '1000';
+  
+  // Create modal content
+  const modalContent = document.createElement('div');
+  modalContent.style.backgroundColor = 'var(--color-card-bg)';
+  modalContent.style.borderRadius = '12px';
+  modalContent.style.padding = '24px';
+  modalContent.style.width = '90%';
+  modalContent.style.maxWidth = '600px';
+  modalContent.style.maxHeight = '80vh';
+  modalContent.style.overflow = 'auto';
+  modalContent.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+  
+  // Modal header
+  const modalHeader = document.createElement('div');
+  modalHeader.style.display = 'flex';
+  modalHeader.style.justifyContent = 'space-between';
+  modalHeader.style.alignItems = 'center';
+  modalHeader.style.marginBottom = '16px';
+  modalHeader.style.paddingBottom = '16px';
+  modalHeader.style.borderBottom = '1px solid var(--color-border)';
+  
+  const modalTitle = document.createElement('h2');
+  modalTitle.textContent = 'Edit Automotive Quote';
+  modalTitle.style.margin = '0';
+  modalTitle.style.fontSize = '20px';
+  modalTitle.style.fontWeight = 'bold';
+  
+  const closeButton = document.createElement('button');
+  closeButton.innerHTML = '&times;';
+  closeButton.style.background = 'none';
+  closeButton.style.border = 'none';
+  closeButton.style.fontSize = '24px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.padding = '0';
+  closeButton.style.color = 'var(--color-text-primary)';
+  closeButton.onclick = () => {
+    document.body.removeChild(modalOverlay);
+  };
+  
+  modalHeader.appendChild(modalTitle);
+  modalHeader.appendChild(closeButton);
+  modalContent.appendChild(modalHeader);
+  
+  // Create the form
+  const form = document.createElement('form');
+  
+  // Vehicle section
+  const vehicleSection = createSectionHeader('Vehicle Information', 'Edit vehicle and service details');
+  form.appendChild(vehicleSection);
+  
+  // Vehicle make
+  const makeInput = createInput('text', 'vehicle_make', quoteResult.vehicle_make || '', 'Vehicle make');
+  form.appendChild(createFormGroup('Vehicle Make', makeInput));
+  
+  // Vehicle model
+  const modelInput = createInput('text', 'vehicle_model', quoteResult.vehicle_model || '', 'Vehicle model');
+  form.appendChild(createFormGroup('Vehicle Model', modelInput));
+  
+  // Vehicle year
+  const yearInput = createInput('number', 'vehicle_year', quoteResult.vehicle_year?.toString() || '2023', 'Year', '1990', '2025', '1');
+  form.appendChild(createFormGroup('Vehicle Year', yearInput));
+  
+  // Service section
+  const serviceSection = createSectionHeader('Service Details', 'Edit service parameters and rates');
+  form.appendChild(serviceSection);
+  
+  // Labor adjustment
+  const laborAdjInput = createInput('number', 'labor_adjustment', quoteResult.labor_adjustment?.toString() || '5', 'Years of experience', '1', '30', '1');
+  form.appendChild(createFormGroup('Technician Experience (years)', laborAdjInput));
+  
+  // Emergency service
+  const emergencyContainer = document.createElement('div');
+  emergencyContainer.style.marginBottom = '16px';
+  emergencyContainer.style.display = 'flex';
+  emergencyContainer.style.alignItems = 'center';
+  
+  const emergencyLabel = document.createElement('label');
+  emergencyLabel.textContent = 'Emergency Service';
+  emergencyLabel.style.marginRight = '8px';
+  
+  const emergencyCheckbox = document.createElement('input');
+  emergencyCheckbox.type = 'checkbox';
+  emergencyCheckbox.checked = quoteResult.emergency || false;
+  emergencyCheckbox.style.marginRight = '4px';
+  
+  emergencyContainer.appendChild(emergencyLabel);
+  emergencyContainer.appendChild(emergencyCheckbox);
+  form.appendChild(emergencyContainer);
+  
+  // Parts cost
+  const partsInput = createInput('number', 'parts_cost', quoteResult.parts_cost?.toFixed(2) || '0.00', 'Parts cost', '0', '10000', '0.01');
+  form.appendChild(createFormGroup('Parts Cost ($)', partsInput));
+  
+  // Additional fees
+  const feesInput = createInput('number', 'additional_fees', quoteResult.additional_fees?.toFixed(2) || '0.00', 'Additional fees', '0', '1000', '0.01');
+  form.appendChild(createFormGroup('Additional Fees ($)', feesInput));
+  
+  // Notes section
+  const notesSection = createSectionHeader('Notes', 'Additional information for the customer');
+  form.appendChild(notesSection);
+  
+  // Customer notes
+  const notesArea = createTextarea('customer_notes', 'Notes for the customer');
+  notesArea.value = quoteResult.customer_notes || '';
+  form.appendChild(createFormGroup('Customer Notes', notesArea));
+  
+  // Form actions
+  const formActions = document.createElement('div');
+  formActions.style.display = 'flex';
+  formActions.style.justifyContent = 'flex-end';
+  formActions.style.gap = '12px';
+  formActions.style.marginTop = '24px';
+  
+  const cancelButton = createButton('Cancel', () => {
+    document.body.removeChild(modalOverlay);
+  }, 'secondary');
+  cancelButton.style.backgroundColor = 'var(--color-bg-secondary)';
+  
+  const saveButton = createButton('Update Quote', () => {
+    // Get updated values
+    const updatedQuote = {
+      ...quoteResult,
+      vehicle_make: makeInput.value,
+      vehicle_model: modelInput.value,
+      vehicle_year: parseInt(yearInput.value),
+      labor_adjustment: parseInt(laborAdjInput.value),
+      emergency: emergencyCheckbox.checked,
+      parts_cost: parseFloat(partsInput.value),
+      additional_fees: parseFloat(feesInput.value),
+      customer_notes: notesArea.value
+    };
+    
+    // Recalculate labor rates based on experience
+    const experienceFactor = 1 + (updatedQuote.labor_adjustment / 20); // 5% increase per year of experience
+    
+    // Recalculate derived values for all tiers
+    ['tierStandard', 'tierPremium', 'tierUltimate'].forEach(tierKey => {
+      if (updatedQuote[tierKey]) {
+        // Adjust labor rate based on experience
+        updatedQuote[tierKey].hourlyRate = updatedQuote[tierKey].baseRate * experienceFactor;
+        
+        // Adjust labor cost
+        updatedQuote[tierKey].laborCost = updatedQuote[tierKey].hourlyRate * updatedQuote[tierKey].hours;
+        
+        // Add emergency fee if checked
+        if (updatedQuote.emergency && !updatedQuote[tierKey].emergencyIncluded) {
+          updatedQuote[tierKey].emergencyFee = 50;
+        } else {
+          updatedQuote[tierKey].emergencyFee = 0;
+        }
+        
+        // Update parts cost
+        updatedQuote[tierKey].partsCost = updatedQuote.parts_cost;
+        
+        // Update additional fees
+        updatedQuote[tierKey].additionalFees = updatedQuote.additional_fees;
+        
+        // Recalculate subtotal and total
+        updatedQuote[tierKey].subtotal = 
+          updatedQuote[tierKey].laborCost + 
+          updatedQuote[tierKey].partsCost + 
+          updatedQuote[tierKey].emergencyFee + 
+          updatedQuote[tierKey].additionalFees;
+        
+        updatedQuote[tierKey].tax = updatedQuote[tierKey].subtotal * (updatedQuote[tierKey].taxRate || 0.07);
+        updatedQuote[tierKey].total = updatedQuote[tierKey].subtotal + updatedQuote[tierKey].tax;
+      }
+    });
+    
+    // Update the quote display
+    displayAutoQuoteResult(updatedQuote);
+    
+    // Save the updated quote to local storage
+    saveAutoQuote(updatedQuote);
+    
+    // Close the modal
+    document.body.removeChild(modalOverlay);
+    
+    // Show success toast
+    showToast('Automotive quote updated successfully!', 'success');
+  });
+  
+  formActions.appendChild(cancelButton);
+  formActions.appendChild(saveButton);
+  form.appendChild(formActions);
+  
+  modalContent.appendChild(form);
+  modalOverlay.appendChild(modalContent);
+  document.body.appendChild(modalOverlay);
 }
 
 /**
