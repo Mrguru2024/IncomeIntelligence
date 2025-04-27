@@ -1604,6 +1604,116 @@ function getAverageMaterialRatio(jobType, jobSubtype) {
 }
 
 /**
+ * Display AI recommendations in a modal popup
+ * @param {Array<string>} recommendations - List of AI recommendations
+ * @param {string} tierName - The tier name for context
+ */
+function showAIRecommendations(recommendations, tierName) {
+  // Create modal container
+  const modalOverlay = document.createElement('div');
+  modalOverlay.style.position = 'fixed';
+  modalOverlay.style.top = '0';
+  modalOverlay.style.left = '0';
+  modalOverlay.style.right = '0';
+  modalOverlay.style.bottom = '0';
+  modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modalOverlay.style.display = 'flex';
+  modalOverlay.style.justifyContent = 'center';
+  modalOverlay.style.alignItems = 'center';
+  modalOverlay.style.zIndex = '9999';
+  
+  // Create modal content
+  const modalContent = document.createElement('div');
+  modalContent.style.backgroundColor = '#fff';
+  modalContent.style.borderRadius = '8px';
+  modalContent.style.maxWidth = '550px';
+  modalContent.style.width = '90%';
+  modalContent.style.maxHeight = '80vh';
+  modalContent.style.overflow = 'auto';
+  modalContent.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15)';
+  
+  // Create header
+  const header = document.createElement('div');
+  header.style.padding = '16px 20px';
+  header.style.borderBottom = '1px solid #e5e7eb';
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'center';
+  
+  const title = document.createElement('h3');
+  title.textContent = `AI Price Insights - ${tierName} Quote`;
+  title.style.fontSize = '18px';
+  title.style.fontWeight = 'bold';
+  title.style.margin = '0';
+  
+  const closeButton = document.createElement('button');
+  closeButton.innerHTML = '×';
+  closeButton.style.background = 'none';
+  closeButton.style.border = 'none';
+  closeButton.style.fontSize = '24px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.lineHeight = '1';
+  
+  closeButton.addEventListener('click', () => {
+    document.body.removeChild(modalOverlay);
+  });
+  
+  header.appendChild(title);
+  header.appendChild(closeButton);
+  
+  // Create body
+  const body = document.createElement('div');
+  body.style.padding = '20px';
+  
+  // Add intro
+  const intro = document.createElement('p');
+  intro.textContent = 'Based on real-world market data, here are AI-powered insights for optimizing your quote:';
+  intro.style.marginBottom = '16px';
+  intro.style.fontSize = '14px';
+  body.appendChild(intro);
+  
+  // Add recommendations
+  const recommendationsList = document.createElement('ul');
+  recommendationsList.style.paddingLeft = '20px';
+  recommendationsList.style.marginBottom = '20px';
+  
+  recommendations.forEach(recommendation => {
+    const item = document.createElement('li');
+    item.textContent = recommendation;
+    item.style.marginBottom = '12px';
+    item.style.fontSize = '14px';
+    item.style.lineHeight = '1.5';
+    recommendationsList.appendChild(item);
+  });
+  
+  body.appendChild(recommendationsList);
+  
+  // Add a disclaimer
+  const disclaimer = document.createElement('p');
+  disclaimer.textContent = 'These insights are based on current market trends in your region. Consider them suggestions rather than hard rules.';
+  disclaimer.style.fontSize = '12px';
+  disclaimer.style.color = '#6b7280';
+  disclaimer.style.fontStyle = 'italic';
+  disclaimer.style.marginTop = '20px';
+  body.appendChild(disclaimer);
+  
+  // Assemble modal
+  modalContent.appendChild(header);
+  modalContent.appendChild(body);
+  modalOverlay.appendChild(modalContent);
+  
+  // Close modal when clicking outside
+  modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) {
+      document.body.removeChild(modalOverlay);
+    }
+  });
+  
+  // Add to document
+  document.body.appendChild(modalOverlay);
+}
+
+/**
  * Check if service type has high repeat customer rate
  * @param {string} jobType - Type of service
  * @returns {boolean} True if high repeat potential
@@ -2115,6 +2225,208 @@ function createQuoteCard(quote, tierName, bgColor, container, recommended = fals
   // Card body
   const cardBody = document.createElement('div');
   cardBody.style.padding = '16px';
+  
+  // Add cost breakdown section
+  const breakdownSection = document.createElement('div');
+  breakdownSection.style.marginBottom = '20px';
+  breakdownSection.style.padding = '12px';
+  breakdownSection.style.backgroundColor = 'rgba(0,0,0,0.02)';
+  breakdownSection.style.borderRadius = '6px';
+  breakdownSection.style.border = '1px dashed #e5e7eb';
+  
+  const breakdownTitle = document.createElement('h5');
+  breakdownTitle.textContent = 'Cost Breakdown';
+  breakdownTitle.style.fontSize = '15px';
+  breakdownTitle.style.fontWeight = 'bold';
+  breakdownTitle.style.marginBottom = '10px';
+  breakdownTitle.style.display = 'flex';
+  breakdownTitle.style.justifyContent = 'space-between';
+  breakdownTitle.style.alignItems = 'center';
+  
+  // Add toggle button for breakdown
+  const toggleButton = document.createElement('button');
+  toggleButton.innerHTML = '▼';
+  toggleButton.title = 'Toggle breakdown';
+  toggleButton.style.background = 'none';
+  toggleButton.style.border = 'none';
+  toggleButton.style.cursor = 'pointer';
+  toggleButton.style.fontSize = '12px';
+  toggleButton.style.color = 'var(--color-primary, #4F46E5)';
+  breakdownTitle.appendChild(toggleButton);
+  
+  const breakdownContent = document.createElement('div');
+  breakdownContent.style.fontSize = '14px';
+  
+  // Make breakdown content collapsible
+  let breakdownVisible = false;
+  breakdownContent.style.display = 'none';
+  
+  toggleButton.addEventListener('click', () => {
+    breakdownVisible = !breakdownVisible;
+    breakdownContent.style.display = breakdownVisible ? 'block' : 'none';
+    toggleButton.innerHTML = breakdownVisible ? '▲' : '▼';
+  });
+  
+  // Create editable breakdown items
+  const createEditableItem = (label, value, unit = '$', property = null) => {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.justifyContent = 'space-between';
+    row.style.marginBottom = '6px';
+    
+    const labelEl = document.createElement('span');
+    labelEl.textContent = label;
+    
+    const valueEl = document.createElement('span');
+    valueEl.textContent = `${unit}${typeof value === 'number' ? value.toFixed(2) : value}`;
+    
+    // Make value editable if property is provided
+    if (property !== null && quote.editable) {
+      valueEl.style.cursor = 'pointer';
+      valueEl.style.textDecoration = 'underline dotted';
+      valueEl.title = `Click to edit ${label.toLowerCase()}`;
+      
+      valueEl.addEventListener('click', () => {
+        let currentValue = property.includes('.') 
+          ? quote[property.split('.')[0]][property.split('.')[1]] 
+          : quote[property];
+          
+        const newValue = prompt(`Enter new ${label.toLowerCase()}:`, currentValue);
+        
+        if (newValue !== null && !isNaN(parseFloat(newValue))) {
+          const parsedValue = parseFloat(newValue);
+          
+          // Update the quote object
+          if (property.includes('.')) {
+            const [obj, prop] = property.split('.');
+            quote[obj][prop] = parsedValue;
+          } else {
+            quote[property] = parsedValue;
+          }
+          
+          // Update display
+          valueEl.textContent = `${unit}${parsedValue.toFixed(2)}`;
+          
+          // Recalculate totals
+          recalculateQuote(quote);
+          
+          // Update the price display
+          price.textContent = `$${quote.total.toFixed(2)}`;
+          
+          // Show toast
+          if (window.showToast) {
+            window.showToast(`${label} updated to ${unit}${parsedValue.toFixed(2)}`, 'success');
+          }
+        }
+      });
+    }
+    
+    row.appendChild(labelEl);
+    row.appendChild(valueEl);
+    return row;
+  };
+  
+  // Function to recalculate quote totals after editing
+  const recalculateQuote = (quote) => {
+    // Calculate updated costs
+    const laborCost = quote.laborRate * quote.laborHours;
+    const costBasis = laborCost + quote.materialsCost;
+    const targetMarginDecimal = quote.targetMargin / 100;
+    
+    // Calculate pre-tax total to achieve target margin
+    const preTaxTotal = costBasis / (1 - targetMarginDecimal);
+    
+    // Calculate tax and final total
+    const materialsTax = quote.materialsCost * quote.taxRate;
+    const total = preTaxTotal + materialsTax;
+    
+    // Calculate profit and margin
+    const profit = preTaxTotal - costBasis;
+    const actualProfitMargin = (profit / preTaxTotal) * 100;
+    
+    // Update quote object
+    quote.laborCost = laborCost;
+    quote.preTaxTotal = preTaxTotal;
+    quote.materialsTax = materialsTax;
+    quote.total = total;
+    quote.profit = profit;
+    quote.actualProfitMargin = actualProfitMargin;
+    
+    // Return updated quote (for chaining)
+    return quote;
+  };
+  
+  // Create breakdown items for both customer and provider costs
+  breakdownContent.appendChild(createEditableItem('Labor Hours', quote.laborHours, '', 'laborHours'));
+  breakdownContent.appendChild(createEditableItem('Labor Rate', quote.laborRate, '$', 'laborRate'));
+  breakdownContent.appendChild(createEditableItem('Labor Cost', quote.laborCost));
+  breakdownContent.appendChild(createEditableItem('Materials Cost', quote.materialsCost, '$', 'materialsCost'));
+  
+  // Add separator
+  const separator = document.createElement('hr');
+  separator.style.margin = '8px 0';
+  separator.style.border = 'none';
+  separator.style.borderTop = '1px dashed #e5e7eb';
+  breakdownContent.appendChild(separator);
+  
+  // Add provider cost section
+  const providerTitle = document.createElement('div');
+  providerTitle.textContent = 'Provider Costs & Profit';
+  providerTitle.style.fontWeight = 'bold';
+  providerTitle.style.marginTop = '8px';
+  providerTitle.style.marginBottom = '6px';
+  breakdownContent.appendChild(providerTitle);
+  
+  breakdownContent.appendChild(createEditableItem('Cost Basis (Labor + Materials)', quote.laborCost + quote.materialsCost));
+  breakdownContent.appendChild(createEditableItem('Target Margin', quote.targetMargin, '%', 'targetMargin'));
+  breakdownContent.appendChild(createEditableItem('Actual Margin', quote.actualProfitMargin.toFixed(1), '%'));
+  breakdownContent.appendChild(createEditableItem('Profit Amount', quote.profit));
+  
+  // Add separator
+  const separator2 = document.createElement('hr');
+  separator2.style.margin = '8px 0';
+  separator2.style.border = 'none';
+  separator2.style.borderTop = '1px dashed #e5e7eb';
+  breakdownContent.appendChild(separator2);
+  
+  // Add customer cost section
+  const customerTitle = document.createElement('div');
+  customerTitle.textContent = 'Customer Costs';
+  customerTitle.style.fontWeight = 'bold';
+  customerTitle.style.marginTop = '8px';
+  customerTitle.style.marginBottom = '6px';
+  breakdownContent.appendChild(customerTitle);
+  
+  breakdownContent.appendChild(createEditableItem('Pre-tax Subtotal', quote.preTaxTotal));
+  breakdownContent.appendChild(createEditableItem('Tax Rate', (quote.taxRate * 100).toFixed(1), '%', 'taxRate'));
+  breakdownContent.appendChild(createEditableItem('Materials Tax', quote.materialsTax));
+  breakdownContent.appendChild(createEditableItem('Total', quote.total, '$'));
+  
+  // Add AI insights button
+  const aiInsightsBtn = document.createElement('button');
+  aiInsightsBtn.textContent = '💡 AI Price Insights';
+  aiInsightsBtn.style.backgroundColor = 'var(--color-primary, #4F46E5)';
+  aiInsightsBtn.style.color = 'white';
+  aiInsightsBtn.style.border = 'none';
+  aiInsightsBtn.style.borderRadius = '4px';
+  aiInsightsBtn.style.padding = '6px 10px';
+  aiInsightsBtn.style.fontSize = '12px';
+  aiInsightsBtn.style.cursor = 'pointer';
+  aiInsightsBtn.style.marginTop = '10px';
+  aiInsightsBtn.style.width = '100%';
+  
+  aiInsightsBtn.addEventListener('click', () => {
+    // Generate and show AI recommendations
+    const recommendations = generateAIRecommendations(quote);
+    showAIRecommendations(recommendations, tierName);
+  });
+  
+  breakdownContent.appendChild(aiInsightsBtn);
+  
+  // Assemble breakdown section
+  breakdownSection.appendChild(breakdownTitle);
+  breakdownSection.appendChild(breakdownContent);
+  cardBody.appendChild(breakdownSection);
   
   // Features list
   const featuresList = document.createElement('ul');

@@ -1,0 +1,35 @@
+User object in sidebar: 
+Object {username: "ProUser", subscriptionTier: "pro", subscriptionStatus: "pro", subscription: {…}}
+Sidebar displaying subscription tier: pro
+Created app-container for quote generator: 
+<div id="app-container" class="quote-generator-container" style="font-family: var(--font-family);">…</div>
+Notification system initialized successfully
+Quote Generator module initialized
+Quote Generator script loaded successfully
+Initializing Google Maps autocomplete for address input
+Creating autocomplete for input: auto-address-input
+[Maps Autocomplete] Autocomplete initialized for input: auto-address-input
+Error initializing Google Maps autocomplete: 
+TypeError {}
+message: "autocomplete.setFields is not a function"
+stack: "TypeError: autocomplete.setFields is not a function↵ at initGoogleMapsAutocomplete (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/quote-generator.js:880:18)↵ at renderQuoteGeneratorPage (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/quote-generator.js:841:5)↵ at scriptElement.onload (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/green/src/main.js:3701:24)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+at t.value (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Quote Generator page rendered successfully
+Toast module imported successfully
+[Maps Autocomplete] Fetching suggestions for: '9970 cormac st'
+[Maps Autocomplete] Positioned dropdown at: 48px, 466.796875px, width: 557px
+[Maps Autocomplete] Received 5 suggestions
+[Maps Autocomplete] First suggestion: '9970 Cormac Street, Jonesboro, GA, USA'
+[Maps Autocomplete] Positioned dropdown at: 48px, 466.796875px, width: 557px
+[Maps Autocomplete] Fetching suggestions for: '9970 Cormac Street, Jonesboro, GA, USA'
+[Maps Autocomplete] Positioned dropdown at: 48px, 363.296875px, width: 557px
+[Maps Autocomplete] Received 1 suggestions
+[Maps Autocomplete] First suggestion: '9970 Cormac Street, Jonesboro, GA, USA'
+[Maps Autocomplete] Positioned dropdown at: 48px, 363.296875px, width: 557px
