@@ -1150,24 +1150,31 @@ function generateQuoteForTier(tier, data, commonData, baseRate) {
   
   // Calculate costs
   const laborCost = laborRate * laborHours;
-  const materialsTax = materialsCost * commonData.taxRate;
-  const subtotal = laborCost + materialsCost;
-  const total = subtotal + materialsTax;
+  const costBasis = laborCost + materialsCost;
   
-  // Calculate profit
+  // Target margin calculation - this is the same formula used in generateQuote
   const targetMarginDecimal = targetMargin / 100;
-  const cost = subtotal / (1 - targetMarginDecimal);
-  const profit = total - cost;
-  const actualProfitMargin = (profit / total) * 100;
+  
+  // Calculate pre-tax total (revenue) to achieve target margin
+  // Formula: price = cost / (1 - margin)
+  const preTaxTotal = costBasis / (1 - targetMarginDecimal);
+  
+  // Calculate tax (applied only on materials) and final total
+  const materialsTax = materialsCost * commonData.taxRate;
+  const total = preTaxTotal + materialsTax;
+  
+  // Calculate actual profit and margin using pre-tax values
+  const profit = preTaxTotal - costBasis;
+  const actualProfitMargin = (profit / preTaxTotal) * 100;
   
   // Generate profit assessment
   let profitAssessment;
-  if (actualProfitMargin < 15) {
-    profitAssessment = 'Low profit margin. Consider reducing costs or increasing prices.';
-  } else if (actualProfitMargin < 25) {
-    profitAssessment = 'Acceptable profit margin, but could be improved.';
+  if (Math.abs(actualProfitMargin - targetMargin) <= 1) {
+    profitAssessment = `On target profit margin of ${targetMargin}%.`;
+  } else if (actualProfitMargin < targetMargin) {
+    profitAssessment = `Margin slightly below target (${actualProfitMargin.toFixed(1)}% vs target ${targetMargin}%).`;
   } else {
-    profitAssessment = 'Good profit margin. This quote should be profitable.';
+    profitAssessment = `Margin slightly above target (${actualProfitMargin.toFixed(1)}% vs target ${targetMargin}%).`;
   }
   
   // Get tier-specific content
@@ -1190,6 +1197,9 @@ function generateQuoteForTier(tier, data, commonData, baseRate) {
       features = [];
   }
   
+  // Properly include the preTaxTotal in the returned object
+  const subtotal = laborCost + materialsCost;
+  
   return {
     ...commonData,
     tier,
@@ -1203,6 +1213,7 @@ function generateQuoteForTier(tier, data, commonData, baseRate) {
     materialsCost,
     materialsTax,
     subtotal,
+    preTaxTotal,  // Add the pre-tax total for correct calculations
     total,
     targetMargin,
     actualProfitMargin,
@@ -1698,17 +1709,19 @@ function generateQuote(data) {
   const total = targetTotal + materialsTax;
   
   // Recalculate actual profit and margin after tax adjustment
-  const profit = total - costBasis;
-  const actualProfitMargin = (profit / total) * 100;
+  // Profit should be calculated based on the pre-tax total amount
+  // Revenue is targetTotal (pre-tax), cost is costBasis
+  const profit = targetTotal - costBasis;
+  const actualProfitMargin = (profit / targetTotal) * 100;
   
   // Profit assessment based on target margin
   let profitAssessment;
-  if (actualProfitMargin < targetMarginDecimal * 100 - 5) {
-    profitAssessment = 'Margin below target due to tax adjustments. Consider increasing base price.';
-  } else if (Math.abs(actualProfitMargin - targetMarginDecimal * 100) <= 5) {
-    profitAssessment = `On target profit margin of approximately ${targetMarginDecimal * 100}%.`;
-  } else if (actualProfitMargin > targetMarginDecimal * 100 + 5) {
-    profitAssessment = 'Margin exceeding target. Good pricing structure.';
+  if (Math.abs(actualProfitMargin - data.targetMargin) <= 1) {
+    profitAssessment = `On target profit margin of ${data.targetMargin}%.`;
+  } else if (actualProfitMargin < data.targetMargin) {
+    profitAssessment = `Margin slightly below target (${actualProfitMargin.toFixed(1)}% vs target ${data.targetMargin}%).`;
+  } else {
+    profitAssessment = `Margin slightly above target (${actualProfitMargin.toFixed(1)}% vs target ${data.targetMargin}%).`;
   }
   
   return {
@@ -1724,6 +1737,7 @@ function generateQuote(data) {
     materialsTax,
     emergency: data.emergency,
     subtotal,
+    preTaxTotal: targetTotal,  // Include pre-tax total for correct profit margin calculations
     total,
     targetMargin: data.targetMargin,
     actualProfitMargin,
