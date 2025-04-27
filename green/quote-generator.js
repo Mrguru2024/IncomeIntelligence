@@ -47,32 +47,52 @@ function saveCurrentFormState() {
   // Auto service quote form
   const autoForm = document.getElementById('auto-quote-form');
   if (autoForm) {
-    const formData = new FormData(autoForm);
     const formState = {};
-    for (const [key, value] of formData.entries()) {
-      formState[key] = value;
-    }
+    
+    // Get all the inputs in the form
+    const inputs = autoForm.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      if (input.type === 'checkbox') {
+        formState[input.name] = input.checked;
+      } else {
+        formState[input.name] = input.value;
+      }
+    });
+    
+    // Save to both in-memory cache and localStorage for persistence
     cachedFormState.autoQuote = formState;
-    console.log('Saved auto quote form state');
+    localStorage.setItem('stackr_auto_quote_form', JSON.stringify(formState));
+    console.log('Saved auto quote form state to localStorage');
   }
   
   // General service quote form
   const generalForm = document.getElementById('general-quote-form');
   if (generalForm) {
-    const formData = new FormData(generalForm);
     const formState = {};
-    for (const [key, value] of formData.entries()) {
-      formState[key] = value;
-    }
+    
+    // Get all the inputs in the form
+    const inputs = generalForm.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      if (input.type === 'checkbox') {
+        formState[input.name] = input.checked;
+      } else {
+        formState[input.name] = input.value;
+      }
+    });
+    
+    // Save to both in-memory cache and localStorage for persistence
     cachedFormState.generalQuote = formState;
-    console.log('Saved general quote form state');
+    localStorage.setItem('stackr_general_quote_form', JSON.stringify(formState));
+    console.log('Saved general quote form state to localStorage');
   }
   
   // Save active tab
   const activeTab = document.querySelector('.form-tab.active');
   if (activeTab) {
-    cachedFormState.lastActiveTab = activeTab.getAttribute('data-tab');
-    console.log('Saved active tab:', cachedFormState.lastActiveTab);
+    const activeTabValue = activeTab.getAttribute('data-tab');
+    cachedFormState.lastActiveTab = activeTabValue;
+    localStorage.setItem('stackr_quote_active_tab', activeTabValue);
+    console.log('Saved active tab to localStorage:', activeTabValue);
   }
 }
 
@@ -80,44 +100,139 @@ function saveCurrentFormState() {
 function restoreFormState() {
   console.log('Attempting to restore form state');
   
+  // Try to load state from localStorage first (most persistent)
+  try {
+    // Restore active tab first from localStorage
+    const savedTab = localStorage.getItem('stackr_quote_active_tab');
+    if (savedTab) {
+      cachedFormState.lastActiveTab = savedTab;
+      console.log('Loaded active tab from localStorage:', savedTab);
+    }
+    
+    // Restore auto form data from localStorage
+    const savedAutoForm = localStorage.getItem('stackr_auto_quote_form');
+    if (savedAutoForm) {
+      try {
+        cachedFormState.autoQuote = JSON.parse(savedAutoForm);
+        console.log('Loaded auto form data from localStorage');
+      } catch (err) {
+        console.error('Error parsing auto form data:', err);
+      }
+    }
+    
+    // Restore general form data from localStorage
+    const savedGeneralForm = localStorage.getItem('stackr_general_quote_form');
+    if (savedGeneralForm) {
+      try {
+        cachedFormState.generalQuote = JSON.parse(savedGeneralForm);
+        console.log('Loaded general form data from localStorage');
+      } catch (err) {
+        console.error('Error parsing general form data:', err);
+      }
+    }
+  } catch (err) {
+    console.error('Error accessing localStorage:', err);
+  }
+  
   // Restore active tab first
   if (cachedFormState.lastActiveTab) {
     const tabs = document.querySelectorAll('.form-tab');
     tabs.forEach(tab => {
       if (tab.getAttribute('data-tab') === cachedFormState.lastActiveTab) {
-        tab.click(); // This will activate the tab
+        // Instead of using click() which can trigger reloads,
+        // manually set the styles and display properties
+        
+        // First, reset all tabs
+        tabs.forEach(t => {
+          t.style.borderBottom = 'none';
+          t.style.fontWeight = 'normal';
+          t.style.color = 'var(--color-text-secondary)';
+          t.classList.remove('active');
+        });
+        
+        // Style the active tab
+        tab.style.borderBottom = '3px solid var(--color-primary)';
+        tab.style.fontWeight = 'bold';
+        tab.style.color = 'var(--color-text)';
+        tab.classList.add('active');
+        
+        // Show/hide form based on tab
+        const isGeneralTab = tab.getAttribute('data-tab') === 'general';
+        const generalForm = document.getElementById('general-quote-form');
+        const autoForm = document.getElementById('auto-quote-form');
+        
+        if (generalForm && autoForm) {
+          generalForm.style.display = isGeneralTab ? 'block' : 'none';
+          autoForm.style.display = isGeneralTab ? 'none' : 'block';
+        }
+        
+        console.log('Restored active tab:', tab.getAttribute('data-tab'));
+      }
+    });
+  }
+  
+  // Add input event listeners for all form fields to continually save state
+  function addAutoSaveListeners(form, storageName) {
+    if (!form) return;
+    
+    const formInputs = form.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+      // Only add listener once
+      if (!input.dataset.hasSaveListener) {
+        input.addEventListener('input', () => {
+          // Immediately save form state on any change
+          saveCurrentFormState();
+        });
+        // Mark as having listener added
+        input.dataset.hasSaveListener = 'true';
       }
     });
   }
   
   // Restore auto form fields
-  if (cachedFormState.autoQuote) {
-    const autoForm = document.getElementById('auto-quote-form');
-    if (autoForm) {
-      const formState = cachedFormState.autoQuote;
-      for (const [key, value] of Object.entries(formState)) {
-        const field = autoForm.elements[key];
-        if (field) {
-          field.value = value;
+  const autoForm = document.getElementById('auto-quote-form');
+  if (cachedFormState.autoQuote && autoForm) {
+    const formState = cachedFormState.autoQuote;
+    const formControls = autoForm.querySelectorAll('input, select, textarea');
+    
+    formControls.forEach(control => {
+      const name = control.name;
+      if (name && formState[name] !== undefined) {
+        if (control.type === 'checkbox') {
+          control.checked = formState[name] === true || formState[name] === 'true';
+        } else {
+          control.value = formState[name];
         }
       }
-      console.log('Restored auto quote form state');
-    }
+    });
+    
+    // Add auto-save listeners
+    addAutoSaveListeners(autoForm, 'stackr_auto_quote_form');
+    
+    console.log('Restored auto quote form state');
   }
   
   // Restore general form fields
-  if (cachedFormState.generalQuote) {
-    const generalForm = document.getElementById('general-quote-form');
-    if (generalForm) {
-      const formState = cachedFormState.generalQuote;
-      for (const [key, value] of Object.entries(formState)) {
-        const field = generalForm.elements[key];
-        if (field) {
-          field.value = value;
+  const generalForm = document.getElementById('general-quote-form');
+  if (cachedFormState.generalQuote && generalForm) {
+    const formState = cachedFormState.generalQuote;
+    const formControls = generalForm.querySelectorAll('input, select, textarea');
+    
+    formControls.forEach(control => {
+      const name = control.name;
+      if (name && formState[name] !== undefined) {
+        if (control.type === 'checkbox') {
+          control.checked = formState[name] === true || formState[name] === 'true';
+        } else {
+          control.value = formState[name];
         }
       }
-      console.log('Restored general quote form state');
-    }
+    });
+    
+    // Add auto-save listeners
+    addAutoSaveListeners(generalForm, 'stackr_general_quote_form');
+    
+    console.log('Restored general quote form state');
   }
 }
 
@@ -177,6 +292,16 @@ function initFormStatePreservation() {
 // Add special handling for ZFold and other foldable devices
 // This is a global fix for form submission issues on foldable devices
 window.addEventListener('DOMContentLoaded', () => {
+  // Initialize form state preservation system on page load
+  initFormStatePreservation();
+  
+  // Try immediate restore to handle page loads and navigation
+  try {
+    setTimeout(restoreFormState, 500); // Wait for DOM to be ready
+  } catch (err) {
+    console.error('Error restoring form state on load:', err);
+  }
+  
   // Check if this is a foldable device using our safe viewport helper
   const { width, isFoldableClosed } = getViewportData();
   const isFoldableDevice = width < 400 || isFoldableClosed;
@@ -192,14 +317,28 @@ window.addEventListener('DOMContentLoaded', () => {
       // Check if any element in the path has ID "auto-quote-form"
       const isQuoteForm = path.some(el => 
         el.id === 'auto-quote-form' || 
-        (el.getAttribute && el.getAttribute('id') === 'auto-quote-form')
+        (el.getAttribute && el.getAttribute('id') === 'auto-quote-form') ||
+        el.id === 'quote-form' || 
+        (el.getAttribute && el.getAttribute('id') === 'quote-form')
       );
       
       if (isQuoteForm) {
-        console.log('ZFold protection: Prevented auto-quote form submission');
+        console.log('ZFold protection: Prevented quote form submission');
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
+        
+        // Save form state immediately on submission attempt
+        saveCurrentFormState();
+        
+        // Process the form data manually instead
+        const formId = e.target.id;
+        if (formId === 'auto-quote-form') {
+          handleAutoQuoteFormSubmit(e);
+        } else if (formId === 'quote-form') {
+          handleQuoteFormSubmit(e);
+        }
+        
         return false;
       }
     }, true); // Use capture to ensure this runs first
@@ -209,6 +348,25 @@ window.addEventListener('DOMContentLoaded', () => {
     
     console.log('ZFold protections applied (input field blocking removed)');
   }
+  
+  // Add input event listeners to continuously save form state as user types
+  window.addEventListener('input', function(e) {
+    // Only for form elements
+    if (e.target.form && 
+        (e.target.form.id === 'auto-quote-form' || 
+         e.target.form.id === 'quote-form' ||
+         e.target.form.id === 'general-quote-form')) {
+      
+      // Debounce the save - don't save on every keystroke
+      if (window.formSaveTimeout) {
+        clearTimeout(window.formSaveTimeout);
+      }
+      
+      window.formSaveTimeout = setTimeout(function() {
+        saveCurrentFormState();
+      }, 300); // Save after 300ms of inactivity
+    }
+  });
 });
 
 // Define stateToRegion object 
@@ -1833,37 +1991,59 @@ export function renderQuoteGeneratorPage(containerId) {
   autoTab.dataset.tab = 'automotive';
   autoTab.classList.add('form-tab');
   
-  // Add event listeners to tabs
-  generalTab.addEventListener('click', () => {
-    generalTab.style.borderBottom = '3px solid var(--color-primary)';
-    generalTab.style.fontWeight = 'bold';
-    generalTab.style.color = 'var(--color-text)';
-    autoTab.style.borderBottom = 'none';
-    autoTab.style.fontWeight = 'normal';
-    autoTab.style.color = 'var(--color-text-secondary)';
+  // Function to switch tabs without using click event
+  function switchToTab(tabElement) {
+    const isGeneralTab = tabElement.getAttribute('data-tab') === 'general';
+    const generalForm = document.getElementById('general-quote-form');
+    const autoForm = document.getElementById('auto-quote-form');
+    const resultSection = document.getElementById('quote-result-section');
     
-    // Show general form, hide auto form
-    document.getElementById('general-quote-form').style.display = 'block';
-    document.getElementById('auto-quote-form').style.display = 'none';
+    // Save current form state before switching tabs
+    saveCurrentFormState();
+    
+    // Update tab styles
+    const tabs = document.querySelectorAll('.form-tab');
+    tabs.forEach(tab => {
+      // Reset all tabs
+      tab.style.borderBottom = 'none';
+      tab.style.fontWeight = 'normal';
+      tab.style.color = 'var(--color-text-secondary)';
+      tab.classList.remove('active');
+    });
+    
+    // Set active tab
+    tabElement.style.borderBottom = '3px solid var(--color-primary)';
+    tabElement.style.fontWeight = 'bold';
+    tabElement.style.color = 'var(--color-text)';
+    tabElement.classList.add('active');
+    
+    // Update form visibility
+    if (generalForm && autoForm) {
+      generalForm.style.display = isGeneralTab ? 'block' : 'none';
+      autoForm.style.display = isGeneralTab ? 'none' : 'block';
+    }
     
     // Clear results
-    document.getElementById('quote-result-section').innerHTML = '';
+    if (resultSection) {
+      resultSection.innerHTML = '';
+    }
+    
+    // Save active tab to localStorage
+    localStorage.setItem('stackr_quote_active_tab', tabElement.getAttribute('data-tab'));
+    cachedFormState.lastActiveTab = tabElement.getAttribute('data-tab');
+    
+    console.log('Switched to tab:', tabElement.getAttribute('data-tab'));
+  }
+  
+  // Add event listeners to tabs, but use our safer switch function
+  generalTab.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchToTab(generalTab);
   });
   
-  autoTab.addEventListener('click', () => {
-    autoTab.style.borderBottom = '3px solid var(--color-primary)';
-    autoTab.style.fontWeight = 'bold';
-    autoTab.style.color = 'var(--color-text)';
-    generalTab.style.borderBottom = 'none';
-    generalTab.style.fontWeight = 'normal';
-    generalTab.style.color = 'var(--color-text-secondary)';
-    
-    // Show auto form, hide general form
-    document.getElementById('general-quote-form').style.display = 'none';
-    document.getElementById('auto-quote-form').style.display = 'block';
-    
-    // Clear results
-    document.getElementById('quote-result-section').innerHTML = '';
+  autoTab.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchToTab(autoTab);
   });
   
   tabsContainer.appendChild(generalTab);
