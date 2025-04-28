@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/use-auth";
-import StackzenLogo from "@/components/StackrLogo";
+import StackzenLogo from "@/components/StackzenLogo";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -113,7 +113,7 @@ const navigationStructure = [
         badgeColor: "bg-gradient-to-r from-[var(--deep-sapphire-blue)] to-[var(--electric-sky-blue)]"
       },
       {
-        name: "Stackr Gigs",
+        name: "Stackzen Gigs",
         path: "/income-hub/gigs",
         icon: <Briefcase size={20} />,
         badge: "Hot"
@@ -134,7 +134,7 @@ const navigationStructure = [
     category: "Tools & Resources",
     items: [
       {
-        name: "Stackr Advice",
+        name: "Stackzen Advice",
         path: "/financial-advice",
         icon: <BookOpen size={20} />,
       },
