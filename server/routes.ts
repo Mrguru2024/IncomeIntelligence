@@ -1,5 +1,6 @@
 import express, { type Express, type Request, type Response } from "express";
 import { createServer, type Server } from "http";
+import https from "https";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import fs from "fs";
@@ -62,6 +63,7 @@ import userProfileRoutes from "./routes/user-profile-routes";
 import guardrailsRoutes from "./routes/guardrails-routes";
 import deliveryTestRoutes from "./routes/delivery-test-routes";
 import quoteRoutes from "./routes/quote-routes";
+import paymentScriptsRoutes from "./routes/payment-scripts";
 import { sendEmail, sendPaymentConfirmationEmail, sendTestEmail, sendSms } from "./email-service";
 import Stripe from "stripe";
 // Express already imported at top
@@ -374,6 +376,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register quote routes
   app.use('/api', quoteRoutes);
   console.log('Quote routes registered');
+  
+  // Register payment scripts routes
+  app.use('/api/payment-scripts', paymentScriptsRoutes);
+  console.log('Payment scripts routes registered');
   
   // Create Stripe payment intent for invoice payment
   app.post('/api/create-payment-intent', async (req, res) => {
