@@ -519,6 +519,12 @@ function setupPricingSliders() {
 
 // Setup feature highlights
 function setupFeatureHighlights() {
+  // Apply feature-highlight class to all feature items
+  document.querySelectorAll('.tier-card li').forEach(item => {
+    item.classList.add('feature-highlight');
+  });
+
+  // Add event listeners
   const features = document.querySelectorAll('.feature-highlight');
   features.forEach(feature => {
     feature.addEventListener('mouseenter', function() {
