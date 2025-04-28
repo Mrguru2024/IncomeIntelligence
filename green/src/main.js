@@ -137,7 +137,7 @@ function checkAuthentication() {
         const onboardingCompleted = 
           userData.onboardingCompleted === true || 
           userData.onboardingStep === 'complete' ||
-          localStorage.getItem('stackrOnboardingCompleted') === 'true';
+          localStorage.getItem('stackzenOnboardingCompleted') === 'true';
         
         // Update app state with the definitive value
         appState.user.onboardingCompleted = onboardingCompleted;
@@ -185,7 +185,7 @@ function checkAuthentication() {
 
 // Load data from localStorage if available
 function loadStateFromStorage() {
-  const savedState = localStorage.getItem('stackrGreenState');
+  const savedState = localStorage.getItem('stackzenState');
   if (savedState) {
     const parsedState = JSON.parse(savedState);
     // Merge with existing state
@@ -210,7 +210,7 @@ function loadStateFromStorage() {
 
 // Save data to localStorage
 function saveStateToStorage() {
-  localStorage.setItem('stackrGreenState', JSON.stringify({
+  localStorage.setItem('stackzenState', JSON.stringify({
     incomeEntries: appState.incomeEntries,
     expenseEntries: appState.expenseEntries,
     user: appState.user
@@ -481,8 +481,8 @@ function createHeader() {
   
   // Create logo using SVG from public folder with standard size
   const logoImg = document.createElement('img');
-  logoImg.src = 'public/stackr-logo.svg'; // Path relative to green folder
-  logoImg.alt = 'Stackr';
+  logoImg.src = 'public/stackzen-logo.svg'; // Path relative to green folder
+  logoImg.alt = 'Stackzen';
   logoImg.style.height = '48px'; // Increased to standard size
   logoImg.style.width = 'auto';
   logoImg.style.marginRight = '10px';
@@ -3114,7 +3114,7 @@ function renderSettingsPage() {
   onboardingStatus.style.fontSize = '14px';
   
   // Get current onboarding status
-  const onboardingComplete = localStorage.getItem('stackrOnboardingCompleted') === 'true';
+  const onboardingComplete = localStorage.getItem('stackzenOnboardingCompleted') === 'true';
   const currentStep = appState.user.onboardingStep || 'welcome';
   
   onboardingStatus.innerHTML = `
@@ -3141,7 +3141,7 @@ function renderSettingsPage() {
   const resetOnboardingBtn = createButton('Reset Onboarding', async () => {
     if (confirm('Are you sure you want to reset your onboarding progress? You will need to go through the setup process again.')) {
       // Clear local storage flag
-      localStorage.removeItem('stackrOnboardingCompleted');
+      localStorage.removeItem('stackzenOnboardingCompleted');
       
       try {
         // Reset onboarding step in API
@@ -3223,7 +3223,7 @@ function renderSettingsPage() {
     // Create download link
     const a = document.createElement('a');
     a.href = url;
-    a.download = `stackr-green-export-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `stackzen-export-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(a);
     a.click();
     
