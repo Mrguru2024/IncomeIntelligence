@@ -146,7 +146,7 @@ function App() {
           <span className="mr-2 font-bold">⚠️ Firebase Issues?</span>
           <span className="hidden sm:inline">Try our 100% Firebase-free</span>
           <button className="ml-2 bg-white text-green-600 px-3 py-1 rounded-md font-bold text-sm">
-            GREEN Version
+            Stackr Zen GREEN
           </button>
         </div>
         
@@ -163,7 +163,7 @@ function App() {
             <div className="flex-1 flex flex-col w-full max-w-[100vw]">
               <header className="lg:hidden bg-card-background border-b border-border p-4 flex items-center justify-between sticky top-0 z-[100] w-full">
                 <h1 className="text-xl font-semibold text-foreground">
-                  Stackr
+                  Stackr Zen
                 </h1>
                 <div className="flex items-center space-x-2">
                   <ThemeToggle />
