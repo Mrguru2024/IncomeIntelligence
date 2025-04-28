@@ -69,8 +69,81 @@ router.get('/quotes/:quoteId', async (req, res) => {
     const { quoteId } = req.params;
     const userId = req.query.userId as string;
     
+    // Special case for demo quote
+    if (quoteId === 'demo') {
+      // Return a predefined demo quote for client preview testing
+      const demoQuote = {
+        id: "QT-DEMO-12345",
+        businessName: "Stackr Professional Services",
+        businessTagline: "Quality service you can trust",
+        date: new Date().toLocaleDateString(),
+        validUntil: new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString(),
+        customerName: "Demo Customer",
+        description: "Professional service demonstration",
+        serviceType: "Locksmith",
+        serviceLocation: "Customer Location",
+        serviceComplexity: "Standard",
+        providerName: "Professional Provider",
+        providerExperience: "10 years",
+        providerRating: 4.9,
+        tierOptions: {
+          basic: {
+            name: "Basic",
+            price: 125,
+            features: [
+              "Standard service",
+              "Standard materials",
+              "30-day warranty",
+              "Standard response time"
+            ],
+            laborCost: 75,
+            materialCost: 30
+          },
+          standard: {
+            name: "Standard",
+            price: 175,
+            features: [
+              "Enhanced service",
+              "Quality materials",
+              "90-day warranty",
+              "Priority scheduling",
+              "Follow-up support"
+            ],
+            laborCost: 100,
+            materialCost: 50
+          },
+          premium: {
+            name: "Premium",
+            price: 250,
+            features: [
+              "Premium service",
+              "Premium materials",
+              "1-year warranty",
+              "VIP scheduling",
+              "Free follow-up inspection",
+              "Extended support",
+              "Emergency availability"
+            ],
+            laborCost: 150,
+            materialCost: 70
+          }
+        },
+        breakdown: {
+          labor: 100,
+          materials: 50,
+          taxRate: 0.05
+        },
+        depositRequired: true,
+        depositPercent: 30,
+        reference: "REF-DEMO-12345"
+      };
+      
+      return res.json({ quote: demoQuote });
+    }
+    
+    // Regular quote lookup - userId is only required for non-demo quotes
     if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
+      return res.status(400).json({ error: 'userId is required for non-demo quotes' });
     }
     
     try {
