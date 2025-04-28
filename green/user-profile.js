@@ -8,7 +8,48 @@
  * - Adaptive parameter adjustments based on user behavior
  */
 
-// ES module exports for environments that support it
+// Individual exports for ES modules
+export function getUserProfile(userId) {
+  // This function will be defined later, this is just a forward declaration
+  return getUserProfileImplementation(userId);
+}
+
+export function initializeUserProfile(userId) {
+  // Forward declaration
+  return initializeUserProfileImplementation(userId);
+}
+
+export function saveUserProfile(userId, profileData) {
+  // Forward declaration
+  return saveUserProfileImplementation(userId, profileData);
+}
+
+export function addQuoteToHistory(userId, quoteData) {
+  // Forward declaration
+  return addQuoteToHistoryImplementation(userId, quoteData);
+}
+
+export function updateQuoteStatus(userId, quoteDate, status) {
+  // Forward declaration
+  return updateQuoteStatusImplementation(userId, quoteDate, status);
+}
+
+export function updateProfileFromQuoteForm(userId, quoteFormData) {
+  // Forward declaration
+  return updateProfileFromQuoteFormImplementation(userId, quoteFormData);
+}
+
+export function getDefaultIndustryParameters(serviceIndustry) {
+  // Forward declaration
+  return getDefaultIndustryParametersImplementation(serviceIndustry);
+}
+
+export function mapJobTypeToIndustry(jobType) {
+  // Forward declaration
+  return mapJobTypeToIndustryImplementation(jobType);
+}
+
+// Export the module as a whole
 export const UserProfileModule = {
   getUserProfile: null,
   initializeUserProfile: null,
@@ -97,11 +138,11 @@ function saveUserProfiles(profiles) {
 }
 
 /**
- * Get user profile by ID
+ * Get user profile by ID - Implementation
  * @param {string} userId - User ID
  * @returns {Object|null} User profile or null if not found
  */
-function getUserProfile(userId) {
+function getUserProfileImplementation(userId) {
   if (!userId) return null;
   
   // Load profiles if not cached
@@ -114,11 +155,11 @@ function getUserProfile(userId) {
 }
 
 /**
- * Initialize a new user profile with default values
+ * Initialize a new user profile with default values - Implementation
  * @param {string} userId - User ID
  * @returns {Object} New user profile
  */
-function initializeUserProfile(userId) {
+function initializeUserProfileImplementation(userId) {
   const newProfile = {
     userId,
     createdAt: new Date().toISOString(),
@@ -144,12 +185,12 @@ function initializeUserProfile(userId) {
 }
 
 /**
- * Save or update user profile
+ * Save or update user profile - Implementation
  * @param {string} userId - User ID
  * @param {Object} profileData - Profile data to update
  * @returns {Object} Updated profile
  */
-function saveUserProfile(userId, profileData) {
+function saveUserProfileImplementation(userId, profileData) {
   if (!userId) throw new Error('User ID is required');
   
   // Load profiles if not cached
@@ -158,7 +199,7 @@ function saveUserProfile(userId, profileData) {
   }
   
   // Get existing profile or initialize new one
-  const existingProfile = userProfilesCache[userId] || initializeUserProfile(userId);
+  const existingProfile = userProfilesCache[userId] || initializeUserProfileImplementation(userId);
   
   // Deep merge existing profile with new data
   const updatedProfile = {
@@ -190,17 +231,17 @@ function saveUserProfile(userId, profileData) {
 }
 
 /**
- * Add a quote to the user's quote history
+ * Add a quote to the user's quote history - Implementation
  * @param {string} userId - User ID
  * @param {Object} quoteData - Quote data
  * @returns {Object} Updated profile
  */
-function addQuoteToHistory(userId, quoteData) {
+function addQuoteToHistoryImplementation(userId, quoteData) {
   if (!userId) throw new Error('User ID is required');
   if (!quoteData) throw new Error('Quote data is required');
   
   // Get user profile
-  const userProfile = getUserProfile(userId) || initializeUserProfile(userId);
+  const userProfile = getUserProfileImplementation(userId) || initializeUserProfileImplementation(userId);
   
   // Add timestamp if not present
   const quoteWithTimestamp = {
@@ -230,7 +271,7 @@ function addQuoteToHistory(userId, quoteData) {
   const preferredJobTypes = extractPreferredJobTypes(quoteHistory);
   
   // Update user profile
-  const updatedProfile = saveUserProfile(userId, {
+  const updatedProfile = saveUserProfileImplementation(userId, {
     quoteHistory,
     statistics: {
       totalQuotes,
@@ -249,13 +290,13 @@ function addQuoteToHistory(userId, quoteData) {
 }
 
 /**
- * Update quote status in history
+ * Update quote status in history - Implementation
  * @param {string} userId - User ID
  * @param {string} quoteDate - Original quote date as ISO string
  * @param {string} status - New status
  * @returns {Object} Updated profile
  */
-function updateQuoteStatus(userId, quoteDate, status) {
+function updateQuoteStatusImplementation(userId, quoteDate, status) {
   if (!userId) throw new Error('User ID is required');
   if (!quoteDate) throw new Error('Quote date is required');
   if (!status) throw new Error('Status is required');
@@ -267,7 +308,7 @@ function updateQuoteStatus(userId, quoteDate, status) {
   }
   
   // Get user profile
-  const userProfile = getUserProfile(userId);
+  const userProfile = getUserProfileImplementation(userId);
   if (!userProfile) throw new Error('User profile not found');
   
   // Find the quote in history
@@ -294,7 +335,7 @@ function updateQuoteStatus(userId, quoteDate, status) {
   }
   
   // Update user profile
-  const updatedProfile = saveUserProfile(userId, {
+  const updatedProfile = saveUserProfileImplementation(userId, {
     quoteHistory,
     statistics: {
       ...userProfile.statistics,
@@ -354,20 +395,20 @@ function calculateAverageLaborRate(quoteHistory) {
 }
 
 /**
- * Update user profile parameters from quote form data
+ * Update user profile parameters from quote form data - Implementation
  * @param {string} userId - User ID
  * @param {Object} quoteFormData - Quote form data
  * @returns {Object} Updated profile
  */
-function updateProfileFromQuoteForm(userId, quoteFormData) {
+function updateProfileFromQuoteFormImplementation(userId, quoteFormData) {
   if (!userId) throw new Error('User ID is required');
   if (!quoteFormData) throw new Error('Quote form data is required');
   
   // Get user profile
-  const userProfile = getUserProfile(userId) || initializeUserProfile(userId);
+  const userProfile = getUserProfileImplementation(userId) || initializeUserProfileImplementation(userId);
   
   // Extract the service industry from the job type if not provided
-  const serviceIndustry = quoteFormData.serviceIndustry || mapJobTypeToIndustry(quoteFormData.jobType);
+  const serviceIndustry = quoteFormData.serviceIndustry || mapJobTypeToIndustryImplementation(quoteFormData.jobType);
   if (!serviceIndustry) {
     console.warn('Unable to determine service industry from quote data');
     return userProfile;
@@ -376,7 +417,7 @@ function updateProfileFromQuoteForm(userId, quoteFormData) {
   // Get existing industry parameters or initialize
   const existingIndustryParams = 
     (userProfile.industryParameters && userProfile.industryParameters[serviceIndustry]) || 
-    getDefaultIndustryParameters(serviceIndustry);
+    getDefaultIndustryParametersImplementation(serviceIndustry);
   
   // Update industry parameters based on form data
   const updatedIndustryParams = { ...existingIndustryParams };
@@ -415,7 +456,7 @@ function updateProfileFromQuoteForm(userId, quoteFormData) {
   };
   
   // Save updated profile
-  const updatedProfile = saveUserProfile(userId, {
+  const updatedProfile = saveUserProfileImplementation(userId, {
     industryParameters,
     preferences
   });
@@ -424,11 +465,11 @@ function updateProfileFromQuoteForm(userId, quoteFormData) {
 }
 
 /**
- * Map job type to service industry
+ * Map job type to service industry - Implementation
  * @param {string} jobType - Job type
  * @returns {string} Service industry
  */
-function mapJobTypeToIndustry(jobType) {
+function mapJobTypeToIndustryImplementation(jobType) {
   const jobTypeMap = {
     // Construction
     'Bathroom Remodel': 'construction',
@@ -506,11 +547,11 @@ function mapJobTypeToIndustry(jobType) {
 }
 
 /**
- * Get default industry parameters
+ * Get default industry parameters - Implementation
  * @param {string} serviceIndustry - Service industry
  * @returns {Object} Default industry parameters
  */
-function getDefaultIndustryParameters(serviceIndustry) {
+function getDefaultIndustryParametersImplementation(serviceIndustry) {
   const defaultParams = {
     construction: {
       baseMargin: 0.25,
@@ -731,26 +772,26 @@ userProfilesCache = loadUserProfiles();
 
 // Create a bundle of all exports
 const profileModule = {
-  getUserProfile,
-  initializeUserProfile,
-  saveUserProfile,
-  addQuoteToHistory,
-  updateQuoteStatus,
-  updateProfileFromQuoteForm,
-  getDefaultIndustryParameters,
-  mapJobTypeToIndustry
+  getUserProfile: getUserProfileImplementation,
+  initializeUserProfile: initializeUserProfileImplementation,
+  saveUserProfile: saveUserProfileImplementation,
+  addQuoteToHistory: addQuoteToHistoryImplementation,
+  updateQuoteStatus: updateQuoteStatusImplementation,
+  updateProfileFromQuoteForm: updateProfileFromQuoteFormImplementation,
+  getDefaultIndustryParameters: getDefaultIndustryParametersImplementation,
+  mapJobTypeToIndustry: mapJobTypeToIndustryImplementation
 };
 
 // Update the exported ES module object with the actual functions
 if (typeof UserProfileModule !== 'undefined') {
-  UserProfileModule.getUserProfile = getUserProfile;
-  UserProfileModule.initializeUserProfile = initializeUserProfile;
-  UserProfileModule.saveUserProfile = saveUserProfile;
-  UserProfileModule.addQuoteToHistory = addQuoteToHistory;
-  UserProfileModule.updateQuoteStatus = updateQuoteStatus;
-  UserProfileModule.updateProfileFromQuoteForm = updateProfileFromQuoteForm;
-  UserProfileModule.getDefaultIndustryParameters = getDefaultIndustryParameters;
-  UserProfileModule.mapJobTypeToIndustry = mapJobTypeToIndustry;
+  UserProfileModule.getUserProfile = getUserProfileImplementation;
+  UserProfileModule.initializeUserProfile = initializeUserProfileImplementation;
+  UserProfileModule.saveUserProfile = saveUserProfileImplementation;
+  UserProfileModule.addQuoteToHistory = addQuoteToHistoryImplementation;
+  UserProfileModule.updateQuoteStatus = updateQuoteStatusImplementation;
+  UserProfileModule.updateProfileFromQuoteForm = updateProfileFromQuoteFormImplementation;
+  UserProfileModule.getDefaultIndustryParameters = getDefaultIndustryParametersImplementation;
+  UserProfileModule.mapJobTypeToIndustry = mapJobTypeToIndustryImplementation;
 }
 
 // Check environment and export accordingly
