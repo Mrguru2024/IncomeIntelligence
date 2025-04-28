@@ -1490,32 +1490,32 @@ function createIncomeOpportunitiesSection() {
   baseIncomeLine.style.borderTopRightRadius = '4px';
   baseIncomeLine.style.clipPath = 'polygon(0% 20%, 20% 30%, 40% 25%, 60% 40%, 80% 35%, 100% 30%)';
   
-  const stackrIncomeGraph = document.createElement('div');
-  stackrIncomeGraph.style.position = 'absolute';
-  stackrIncomeGraph.style.left = '10%';
-  stackrIncomeGraph.style.right = '0';
-  stackrIncomeGraph.style.bottom = '0';
-  stackrIncomeGraph.style.height = '75%';
-  stackrIncomeGraph.style.background = 'linear-gradient(to top, rgba(0, 198, 167, 0.2) 0%, rgba(0, 198, 167, 0) 100%)'; // Mint Green with transparency
-  stackrIncomeGraph.style.borderTopLeftRadius = '4px';
-  stackrIncomeGraph.style.borderTopRightRadius = '4px';
-  stackrIncomeGraph.style.clipPath = 'polygon(0% 100%, 0% 60%, 20% 50%, 40% 40%, 60% 25%, 80% 15%, 100% 10%, 100% 100%)';
+  const stackzenIncomeGraph = document.createElement('div');
+  stackzenIncomeGraph.style.position = 'absolute';
+  stackzenIncomeGraph.style.left = '10%';
+  stackzenIncomeGraph.style.right = '0';
+  stackzenIncomeGraph.style.bottom = '0';
+  stackzenIncomeGraph.style.height = '75%';
+  stackzenIncomeGraph.style.background = 'linear-gradient(to top, rgba(0, 198, 167, 0.2) 0%, rgba(0, 198, 167, 0) 100%)'; // Mint Green with transparency
+  stackzenIncomeGraph.style.borderTopLeftRadius = '4px';
+  stackzenIncomeGraph.style.borderTopRightRadius = '4px';
+  stackzenIncomeGraph.style.clipPath = 'polygon(0% 100%, 0% 60%, 20% 50%, 40% 40%, 60% 25%, 80% 15%, 100% 10%, 100% 100%)';
   
-  const stackrIncomeLine = document.createElement('div');
-  stackrIncomeLine.style.position = 'absolute';
-  stackrIncomeLine.style.left = '10%';
-  stackrIncomeLine.style.right = '0';
-  stackrIncomeLine.style.bottom = '0';
-  stackrIncomeLine.style.height = '75%';
-  stackrIncomeLine.style.borderTop = '2px solid #00C6A7'; // Mint Green
-  stackrIncomeLine.style.borderTopLeftRadius = '4px';
-  stackrIncomeLine.style.borderTopRightRadius = '4px';
-  stackrIncomeLine.style.clipPath = 'polygon(0% 60%, 20% 50%, 40% 40%, 60% 25%, 80% 15%, 100% 10%)';
+  const stackzenIncomeLine = document.createElement('div');
+  stackzenIncomeLine.style.position = 'absolute';
+  stackzenIncomeLine.style.left = '10%';
+  stackzenIncomeLine.style.right = '0';
+  stackzenIncomeLine.style.bottom = '0';
+  stackzenIncomeLine.style.height = '75%';
+  stackzenIncomeLine.style.borderTop = '2px solid #00C6A7'; // Mint Green
+  stackzenIncomeLine.style.borderTopLeftRadius = '4px';
+  stackzenIncomeLine.style.borderTopRightRadius = '4px';
+  stackzenIncomeLine.style.clipPath = 'polygon(0% 60%, 20% 50%, 40% 40%, 60% 25%, 80% 15%, 100% 10%)';
   
   chartCanvas.appendChild(baseIncomeGraph);
   chartCanvas.appendChild(baseIncomeLine);
-  chartCanvas.appendChild(stackrIncomeGraph);
-  chartCanvas.appendChild(stackrIncomeLine);
+  chartCanvas.appendChild(stackzenIncomeGraph);
+  chartCanvas.appendChild(stackzenIncomeLine);
   
   // Chart legend
   const legend = document.createElement('div');
@@ -1557,7 +1557,7 @@ function createIncomeOpportunitiesSection() {
   legend2Color.style.borderRadius = '2px';
   
   const legend2Text = document.createElement('span');
-  legend2Text.textContent = 'With Stackr';
+  legend2Text.textContent = 'With Stackzen';
   legend2Text.style.fontSize = '0.85rem';
   legend2Text.style.color = '#555';
   
@@ -1696,7 +1696,7 @@ function createPricingSection() {
     {
       name: 'Lifetime',
       price: '99',
-      description: 'One-time payment for lifetime access to Stackr Pro.',
+      description: 'One-time payment for lifetime access to Stackzen Pro.',
       isPopular: false,
       features: [
         '✅ Everything in Pro',
@@ -1880,7 +1880,7 @@ function createPricingSection() {
   guaranteeIcon.style.marginBottom = '1rem';
   
   const guaranteeText = document.createElement('p');
-  guaranteeText.innerHTML = '<strong>30-Day Money-Back Guarantee</strong><br>Try Stackr Pro risk-free. If you\'re not satisfied within 30 days, we\'ll refund your payment.';
+  guaranteeText.innerHTML = '<strong>30-Day Money-Back Guarantee</strong><br>Try Stackzen Pro risk-free. If you\'re not satisfied within 30 days, we\'ll refund your payment.';
   guaranteeText.style.fontSize = '1rem';
   guaranteeText.style.color = '#666';
   guaranteeText.style.maxWidth = '500px';
@@ -1916,7 +1916,7 @@ function createFAQSection() {
   heading.style.color = '#333';
   
   const subheading = document.createElement('p');
-  subheading.textContent = 'Got questions about Stackr? We\'ve got answers.';
+  subheading.textContent = 'Got questions about Stackzen? We\'ve got answers.';
   subheading.style.fontSize = '1.1rem';
   subheading.style.lineHeight = '1.6';
   subheading.style.color = '#555';
@@ -1939,8 +1939,8 @@ function createFAQSection() {
       answer: 'The 40/30/30 method is a financial strategy that allocates 40% of your income to needs (essentials like rent and food), 30% to investments (stocks, bonds, real estate, business), and 30% to savings (emergency fund, future purchases, goals). It\'s a balanced approach to managing your money while building wealth.'
     },
     {
-      question: 'How does Stackr help me make more money?',
-      answer: 'Stackr provides tools like Stackr Gigs (curated job opportunities), Affiliate Program Hub (earn commissions through referrals), and daily money challenges. These tools are designed specifically for service providers to help you discover and capitalize on new income streams.'
+      question: 'How does Stackzen help me make more money?',
+      answer: 'Stackzen provides tools like Stackzen Gigs (curated job opportunities), Affiliate Program Hub (earn commissions through referrals), and daily money challenges. These tools are designed specifically for service providers to help you discover and capitalize on new income streams.'
     },
     {
       question: 'Do I need a bank account to use Stackr?',
