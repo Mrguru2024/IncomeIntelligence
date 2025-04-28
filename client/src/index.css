@@ -23,6 +23,8 @@
   }
 }
 
+@import './styles/colors.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -182,34 +184,42 @@ html {
 
 /* Light mode colors - default */
 :root {
-  --background: #f9fafb;
-  --foreground: #111827;
+  --background: var(--soft-zen-gray);
+  --foreground: var(--deep-sapphire-blue);
   --card-background: #ffffff;
-  --card-foreground: #111827;
+  --card-foreground: var(--deep-sapphire-blue);
+  --primary: var(--deep-sapphire-blue);
   --primary-foreground: #ffffff;
+  --secondary: var(--mint-green);
+  --secondary-foreground: var(--deep-sapphire-blue);
   --muted-background: #f3f4f6;
   --muted-foreground: #6b7280;
+  --accent: var(--sunstone-gold);
   --accent-background: #f3f4f6;
-  --accent-foreground: #111827;
+  --accent-foreground: var(--deep-sapphire-blue);
   --border: #e5e7eb;
   --input-background: #ffffff;
-  --ring: rgba(59, 130, 246, 0.5);
+  --ring: rgba(35, 61, 77, 0.5); /* Deep Sapphire Blue with opacity */
 }
 
 /* Dark mode colors */
 .dark {
-  --background: #0f172a;
+  --background: var(--matte-charcoal);
   --foreground: #f1f5f9;
-  --card-background: #1e293b;
+  --card-background: #292930;
   --card-foreground: #f1f5f9;
-  --primary-foreground: #ffffff;
+  --primary: var(--mint-green);
+  --primary-foreground: var(--matte-charcoal);
+  --secondary: var(--deep-sapphire-blue);
+  --secondary-foreground: #ffffff;
   --muted-background: #334155;
   --muted-foreground: #cbd5e1;
+  --accent: var(--sunstone-gold);
   --accent-background: #1e293b;
-  --accent-foreground: #f1f5f9;
+  --accent-foreground: var(--matte-charcoal);
   --border: #334155;
   --input-background: #1e293b;
-  --ring: rgba(59, 130, 246, 0.3);
+  --ring: rgba(0, 198, 167, 0.3); /* Mint Green with opacity */
 }
 
 body {
@@ -315,15 +325,52 @@ body {
 
 /* Fix expense and income cards in dark mode */
 .dark .border-green-300 {
-  border-color: rgba(16, 185, 129, 0.4) !important;
+  border-color: var(--mint-green) !important;
 }
 
 .dark .bg-green-500 {
-  background-color: rgba(16, 185, 129, 0.8) !important;
+  background-color: var(--mint-green) !important;
 }
 
 .dark .bg-red-500 {
   background-color: rgba(239, 68, 68, 0.8) !important;
+}
+
+/* Stackr brand-specific accent colors */
+.bg-primary {
+  background-color: var(--deep-sapphire-blue) !important; 
+}
+
+.text-primary {
+  color: var(--deep-sapphire-blue) !important;
+}
+
+.bg-secondary {
+  background-color: var(--mint-green) !important;
+}
+
+.text-secondary {
+  color: var(--mint-green) !important;
+}
+
+.bg-accent {
+  background-color: var(--sunstone-gold) !important;
+}
+
+.text-accent {
+  color: var(--sunstone-gold) !important;
+}
+
+.border-primary {
+  border-color: var(--deep-sapphire-blue) !important;
+}
+
+.border-secondary {
+  border-color: var(--mint-green) !important;
+}
+
+.border-accent {
+  border-color: var(--sunstone-gold) !important;
 }
 
 /* Fix form inputs in dark mode */
@@ -342,23 +389,23 @@ body {
 
 /* Fix button colors in dark mode */
 .dark .bg-blue-600 {
-  background-color: rgb(37, 99, 235) !important;
+  background-color: var(--deep-sapphire-blue) !important;
 }
 
 .dark .bg-emerald-600 {
-  background-color: rgb(5, 150, 105) !important;
+  background-color: var(--mint-green) !important;
 }
 
 .dark .bg-purple-600 {
-  background-color: rgb(124, 58, 237) !important;
+  background-color: var(--electric-sky-blue) !important;
 }
 
 /* Fix calendar in dark mode */
 .dark .rdp-day_selected,
 .dark .rdp-day_selected:focus-visible,
 .dark .rdp-day_selected:hover {
-  background-color: rgb(37, 99, 235) !important;
-  color: white !important;
+  background-color: var(--mint-green) !important;
+  color: var(--matte-charcoal) !important;
 }
 
 .dark .rdp-button:hover:not([disabled]):not(.rdp-day_selected) {

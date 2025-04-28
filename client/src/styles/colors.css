@@ -1,0 +1,128 @@
+:root {
+  /* Main brand colors */
+  --deep-sapphire-blue: #233D4D;
+  --mint-green: #00C6A7;
+  --soft-zen-gray: #C6CED8;
+  --sunstone-gold: #F4A300;
+  --electric-sky-blue: #58C1E2;
+  --matte-charcoal: #1B1B1E;
+  
+  /* Light theme colors */
+  --background-light: var(--soft-zen-gray);
+  --foreground-light: var(--deep-sapphire-blue);
+  --primary-light: var(--deep-sapphire-blue);
+  --primary-foreground-light: white;
+  --secondary-light: var(--mint-green);
+  --secondary-foreground-light: var(--deep-sapphire-blue);
+  --accent-light: var(--sunstone-gold);
+  --accent-foreground-light: var(--deep-sapphire-blue);
+  --tech-accent-light: var(--electric-sky-blue);
+
+  /* Dark theme colors */
+  --background-dark: var(--matte-charcoal);
+  --foreground-dark: white;
+  --primary-dark: var(--mint-green);
+  --primary-foreground-dark: var(--matte-charcoal);
+  --secondary-dark: var(--deep-sapphire-blue);
+  --secondary-foreground-dark: white;
+  --accent-dark: var(--sunstone-gold);
+  --accent-foreground-dark: var(--matte-charcoal);
+  --tech-accent-dark: var(--electric-sky-blue);
+}
+
+/* Light theme (default) */
+:root {
+  --background: var(--background-light);
+  --foreground: var(--foreground-light);
+  --primary: var(--primary-light);
+  --primary-foreground: var(--primary-foreground-light);
+  --secondary: var(--secondary-light);
+  --secondary-foreground: var(--secondary-foreground-light);
+  --accent: var(--accent-light);
+  --accent-foreground: var(--accent-foreground-light);
+  --tech-accent: var(--tech-accent-light);
+}
+
+/* Dark theme */
+.dark {
+  --background: var(--background-dark);
+  --foreground: var(--foreground-dark);
+  --primary: var(--primary-dark);
+  --primary-foreground: var(--primary-foreground-dark);
+  --secondary: var(--secondary-dark);
+  --secondary-foreground: var(--secondary-foreground-dark);
+  --accent: var(--accent-dark);
+  --accent-foreground: var(--accent-foreground-dark);
+  --tech-accent: var(--tech-accent-dark);
+}
+
+/* Custom classes using our color palette */
+.bg-sapphire {
+  background-color: var(--deep-sapphire-blue);
+}
+
+.text-sapphire {
+  color: var(--deep-sapphire-blue);
+}
+
+.bg-mint {
+  background-color: var(--mint-green);
+}
+
+.text-mint {
+  color: var(--mint-green);
+}
+
+.bg-zen {
+  background-color: var(--soft-zen-gray);
+}
+
+.text-zen {
+  color: var(--soft-zen-gray);
+}
+
+.bg-gold {
+  background-color: var(--sunstone-gold);
+}
+
+.text-gold {
+  color: var(--sunstone-gold);
+}
+
+.bg-sky {
+  background-color: var(--electric-sky-blue);
+}
+
+.text-sky {
+  color: var(--electric-sky-blue);
+}
+
+.bg-charcoal {
+  background-color: var(--matte-charcoal);
+}
+
+.text-charcoal {
+  color: var(--matte-charcoal);
+}
+
+/* Gradient classes */
+.gradient-sapphire-mint {
+  background: linear-gradient(135deg, var(--deep-sapphire-blue), var(--mint-green));
+}
+
+.gradient-mint-sky {
+  background: linear-gradient(135deg, var(--mint-green), var(--electric-sky-blue));
+}
+
+.gradient-gold-mint {
+  background: linear-gradient(135deg, var(--sunstone-gold), var(--mint-green));
+}
+
+/* Text gradient class */
+.text-gradient-sapphire-mint {
+  background: linear-gradient(135deg, var(--deep-sapphire-blue), var(--mint-green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
