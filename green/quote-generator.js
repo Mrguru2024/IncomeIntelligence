@@ -2163,12 +2163,75 @@ function showQuoteOptionsModal(quote, tierName) {
   previewOption.addEventListener('click', () => {
     // Handle client preview
     document.body.removeChild(modalOverlay);
-    // Call the client preview function we've added
-    if (typeof window.showClientPreviewModal === 'function') {
-      window.showClientPreviewModal(quote, tierName);
-    } else {
-      console.error('Client preview function not found');
-      showToast('Client preview feature is not available', 'error');
+    
+    // Define a fallback preview function in case the module didn't load
+    function fallbackPreviewModal(quote, tierName) {
+      console.log('Using fallback preview modal');
+      // Create simple modal to show quote details
+      const modalOverlay = document.createElement('div');
+      modalOverlay.style.position = 'fixed';
+      modalOverlay.style.top = '0';
+      modalOverlay.style.left = '0';
+      modalOverlay.style.width = '100%';
+      modalOverlay.style.height = '100%';
+      modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+      modalOverlay.style.display = 'flex';
+      modalOverlay.style.alignItems = 'center';
+      modalOverlay.style.justifyContent = 'center';
+      modalOverlay.style.zIndex = '9999';
+      
+      const content = document.createElement('div');
+      content.style.backgroundColor = 'white';
+      content.style.borderRadius = '8px';
+      content.style.padding = '20px';
+      content.style.maxWidth = '90%';
+      content.style.maxHeight = '90vh';
+      content.style.overflow = 'auto';
+      
+      const title = document.createElement('h3');
+      title.textContent = `Client Preview - ${tierName} Quote`;
+      title.style.marginBottom = '15px';
+      
+      const closeBtn = document.createElement('button');
+      closeBtn.textContent = 'Close';
+      closeBtn.style.marginTop = '20px';
+      closeBtn.style.padding = '8px 16px';
+      closeBtn.style.backgroundColor = '#4F46E5';
+      closeBtn.style.color = 'white';
+      closeBtn.style.border = 'none';
+      closeBtn.style.borderRadius = '4px';
+      closeBtn.style.cursor = 'pointer';
+      closeBtn.onclick = () => document.body.removeChild(modalOverlay);
+      
+      const details = document.createElement('div');
+      details.innerHTML = `
+        <p><strong>Service:</strong> ${quote.jobTypeDisplay}</p>
+        <p><strong>Location:</strong> ${quote.location}</p>
+        <p><strong>Labor:</strong> ${quote.laborHours} hour(s)</p>
+        <p><strong>Materials:</strong> $${quote.materialsCost.toFixed(2)}</p>
+        <p><strong>Total:</strong> $${quote.total.toFixed(2)}</p>
+      `;
+      
+      content.appendChild(title);
+      content.appendChild(details);
+      content.appendChild(closeBtn);
+      modalOverlay.appendChild(content);
+      document.body.appendChild(modalOverlay);
+    }
+    
+    // Try to use the loaded function first, fall back to our simple implementation if not available
+    try {
+      if (typeof showClientPreviewModal === 'function') {
+        showClientPreviewModal(quote, tierName);
+      } else if (typeof window.showClientPreviewModal === 'function') {
+        window.showClientPreviewModal(quote, tierName);
+      } else {
+        console.warn('External client preview function not found, using fallback');
+        fallbackPreviewModal(quote, tierName);
+      }
+    } catch (error) {
+      console.error('Error showing client preview:', error);
+      fallbackPreviewModal(quote, tierName);
     }
   });
   

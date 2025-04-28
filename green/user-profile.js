@@ -24,8 +24,14 @@ const DEFAULT_PROFILE = {
   lastUpdated: new Date().toISOString()
 };
 
-// Create a UserProfile module object
+// Create a UserProfile module object and make it globally available immediately
 const UserProfile = {};
+
+// Make UserProfile globally available for AI personalization and other modules
+window.UserProfile = UserProfile;
+
+// Global event for when profile is updated - other modules can listen to this
+const USER_PROFILE_UPDATED_EVENT = 'user-profile-updated';
 
 /**
  * Initialize user profile
@@ -148,6 +154,25 @@ UserProfile.updateUserProfile = async function(profileData) {
     const success = await UserProfile.saveUserProfile(updatedProfile);
     
     if (success) {
+      // Update the cached profile
+      cachedProfile = updatedProfile;
+      
+      // Dispatch an event to notify the app that profile was updated
+      // This allows AI personalization to update across the app
+      const profileUpdatedEvent = new CustomEvent(USER_PROFILE_UPDATED_EVENT, {
+        detail: updatedProfile,
+        bubbles: true
+      });
+      document.dispatchEvent(profileUpdatedEvent);
+      
+      // Also dispatch a generic event for legacy code
+      const legacyEvent = new CustomEvent('userProfileUpdated', {
+        detail: updatedProfile,
+        bubbles: true
+      });
+      document.dispatchEvent(legacyEvent);
+      
+      console.log('User profile updated, dispatched update events');
       return updatedProfile;
     } else {
       return null;
