@@ -47,9 +47,9 @@ let closeQueues: (() => Promise<void>) | null = null;
 // Load the queue module asynchronously
 (async () => {
   try {
-    // Use dynamic import for the queue.js module
-    const queueModule = await import('./utils/queue.js');
-    closeQueues = queueModule.closeQueues;
+    // Use dynamic import for the queue.cjs module
+    const queueModule = await import('./utils/queue.cjs');
+    closeQueues = queueModule.default.closeQueues;
     console.log('Queue module loaded successfully in index.ts');
   } catch (error) {
     console.error('Error loading queue module in index.ts:', error);
@@ -372,12 +372,28 @@ httpServer.listen(PORT, () => {
 // Error handling and graceful shutdown
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
-  closeQueues().then(() => process.exit(1));
+  if (closeQueues) {
+    closeQueues().then(() => process.exit(1)).catch(error => {
+      console.error('Error closing queues during shutdown:', error);
+      process.exit(1);
+    });
+  } else {
+    console.log('No queue connections to close');
+    process.exit(1);
+  }
 });
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
-  closeQueues().then(() => process.exit(1));
+  if (closeQueues) {
+    closeQueues().then(() => process.exit(1)).catch(error => {
+      console.error('Error closing queues during shutdown:', error);
+      process.exit(1);
+    });
+  } else {
+    console.log('No queue connections to close');
+    process.exit(1);
+  }
 });
 
 // Handle graceful shutdown
@@ -385,20 +401,48 @@ process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
   httpServer.close(() => {
     console.log('HTTP server closed');
-    closeQueues().then(() => {
-      console.log('Queue connections closed');
+    if (closeQueues) {
+      closeQueues().then(() => {
+        console.log('Queue connections closed');
+        process.exit(0);
+      }).catch(error => {
+        console.error('Error closing queues during shutdown:', error);
+        process.exit(1);
+      });
+    } else {
+      console.log('No queue connections to close');
       process.exit(0);
-    });
+    }
   });
+  
+  // Force exit after timeout if something hangs
+  setTimeout(() => {
+    console.log('Force exiting after timeout');
+    process.exit(1);
+  }, 10000);
 });
 
 process.on('SIGINT', () => {
   console.log('SIGINT received, shutting down gracefully');
   httpServer.close(() => {
     console.log('HTTP server closed');
-    closeQueues().then(() => {
-      console.log('Queue connections closed');
+    if (closeQueues) {
+      closeQueues().then(() => {
+        console.log('Queue connections closed');
+        process.exit(0);
+      }).catch(error => {
+        console.error('Error closing queues during shutdown:', error);
+        process.exit(1);
+      });
+    } else {
+      console.log('No queue connections to close');
       process.exit(0);
-    });
+    }
   });
+  
+  // Force exit after timeout if something hangs
+  setTimeout(() => {
+    console.log('Force exiting after timeout');
+    process.exit(1);
+  }, 10000);
 });

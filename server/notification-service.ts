@@ -13,9 +13,9 @@ let emailQueue: any = null;
 // Load the queue module asynchronously
 (async () => {
   try {
-    // Use dynamic import for the queue.js module
-    const queueModule = await import('./utils/queue.js');
-    emailQueue = queueModule.emailQueue;
+    // Use dynamic import for the queue.cjs module
+    const queueModule = await import('./utils/queue.cjs');
+    emailQueue = queueModule.default.emailQueue;
     console.log('Queue module loaded successfully');
   } catch (error) {
     console.error('Error loading queue module:', error);
