@@ -211,3 +211,87 @@ contact@stackr.finance
     return false;
   }
 }
+
+/**
+ * Send an invoice to a client via SMS
+ * @param invoice The invoice data
+ * @param sendSms Function to send SMS
+ * @returns Promise<boolean> indicating success or failure
+ */
+export async function sendInvoiceSms(
+  invoice: Invoice,
+  sendSms: (options: { to: string; body: string }) => Promise<boolean>
+): Promise<boolean> {
+  if (!invoice.clientPhone) {
+    console.error("Cannot send invoice SMS: no client phone number provided");
+    return false;
+  }
+  
+  try {
+    // Create a payment link
+    const paymentLink = `https://stackr.finance/invoices/${invoice.id}/pay`;
+    
+    // Create SMS message
+    const message = `
+Stackr Finance Invoice #${invoice.invoiceNumber}
+
+Hello ${invoice.clientName},
+
+Your invoice for $${invoice.total} is ready. Due: ${new Date(invoice.dueDate).toLocaleDateString()}.
+
+${!invoice.paid ? `Pay online: ${paymentLink}` : ''}
+
+Thank you for your business!
+Stackr Finance
+`.trim();
+    
+    // Send the SMS
+    const smsSent = await sendSms({
+      to: invoice.clientPhone,
+      body: message
+    });
+    
+    return smsSent;
+  } catch (error) {
+    console.error("Error sending invoice SMS:", error);
+    return false;
+  }
+}
+
+/**
+ * Send an invoice via the specified delivery methods
+ * @param invoice The invoice data
+ * @param deliveryMethod The delivery method (email, sms, or both)
+ * @param sendEmail Function to send email
+ * @param sendSms Function to send SMS
+ * @returns Promise<{email: boolean, sms: boolean}> indicating success or failure for each method
+ */
+export async function sendInvoice(
+  invoice: Invoice,
+  deliveryMethod: "email" | "sms" | "both",
+  sendEmail: (params: { to: string; from: string; subject: string; html: string; text?: string; attachments?: any[] }) => Promise<boolean>,
+  sendSms: (options: { to: string; body: string }) => Promise<boolean>
+): Promise<{email: boolean, sms: boolean}> {
+  const result = {
+    email: false,
+    sms: false
+  };
+  
+  if (deliveryMethod === "email" || deliveryMethod === "both") {
+    if (invoice.clientEmail) {
+      result.email = await sendInvoiceEmail(invoice, sendEmail);
+    } else {
+      console.warn("Email delivery requested but no client email provided");
+    }
+  }
+  
+  if (deliveryMethod === "sms" || deliveryMethod === "both") {
+    if (invoice.clientPhone) {
+      result.sms = await sendInvoiceSms(invoice, sendSms);
+    } else {
+      console.warn("SMS delivery requested but no client phone number provided");
+    }
+  }
+  
+  return result;
+}

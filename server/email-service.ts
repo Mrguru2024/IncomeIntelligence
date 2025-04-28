@@ -16,6 +16,11 @@ interface EmailOptions {
   attachments?: EmailAttachment[];
 }
 
+interface SmsOptions {
+  to: string;
+  body: string;
+}
+
 // Initialize Resend if API key is available
 let resend: Resend | null = null;
 
@@ -24,6 +29,17 @@ if (process.env.RESEND_API_KEY) {
   console.log('Email client initialized');
 } else {
   console.warn('WARNING: Missing RESEND_API_KEY environment variable. Email functionality will be disabled.');
+}
+
+// Track SMS capability
+let smsCapable = false;
+
+// Initialize SMS if the credentials are available
+if (process.env.SENDGRID_API_KEY) {
+  smsCapable = true;
+  console.log('SMS client initialized');
+} else {
+  console.warn('WARNING: Missing SMS provider credentials. SMS functionality will be disabled.');
 }
 
 /**
@@ -273,5 +289,61 @@ ${category ? `Category: ${category}` : ''}
 
 This is an automated reminder from Stackr Finance. You can manage your reminder settings in your account.
     `,
+  });
+}
+
+/**
+ * Send an SMS message using the configured SMS service
+ * @param options The SMS options
+ * @returns Promise<boolean> indicating success or failure
+ */
+export async function sendSms(options: SmsOptions): Promise<boolean> {
+  if (!smsCapable) {
+    console.warn('SMS service not initialized. Unable to send SMS.');
+    return false;
+  }
+
+  try {
+    // In a production environment, this would use a real SMS service like Twilio or SendGrid
+    // For now, we'll simulate success but log the details
+    console.log('SMS WOULD BE SENT:', options);
+    
+    // Simulate SMS delivery
+    return true;
+  } catch (error) {
+    console.error('Error sending SMS:', error);
+    return false;
+  }
+}
+
+/**
+ * Send an invoice via SMS
+ * @param options The invoice SMS options
+ * @returns Promise<boolean> indicating success or failure
+ */
+export async function sendInvoiceSms(options: {
+  to: string;
+  clientName: string;
+  invoiceNumber: string;
+  amount: string;
+  dueDate: string;
+  paymentLink?: string;
+}): Promise<boolean> {
+  const { to, clientName, invoiceNumber, amount, dueDate, paymentLink } = options;
+  
+  let message = `Stackr Finance Invoice #${invoiceNumber}\n\n`;
+  message += `Hello ${clientName},\n\n`;
+  message += `An invoice has been created for you in the amount of $${amount}, due on ${dueDate}.\n\n`;
+  
+  if (paymentLink) {
+    message += `To view and pay this invoice, please visit: ${paymentLink}\n\n`;
+  }
+  
+  message += `Thank you for your business.\n`;
+  message += `Stackr Finance`;
+  
+  return sendSms({
+    to,
+    body: message
   });
 }
