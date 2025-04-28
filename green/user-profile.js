@@ -333,6 +333,73 @@ UserProfile.personalizeQuote = function(quoteData) {
 }
 
 /**
+ * Show the profile editor and handle updates
+ * This is used by other modules like the quote generator
+ * @param {Function} callback - Called when profile is updated
+ */
+UserProfile.showProfileEditor = function(callback) {
+  try {
+    // Check if we're in a modern web environment
+    if (typeof document === 'undefined') {
+      console.error('Cannot show profile editor: document is not available');
+      return;
+    }
+    
+    // Check if the profile page is available
+    const profilePageContainer = document.getElementById('profile-page-container');
+    if (profilePageContainer) {
+      // If the profile page is already in the DOM, just scroll to it
+      profilePageContainer.scrollIntoView({ behavior: 'smooth' });
+      console.log('Profile page is already in the DOM, scrolling to it');
+      
+      // Add a listener for profile updates
+      if (typeof callback === 'function') {
+        const onProfileUpdate = function(event) {
+          console.log('Profile updated, calling callback');
+          callback(event.detail);
+          // Remove listener after it's called
+          document.removeEventListener('userProfileUpdated', onProfileUpdate);
+        };
+        
+        document.addEventListener('userProfileUpdated', onProfileUpdate);
+      }
+      
+      return;
+    }
+    
+    // Otherwise, redirect to the profile page if possible
+    if (typeof window !== 'undefined' && window.location) {
+      if (window.navigateTo && typeof window.navigateTo === 'function') {
+        window.navigateTo('profile');
+        console.log('Navigating to profile page');
+        
+        // Add a listener for profile updates
+        if (typeof callback === 'function') {
+          const onProfileUpdate = function(event) {
+            console.log('Profile updated, calling callback');
+            callback(event.detail);
+            // Remove listener after it's called
+            document.removeEventListener('userProfileUpdated', onProfileUpdate);
+          };
+          
+          document.addEventListener('userProfileUpdated', onProfileUpdate);
+        }
+      } else {
+        console.warn('Cannot navigate to profile page: navigateTo function not found');
+        // As a fallback, create a message to inform the user
+        if (typeof window.showToast === 'function') {
+          window.showToast('Please visit your profile page to edit your profile settings.', 'info');
+        } else {
+          alert('Please visit your profile page to edit your profile settings.');
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error showing profile editor:', error);
+  }
+}
+
+/**
  * Initialize the profile module 
  * Loads current user profile and sets up listeners
  */
@@ -347,5 +414,17 @@ UserProfile.personalizeQuote = function(quoteData) {
 })();
 
 // Expose the UserProfile object globally and also as an ES module export
-window.UserProfile = UserProfile;
+// Ensure we're in a browser environment before trying to use window
+if (typeof window !== 'undefined') {
+  // Assign to window before doing anything else to ensure early availability
+  window.UserProfile = UserProfile;
+  
+  // Make sure the window.modules object exists
+  if (!window.modules) window.modules = {};
+  
+  // Register the UserProfile in the modules registry for easier access
+  window.modules['user-profile'] = UserProfile;
+}
+
+// Also export as ES module
 export default UserProfile;
