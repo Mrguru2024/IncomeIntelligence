@@ -3,645 +3,466 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quote Generator | Stackr</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/green/public/css/styles.css">
+  <title>Stackr Enhanced Quote Generator</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
   <style>
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      padding: 0;
-      margin: 0;
-      color: #333;
-      background-color: #f9fafb;
+    /* Additional custom styles */
+    .tier-card {
+      transition: transform 0.3s, box-shadow 0.3s;
     }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
+    .tier-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
-    
-    .quote-generator-container {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-    
-    .header {
-      background-color: #4F46E5;
-      color: white;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    
-    .header h1 {
-      margin: 0;
-      font-size: 1.75rem;
-    }
-    
-    .header p {
-      margin-top: 8px;
-      opacity: 0.8;
-    }
-    
-    .main-content {
-      display: flex;
-      gap: 20px;
-    }
-    
-    @media (max-width: 768px) {
-      .main-content {
-        flex-direction: column;
-      }
-    }
-    
-    .quote-form-container {
-      flex: 1;
-      background-color: white;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-    
-    .results-container {
-      flex: 1;
-      display: none;
-    }
-    
-    .card {
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-      margin-bottom: 20px;
+    .form-section {
+      max-height: 0;
       overflow: hidden;
+      transition: max-height 0.5s ease-in-out;
     }
-    
-    .card-header {
-      padding: 15px 20px;
-      border-bottom: 1px solid #e5e7eb;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .form-section.active {
+      max-height: 2000px;
     }
-    
-    .card-body {
-      padding: 20px;
-    }
-    
-    .form-group {
-      margin-bottom: 15px;
-    }
-    
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: 500;
-      font-size: 0.875rem;
-    }
-    
-    .form-control {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 0.875rem;
-    }
-    
-    .form-control:focus {
-      outline: none;
-      border-color: #4F46E5;
-      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
-    }
-    
-    .btn {
-      display: inline-block;
-      padding: 10px 16px;
-      background-color: #4F46E5;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: 500;
-      cursor: pointer;
-      font-size: 0.875rem;
-      transition: background-color 0.2s;
-    }
-    
-    .btn:hover {
-      background-color: #4338ca;
-    }
-    
-    .btn-outline {
-      background-color: transparent;
-      border: 1px solid #4F46E5;
-      color: #4F46E5;
-    }
-    
-    .btn-outline:hover {
-      background-color: rgba(79, 70, 229, 0.1);
-    }
-    
-    .quote-card {
-      margin-bottom: 20px;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    
-    .quote-card-header {
-      padding: 15px;
-      border-bottom: 1px solid #e5e7eb;
-      background-color: #f9fafb;
-    }
-    
-    .quote-card-body {
-      padding: 15px;
-    }
-    
-    .quote-card-footer {
-      padding: 15px;
-      border-top: 1px solid #e5e7eb;
-      background-color: #f9fafb;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .quote-actions {
-      display: flex;
-      gap: 10px;
-    }
-    
-    .price-tag {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #4F46E5;
-    }
-    
-    .feature-list {
-      list-style-type: none;
-      padding: 0;
-      margin: 0;
-    }
-    
-    .feature-list li {
-      padding: 8px 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border-bottom: 1px solid #f3f4f6;
-    }
-    
-    .feature-list li:last-child {
-      border-bottom: none;
-    }
-    
-    .feature-list i {
-      color: #10b981;
-    }
-    
-    .tier-basic .quote-card-header {
-      background-color: #f3f4f6;
-    }
-    
-    .tier-standard .quote-card-header {
-      background-color: #eef2ff;
-    }
-    
-    .tier-premium .quote-card-header {
-      background-color: #ede9fe;
-    }
-    
-    .small-text {
-      font-size: 0.75rem;
-      color: #6b7280;
-    }
-    
-    .tag {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: white;
-      background-color: #4F46E5;
-    }
-    
-    .tag-success {
-      background-color: #10b981;
-    }
-    
-    .tag-warning {
-      background-color: #f59e0b;
-    }
-    
-    .breakdown-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      margin-bottom: 10px;
-    }
-    
-    .breakdown-table th,
-    .breakdown-table td {
-      padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    
-    .breakdown-table th {
-      font-weight: 500;
-      font-size: 0.75rem;
-      color: #6b7280;
-    }
-    
-    .features-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    
-    .features-table td {
-      padding: 8px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    
-    .features-table td:last-child {
-      text-align: right;
-    }
-    
-    .detailed-breakdown-toggle {
-      cursor: pointer;
-      font-size: 0.875rem;
-      color: #4F46E5;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
-    
-    .detailed-breakdown {
-      display: none;
-      margin-top: 15px;
-      padding: 15px;
-      background-color: #f9fafb;
-      border-radius: 6px;
-    }
-    
-    .spinner {
-      border: 3px solid rgba(0, 0, 0, 0.1);
-      width: 20px;
-      height: 20px;
+    .step-indicator {
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
-      border-top-color: #4F46E5;
-      animation: spin 1s linear infinite;
-      display: inline-block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
     }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 640px) {
-      .quote-card-footer {
-        flex-direction: column;
-        gap: 10px;
-        align-items: start;
-      }
-      
-      .quote-actions {
-        width: 100%;
-        justify-content: space-between;
-      }
-    }
-    
+    /* Mobile-specific adjustments for Samsung ZFold4 */
     @media (max-width: 768px) {
-      .container {
-        padding: 10px;
+      .quote-container {
+        flex-direction: column;
+      }
+      .quote-form, .quote-preview {
+        width: 100%;
       }
     }
   </style>
 </head>
-<body>
-  <div id="sidebar-container"></div>
-  
-  <div class="container">
-    <div id="quote-generator-container" class="quote-generator-container">
-      <div class="header">
-        <h1>Professional Quote Generator</h1>
-        <p>Create detailed, accurate quotes for your services</p>
-      </div>
-      
-      <div class="main-content">
-        <div class="quote-form-container">
-          <h2>Quote Details</h2>
-          <form class="quote-form">
-            <div class="form-group">
-              <label for="job-type">Service Type</label>
-              <select id="job-type" class="form-control" required>
-                <option value="">Select a service type</option>
-                <optgroup label="Home Services">
-                  <option value="locksmith">Locksmith</option>
-                  <option value="plumber">Plumber</option>
-                  <option value="electrician">Electrician</option>
-                  <option value="carpenter">Carpenter</option>
-                  <option value="hvac">HVAC Technician</option>
-                  <option value="painter">Painter</option>
-                  <option value="general_contractor">General Contractor</option>
-                  <option value="landscaper">Landscaper</option>
+<body class="bg-gray-100 min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Stackr Enhanced Quote Generator</h1>
+      <p class="text-gray-600">Create professional quotes with intelligent pricing and competitive analysis</p>
+    </header>
+
+    <div class="quote-container flex flex-wrap gap-6">
+      <!-- Quote Form -->
+      <div class="quote-form w-full lg:w-1/2 bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="mb-6 border-b pb-4">
+          <div class="flex items-center mb-4">
+            <div class="step-indicator bg-blue-500 text-white">1</div>
+            <h2 class="text-xl font-semibold" id="step1-toggle">Service Information</h2>
+          </div>
+          <div class="form-section active" id="step1-section">
+            <div class="mb-4">
+              <label for="jobType" class="block text-gray-700 mb-2">Job Type</label>
+              <select id="jobType" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Select a job type...</option>
+                <optgroup label="Construction">
+                  <option value="Bathroom Remodel">Bathroom Remodel</option>
+                  <option value="Kitchen Remodel">Kitchen Remodel</option>
+                  <option value="Home Renovation">Home Renovation</option>
                 </optgroup>
-                <optgroup label="Automotive Services">
-                  <option value="automotive_repair">Automotive Repair</option>
+                <optgroup label="Automotive">
+                  <option value="Oil Change">Oil Change</option>
+                  <option value="Brake Replacement">Brake Replacement</option>
+                  <option value="Tire Rotation">Tire Rotation</option>
+                </optgroup>
+                <optgroup label="Beauty">
+                  <option value="Haircut">Haircut</option>
+                  <option value="Hair Coloring">Hair Coloring</option>
+                  <option value="Manicure">Manicure</option>
                 </optgroup>
                 <optgroup label="Electronics Repair">
-                  <option value="electronic_repair">Electronic Repair</option>
-                  <option value="cellphone_repair">Cellphone Repair</option>
-                  <option value="computer_repair">Computer Repair</option>
-                  <option value="tv_repair">TV Repair</option>
-                  <option value="appliance_repair">Appliance Repair</option>
+                  <option value="Phone Screen Repair">Phone Screen Repair</option>
+                  <option value="Computer Repair">Computer Repair</option>
+                  <option value="TV Repair">TV Repair</option>
                 </optgroup>
-                <optgroup label="Beauty Services">
-                  <option value="hair_stylist">Hair Stylist</option>
-                  <option value="barber">Barber</option>
-                  <option value="makeup_artist">Makeup Artist</option>
-                  <option value="nail_technician">Nail Technician</option>
-                  <option value="esthetician">Esthetician</option>
-                </optgroup>
-                <optgroup label="Professional Services">
-                  <option value="photographer">Photographer</option>
-                  <option value="videographer">Videographer</option>
-                  <option value="web_developer">Web Developer</option>
-                  <option value="graphic_designer">Graphic Designer</option>
-                  <option value="consultant">Consultant</option>
+                <optgroup label="Graphic Design">
+                  <option value="Logo Design">Logo Design</option>
+                  <option value="Business Card Design">Business Card Design</option>
+                  <option value="Website Design">Website Design</option>
                 </optgroup>
               </select>
             </div>
-            
-            <div class="form-group" id="job-subtype-container" style="display: none;">
-              <label for="job-subtype">Specific Service</label>
-              <select id="job-subtype" class="form-control">
-                <option value="">Select specific service</option>
-              </select>
+            <div class="mb-4">
+              <label for="description" class="block text-gray-700 mb-2">Description</label>
+              <textarea id="description" rows="3" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Describe the service..."></textarea>
             </div>
-            
-            <div class="form-group">
-              <label for="auto-address-input">Location</label>
-              <input type="text" id="auto-address-input" class="form-control" placeholder="Enter service location" required>
+            <div class="mb-4">
+              <label for="location" class="block text-gray-700 mb-2">Location</label>
+              <input type="text" id="location" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="City, State">
             </div>
-            
-            <div class="form-group">
-              <label for="experience-level">Experience Level</label>
-              <select id="experience-level" class="form-control" required>
-                <option value="">Select experience level</option>
-                <option value="junior">Junior (0-2 years)</option>
-                <option value="intermediate" selected>Intermediate (3-5 years)</option>
-                <option value="senior">Senior (6-10 years)</option>
-                <option value="expert">Expert (10+ years)</option>
-              </select>
+            <div class="flex justify-end">
+              <button id="next-to-step2" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Next Step</button>
             </div>
-            
-            <div class="form-group">
-              <label for="labor-hours">Estimated Labor Hours</label>
-              <input type="number" id="labor-hours" class="form-control" placeholder="Estimated time required" min="0.5" step="0.5" value="2" required>
-            </div>
-            
-            <div class="form-group" id="quantity-container">
-              <label for="quantity">Quantity</label>
-              <input type="number" id="quantity" class="form-control" placeholder="Number of items/services" min="1" value="1" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="materials-cost">Materials Cost ($)</label>
-              <input type="number" id="materials-cost" class="form-control" placeholder="Cost of materials" min="0" step="0.01" value="50" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="target-margin">Target Margin (%)</label>
-              <input type="number" id="target-margin" class="form-control" placeholder="Target profit margin" min="0" max="100" value="30" required>
-            </div>
-            
-            <div class="form-check form-group">
-              <input type="checkbox" id="emergency" class="form-check-input">
-              <label for="emergency" class="form-check-label">Emergency Service (after hours/weekend)</label>
-            </div>
-            
-            <button type="submit" class="btn">Generate Quote</button>
-          </form>
+          </div>
         </div>
-        
-        <div class="results-container">
-          <!-- Quote results will be displayed here -->
-          <h2>Quote Results</h2>
-          <p>Your quotes will appear here after generation</p>
+
+        <div class="mb-6 border-b pb-4">
+          <div class="flex items-center mb-4">
+            <div class="step-indicator bg-gray-300 text-gray-700">2</div>
+            <h2 class="text-xl font-semibold" id="step2-toggle">Pricing Details</h2>
+          </div>
+          <div class="form-section" id="step2-section">
+            <div class="mb-4">
+              <label for="laborHours" class="block text-gray-700 mb-2">Labor Hours</label>
+              <input type="number" id="laborHours" min="0" step="0.5" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-4">
+              <label for="laborRate" class="block text-gray-700 mb-2">Labor Rate ($/hr)</label>
+              <input type="number" id="laborRate" min="0" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-4">
+              <label for="materialCost" class="block text-gray-700 mb-2">Material Cost ($)</label>
+              <input type="number" id="materialCost" min="0" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-4">
+              <label for="complexity" class="block text-gray-700 mb-2">Job Complexity</label>
+              <select id="complexity" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="low">Low - Simple, routine work</option>
+                <option value="medium" selected>Medium - Standard complexity</option>
+                <option value="high">High - Complex, specialized work</option>
+              </select>
+            </div>
+            <div class="flex justify-between">
+              <button id="back-to-step1" class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition">Previous</button>
+              <button id="next-to-step3" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Next Step</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <div class="flex items-center mb-4">
+            <div class="step-indicator bg-gray-300 text-gray-700">3</div>
+            <h2 class="text-xl font-semibold" id="step3-toggle">Business Factors</h2>
+          </div>
+          <div class="form-section" id="step3-section">
+            <div class="mb-4">
+              <label for="experienceYears" class="block text-gray-700 mb-2">Years of Experience</label>
+              <input type="number" id="experienceYears" min="0" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-4">
+              <label for="competitionLevel" class="block text-gray-700 mb-2">Local Competition Level</label>
+              <select id="competitionLevel" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="low">Low - Few competitors</option>
+                <option value="medium" selected>Medium - Average competition</option>
+                <option value="high">High - Many competitors</option>
+              </select>
+            </div>
+            <div class="mb-4">
+              <label class="flex items-center text-gray-700">
+                <input type="checkbox" id="isUrgent" class="mr-2 h-5 w-5">
+                Urgent Job (Rush service needed)
+              </label>
+            </div>
+            <div class="mb-4">
+              <label for="customerName" class="block text-gray-700 mb-2">Customer Name</label>
+              <input type="text" id="customerName" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex justify-between">
+              <button id="back-to-step2" class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition">Previous</button>
+              <button id="generate-quote" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Generate Quote</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quote Preview -->
+      <div class="quote-preview w-full lg:w-5/12 lg:ml-auto">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6 hidden" id="quote-result">
+          <h2 class="text-2xl font-bold mb-4 text-blue-800">Quote Summary</h2>
+          <div class="mb-4 pb-4 border-b">
+            <h3 class="text-lg font-semibold mb-2">Service Details</h3>
+            <p class="mb-1"><span class="font-medium">Service:</span> <span id="preview-jobType">-</span></p>
+            <p class="mb-1"><span class="font-medium">Description:</span> <span id="preview-description">-</span></p>
+            <p class="mb-1"><span class="font-medium">Location:</span> <span id="preview-location">-</span></p>
+            <p><span class="font-medium">Customer:</span> <span id="preview-customer">-</span></p>
+          </div>
+          <div class="mb-4 pb-4 border-b">
+            <h3 class="text-lg font-semibold mb-2">Pricing Analysis</h3>
+            <div class="flex justify-between mb-2">
+              <span class="font-medium">Total Price:</span>
+              <span id="preview-total" class="text-xl font-bold">$0.00</span>
+            </div>
+            <div class="flex justify-between mb-1">
+              <span>Labor:</span>
+              <span id="preview-labor">$0.00</span>
+            </div>
+            <div class="flex justify-between mb-1">
+              <span>Materials:</span>
+              <span id="preview-materials">$0.00</span>
+            </div>
+            <div class="flex justify-between mb-1">
+              <span>Profit Margin:</span>
+              <span id="preview-margin">0%</span>
+            </div>
+            <div class="flex justify-between mb-1">
+              <span>Regional Average:</span>
+              <span id="preview-regional">0%</span>
+            </div>
+            <div class="flex justify-between mb-1">
+              <span>Competitive Position:</span>
+              <span id="preview-competitive">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Deposit Required:</span>
+              <span id="preview-deposit">No</span>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-4">Pricing Options</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Basic Tier -->
+              <div class="tier-card bg-gray-50 rounded p-4 border border-gray-200">
+                <h4 class="font-bold text-gray-700 mb-2">Basic</h4>
+                <p class="text-xl font-bold mb-2" id="tier-basic-price">$0.00</p>
+                <p class="text-sm text-gray-600 mb-2">Profit: <span id="tier-basic-profit">$0.00</span></p>
+                <p class="text-sm text-gray-600 mb-3">Margin: <span id="tier-basic-margin">0%</span></p>
+                <ul class="text-sm text-gray-700 space-y-1" id="tier-basic-features">
+                  <li>• Standard service</li>
+                  <li>• Basic materials</li>
+                  <li>• 30-day warranty</li>
+                </ul>
+              </div>
+              
+              <!-- Standard Tier -->
+              <div class="tier-card bg-white rounded p-4 border-2 border-blue-500 shadow">
+                <div class="bg-blue-500 text-white text-xs font-bold py-1 px-2 rounded absolute -mt-7 ml-1">RECOMMENDED</div>
+                <h4 class="font-bold text-blue-700 mb-2">Standard</h4>
+                <p class="text-xl font-bold mb-2" id="tier-standard-price">$0.00</p>
+                <p class="text-sm text-gray-600 mb-2">Profit: <span id="tier-standard-profit">$0.00</span></p>
+                <p class="text-sm text-gray-600 mb-3">Margin: <span id="tier-standard-margin">0%</span></p>
+                <ul class="text-sm text-gray-700 space-y-1" id="tier-standard-features">
+                  <li>• Enhanced service</li>
+                  <li>• Quality materials</li>
+                  <li>• 90-day warranty</li>
+                  <li>• Priority scheduling</li>
+                </ul>
+              </div>
+              
+              <!-- Premium Tier -->
+              <div class="tier-card bg-gray-50 rounded p-4 border border-gray-200">
+                <h4 class="font-bold text-gray-700 mb-2">Premium</h4>
+                <p class="text-xl font-bold mb-2" id="tier-premium-price">$0.00</p>
+                <p class="text-sm text-gray-600 mb-2">Profit: <span id="tier-premium-profit">$0.00</span></p>
+                <p class="text-sm text-gray-600 mb-3">Margin: <span id="tier-premium-margin">0%</span></p>
+                <ul class="text-sm text-gray-700 space-y-1" id="tier-premium-features">
+                  <li>• Premium service</li>
+                  <li>• Superior materials</li>
+                  <li>• 1-year warranty</li>
+                  <li>• Priority scheduling</li>
+                  <li>• Free follow-up</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div id="recommendations-section" class="mb-6 hidden">
+            <h3 class="text-lg font-semibold mb-2">Recommendations</h3>
+            <ul class="space-y-2 text-sm text-gray-700" id="recommendations-list">
+              <!-- Recommendations will be populated here -->
+            </ul>
+          </div>
+          <div class="flex justify-end">
+            <button id="save-quote" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition mr-2">Save Quote</button>
+            <button id="send-quote" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">Send to Client</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-  
-  <!-- Create global callback for Google Maps loading -->
-  <script>
-    // Global flag to track Google Maps loading
-    window.googleMapsLoaded = false;
+
+  <script type="module">
+    import { generateEnhancedQuote } from './enhanced-quote-generator.js';
+    import { addQuoteToHistory, saveUserProfile } from './user-profile.js';
     
-    // Callback function that will be called when Maps loads
-    window.initGoogleMaps = function() {
-      console.log('Google Maps API has been successfully loaded!');
-      window.googleMapsLoaded = true;
-      
-      // If the quote generator has already been rendered, initialize Maps
-      if (window.initializeAddressAutocomplete) {
-        window.initializeAddressAutocomplete();
-      }
-    };
+    // For demo purposes, use a test user ID
+    const TEST_USER_ID = 'test-user-123';
     
-    // Function to fetch Google Maps API key from our server
-    async function loadGoogleMapsWithKey() {
-      try {
-        console.log('Fetching Google Maps API key from server...');
-        const response = await fetch('/api/google-maps-key');
-        const data = await response.json();
-        
-        if (data && data.key) {
-          console.log('Successfully retrieved API key, loading Google Maps...');
-          
-          // Create the script element
-          const script = document.createElement('script');
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places&callback=initGoogleMaps`;
-          script.async = true;
-          script.defer = true;
-          
-          // Add error handler
-          script.onerror = function() {
-            console.error('Failed to load Google Maps API. Loading fallback...');
-            loadFallbackMaps();
-          };
-          
-          // Append to document
-          document.head.appendChild(script);
-        } else {
-          console.error('Invalid API key response, using fallback');
-          loadFallbackMaps();
-        }
-      } catch (error) {
-        console.error('Error fetching Google Maps API key:', error);
-        loadFallbackMaps();
-      }
-    }
+    // Form navigation
+    document.getElementById('step1-toggle').addEventListener('click', () => toggleSection('step1-section'));
+    document.getElementById('step2-toggle').addEventListener('click', () => toggleSection('step2-section'));
+    document.getElementById('step3-toggle').addEventListener('click', () => toggleSection('step3-section'));
     
-    // Function to load fallback Maps implementation
-    function loadFallbackMaps() {
-      console.log('Loading fallback Maps implementation...');
-      
-      fetch('/api/google-maps-fallback')
-        .then(response => response.text())
-        .then(scriptText => {
-          // Create script element and execute the code
-          const script = document.createElement('script');
-          script.textContent = scriptText;
-          document.head.appendChild(script);
-          
-          console.log('Fallback Maps loaded');
-          
-          // Set the global flag to indicate Maps is ready (but using fallback)
-          window.googleMapsLoaded = true;
-          
-          // If the autocomplete initialization function exists, call it
-          if (window.initializeAddressAutocomplete) {
-            console.log('Calling initializeAddressAutocomplete from fallback');
-            window.initializeAddressAutocomplete();
-          }
-        })
-        .catch(error => {
-          console.error('Failed to load Maps fallback:', error);
-        });
-    }
+    document.getElementById('next-to-step2').addEventListener('click', () => {
+      toggleSection('step2-section');
+      document.getElementById('step1-section').classList.remove('active');
+      document.querySelectorAll('.step-indicator')[1].classList.remove('bg-gray-300', 'text-gray-700');
+      document.querySelectorAll('.step-indicator')[1].classList.add('bg-blue-500', 'text-white');
+    });
     
-    // Export createToast to global window object
-    if (typeof window.createToast !== 'function') {
-      window.createToast = function(message, type = 'info', duration = 3000) {
-        console.log('Using global createToast function:', message, type);
-        
-        // Initialize container if needed
-        let toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) {
-          toastContainer = document.createElement('div');
-          toastContainer.id = 'toast-container';
-          toastContainer.style.position = 'fixed';
-          toastContainer.style.bottom = '20px';
-          toastContainer.style.right = '20px';
-          toastContainer.style.zIndex = '9999';
-          document.body.appendChild(toastContainer);
-        }
-        
-        // Create toast element
-        const toast = document.createElement('div');
-        
-        // Set colors based on type
-        switch (type) {
-          case 'success':
-            toast.style.backgroundColor = '#e9f7ef';
-            toast.style.border = '1px solid #4CAF50';
-            toast.style.color = '#2e7d32';
-            break;
-          case 'error':
-            toast.style.backgroundColor = '#FFEBEE';
-            toast.style.border = '1px solid #F44336';
-            toast.style.color = '#c62828';
-            break;
-          case 'warning':
-            toast.style.backgroundColor = '#FFF8E1';
-            toast.style.border = '1px solid #FFC107';
-            toast.style.color = '#ff8f00';
-            break;
-          default: // info
-            toast.style.backgroundColor = '#E3F2FD';
-            toast.style.border = '1px solid #2196F3';
-            toast.style.color = '#0277bd';
-        }
-        
-        toast.style.padding = '12px 16px';
-        toast.style.borderRadius = '6px';
-        toast.style.marginBottom = '8px';
-        toast.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-        toast.style.display = 'flex';
-        toast.style.alignItems = 'center';
-        toast.style.justifyContent = 'space-between';
-        toast.style.minWidth = '300px';
-        toast.style.maxWidth = '400px';
-        toast.style.animation = 'fadeIn 0.3s';
-        
-        // Add message
-        const messageElement = document.createElement('span');
-        messageElement.textContent = message;
-        
-        // Add close button
-        const closeButton = document.createElement('button');
-        closeButton.innerHTML = '&times;';
-        closeButton.style.background = 'transparent';
-        closeButton.style.border = 'none';
-        closeButton.style.fontSize = '18px';
-        closeButton.style.marginLeft = '8px';
-        closeButton.style.cursor = 'pointer';
-        closeButton.style.color = toast.style.color;
-        
-        closeButton.addEventListener('click', () => {
-          toastContainer.removeChild(toast);
-        });
-        
-        // Append elements
-        toast.appendChild(messageElement);
-        toast.appendChild(closeButton);
-        toastContainer.appendChild(toast);
-        
-        // Auto remove after duration
-        setTimeout(() => {
-          if (toast.parentNode === toastContainer) {
-            toastContainer.removeChild(toast);
-          }
-        }, duration);
-        
-        // Add animation styles if not already present
-        if (!document.getElementById('toast-styles')) {
-          const style = document.createElement('style');
-          style.id = 'toast-styles';
-          style.textContent = `
-            @keyframes fadeIn {
-              from { opacity: 0; transform: translateY(20px); }
-              to { opacity: 1; transform: translateY(0); }
-            }
-          `;
-          document.head.appendChild(style);
-        }
+    document.getElementById('back-to-step1').addEventListener('click', () => {
+      toggleSection('step1-section');
+      document.getElementById('step2-section').classList.remove('active');
+      document.querySelectorAll('.step-indicator')[1].classList.remove('bg-blue-500', 'text-white');
+      document.querySelectorAll('.step-indicator')[1].classList.add('bg-gray-300', 'text-gray-700');
+    });
+    
+    document.getElementById('next-to-step3').addEventListener('click', () => {
+      toggleSection('step3-section');
+      document.getElementById('step2-section').classList.remove('active');
+      document.querySelectorAll('.step-indicator')[2].classList.remove('bg-gray-300', 'text-gray-700');
+      document.querySelectorAll('.step-indicator')[2].classList.add('bg-blue-500', 'text-white');
+    });
+    
+    document.getElementById('back-to-step2').addEventListener('click', () => {
+      toggleSection('step2-section');
+      document.getElementById('step3-section').classList.remove('active');
+      document.querySelectorAll('.step-indicator')[2].classList.remove('bg-blue-500', 'text-white');
+      document.querySelectorAll('.step-indicator')[2].classList.add('bg-gray-300', 'text-gray-700');
+    });
+    
+    // Generate quote
+    document.getElementById('generate-quote').addEventListener('click', () => {
+      const quoteData = {
+        jobType: document.getElementById('jobType').value,
+        description: document.getElementById('description').value,
+        location: document.getElementById('location').value,
+        laborHours: parseFloat(document.getElementById('laborHours').value) || 0,
+        laborRate: parseFloat(document.getElementById('laborRate').value) || 0,
+        materialCost: parseFloat(document.getElementById('materialCost').value) || 0,
+        complexity: document.getElementById('complexity').value,
+        experienceYears: parseInt(document.getElementById('experienceYears').value) || 0,
+        competitionLevel: document.getElementById('competitionLevel').value,
+        isUrgent: document.getElementById('isUrgent').checked,
+        customerName: document.getElementById('customerName').value
       };
-    }
-    
-    // Start loading Google Maps
-    window.addEventListener('DOMContentLoaded', function() {
-      setTimeout(loadGoogleMapsWithKey, 500);
-    });
-  </script>
-  
-  <script src="/green/components/toast.js"></script>
-  <script src="/green/user-profile.js"></script>
-  <script src="/green/client-preview-fixed.js"></script>
-  <script src="/green/ai-personalization.js"></script>
-  <script src="/green/quote-generator.js"></script>
-  <script src="/green/sidebar.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Initialize sidebar
-      if (typeof renderSidebar === 'function') {
-        renderSidebar('sidebar-container');
+      
+      // Validate input
+      if (!quoteData.jobType) {
+        alert('Please select a job type.');
+        return;
       }
       
-      // Initialize quote generator
-      if (typeof renderQuoteGeneratorPage === 'function') {
-        renderQuoteGeneratorPage('quote-generator-container');
+      // Generate enhanced quote
+      try {
+        const enhancedQuote = generateEnhancedQuote(quoteData, TEST_USER_ID);
+        displayQuote(enhancedQuote);
+        
+        // Save to user profile
+        addQuoteToHistory(TEST_USER_ID, enhancedQuote);
+        
+        // Update user profile
+        saveUserProfile(TEST_USER_ID, {
+          preferences: {
+            experienceYears: quoteData.experienceYears
+          }
+        });
+      } catch (error) {
+        console.error('Error generating quote:', error);
+        alert('Error generating quote. Please check your inputs and try again.');
       }
     });
+    
+    // Save quote button (just a placeholder for now)
+    document.getElementById('save-quote').addEventListener('click', () => {
+      alert('Quote saved successfully!');
+    });
+    
+    // Send quote button (just a placeholder for now)
+    document.getElementById('send-quote').addEventListener('click', () => {
+      alert('Quote sent to client!');
+    });
+    
+    // Helper function to toggle form sections
+    function toggleSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      section.classList.toggle('active');
+    }
+    
+    // Function to display the generated quote
+    function displayQuote(quote) {
+      // Show the quote result section
+      const quoteResultSection = document.getElementById('quote-result');
+      quoteResultSection.classList.remove('hidden');
+      
+      // Update service details
+      document.getElementById('preview-jobType').textContent = quote.jobType;
+      document.getElementById('preview-description').textContent = quote.description;
+      document.getElementById('preview-location').textContent = quote.location;
+      document.getElementById('preview-customer').textContent = quote.customerName;
+      
+      // Update pricing analysis
+      document.getElementById('preview-total').textContent = formatCurrency(quote.total);
+      document.getElementById('preview-labor').textContent = formatCurrency(quote.laborCost);
+      document.getElementById('preview-materials').textContent = formatCurrency(quote.materialCost);
+      document.getElementById('preview-margin').textContent = formatPercent(quote.profitMargin);
+      document.getElementById('preview-regional').textContent = formatPercent(quote.regionalAverage);
+      
+      // Update competitive position
+      const positionText = quote.competitivePosition.position === 'above-market' 
+        ? `Above Market (${quote.competitivePosition.percentDiff.toFixed(1)}% higher)`
+        : quote.competitivePosition.position === 'below-market'
+        ? `Below Market (${quote.competitivePosition.percentDiff.toFixed(1)}% lower)`
+        : `At Market (${quote.competitivePosition.percentDiff.toFixed(1)}% difference)`;
+      document.getElementById('preview-competitive').textContent = positionText;
+      
+      // Update deposit info
+      document.getElementById('preview-deposit').textContent = quote.depositRequired 
+        ? `Yes (${quote.depositPercent}%)`
+        : 'No';
+      
+      // Update tier pricing options
+      // Basic tier
+      document.getElementById('tier-basic-price').textContent = formatCurrency(quote.tierOptions.basic.price);
+      document.getElementById('tier-basic-profit').textContent = formatCurrency(quote.tierOptions.basic.profit);
+      document.getElementById('tier-basic-margin').textContent = formatPercent(quote.tierOptions.basic.profitMargin);
+      
+      // Standard tier
+      document.getElementById('tier-standard-price').textContent = formatCurrency(quote.tierOptions.standard.price);
+      document.getElementById('tier-standard-profit').textContent = formatCurrency(quote.tierOptions.standard.profit);
+      document.getElementById('tier-standard-margin').textContent = formatPercent(quote.tierOptions.standard.profitMargin);
+      
+      // Premium tier
+      document.getElementById('tier-premium-price').textContent = formatCurrency(quote.tierOptions.premium.price);
+      document.getElementById('tier-premium-profit').textContent = formatCurrency(quote.tierOptions.premium.profit);
+      document.getElementById('tier-premium-margin').textContent = formatPercent(quote.tierOptions.premium.profitMargin);
+      
+      // Update tier features
+      if (quote.tierOptions.basic.features) {
+        document.getElementById('tier-basic-features').innerHTML = quote.tierOptions.basic.features
+          .map(feature => `<li>• ${feature}</li>`).join('');
+      }
+      
+      if (quote.tierOptions.standard.features) {
+        document.getElementById('tier-standard-features').innerHTML = quote.tierOptions.standard.features
+          .map(feature => `<li>• ${feature}</li>`).join('');
+      }
+      
+      if (quote.tierOptions.premium.features) {
+        document.getElementById('tier-premium-features').innerHTML = quote.tierOptions.premium.features
+          .map(feature => `<li>• ${feature}</li>`).join('');
+      }
+      
+      // Update recommendations if available
+      if (quote.recommendations && quote.recommendations.length > 0) {
+        const recommendationsSection = document.getElementById('recommendations-section');
+        recommendationsSection.classList.remove('hidden');
+        
+        const recommendationsList = document.getElementById('recommendations-list');
+        recommendationsList.innerHTML = quote.recommendations
+          .map(rec => `<li class="p-2 bg-yellow-50 border-l-4 border-yellow-500">
+                          <span class="font-semibold">${rec.title}:</span> ${rec.description}
+                        </li>`)
+          .join('');
+      } else {
+        document.getElementById('recommendations-section').classList.add('hidden');
+      }
+    }
+    
+    // Helper function to format currency
+    function formatCurrency(value) {
+      return '$' + parseFloat(value).toFixed(2);
+    }
+    
+    // Helper function to format percentage
+    function formatPercent(value) {
+      return (parseFloat(value) * 100).toFixed(1) + '%';
+    }
   </script>
 </body>
 </html>

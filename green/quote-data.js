@@ -164,4 +164,4 @@ const sampleQuoteData = {
   }
 };
 
-module.exports = sampleQuoteData;
+export default sampleQuoteData;

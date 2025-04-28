@@ -8,8 +8,8 @@
  * - Adaptive parameter adjustments based on user behavior
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // File path for storing user profiles
 const USER_PROFILES_FILE = path.join(process.cwd(), 'user-profiles.json');
@@ -685,7 +685,7 @@ function getDefaultIndustryParameters(serviceIndustry) {
 userProfilesCache = loadUserProfiles();
 
 // Export functions
-module.exports = {
+export {
   getUserProfile,
   initializeUserProfile,
   saveUserProfile,

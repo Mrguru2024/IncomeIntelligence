@@ -67,11 +67,12 @@ function getIndustrySeasonality(industry, season) {
  * Get dynamic parameters based on user profile and industry
  * This allows for personalized quotes that reflect the user's business
  */
+import { getUserProfile } from './user-profile.js';
+
 function getDynamicParameters(userId, serviceIndustry) {
   try {
     // Try to get parameters from user profile if userId is provided
     if (userId) {
-      const { getUserProfile } = require('./user-profile.js');
       const userProfile = getUserProfile(userId);
       
       if (userProfile && userProfile.industryParameters) {
@@ -1049,7 +1050,7 @@ function generateRecommendations(marginData, parameters, data) {
 }
 
 // Export functions for use in the application
-module.exports = {
+export {
   generateEnhancedQuote,
   calculateEnhancedProfitMargin,
   getDynamicParameters,

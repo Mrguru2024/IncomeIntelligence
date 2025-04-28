@@ -1,0 +1,22 @@
+{
+  "test-user-123": {
+    "userId": "test-user-123",
+    "createdAt": "2025-04-28T06:34:18.141Z",
+    "updatedAt": "2025-04-28T06:34:18.142Z",
+    "preferences": {
+      "defaultIndustry": null,
+      "preferredJobTypes": [],
+      "preferredMargin": 0.3,
+      "experienceYears": 5
+    },
+    "statistics": {
+      "totalQuotes": 0,
+      "averageMargin": 0.3,
+      "acceptedQuotes": 0,
+      "rejectedQuotes": 0,
+      "averageJobValue": 0
+    },
+    "quoteHistory": [],
+    "industryParameters": {}
+  }
+}
