@@ -146,13 +146,13 @@ function checkAuthentication() {
         if (onboardingCompleted) {
           try {
             // Update localStorage to ensure consistency
-            const currentUserData = localStorage.getItem('stackrUser');
+            const currentUserData = localStorage.getItem('stackzenUser');
             if (currentUserData) {
               const user = JSON.parse(currentUserData);
               user.onboardingCompleted = true;
               user.onboardingStep = 'complete';
-              localStorage.setItem('stackrUser', JSON.stringify(user));
-              localStorage.setItem('stackrOnboardingCompleted', 'true');
+              localStorage.setItem('stackzenUser', JSON.stringify(user));
+              localStorage.setItem('stackzenOnboardingCompleted', 'true');
               console.log('Ensured onboarding completion state is synced');
             }
           } catch (e) {
@@ -4479,7 +4479,7 @@ function saveLastSummaryTime(userId, summaryType) {
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Stackr Finance initializing...');
+  console.log('Stackzen initializing...');
   
   // Load saved data
   loadStateFromStorage();
@@ -4512,7 +4512,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFinancialMascot();
   }
   
-  console.log('Stackr Finance loaded successfully!');
+  console.log('Stackzen loaded successfully!');
 });
 
 // Initialize the financial education mascot
