@@ -604,6 +604,167 @@
     }
     
     // Set up event listeners
+    // Update the selected package display
+    function updateSelectedPackage(tier) {
+      const tierData = demoQuote.tiers[tier];
+      
+      // Update name, description and price
+      document.getElementById('selected-tier-name').textContent = tier.charAt(0).toUpperCase() + tier.slice(1) + ' Package';
+      document.getElementById('selected-tier-description').textContent = getTierDescription(tier);
+      document.getElementById('selected-tier-price').textContent = `$${tierData.price.toLocaleString()}`;
+      
+      // Update features list
+      document.getElementById('selected-tier-features').innerHTML = tierData.features.map(feature => `
+        <li class="flex items-start">
+          <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <span>${feature}</span>
+        </li>
+      `).join('');
+      
+      // Update deposit information
+      updatePaymentAmount();
+    }
+    
+    // Get a description for each tier
+    function getTierDescription(tier) {
+      const descriptions = {
+        basic: 'Essential service with standard materials and workmanship',
+        standard: 'Enhanced service with quality materials and detailed workmanship',
+        premium: 'Premium service with luxury materials and expert craftsmanship'
+      };
+      return descriptions[tier];
+    }
+    
+    // Update payment amount based on selected option
+    function updatePaymentAmount() {
+      const selectedTier = getCurrentSelectedTier();
+      const price = demoQuote.tiers[selectedTier].price;
+      const isFullPayment = document.getElementById('payment-full').checked;
+      
+      // Determine deposit percentage based on price
+      let depositPercent = price > 2000 ? 25 : 50;
+      
+      // Update deposit percent display
+      document.getElementById('deposit-percent').textContent = `${depositPercent}%`;
+      
+      // Calculate deposit amount
+      const depositAmount = price * (depositPercent / 100);
+      
+      // Update deposit value display
+      document.getElementById('deposit-value').textContent = `$${depositAmount.toLocaleString()}`;
+    }
+    
+    // Get the currently selected tier
+    function getCurrentSelectedTier() {
+      const selectedButton = document.querySelector('.select-tier.bg-blue-500');
+      return selectedButton ? selectedButton.dataset.tier : 'standard';
+    }
+    
+    // Process payment with Stripe
+    async function processPayment() {
+      // Show payment modal
+      document.getElementById('payment-modal').classList.remove('hidden');
+      document.getElementById('payment-processing').classList.remove('hidden');
+      document.getElementById('payment-error').classList.add('hidden');
+      document.getElementById('payment-element-container').classList.add('hidden');
+      document.getElementById('payment-success').classList.add('hidden');
+      
+      try {
+        // Get payment details
+        const selectedTier = getCurrentSelectedTier();
+        const price = demoQuote.tiers[selectedTier].price;
+        const isFullPayment = document.getElementById('payment-full').checked;
+        const depositPercent = price > 2000 ? 25 : 50;
+        const paymentAmount = isFullPayment ? price : price * (depositPercent / 100);
+        
+        // Create payment intent
+        const response = await fetch('/api/create-payment-intent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: paymentAmount,
+            invoiceId: demoQuote.id,
+            customerName: demoQuote.customerName,
+            description: `${demoQuote.description} - ${selectedTier} tier`,
+            tier: selectedTier
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // If we're in development mode with a mock client secret
+        if (data.isDevelopment) {
+          console.log('Development mode detected, simulating payment...');
+          
+          // Hide processing, show success after a delay to simulate payment
+          setTimeout(() => {
+            document.getElementById('payment-processing').classList.add('hidden');
+            document.getElementById('payment-success').classList.remove('hidden');
+          }, 1500);
+          
+          return;
+        }
+        
+        // Initialize Stripe
+        const stripe = Stripe(data.stripePublicKey || 'pk_test_TYooMQauvdEDq54NiTphI7jx');
+        
+        // Show payment element
+        document.getElementById('payment-processing').classList.add('hidden');
+        document.getElementById('payment-element-container').classList.remove('hidden');
+        
+        // Set up Stripe Elements
+        const elements = stripe.elements({
+          clientSecret: data.clientSecret
+        });
+        
+        // Create payment element
+        const paymentElement = elements.create('payment');
+        paymentElement.mount('#payment-element');
+        
+        // Handle payment submission
+        document.getElementById('submit-payment').addEventListener('click', async function() {
+          try {
+            const { error } = await stripe.confirmPayment({
+              elements,
+              confirmParams: {
+                return_url: window.location.origin + '/payment-success.html',
+              },
+              redirect: 'if_required'
+            });
+            
+            if (error) {
+              // Show error
+              document.getElementById('error-message').textContent = error.message;
+              document.getElementById('payment-element-container').classList.add('hidden');
+              document.getElementById('payment-error').classList.remove('hidden');
+            } else {
+              // Show success
+              document.getElementById('payment-element-container').classList.add('hidden');
+              document.getElementById('payment-success').classList.remove('hidden');
+            }
+          } catch (error) {
+            console.error('Payment confirmation error:', error);
+            document.getElementById('error-message').textContent = 'An unexpected error occurred.';
+            document.getElementById('payment-element-container').classList.add('hidden');
+            document.getElementById('payment-error').classList.remove('hidden');
+          }
+        });
+      } catch (error) {
+        console.error('Payment processing error:', error);
+        document.getElementById('error-message').textContent = error.message;
+        document.getElementById('payment-processing').classList.add('hidden');
+        document.getElementById('payment-error').classList.remove('hidden');
+      }
+    }
+    
     function setupListeners() {
       // Set up tier selection
       const tierButtons = document.querySelectorAll('.select-tier');
@@ -633,6 +794,9 @@
           // Update breakdown
           updateBreakdown(tier);
           
+          // Update selected package display
+          updateSelectedPackage(tier);
+          
           // Enable accept button
           document.getElementById('accept-quote').removeAttribute('disabled');
         });
@@ -640,9 +804,65 @@
       
       // Set up accept button
       document.getElementById('accept-quote').addEventListener('click', function() {
+        // Show selected package instead of success message
+        document.getElementById('selected-package').classList.remove('hidden');
+        
+        // Hide the pricing tiers and breakdown sections
+        document.querySelector('.tier-section').classList.add('hidden');
+        document.getElementById('quote-breakdown-section').classList.add('hidden');
+        
+        // Hide the action section with the Accept button
+        this.closest('.p-6').classList.add('hidden');
+        
+        // Scroll to selected package
+        document.getElementById('selected-package').scrollIntoView({ behavior: 'smooth' });
+      });
+      
+      // Set up payment option radio buttons
+      document.getElementById('payment-deposit').addEventListener('change', updatePaymentAmount);
+      document.getElementById('payment-full').addEventListener('change', updatePaymentAmount);
+      
+      // Set up change package button
+      document.getElementById('change-package').addEventListener('click', function() {
+        // Show the pricing tiers and breakdown sections
+        document.querySelector('.tier-section').classList.remove('hidden');
+        document.getElementById('quote-breakdown-section').classList.remove('hidden');
+        
+        // Show the action section with the Accept button
+        document.querySelector('.p-6.bg-gray-50').classList.remove('hidden');
+        
+        // Hide selected package
+        document.getElementById('selected-package').classList.add('hidden');
+      });
+      
+      // Set up pay now button
+      document.getElementById('pay-now').addEventListener('click', processPayment);
+      
+      // Set up close payment modal button
+      document.getElementById('close-payment-modal').addEventListener('click', function() {
+        document.getElementById('payment-modal').classList.add('hidden');
+      });
+      
+      // Set up try again button
+      document.getElementById('try-again').addEventListener('click', processPayment);
+      
+      // Set up close success button
+      document.getElementById('close-success').addEventListener('click', function() {
+        document.getElementById('payment-modal').classList.add('hidden');
+        // Show success message for the quote
+        document.getElementById('success-message').classList.remove('hidden');
+        // Hide selected package
+        document.getElementById('selected-package').classList.add('hidden');
+        // Scroll to success message
+        document.getElementById('success-message').scrollIntoView({ behavior: 'smooth' });
+      });
+      
+      // Set up accept selected quote button
+      document.getElementById('accept-selected-quote').addEventListener('click', function() {
         // Show success message
         document.getElementById('success-message').classList.remove('hidden');
-        
+        // Hide selected package
+        document.getElementById('selected-package').classList.add('hidden');
         // Scroll to success message
         document.getElementById('success-message').scrollIntoView({ behavior: 'smooth' });
       });

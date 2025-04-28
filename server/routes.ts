@@ -392,7 +392,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // For development, return a fake client secret
         return res.json({ 
           clientSecret: `demo_${Date.now()}_secret_${Math.random().toString(36).substring(2, 15)}`,
-          isDevelopment: true
+          isDevelopment: true,
+          stripePublicKey: process.env.VITE_STRIPE_PUBLIC_KEY || ''
         });
       }
       
@@ -425,7 +426,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ 
             clientSecret: `demo_${Date.now()}_secret_${Math.random().toString(36).substring(2, 15)}`,
             isDevelopment: true,
-            stripeError: true
+            stripeError: true,
+            stripePublicKey: process.env.VITE_STRIPE_PUBLIC_KEY || ''
           });
         }
         
