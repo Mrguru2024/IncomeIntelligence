@@ -22,7 +22,7 @@ import CheckoutPage from "@/pages/checkout-page";
 import CheckoutSuccessPage from "@/pages/checkout-success";
 import IncomeHub from "@/pages/IncomeHub";
 import PricingPage from "@/pages/PricingPage";
-import StackrGigs from "@/pages/income/StackrGigs";
+import ZenGigs from "@/pages/income/ZenGigs";
 import BlogEditorPage from "@/pages/BlogEditorPage";
 import BlogPage from "@/pages/BlogPage";
 import Guardrails from "@/pages/Guardrails";
@@ -76,7 +76,7 @@ function Router() {
       <ProtectedRoute path="/checkout-success" component={CheckoutSuccessPage} />
       <ProtectedRoute path="/income-hub" component={IncomeHub} />
       <ProtectedRoute path="/pricing" component={PricingPage} />
-      <ProtectedRoute path="/income-hub/gigs" component={StackrGigs} />
+      <ProtectedRoute path="/income-hub/gigs" component={ZenGigs} />
       <ProtectedRoute path="/blog/editor" component={BlogEditorPage} />
       <ProtectedRoute path="/invoices" component={InvoicesPage} />
       <ProtectedRoute path="/exports" component={ExportsPage} />
