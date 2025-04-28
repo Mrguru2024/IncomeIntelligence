@@ -2044,8 +2044,8 @@ function createFAQSection() {
   supportButton.style.alignItems = 'center';
   supportButton.style.padding = '0.8rem 1.5rem';
   supportButton.style.backgroundColor = 'white';
-  supportButton.style.color = '#4CAF50';
-  supportButton.style.border = '1px solid #4CAF50';
+  supportButton.style.color = '#00C6A7'; // Mint Green
+  supportButton.style.border = '1px solid #00C6A7'; // Mint Green
   supportButton.style.borderRadius = '4px';
   supportButton.style.fontWeight = '600';
   supportButton.style.fontSize = '1rem';
@@ -2053,7 +2053,7 @@ function createFAQSection() {
   supportButton.style.transition = 'all 0.2s ease';
   
   supportButton.addEventListener('mouseover', () => {
-    supportButton.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+    supportButton.style.backgroundColor = 'rgba(0, 198, 167, 0.1)'; // Mint Green with transparency
   });
   
   supportButton.addEventListener('mouseout', () => {
@@ -2074,8 +2074,8 @@ function createFAQSection() {
 function createCTASection() {
   const section = document.createElement('section');
   section.style.padding = '5rem 5%';
-  section.style.backgroundColor = '#4CAF50';
-  section.style.backgroundImage = 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)';
+  section.style.backgroundColor = '#233D4D'; // Deep Sapphire Blue
+  section.style.backgroundImage = 'linear-gradient(135deg, #233D4D 0%, #1B1B1E 100%)'; // Deep Sapphire Blue to Matte Charcoal
   section.style.color = 'white';
   section.style.textAlign = 'center';
   
@@ -2099,7 +2099,7 @@ function createCTASection() {
   const ctaButton = document.createElement('button');
   ctaButton.textContent = 'Get Started Free';
   ctaButton.style.backgroundColor = 'white';
-  ctaButton.style.color = '#4CAF50';
+  ctaButton.style.color = '#00C6A7'; // Mint Green
   ctaButton.style.border = 'none';
   ctaButton.style.borderRadius = '4px';
   ctaButton.style.padding = '1rem 2.5rem';
@@ -2318,7 +2318,7 @@ function createFooter() {
     icon.style.color = 'white';
     
     socialLink.addEventListener('mouseover', () => {
-      socialLink.style.backgroundColor = '#4CAF50';
+      socialLink.style.backgroundColor = '#00C6A7'; // Mint Green
     });
     
     socialLink.addEventListener('mouseout', () => {
