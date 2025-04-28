@@ -45,6 +45,61 @@
       box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
     }
     
+    /* Price tag styling */
+    .price-tag {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* Recommended badge */
+    .recommended-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background-color: #3b82f6;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.25rem 0.75rem;
+      border-bottom-left-radius: 0.5rem;
+      transform: translateY(-50%);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    /* Progress bar styling */
+    .progress-bar {
+      height: 6px;
+      background-color: #e5e7eb;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(to right, #3b82f6, #60a5fa);
+      transition: width 0.5s ease;
+      border-radius: 9999px;
+    }
+    
+    /* Button animations */
+    .pulse-animation {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+      }
+    }
+    
     /* Button effects */
     .select-tier {
       position: relative;
@@ -265,182 +320,247 @@
         
         <div class="tier-section flex flex-wrap gap-6 mt-6">
           <!-- Basic Tier -->
-          <div class="tier-card flex-1 min-w-[250px] bg-white rounded-lg border border-gray-200 p-5 transition">
-            <div class="mb-4">
-              <h4 class="text-lg font-semibold">Basic</h4>
+          <div class="tier-card flex-1 min-w-[280px] bg-white rounded-lg border border-gray-200 p-6 transition hover:border-blue-200">
+            <div class="mb-5">
+              <div class="flex justify-between items-center mb-2">
+                <h4 class="text-lg font-semibold text-gray-800">Basic</h4>
+                <div class="bg-gray-100 text-gray-600 text-xs py-1 px-2 rounded font-medium">STARTER</div>
+              </div>
               <p class="text-sm text-gray-600 h-12">Essential service with standard materials and workmanship</p>
             </div>
-            <div class="mb-4">
-              <span class="text-3xl font-bold" id="basic-price">$7,492</span>
+            <div class="mb-5">
+              <span class="price-tag text-3xl font-bold" id="basic-price">$7,492</span>
+              <p class="text-xs text-gray-500 mt-1">One-time payment</p>
             </div>
-            <div class="mb-4">
-              <h5 class="font-medium text-sm mb-2">What's included:</h5>
-              <ul class="text-sm text-gray-600 space-y-1" id="basic-features">
+            <div class="mb-6">
+              <div class="flex items-center justify-between mb-3">
+                <h5 class="font-medium text-sm">What's included:</h5>
+                <span class="text-xs text-blue-500">4 features</span>
+              </div>
+              <ul class="text-sm text-gray-600 space-y-2" id="basic-features">
                 <li class="flex items-start">
-                  <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span>Standard fixtures</span>
+                  <span class="mt-0.5">Standard fixtures</span>
                 </li>
                 <li class="flex items-start">
-                  <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span>Basic materials</span>
+                  <span class="mt-0.5">Basic materials</span>
                 </li>
                 <li class="flex items-start">
-                  <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span>30-day warranty</span>
+                  <span class="mt-0.5">30-day warranty</span>
+                </li>
+                <li class="flex items-start">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span class="mt-0.5">Standard cleanup</span>
                 </li>
               </ul>
             </div>
-            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded transition select-tier" data-tier="basic">
-              Select Package
+            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg transition select-tier shadow-sm hover:shadow" data-tier="basic">
+              Select Basic
             </button>
           </div>
           
           <!-- Standard Tier -->
-          <div class="tier-card flex-1 min-w-[250px] bg-white rounded-lg border-2 border-blue-500 p-5 shadow-md relative transition">
-            <div class="absolute top-0 right-0 bg-blue-500 text-white text-xs py-1 px-2 rounded-bl">RECOMMENDED</div>
-            <div class="mb-4">
-              <h4 class="text-lg font-semibold text-blue-700">Standard</h4>
+          <div class="tier-card flex-1 min-w-[280px] bg-white rounded-lg border-2 border-blue-500 p-6 shadow-md relative transition">
+            <div class="recommended-badge">RECOMMENDED</div>
+            <div class="mb-5">
+              <div class="flex justify-between items-center mb-2">
+                <h4 class="text-lg font-semibold text-blue-700">Standard</h4>
+                <div class="bg-blue-100 text-blue-700 text-xs py-1 px-2 rounded font-medium">POPULAR</div>
+              </div>
               <p class="text-sm text-gray-600 h-12">Enhanced service with quality materials and detailed workmanship</p>
             </div>
-            <div class="mb-4">
-              <span class="text-3xl font-bold text-blue-700" id="standard-price">$7,867</span>
+            <div class="mb-5">
+              <span class="price-tag text-3xl font-bold text-blue-700" id="standard-price">$7,867</span>
+              <p class="text-xs text-gray-500 mt-1">One-time payment</p>
             </div>
-            <div class="mb-4">
-              <h5 class="font-medium text-sm mb-2">What's included:</h5>
-              <ul class="text-sm text-gray-600 space-y-1" id="standard-features">
+            <div class="mb-6">
+              <div class="flex items-center justify-between mb-3">
+                <h5 class="font-medium text-sm">What's included:</h5>
+                <span class="text-xs text-blue-500">5 features</span>
+              </div>
+              <ul class="text-sm text-gray-600 space-y-2" id="standard-features">
                 <li class="flex items-start">
-                  <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span>Premium fixtures</span>
+                  <span class="mt-0.5">Premium fixtures</span>
                 </li>
                 <li class="flex items-start">
-                  <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span>Quality materials</span>
+                  <span class="mt-0.5">Quality materials</span>
                 </li>
                 <li class="flex items-start">
-                  <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span>90-day warranty</span>
+                  <span class="mt-0.5">90-day warranty</span>
                 </li>
                 <li class="flex items-start">
-                  <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span>Priority scheduling</span>
+                  <span class="mt-0.5">Priority scheduling</span>
+                </li>
+                <li class="flex items-start">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span class="mt-0.5">Thorough cleanup</span>
                 </li>
               </ul>
             </div>
-            <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded transition select-tier" data-tier="standard">
-              Select Package
+            <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition select-tier shadow-sm hover:shadow pulse-animation" data-tier="standard">
+              Select Standard
             </button>
           </div>
           
           <!-- Premium Tier -->
-          <div class="tier-card flex-1 min-w-[250px] bg-white rounded-lg border border-gray-200 p-5 transition">
-            <div class="mb-4">
-              <h4 class="text-lg font-semibold">Premium</h4>
-              <p class="text-sm text-gray-600 h-12">Luxury service with superior materials and craftsmanship</p>
+          <div class="tier-card flex-1 min-w-[280px] bg-white rounded-lg border border-gray-200 p-6 transition hover:border-blue-200">
+            <div class="mb-5">
+              <div class="flex justify-between items-center mb-2">
+                <h4 class="text-lg font-semibold text-gray-800">Premium</h4>
+                <div class="bg-indigo-100 text-indigo-700 text-xs py-1 px-2 rounded font-medium">LUXURY</div>
+              </div>
+              <p class="text-sm text-gray-600 h-12">Luxury service with superior materials and expert craftsmanship</p>
             </div>
-            <div class="mb-4">
-              <span class="text-3xl font-bold" id="premium-price">$8,582</span>
+            <div class="mb-5">
+              <span class="price-tag text-3xl font-bold" id="premium-price">$8,582</span>
+              <p class="text-xs text-gray-500 mt-1">One-time payment</p>
             </div>
-            <div class="mb-4">
-              <h5 class="font-medium text-sm mb-2">What's included:</h5>
-              <ul class="text-sm text-gray-600 space-y-1" id="premium-features">
+            <div class="mb-6">
+              <div class="flex items-center justify-between mb-3">
+                <h5 class="font-medium text-sm">What's included:</h5>
+                <span class="text-xs text-blue-500">7 features</span>
+              </div>
+              <ul class="text-sm text-gray-600 space-y-2" id="premium-features">
                 <li class="flex items-start">
-                  <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span>Luxury fixtures</span>
+                  <span class="mt-0.5">Luxury fixtures</span>
                 </li>
                 <li class="flex items-start">
-                  <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span>Premium materials</span>
+                  <span class="mt-0.5">Premium materials</span>
                 </li>
                 <li class="flex items-start">
-                  <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span>1-year warranty</span>
+                  <span class="mt-0.5">1-year warranty</span>
                 </li>
                 <li class="flex items-start">
-                  <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span>Priority scheduling</span>
+                  <span class="mt-0.5">Priority scheduling</span>
                 </li>
                 <li class="flex items-start">
-                  <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  <span>Free follow-up inspection</span>
+                  <span class="mt-0.5">Free follow-up inspection</span>
+                </li>
+                <li class="flex items-start">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span class="mt-0.5">Detailed cleanup</span>
+                </li>
+                <li class="flex items-start">
+                  <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span class="mt-0.5">Designer consultation</span>
                 </li>
               </ul>
             </div>
-            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded transition select-tier" data-tier="premium">
-              Select Package
+            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg transition select-tier shadow-sm hover:shadow" data-tier="premium">
+              Select Premium
             </button>
           </div>
         </div>
       </div>
 
       <!-- Quote Breakdown Section -->
-      <div class="p-6 hidden" id="quote-breakdown-section">
+      <div class="p-6 hidden fade-in" id="quote-breakdown-section">
         <h3 class="text-lg font-semibold mb-4">Quote Breakdown</h3>
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b">
-              <th class="text-left py-2 px-2">Item</th>
-              <th class="text-right py-2 px-2">Cost</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="border-b">
-              <td class="py-2 px-2">Labor</td>
-              <td class="text-right py-2 px-2" id="breakdown-labor">$5,000.00</td>
-            </tr>
-            <tr class="border-b">
-              <td class="py-2 px-2">Materials</td>
-              <td class="text-right py-2 px-2" id="breakdown-materials">$2,500.00</td>
-            </tr>
-            <tr class="border-b bg-gray-50">
-              <td class="py-2 px-2 font-medium">Total (before tax)</td>
-              <td class="text-right py-2 px-2 font-medium" id="breakdown-subtotal">$7,500.00</td>
-            </tr>
-            <tr class="border-b">
-              <td class="py-2 px-2">Estimated tax (5%)</td>
-              <td class="text-right py-2 px-2" id="breakdown-tax">$375.00</td>
-            </tr>
-            <tr class="bg-blue-50">
-              <td class="py-3 px-2 font-bold">Total</td>
-              <td class="text-right py-3 px-2 font-bold" id="breakdown-total">$7,875.00</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="bg-white rounded-lg border shadow-sm">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b bg-gray-50">
+                <th class="text-left py-3 px-4 font-semibold text-gray-700">Item Description</th>
+                <th class="text-right py-3 px-4 font-semibold text-gray-700">Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b">
+                <td class="py-3 px-4 text-gray-800">Labor (professional services)</td>
+                <td class="text-right py-3 px-4 font-medium" id="breakdown-labor">$5,000.00</td>
+              </tr>
+              <tr class="border-b">
+                <td class="py-3 px-4 text-gray-800">Materials</td>
+                <td class="text-right py-3 px-4 font-medium" id="breakdown-materials">$2,500.00</td>
+              </tr>
+              <tr class="border-b bg-gray-50">
+                <td class="py-3 px-4 font-medium text-gray-800">Subtotal</td>
+                <td class="text-right py-3 px-4 font-medium" id="breakdown-subtotal">$7,500.00</td>
+              </tr>
+              <tr class="border-b">
+                <td class="py-3 px-4 text-gray-800">Estimated tax (5%)</td>
+                <td class="text-right py-3 px-4 font-medium" id="breakdown-tax">$375.00</td>
+              </tr>
+              <tr class="bg-blue-50">
+                <td class="py-4 px-4 font-bold text-blue-900">Total</td>
+                <td class="text-right py-4 px-4 font-bold text-blue-900" id="breakdown-total">$7,875.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         
-        <div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded" id="deposit-notice">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-              </svg>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div class="bg-yellow-50 rounded-lg border border-yellow-200 p-4" id="deposit-notice">
+            <div class="flex items-start">
+              <div class="flex-shrink-0 bg-yellow-100 rounded-full p-1">
+                <svg class="h-5 w-5 text-yellow-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800">Deposit Required</h3>
+                <div class="mt-1 text-sm text-yellow-700">
+                  <p>A deposit of <span id="deposit-amount" class="font-semibold">$1,968.75</span> (<span id="deposit-percentage">25%</span>) is required to secure your booking.</p>
+                </div>
+              </div>
             </div>
-            <div class="ml-3">
-              <h3 class="text-sm font-medium text-yellow-800">Deposit Required</h3>
-              <div class="mt-1 text-sm text-yellow-700">
-                <p>A deposit of <span id="deposit-amount">$1,968.75</span> (25%) is required to secure your booking.</p>
+          </div>
+          
+          <div class="bg-blue-50 rounded-lg border border-blue-200 p-4">
+            <div class="flex items-start">
+              <div class="flex-shrink-0 bg-blue-100 rounded-full p-1">
+                <svg class="h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-blue-800">Quote Validity</h3>
+                <div class="mt-1 text-sm text-blue-700">
+                  <p>This quote is valid until <span class="font-semibold" id="quote-validity-date">May 28, 2025</span>. Please accept before this date.</p>
+                </div>
               </div>
             </div>
           </div>
