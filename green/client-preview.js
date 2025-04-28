@@ -5,12 +5,15 @@
  * before sending them via email or as payable invoices.
  */
 
+// Immediately make the function available globally
+var showClientPreviewModal;
+
 /**
  * Shows a modal that previews how the quote will appear to clients
  * @param {Object} quote - The quote data object
  * @param {string} tierName - The name of the quote tier (Basic, Standard, Premium)
  */
-function showClientPreviewModal(quote, tierName) {
+showClientPreviewModal = function(quote, tierName) {
   // Create modal container
   const modalOverlay = document.createElement('div');
   modalOverlay.style.position = 'fixed';
@@ -447,12 +450,15 @@ function showClientPreviewModal(quote, tierName) {
 }
 
 // Helper function for formatting currency values
-function formatCurrency(value) {
+const formatCurrency = function(value) {
   return `$${(value || 0).toFixed(2)}`;
-}
+};
 
 // Export the function for both global and ES module usage
 window.showClientPreviewModal = showClientPreviewModal;
+
+// Log confirmation of function availability
+console.log('Client preview function loaded successfully');
 
 // Also make it available in the modules registry
 if (!window.modules) window.modules = {};
