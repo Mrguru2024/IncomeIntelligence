@@ -2011,7 +2011,7 @@ function showQuoteOptionsModal(quote, tierName) {
   invoiceHeader.appendChild(invoiceTitle);
   
   const invoiceDesc = document.createElement('p');
-  invoiceDesc.textContent = 'Send a professional invoice that clients can pay online with a credit card or bank transfer.';
+  invoiceDesc.textContent = 'Send a professional invoice that clients can pay online with a credit card or Stripe payment gateway.';
   invoiceDesc.style.margin = '0';
   invoiceDesc.style.fontSize = '14px';
   invoiceDesc.style.color = 'var(--color-text-secondary, #6b7280)';
@@ -3605,9 +3605,10 @@ function showPaymentTerminalModal(quote, tierName) {
   tabsContainer.style.display = 'flex';
   
   const tabs = [
-    { id: 'card', name: 'Credit Card', icon: '💳' },
+    { id: 'card', name: 'Credit/Debit Card', icon: '💳' },
     { id: 'cash', name: 'Cash', icon: '💵' },
-    { id: 'transfer', name: 'Bank Transfer', icon: '🏦' }
+    { id: 'stripe', name: 'Stripe', icon: '🔒' },
+    { id: 'wallet', name: 'Stackr Wallet', icon: '👛' }
   ];
   
   const tabPanels = {};
@@ -3843,61 +3844,247 @@ function showPaymentTerminalModal(quote, tierName) {
   cashPanel.appendChild(amountReceivedGroup);
   cashPanel.appendChild(changeGroup);
   
-  // Bank Transfer Panel
-  const transferPanel = tabPanels['transfer'];
+  // Stripe Panel
+  const stripePanel = tabPanels['stripe'];
   
-  const transferInstructions = document.createElement('div');
-  transferInstructions.style.backgroundColor = 'rgba(243, 244, 246, 0.7)';
-  transferInstructions.style.borderRadius = '6px';
-  transferInstructions.style.padding = '16px';
-  transferInstructions.style.textAlign = 'center';
+  const stripeInstructions = document.createElement('div');
+  stripeInstructions.style.backgroundColor = 'rgba(243, 244, 246, 0.7)';
+  stripeInstructions.style.borderRadius = '6px';
+  stripeInstructions.style.padding = '16px';
+  stripeInstructions.style.textAlign = 'center';
+  stripeInstructions.style.marginBottom = '20px';
   
-  const transferIcon = document.createElement('span');
-  transferIcon.textContent = '🏦';
-  transferIcon.style.fontSize = '32px';
-  transferIcon.style.display = 'block';
-  transferIcon.style.marginBottom = '12px';
+  const stripeIcon = document.createElement('span');
+  stripeIcon.textContent = '🔒';
+  stripeIcon.style.fontSize = '32px';
+  stripeIcon.style.display = 'block';
+  stripeIcon.style.marginBottom = '12px';
   
-  const transferTitle = document.createElement('h4');
-  transferTitle.textContent = 'Bank Account Details';
-  transferTitle.style.margin = '0 0 12px 0';
-  transferTitle.style.fontSize = '16px';
-  transferTitle.style.fontWeight = 'bold';
+  const stripeTitle = document.createElement('h4');
+  stripeTitle.textContent = 'Secure Online Payment';
+  stripeTitle.style.margin = '0 0 12px 0';
+  stripeTitle.style.fontSize = '16px';
+  stripeTitle.style.fontWeight = 'bold';
   
-  // Bank details
-  const bankDetails = document.createElement('div');
-  bankDetails.style.fontSize = '14px';
-  bankDetails.style.lineHeight = '1.6';
-  bankDetails.style.marginBottom = '16px';
+  const stripeText = document.createElement('p');
+  stripeText.innerHTML = 'Pay securely online using Stripe.<br>We accept all major credit and debit cards.';
+  stripeText.style.margin = '0 0 16px 0';
+  stripeText.style.fontSize = '14px';
   
-  const accountName = document.createElement('p');
-  accountName.innerHTML = '<strong>Account Name:</strong> Your Business Name';
-  accountName.style.margin = '0';
+  // Stripe payment info with card icons
+  const paymentIcons = document.createElement('div');
+  paymentIcons.style.display = 'flex';
+  paymentIcons.style.justifyContent = 'center';
+  paymentIcons.style.gap = '8px';
+  paymentIcons.style.marginBottom = '16px';
   
-  const accountNumber = document.createElement('p');
-  accountNumber.innerHTML = '<strong>Account Number:</strong> 123456789';
-  accountNumber.style.margin = '4px 0';
+  ['💳', '💳', '💳', '💳'].forEach(icon => {
+    const iconSpan = document.createElement('span');
+    iconSpan.textContent = icon;
+    iconSpan.style.fontSize = '20px';
+    paymentIcons.appendChild(iconSpan);
+  });
   
-  const routingNumber = document.createElement('p');
-  routingNumber.innerHTML = '<strong>Routing Number:</strong> 987654321';
-  routingNumber.style.margin = '0';
+  const stripeNote = document.createElement('p');
+  stripeNote.textContent = `Your payment will be processed securely by Stripe for quote #${quote.id || 'Q-' + Date.now().toString().slice(-6)}.`;
+  stripeNote.style.margin = '0';
+  stripeNote.style.fontSize = '14px';
+  stripeNote.style.color = 'var(--color-text-secondary, #6b7280)';
   
-  bankDetails.appendChild(accountName);
-  bankDetails.appendChild(accountNumber);
-  bankDetails.appendChild(routingNumber);
+  // Stripe checkout button
+  const stripeButton = document.createElement('button');
+  stripeButton.textContent = `Pay $${quote.total.toFixed(2)} via Stripe`;
+  stripeButton.style.backgroundColor = '#635BFF'; // Stripe purple
+  stripeButton.style.color = 'white';
+  stripeButton.style.border = 'none';
+  stripeButton.style.borderRadius = '6px';
+  stripeButton.style.padding = '12px 24px';
+  stripeButton.style.fontSize = '16px';
+  stripeButton.style.fontWeight = 'bold';
+  stripeButton.style.cursor = 'pointer';
+  stripeButton.style.width = '100%';
+  stripeButton.style.marginTop = '20px';
   
-  const transferNote = document.createElement('p');
-  transferNote.textContent = `Please reference quote number ${quote.id || 'Q-' + Date.now().toString().slice(-6)} in your transfer.`;
-  transferNote.style.margin = '0';
-  transferNote.style.fontSize = '14px';
-  transferNote.style.color = 'var(--color-text-secondary, #6b7280)';
+  stripeButton.addEventListener('click', () => {
+    // Here we would normally redirect to Stripe
+    window.showToast('Redirecting to secure Stripe payment page...', 'info');
+    
+    // Simulate Stripe checkout process
+    setTimeout(() => {
+      const payment = {
+        id: 'stripe_' + Date.now(),
+        amount: quote.total,
+        quoteId: quote.id || 'Q-' + Date.now().toString().slice(-6),
+        method: 'stripe',
+        status: 'completed',
+        timestamp: new Date().toISOString()
+      };
+      
+      // Save the payment
+      const savedPayments = JSON.parse(localStorage.getItem('stackr_payments') || '[]');
+      savedPayments.push(payment);
+      localStorage.setItem('stackr_payments', JSON.stringify(savedPayments));
+      
+      // Show success message
+      window.showToast('Payment processed successfully!', 'success');
+      
+      // Close modal
+      document.body.removeChild(modalOverlay);
+    }, 1500);
+  });
   
-  transferInstructions.appendChild(transferIcon);
-  transferInstructions.appendChild(transferTitle);
-  transferInstructions.appendChild(bankDetails);
-  transferInstructions.appendChild(transferNote);
+  stripeInstructions.appendChild(stripeIcon);
+  stripeInstructions.appendChild(stripeTitle);
+  stripeInstructions.appendChild(stripeText);
+  stripeInstructions.appendChild(paymentIcons);
+  stripeInstructions.appendChild(stripeNote);
   
-  transferPanel.appendChild(transferInstructions);
+  stripePanel.appendChild(stripeInstructions);
+  stripePanel.appendChild(stripeButton);
+  
+  // Stackr Wallet Panel
+  const walletPanel = tabPanels['wallet'];
+  
+  const walletInstructions = document.createElement('div');
+  walletInstructions.style.backgroundColor = 'rgba(243, 244, 246, 0.7)';
+  walletInstructions.style.borderRadius = '6px';
+  walletInstructions.style.padding = '16px';
+  walletInstructions.style.textAlign = 'center';
+  walletInstructions.style.marginBottom = '20px';
+  
+  const walletIcon = document.createElement('span');
+  walletIcon.textContent = '👛';
+  walletIcon.style.fontSize = '32px';
+  walletIcon.style.display = 'block';
+  walletIcon.style.marginBottom = '12px';
+  
+  const walletTitle = document.createElement('h4');
+  walletTitle.textContent = 'Stackr Wallet';
+  walletTitle.style.margin = '0 0 12px 0';
+  walletTitle.style.fontSize = '16px';
+  walletTitle.style.fontWeight = 'bold';
+  
+  // Get user profile to check wallet balance
+  let walletBalance = 0;
+  try {
+    const userProfileModule = window.modules && window.modules['user-profile'];
+    if (userProfileModule && userProfileModule.getCurrentProfile) {
+      const userProfile = userProfileModule.getCurrentProfile();
+      walletBalance = userProfile?.wallet?.balance || 0;
+    }
+  } catch (error) {
+    console.error('Error getting wallet balance:', error);
+  }
+  
+  const balanceDisplay = document.createElement('div');
+  balanceDisplay.style.backgroundColor = 'white';
+  balanceDisplay.style.padding = '12px';
+  balanceDisplay.style.borderRadius = '6px';
+  balanceDisplay.style.marginBottom = '16px';
+  balanceDisplay.style.border = '1px solid #e5e7eb';
+  
+  const balanceLabel = document.createElement('p');
+  balanceLabel.textContent = 'Current Balance';
+  balanceLabel.style.margin = '0 0 4px 0';
+  balanceLabel.style.fontSize = '14px';
+  balanceLabel.style.color = 'var(--color-text-secondary, #6b7280)';
+  
+  const balanceAmount = document.createElement('p');
+  balanceAmount.textContent = `$${walletBalance.toFixed(2)}`;
+  balanceAmount.style.margin = '0';
+  balanceAmount.style.fontSize = '24px';
+  balanceAmount.style.fontWeight = 'bold';
+  balanceAmount.style.color = 'var(--color-primary, #4F46E5)';
+  
+  balanceDisplay.appendChild(balanceLabel);
+  balanceDisplay.appendChild(balanceAmount);
+  
+  const walletText = document.createElement('p');
+  walletText.textContent = `Pay for this quote using your Stackr Wallet balance.`;
+  walletText.style.margin = '0 0 16px 0';
+  walletText.style.fontSize = '14px';
+  
+  const walletStatus = document.createElement('p');
+  
+  if (walletBalance >= quote.total) {
+    walletStatus.textContent = 'You have sufficient funds to complete this payment.';
+    walletStatus.style.color = 'green';
+  } else {
+    walletStatus.textContent = `Insufficient funds. You need $${(quote.total - walletBalance).toFixed(2)} more to complete this payment.`;
+    walletStatus.style.color = 'red';
+  }
+  
+  walletStatus.style.margin = '0 0 20px 0';
+  walletStatus.style.fontSize = '14px';
+  
+  // Wallet pay button
+  const walletButton = document.createElement('button');
+  walletButton.textContent = `Pay with Stackr Wallet`;
+  walletButton.style.backgroundColor = 'var(--color-primary, #4F46E5)';
+  walletButton.style.color = 'white';
+  walletButton.style.border = 'none';
+  walletButton.style.borderRadius = '6px';
+  walletButton.style.padding = '12px 24px';
+  walletButton.style.fontSize = '16px';
+  walletButton.style.fontWeight = 'bold';
+  walletButton.style.cursor = 'pointer';
+  walletButton.style.width = '100%';
+  
+  if (walletBalance < quote.total) {
+    walletButton.disabled = true;
+    walletButton.style.backgroundColor = '#ccc';
+    walletButton.style.cursor = 'not-allowed';
+  }
+  
+  walletButton.addEventListener('click', () => {
+    if (walletBalance >= quote.total) {
+      window.showToast('Processing wallet payment...', 'info');
+      
+      // Simulate wallet payment
+      setTimeout(() => {
+        // Here we would deduct from wallet balance in a real app
+        try {
+          const userProfileModule = window.modules && window.modules['user-profile'];
+          if (userProfileModule && userProfileModule.updateWalletBalance) {
+            userProfileModule.updateWalletBalance(-quote.total);
+          }
+        } catch (error) {
+          console.error('Error updating wallet balance:', error);
+        }
+        
+        const payment = {
+          id: 'wallet_' + Date.now(),
+          amount: quote.total,
+          quoteId: quote.id || 'Q-' + Date.now().toString().slice(-6),
+          method: 'wallet',
+          status: 'completed',
+          timestamp: new Date().toISOString()
+        };
+        
+        // Save the payment
+        const savedPayments = JSON.parse(localStorage.getItem('stackr_payments') || '[]');
+        savedPayments.push(payment);
+        localStorage.setItem('stackr_payments', JSON.stringify(savedPayments));
+        
+        // Show success message
+        window.showToast('Payment processed successfully from your Stackr Wallet!', 'success');
+        
+        // Close modal
+        document.body.removeChild(modalOverlay);
+      }, 1000);
+    } else {
+      window.showToast('Insufficient funds in your Stackr Wallet.', 'error');
+    }
+  });
+  
+  walletInstructions.appendChild(walletIcon);
+  walletInstructions.appendChild(walletTitle);
+  walletInstructions.appendChild(balanceDisplay);
+  walletInstructions.appendChild(walletText);
+  walletInstructions.appendChild(walletStatus);
+  
+  walletPanel.appendChild(walletInstructions);
+  walletPanel.appendChild(walletButton);
   
   // Process payment button
   const processButton = document.createElement('button');
@@ -3926,8 +4113,11 @@ function showPaymentTerminalModal(quote, tierName) {
       case 'cash':
         message = 'Cash payment recorded successfully';
         break;
-      case 'transfer':
-        message = 'Bank transfer details sent to client';
+      case 'stripe':
+        message = 'Stripe payment processed successfully';
+        break;
+      case 'wallet':
+        message = 'Stackr Wallet payment processed successfully';
         break;
       default:
         message = 'Payment processed successfully';
