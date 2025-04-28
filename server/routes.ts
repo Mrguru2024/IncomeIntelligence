@@ -5294,6 +5294,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/invoices/:id/send", requireAuth, async (req, res) => {
     try {
       const id = req.params.id;
+      const { deliveryMethod = 'email' } = req.body;
+      
+      // Validate delivery method
+      if (!['email', 'sms', 'both'].includes(deliveryMethod)) {
+        return res.status(400).json({ message: "Invalid delivery method. Must be 'email', 'sms', or 'both'" });
+      }
       
       // Fetch the invoice
       const invoice = await storage.getInvoiceById(id);
@@ -5306,25 +5312,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized to send this invoice" });
       }
       
-      // Check if client email is provided
-      if (!invoice.clientEmail) {
+      // Check if proper contact information is available based on delivery method
+      if ((deliveryMethod === 'email' || deliveryMethod === 'both') && !invoice.clientEmail) {
         return res.status(400).json({ message: "Invoice has no client email address" });
       }
       
-      // Import the invoice service dynamically to avoid circular dependencies
-      const { sendInvoiceEmail } = await import("./services/invoice-service");
-      
-      // Send the invoice email
-      const emailSent = await sendInvoiceEmail(invoice, sendEmail);
-      
-      if (!emailSent) {
-        return res.status(500).json({ message: "Failed to send invoice email" });
+      if ((deliveryMethod === 'sms' || deliveryMethod === 'both') && !invoice.clientPhone) {
+        return res.status(400).json({ message: "Invoice has no client phone number" });
       }
       
-      res.json({ message: "Invoice sent successfully" });
+      // Import the invoice service dynamically to avoid circular dependencies
+      const { sendInvoice, sendSms } = await import("./email-service");
+      const { sendInvoiceEmail, sendInvoiceSms } = await import("./services/invoice-service");
+      
+      // Send the invoice via the selected delivery method
+      const sendResult = await sendInvoice(
+        invoice, 
+        deliveryMethod,
+        sendEmail,
+        sendSms
+      );
+      
+      // Check if any of the delivery methods succeeded
+      if (!sendResult.email && !sendResult.sms) {
+        return res.status(500).json({ message: "Failed to send invoice" });
+      }
+      
+      // Update the invoice in the database with the delivery method used
+      await storage.updateInvoice(id, { deliveryMethod });
+      
+      // Return appropriate success message
+      if (deliveryMethod === 'both') {
+        if (sendResult.email && sendResult.sms) {
+          res.json({ message: "Invoice sent successfully via email and SMS" });
+        } else if (sendResult.email) {
+          res.json({ message: "Invoice sent successfully via email only. SMS delivery failed." });
+        } else {
+          res.json({ message: "Invoice sent successfully via SMS only. Email delivery failed." });
+        }
+      } else if (deliveryMethod === 'email') {
+        res.json({ message: "Invoice sent successfully via email" });
+      } else {
+        res.json({ message: "Invoice sent successfully via SMS" });
+      }
     } catch (error) {
-      console.error('Error sending invoice email:', error);
-      res.status(500).json({ message: "Failed to send invoice email" });
+      console.error('Error sending invoice:', error);
+      res.status(500).json({ message: "Failed to send invoice" });
     }
   });
   

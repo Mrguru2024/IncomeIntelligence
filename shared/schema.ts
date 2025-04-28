@@ -304,6 +304,8 @@ export const invoices = pgTable("invoices", {
   userId: text("user_id").notNull(),
   clientName: text("client_name").notNull(),
   clientEmail: text("client_email"),
+  clientPhone: text("client_phone"),
+  deliveryMethod: text("delivery_method").default("email"), // email, sms, both
   lineItems: jsonb("line_items").notNull(),
   total: numeric("total").notNull(),
   dueDate: timestamp("due_date").notNull(),
@@ -336,7 +338,11 @@ export const insertInvoiceSchema = createInsertSchema(invoices).extend({
     quantity: z.number().positive(),
     unitPrice: z.number().nonnegative(),
     amount: z.number().nonnegative()
-  }))
+  })),
+  // Make client phone optional
+  clientPhone: z.string().optional(),
+  // Define valid delivery methods
+  deliveryMethod: z.enum(['email', 'sms', 'both']).default('email')
 }).omit({ id: true, paidAt: true, invoicePdf: true });
 
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;

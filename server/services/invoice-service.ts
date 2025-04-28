@@ -4,6 +4,14 @@ import fs from "fs";
 import path from "path";
 import { Invoice } from "@shared/schema";
 
+// Define the LineItem type to avoid 'unknown' type errors
+interface LineItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+}
+
 /**
  * Generate a PDF invoice and save it to the filesystem
  * @param invoice The invoice data
