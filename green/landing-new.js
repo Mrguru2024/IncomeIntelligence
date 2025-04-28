@@ -97,7 +97,7 @@ function createNavbar() {
   logoIcon.style.height = '32px';
   
   // Create stacked blocks for logo
-  const blocks = ['#4CAF50', '#2196F3', '#FFC107'];
+  const blocks = ['#233D4D', '#00C6A7', '#F4A300']; // Deep Sapphire Blue, Mint Green, Sunstone Gold
   blocks.forEach((color, index) => {
     const block = document.createElement('div');
     block.style.width = `${32 - index * 4}px`;
@@ -115,7 +115,7 @@ function createNavbar() {
   logo.style.margin = '0';
   logo.style.fontSize = '1.6rem';
   logo.style.fontWeight = 'bold';
-  logo.style.background = 'linear-gradient(90deg, #4CAF50 0%, #2196F3 50%, #FFC107 100%)';
+  logo.style.background = 'linear-gradient(90deg, #233D4D 0%, #00C6A7 50%, #F4A300 100%)'; // Deep Sapphire Blue, Mint Green, Sunstone Gold
   logo.style.WebkitBackgroundClip = 'text';
   logo.style.WebkitTextFillColor = 'transparent';
   logo.style.backgroundClip = 'text';
@@ -145,7 +145,7 @@ function createNavbar() {
     a.style.transition = 'color 0.2s ease';
     
     a.addEventListener('mouseover', () => {
-      a.style.color = '#4CAF50';
+      a.style.color = '#00C6A7'; // Mint Green
     });
     
     a.addEventListener('mouseout', () => {
@@ -314,7 +314,7 @@ function createHeroSection() {
   
   // Headline with highlighting
   const headline = document.createElement('h2');
-  headline.innerHTML = `Take Control of Your Income with the <span style="background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">40/30/30 Split</span>`;
+  headline.innerHTML = `Take Control of Your Income with the <span style="background: linear-gradient(90deg, #233D4D 0%, #00C6A7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">40/30/30 Split</span>`; // Deep Sapphire Blue to Mint Green
   headline.style.fontSize = window.innerWidth <= 768 ? '2rem' : '2.8rem';
   headline.style.fontWeight = '700';
   headline.style.lineHeight = '1.2';
