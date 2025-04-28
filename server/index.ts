@@ -41,6 +41,21 @@ import { logger } from './utils/logger';
 import { config } from './config';
 import http from 'http';
 
+// Initialize with null, will be populated asynchronously
+let closeQueues: (() => Promise<void>) | null = null;
+
+// Load the queue module asynchronously
+(async () => {
+  try {
+    // Use dynamic import for the queue.js module
+    const queueModule = await import('./utils/queue.js');
+    closeQueues = queueModule.closeQueues;
+    console.log('Queue module loaded successfully in index.ts');
+  } catch (error) {
+    console.error('Error loading queue module in index.ts:', error);
+  }
+})();
+
 // Load environment variables from .env file
 const envPath = path.resolve(process.cwd(), '.env');
 const result = dotenv.config({ path: envPath });
@@ -354,13 +369,36 @@ httpServer.listen(PORT, () => {
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
-// Error handling
+// Error handling and graceful shutdown
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
-  process.exit(1);
+  closeQueues().then(() => process.exit(1));
 });
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
-  process.exit(1);
+  closeQueues().then(() => process.exit(1));
+});
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  httpServer.close(() => {
+    console.log('HTTP server closed');
+    closeQueues().then(() => {
+      console.log('Queue connections closed');
+      process.exit(0);
+    });
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  httpServer.close(() => {
+    console.log('HTTP server closed');
+    closeQueues().then(() => {
+      console.log('Queue connections closed');
+      process.exit(0);
+    });
+  });
 });

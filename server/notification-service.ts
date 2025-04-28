@@ -2,9 +2,28 @@ import { sendEmail } from './email-service';
 import { sendNotificationEmail, sendReminderEmail, sendSms, sendInvoiceSms } from './email-service';
 import { storage } from './storage';
 import { Notification, Reminder } from '@shared/schema';
+// Dynamically import the queue module
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Initialize with null, will be populated asynchronously
+let emailQueue: any = null;
+
+// Load the queue module asynchronously
+(async () => {
+  try {
+    // Use dynamic import for the queue.js module
+    const queueModule = await import('./utils/queue.js');
+    emailQueue = queueModule.emailQueue;
+    console.log('Queue module loaded successfully');
+  } catch (error) {
+    console.error('Error loading queue module:', error);
+  }
+})();
 
 /**
- * In-memory notifications queue for batch processing
+ * In-memory notifications queue for batch processing (fallback if Redis is unavailable)
  */
 const notificationQueue: {
   userId: string;
@@ -16,24 +35,195 @@ const notificationQueue: {
 }[] = [];
 
 /**
- * Queue a notification for delivery
+ * Queue a notification for delivery using Redis Queue
  * @param notification The notification to queue
  */
-export function queueNotification(notification: {
+export async function queueNotification(notification: {
   userId: string;
   title: string;
   message: string;
   type: string;
   link?: string;
 }) {
-  notificationQueue.push({
-    ...notification,
-    createdAt: new Date(),
-  });
-  
-  // Process queue if it reaches a certain size
-  if (notificationQueue.length >= 5) {
-    processNotificationQueue();
+  try {
+    // Use Redis queue if available
+    if (emailQueue) {
+      await emailQueue.add('notification', {
+        ...notification,
+        createdAt: new Date().toISOString(),
+      }, {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 1000
+        }
+      });
+      console.log(`Notification queued in Redis: ${notification.title}`);
+    } else {
+      // Fallback to legacy in-memory queue if Redis not available
+      console.log('Redis queue not available, adding to in-memory queue');
+      notificationQueue.push({
+        ...notification,
+        createdAt: new Date()
+      });
+      
+      // Process queue if it reaches a certain size
+      if (notificationQueue.length >= 5) {
+        processNotificationQueue();
+      }
+    }
+  } catch (error) {
+    console.error('Error queueing notification:', error);
+    // Add to in-memory queue as fallback
+    notificationQueue.push({
+      ...notification,
+      createdAt: new Date()
+    });
+  }
+}
+
+/**
+ * Process a single notification (used for direct processing)
+ * @param notification The notification to process
+ */
+async function processNotification(notification: {
+  userId: string;
+  title: string;
+  message: string;
+  type: string;
+  link?: string;
+  createdAt: Date;
+}) {
+  try {
+    // Store notification in database
+    await storeNotification(notification);
+    
+    // Get user for sending notifications
+    const user = await storage.getUserById(parseInt(notification.userId));
+    
+    if (!user) {
+      console.error(`User ${notification.userId} not found for notification ${notification.title}`);
+      return false;
+    }
+    
+    // Process notification based on type
+    switch(notification.type) {
+      case 'welcome':
+        // Send welcome email
+        if (user.email && user.settings?.emailNotifications !== false) {
+          await sendNotificationEmail({
+            to: user.email,
+            subject: 'Welcome to Stackr Finance',
+            userName: user.firstName || user.username || 'User',
+            notificationText: 'Thank you for registering with Stackr Finance. We\'re excited to help you manage your finances better!',
+            actionUrl: notification.link || 'https://stackr.finance/dashboard',
+            actionText: 'Get Started',
+          });
+        }
+        break;
+        
+      case 'password_reset':
+        // Send password reset email
+        if (user.email) {
+          await sendNotificationEmail({
+            to: user.email,
+            subject: 'Password Reset Request',
+            userName: user.firstName || user.username || 'User',
+            notificationText: notification.message,
+            actionUrl: notification.link,
+            actionText: 'Reset Password',
+          });
+        }
+        break;
+        
+      case 'payment_receipt':
+        // Send payment receipt email
+        if (user.email && user.settings?.emailNotifications !== false) {
+          await sendNotificationEmail({
+            to: user.email,
+            subject: 'Payment Receipt - Stackr Finance',
+            userName: user.firstName || user.username || 'User',
+            notificationText: notification.message,
+            actionUrl: notification.link,
+            actionText: 'View Receipt',
+          });
+        }
+        break;
+        
+      case 'mentorship_accepted':
+        // Send mentorship acceptance email
+        if (user.email && user.settings?.emailNotifications !== false) {
+          await sendNotificationEmail({
+            to: user.email,
+            subject: 'Mentorship Request Accepted',
+            userName: user.firstName || user.username || 'User',
+            notificationText: notification.message,
+            actionUrl: notification.link,
+            actionText: 'View Mentorship Details',
+          });
+        }
+        break;
+        
+      case 'security_alert':
+        // Send security alert via email and SMS
+        if (user.email && user.settings?.emailNotifications !== false) {
+          await sendNotificationEmail({
+            to: user.email,
+            subject: '⚠️ Security Alert - Stackr Finance',
+            userName: user.firstName || user.username || 'User',
+            notificationText: notification.message,
+            actionUrl: notification.link,
+            actionText: 'Review Activity',
+          });
+        }
+        
+        // Send security SMS alert
+        if (user.phoneNumber && user.settings?.smsAlerts !== false) {
+          await sendSms({
+            to: user.phoneNumber,
+            message: `Stackr Security Alert: ${notification.message}`,
+          });
+        }
+        
+        // If this is an admin alert, send to all admins
+        if (notification.message.includes('admin')) {
+          // Get admin users
+          const admins = await storage.getAdminUsers();
+          for (const admin of admins) {
+            if (admin.phoneNumber) {
+              await sendSms({
+                to: admin.phoneNumber,
+                message: `ADMIN ALERT: ${notification.message}`,
+              });
+            }
+          }
+        }
+        break;
+        
+      case 'important':
+      case 'alert':
+        // Send important notification via email
+        if (user.email && user.settings?.emailNotifications !== false) {
+          await sendNotificationEmail({
+            to: user.email,
+            subject: notification.title,
+            userName: user.firstName || user.username || 'User',
+            notificationText: notification.message,
+            actionUrl: notification.link,
+            actionText: 'View Details',
+          });
+        }
+        break;
+        
+      default:
+        // Standard notification - no external delivery
+        break;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error processing notification:', error);
+    return false;
   }
 }
 
