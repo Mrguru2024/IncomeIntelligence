@@ -1,4 +1,4 @@
-// Stackr Finance - No dependencies on any external libraries - completely self-contained
+// Stackzen - No dependencies on any external libraries - completely self-contained
 // Simple single-page application with route handling
 
 // Setup modern design system with CSS variables
@@ -278,7 +278,7 @@ function createLayout() {
       logoContainer.style.alignItems = 'center';
       
       const logo = document.createElement('h1');
-      logo.textContent = 'Stackr';
+      logo.textContent = 'Stackzen';
       logo.style.margin = '0';
       logo.style.fontSize = '22px';
       logo.style.fontWeight = 'bold';
@@ -417,7 +417,7 @@ function createFallbackHeader() {
   logoContainer.addEventListener('click', () => navigateTo('dashboard'));
   
   const logo = document.createElement('h1');
-  logo.textContent = isMobile ? 'Stackr' : 'Stackr Finance';
+  logo.textContent = isMobile ? 'Stackzen' : 'Stackzen';
   logo.style.margin = '0';
   logo.style.fontSize = isMobile ? '22px' : '24px';
   logo.style.fontWeight = 'bold';
@@ -918,7 +918,7 @@ function createFooter() {
   copyright.style.fontSize = 'var(--font-size-xs)';
   
   const copyrightText = document.createElement('p');
-  copyrightText.textContent = '© ' + new Date().getFullYear() + ' Stackr Finance. All rights reserved.';
+  copyrightText.textContent = '© ' + new Date().getFullYear() + ' Stackzen. All rights reserved.';
   copyrightText.style.margin = '0';
   
   copyright.appendChild(copyrightText);
