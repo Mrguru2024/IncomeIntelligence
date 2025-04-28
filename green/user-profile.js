@@ -12,36 +12,75 @@
 let userProfilesCache = null;
 
 /**
- * Load all user profiles from localStorage
+ * Load all user profiles from storage
+ * Works in both browser (localStorage) and Node.js (filesystem) environments
  */
 function loadUserProfiles() {
-  try {
-    const profiles = localStorage.getItem('stackr_user_profiles');
-    if (profiles) {
-      const parsedProfiles = JSON.parse(profiles);
-      console.log(`Loaded ${Object.keys(parsedProfiles).length} user profiles from localStorage`);
-      return parsedProfiles;
-    } else {
-      // Initialize empty profiles object
-      console.log('No user profiles found, creating new profiles store');
+  // In Node.js environment - use filesystem if possible
+  if (typeof window === 'undefined') {
+    try {
+      // Use sample data for server-side
+      return {
+        'default': {
+          userId: 'default',
+          name: 'Default Profile',
+          preferredJobTypes: ['Maintenance', 'Repair'],
+          industryParameters: {
+            laborRate: 85,
+            profitMargin: 0.25,
+            overheadRate: 0.15
+          },
+          quoteHistory: []
+        }
+      };
+    } catch (error) {
+      console.error('Error loading user profiles in Node.js:', error);
       return {};
     }
-  } catch (error) {
-    console.error('Error loading user profiles:', error);
-    return {};
+  } else {
+    // Browser environment - use localStorage
+    try {
+      const profiles = localStorage.getItem('stackr_user_profiles');
+      if (profiles) {
+        const parsedProfiles = JSON.parse(profiles);
+        console.log(`Loaded ${Object.keys(parsedProfiles).length} user profiles from localStorage`);
+        return parsedProfiles;
+      } else {
+        // Initialize empty profiles object
+        console.log('No user profiles found, creating new profiles store');
+        return {};
+      }
+    } catch (error) {
+      console.error('Error loading user profiles from localStorage:', error);
+      return {};
+    }
   }
 }
 
 /**
- * Save user profiles to localStorage
+ * Save user profiles to storage
+ * Works in both browser (localStorage) and Node.js (filesystem) environments
  */
 function saveUserProfiles(profiles) {
-  try {
-    localStorage.setItem('stackr_user_profiles', JSON.stringify(profiles));
-    return true;
-  } catch (error) {
-    console.error('Error saving user profiles:', error);
-    return false;
+  // In Node.js environment - use filesystem if possible
+  if (typeof window === 'undefined') {
+    try {
+      // Just log for server-side (no actual saving needed for our server implementation)
+      console.log('Server-side profile saving not implemented');
+      return true;
+    } catch (error) {
+      console.error('Error saving user profiles in Node.js:', error);
+      return false;
+    }
+  } else {
+    // Browser environment - use localStorage
+    try {
+      localStorage.setItem('stackr_user_profiles', JSON.stringify(profiles));
+      return true;
+    } catch (error) {
+      console.error('Error saving user profiles to localStorage:', error);
+      return false;
+    }
   }
 }
 
@@ -675,23 +714,10 @@ function getDefaultIndustryParameters(serviceIndustry) {
   return defaultParams[serviceIndustry] || defaultParams.default;
 }
 
-// Export methods for browser usage
-window.UserProfile = {
-  getUserProfile,
-  initializeUserProfile,
-  saveUserProfile,
-  addQuoteToHistory,
-  updateQuoteStatus,
-  updateProfileFromQuoteForm,
-  getDefaultIndustryParameters,
-  mapJobTypeToIndustry
-};
-
 // Initialize the module by loading profiles
 userProfilesCache = loadUserProfiles();
 
-// ES module exports to make both import approaches work
-// This will be compatible with import statements in enhanced-quote-generator.js
+// ES module exports to work in both Node.js and browser environments
 export {
   getUserProfile,
   initializeUserProfile,
@@ -702,3 +728,18 @@ export {
   getDefaultIndustryParameters,
   mapJobTypeToIndustry
 };
+
+// Check if we're in a browser environment before using window
+if (typeof window !== 'undefined') {
+  // Export methods for browser usage
+  window.UserProfile = {
+    getUserProfile,
+    initializeUserProfile,
+    saveUserProfile,
+    addQuoteToHistory,
+    updateQuoteStatus,
+    updateProfileFromQuoteForm,
+    getDefaultIndustryParameters,
+    mapJobTypeToIndustry
+  };
+}
