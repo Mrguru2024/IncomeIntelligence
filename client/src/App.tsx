@@ -94,6 +94,8 @@ function App() {
   const [initialized, setInitialized] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Always call useLocation hook - React requires hooks to be called in the same order
+  const [location] = useLocation();
 
   // Simple initialization effect
   useEffect(() => {
@@ -122,8 +124,6 @@ function App() {
       </div>
     );
   }
-
-  const [location] = useLocation();
   const isAuthPage = location === "/auth";
   const isOnboardingPage = location === "/onboarding";
   const isBlogPage = location === "/blog";
