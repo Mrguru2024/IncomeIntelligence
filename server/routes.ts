@@ -61,6 +61,7 @@ import { registerExportRoutes } from "./routes/export-routes";
 import userProfileRoutes from "./routes/user-profile-routes";
 import guardrailsRoutes from "./routes/guardrails-routes";
 import deliveryTestRoutes from "./routes/delivery-test-routes";
+import quoteRoutes from "./routes/quote-routes";
 import { sendEmail, sendPaymentConfirmationEmail, sendTestEmail, sendSms } from "./email-service";
 import Stripe from "stripe";
 // Express already imported at top
@@ -369,6 +370,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register delivery test routes
   app.use(deliveryTestRoutes);
   console.log('Delivery test routes registered');
+  
+  // Register quote routes
+  app.use(quoteRoutes);
+  console.log('Quote routes registered');
   
   // Serve GREEN version directly at root path
   app.get("/", (req, res) => {

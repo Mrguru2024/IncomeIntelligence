@@ -1,300 +1,167 @@
 /**
- * Data file for quote generator
- * Contains reference data and market rates for quote generation
+ * Sample quote data for testing enhanced quote generator
  */
 
-// Market rates by job type and region (hourly rates)
-const marketRates = {
-  // Home Services
-  'plumbing': {
-    northeast: 125,
-    southeast: 95,
-    midwest: 90,
-    southwest: 100,
-    west: 130
-  },
-  'electrical': {
-    northeast: 115,
-    southeast: 90,
-    midwest: 85,
-    southwest: 95,
-    west: 120
-  },
-  'hvac': {
-    northeast: 120,
-    southeast: 100,
-    midwest: 95,
-    southwest: 105,
-    west: 125
-  },
-  'handyman': {
-    northeast: 85,
-    southeast: 65,
-    midwest: 60,
-    southwest: 70,
-    west: 90
-  },
-  'locksmith': {
-    northeast: 95,
-    southeast: 75,
-    midwest: 70,
-    southwest: 80,
-    west: 100
+const sampleQuoteData = {
+  // Construction job
+  bathroomRemodel: {
+    jobType: 'Bathroom Remodel',
+    serviceIndustry: 'construction',
+    description: 'Complete bathroom renovation including new fixtures, tile work, and plumbing updates',
+    laborHours: 40,
+    laborRate: 85,
+    materialCost: 2500,
+    location: 'Denver, CO',
+    experienceYears: 8,
+    complexity: 'medium',
+    competitionLevel: 'medium',
+    isUrgent: false,
+    customerName: 'Jane Smith'
   },
   
-  // Automotive
-  'automotive_repair': {
-    northeast: 110,
-    southeast: 90,
-    midwest: 85,
-    southwest: 95,
-    west: 115
-  },
-  'oil_change': {
-    northeast: 85,
-    southeast: 70,
-    midwest: 65,
-    southwest: 75,
-    west: 90
-  },
-  'brake_service': {
-    northeast: 110,
-    southeast: 90,
-    midwest: 85,
-    southwest: 95,
-    west: 115
-  },
-  'transmission': {
-    northeast: 130,
-    southeast: 110,
-    midwest: 105,
-    southwest: 115,
-    west: 135
+  // Automotive job
+  oilChange: {
+    jobType: 'Oil Change',
+    serviceIndustry: 'automotive',
+    description: 'Standard oil change service with filter replacement',
+    laborHours: 0.5,
+    laborRate: 95,
+    materialCost: 45,
+    location: 'Miami, FL',
+    experienceYears: 5,
+    complexity: 'low',
+    competitionLevel: 'high',
+    isUrgent: false,
+    customerName: 'John Doe'
   },
   
-  // Beauty/Wellness
-  'hair_stylist': {
-    northeast: 85,
-    southeast: 65,
-    midwest: 60,
-    southwest: 70,
-    west: 95
-  },
-  'nail_technician': {
-    northeast: 70,
-    southeast: 55,
-    midwest: 50,
-    southwest: 60,
-    west: 80
-  },
-  'makeup_artist': {
-    northeast: 110,
-    southeast: 85,
-    midwest: 80,
-    southwest: 90,
-    west: 120
-  },
-  'esthetician': {
-    northeast: 95,
-    southeast: 75,
-    midwest: 70,
-    southwest: 80,
-    west: 100
+  // Beauty job
+  haircut: {
+    jobType: 'Haircut',
+    serviceIndustry: 'beauty',
+    description: 'Men\'s haircut and styling',
+    laborHours: 0.75,
+    laborRate: 65,
+    materialCost: 5,
+    location: 'New York, NY',
+    experienceYears: 12,
+    complexity: 'medium',
+    competitionLevel: 'high',
+    isUrgent: false,
+    customerName: 'Michael Johnson'
   },
   
-  // Electronics Repair
-  'computer_repair': {
-    northeast: 100,
-    southeast: 80,
-    midwest: 75,
-    southwest: 85,
-    west: 110
-  },
-  'cellphone_repair': {
-    northeast: 85,
-    southeast: 70,
-    midwest: 65,
-    southwest: 75,
-    west: 90
-  },
-  'tv_repair': {
-    northeast: 95,
-    southeast: 80,
-    midwest: 75,
-    southwest: 85,
-    west: 100
-  },
-  'appliance_repair': {
-    northeast: 105,
-    southeast: 85,
-    midwest: 80,
-    southwest: 90,
-    west: 110
+  // Graphic design job
+  logoDesign: {
+    jobType: 'Logo Design',
+    serviceIndustry: 'graphic_design',
+    description: 'Professional logo design with branding package',
+    laborHours: 15,
+    laborRate: 85,
+    materialCost: 0,
+    location: 'San Francisco, CA',
+    experienceYears: 10,
+    complexity: 'high',
+    competitionLevel: 'medium',
+    isUrgent: true,
+    customerName: 'TechStart Solutions'
   },
   
-  // Professional Services
-  'legal_services': {
-    northeast: 300,
-    southeast: 250,
-    midwest: 225,
-    southwest: 240,
-    west: 325
+  // Plumbing job
+  pipeRepair: {
+    jobType: 'Pipe Repair',
+    serviceIndustry: 'plumbing',
+    description: 'Fix leaking pipe under kitchen sink',
+    laborHours: 2,
+    laborRate: 90,
+    materialCost: 75,
+    location: 'Chicago, IL',
+    experienceYears: 15,
+    complexity: 'medium',
+    competitionLevel: 'low',
+    isUrgent: true,
+    customerName: 'Robert Wilson'
   },
-  'accounting': {
-    northeast: 200,
-    southeast: 170,
-    midwest: 160,
-    southwest: 175,
-    west: 220
+  
+  // Electronics repair job
+  phoneScreenRepair: {
+    jobType: 'Phone Screen Repair',
+    serviceIndustry: 'electronics_repair',
+    description: 'iPhone 12 screen replacement',
+    laborHours: 1,
+    laborRate: 75,
+    materialCost: 120,
+    location: 'Dallas, TX',
+    experienceYears: 3,
+    complexity: 'medium',
+    competitionLevel: 'high',
+    isUrgent: false,
+    customerName: 'Sarah Davis'
   },
-  'consulting': {
-    northeast: 250,
-    southeast: 200,
-    midwest: 190,
-    southwest: 210,
-    west: 275
+  
+  // Electrical job
+  outletInstallation: {
+    jobType: 'Outlet Installation',
+    serviceIndustry: 'electrical',
+    description: 'Install 4 new outlets in home office',
+    laborHours: 3,
+    laborRate: 95,
+    materialCost: 150,
+    location: 'Boston, MA',
+    experienceYears: 20,
+    complexity: 'medium',
+    competitionLevel: 'medium',
+    isUrgent: false,
+    customerName: 'Emily Richards'
   },
-  'design_services': {
-    northeast: 125,
-    southeast: 100,
-    midwest: 95,
-    southwest: 105,
-    west: 135
+  
+  // Landscaping job
+  lawnMowing: {
+    jobType: 'Lawn Mowing',
+    serviceIndustry: 'landscaping',
+    description: 'Weekly lawn maintenance including mowing, edging, and cleanup',
+    laborHours: 2,
+    laborRate: 55,
+    materialCost: 10,
+    location: 'Phoenix, AZ',
+    experienceYears: 5,
+    complexity: 'low',
+    competitionLevel: 'high',
+    isUrgent: false,
+    customerName: 'Thomas White'
+  },
+  
+  // Locksmith job
+  lockReplacement: {
+    jobType: 'Lock Replacement',
+    serviceIndustry: 'locksmith',
+    description: 'Replace front and back door locks with high-security deadbolts',
+    laborHours: 1.5,
+    laborRate: 75,
+    materialCost: 225,
+    location: 'Seattle, WA',
+    experienceYears: 7,
+    complexity: 'medium',
+    competitionLevel: 'medium',
+    isUrgent: false,
+    customerName: 'Linda Miller'
+  },
+  
+  // Cleaning job
+  houseCleaning: {
+    jobType: 'House Cleaning',
+    serviceIndustry: 'cleaning',
+    description: 'Deep cleaning of 3-bedroom house including kitchens and bathrooms',
+    laborHours: 5,
+    laborRate: 45,
+    materialCost: 25,
+    location: 'Atlanta, GA',
+    experienceYears: 4,
+    complexity: 'medium',
+    competitionLevel: 'high',
+    isUrgent: false,
+    customerName: 'David Thompson'
   }
 };
 
-// Map states to regions
-const stateToRegion = {
-  // Northeast
-  'ME': 'northeast',
-  'NH': 'northeast',
-  'VT': 'northeast',
-  'MA': 'northeast',
-  'RI': 'northeast',
-  'CT': 'northeast',
-  'NY': 'northeast',
-  'NJ': 'northeast',
-  'PA': 'northeast',
-  
-  // Southeast
-  'DE': 'southeast',
-  'MD': 'southeast',
-  'DC': 'southeast',
-  'VA': 'southeast',
-  'WV': 'southeast',
-  'KY': 'southeast',
-  'NC': 'southeast',
-  'SC': 'southeast',
-  'TN': 'southeast',
-  'GA': 'southeast',
-  'FL': 'southeast',
-  'AL': 'southeast',
-  'MS': 'southeast',
-  'AR': 'southeast',
-  'LA': 'southeast',
-  
-  // Midwest
-  'OH': 'midwest',
-  'IN': 'midwest',
-  'MI': 'midwest',
-  'IL': 'midwest',
-  'WI': 'midwest',
-  'MN': 'midwest',
-  'IA': 'midwest',
-  'MO': 'midwest',
-  'KS': 'midwest',
-  'NE': 'midwest',
-  'SD': 'midwest',
-  'ND': 'midwest',
-  
-  // Southwest
-  'TX': 'southwest',
-  'OK': 'southwest',
-  'NM': 'southwest',
-  'AZ': 'southwest',
-  
-  // West
-  'MT': 'west',
-  'WY': 'west',
-  'CO': 'west',
-  'UT': 'west',
-  'ID': 'west',
-  'NV': 'west',
-  'CA': 'west',
-  'OR': 'west',
-  'WA': 'west',
-  'AK': 'west',
-  'HI': 'west'
-};
-
-// State tax rates
-const stateTaxRates = {
-  'AK': 0.00,  // Alaska
-  'AL': 0.09,  // Alabama
-  'AR': 0.065, // Arkansas
-  'AZ': 0.08,  // Arizona
-  'CA': 0.0725,// California
-  'CO': 0.029, // Colorado
-  'CT': 0.0635,// Connecticut
-  'DC': 0.06,  // District of Columbia
-  'DE': 0.00,  // Delaware
-  'FL': 0.06,  // Florida
-  'GA': 0.04,  // Georgia
-  'HI': 0.04,  // Hawaii
-  'IA': 0.06,  // Iowa
-  'ID': 0.06,  // Idaho
-  'IL': 0.0625,// Illinois
-  'IN': 0.07,  // Indiana
-  'KS': 0.065, // Kansas
-  'KY': 0.06,  // Kentucky
-  'LA': 0.0445,// Louisiana
-  'MA': 0.0625,// Massachusetts
-  'MD': 0.06,  // Maryland
-  'ME': 0.055, // Maine
-  'MI': 0.06,  // Michigan
-  'MN': 0.06875,// Minnesota
-  'MO': 0.04225,// Missouri
-  'MS': 0.07,  // Mississippi
-  'MT': 0.00,  // Montana
-  'NC': 0.0475,// North Carolina
-  'ND': 0.05,  // North Dakota
-  'NE': 0.055, // Nebraska
-  'NH': 0.00,  // New Hampshire
-  'NJ': 0.06625,// New Jersey
-  'NM': 0.05125,// New Mexico
-  'NV': 0.0685,// Nevada
-  'NY': 0.04,  // New York
-  'OH': 0.0575,// Ohio
-  'OK': 0.045, // Oklahoma
-  'OR': 0.00,  // Oregon
-  'PA': 0.06,  // Pennsylvania
-  'RI': 0.07,  // Rhode Island
-  'SC': 0.06,  // South Carolina
-  'SD': 0.045, // South Dakota
-  'TN': 0.07,  // Tennessee
-  'TX': 0.0625,// Texas
-  'UT': 0.0595,// Utah
-  'VA': 0.053, // Virginia
-  'VT': 0.06,  // Vermont
-  'WA': 0.065, // Washington
-  'WI': 0.05,  // Wisconsin
-  'WV': 0.06,  // West Virginia
-  'WY': 0.04   // Wyoming
-};
-
-// Material markup data by industry
-const materialMarkupRates = {
-  'home_services': 1.3,      // 30% markup
-  'automotive': 1.5,         // 50% markup
-  'beauty_wellness': 2.0,    // 100% markup
-  'electronics_repair': 1.4, // 40% markup
-  'professional_services': 1.2 // 20% markup
-};
-
-// Export all data
-module.exports = {
-  marketRates,
-  stateToRegion,
-  stateTaxRates,
-  materialMarkupRates
-};
+module.exports = sampleQuoteData;

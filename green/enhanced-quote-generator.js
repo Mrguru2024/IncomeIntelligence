@@ -1,167 +1,66 @@
 /**
- * Enhanced Quote Generator
+ * Enhanced Quote Generator for Stackr
+ * 
  * Features:
- * - Advanced profit margin calculation with industry benchmarks
- * - Dynamic parameters based on service industries
+ * - Dynamic profit margin calculations based on industry standards
+ * - Regional competitive positioning analysis
+ * - Tiered pricing options (Basic, Standard, Premium)
  * - User profile integration for personalized quotes
- * - Multi-tier pricing structure
- * - Competitive pricing insights
+ * - Seasonal adjustments for pricing
+ * - Experience-based pricing recommendations
  */
 
-// Import necessary utilities and data
-const { marketRates, stateToRegion, stateTaxRates } = require('./quote-data.js');
-const { getUserProfile } = require('./user-profile.js');
-
-// Service industry categories with specialized parameters
-const INDUSTRY_PARAMETERS = {
-  // Home services industry parameters
-  home_services: {
-    baseMargin: 35,
-    materialMarkupRate: 1.25, // 25% markup on materials
-    emergency_multiplier: 1.75,
-    weekend_multiplier: 1.35,
-    seasonality: {
-      peak: { margin_adjustment: 5, min_hourly_rate_adjustment: 15 },
-      off_peak: { margin_adjustment: -5, min_hourly_rate_adjustment: -10 }
-    },
-    service_warranty: {
-      basic: 30, // 30 days
-      standard: 90, // 90 days
-      premium: 365 // 1 year
-    }
-  },
-
-  // Automotive industry parameters
-  automotive: {
-    baseMargin: 40,
-    materialMarkupRate: 1.35, // 35% markup on parts
-    emergency_multiplier: 1.5,
-    weekend_multiplier: 1.4,
-    diagnostics_fee: { 
-      basic: 49.99,
-      standard: 89.99,
-      premium: 129.99
-    },
-    service_warranty: {
-      basic: 90, // 3 months
-      standard: 180, // 6 months
-      premium: 365 // 1 year
-    }
-  },
-
-  // Beauty/wellness industry parameters
-  beauty_wellness: {
-    baseMargin: 45,
-    productMarkupRate: 2.0, // 100% markup on products
-    weekend_multiplier: 1.25,
-    prime_hours_multiplier: 1.2, // Prime hours (evenings, etc.)
-    booking_intervals: {
-      basic: 30, // 30 min slots
-      standard: 45, // 45 min slots
-      premium: 60 // 60 min slots with buffer time
-    },
-    addon_services: {
-      basic: 1,
-      standard: 2,
-      premium: 3
-    }
-  },
-
-  // Electronics repair industry parameters
-  electronics_repair: {
-    baseMargin: 50,
-    materialMarkupRate: 1.4, // 40% markup on parts
-    emergency_multiplier: 1.6,
-    service_warranty: {
-      basic: 30, // 30 days
-      standard: 90, // 90 days
-      premium: 180 // 6 months
-    },
-    complexity_multiplier: {
-      low: 0.9,
-      medium: 1.0,
-      high: 1.3
-    }
-  },
-
-  // Professional services industry parameters
-  professional_services: {
-    baseMargin: 45,
-    retainer_discount: 0.1, // 10% discount on retainer
-    rush_multiplier: 1.5,
-    service_tiers: {
-      basic: { deliverables: 1, revisions: 1 },
-      standard: { deliverables: 2, revisions: 2 },
-      premium: { deliverables: 3, revisions: 'unlimited' }
-    }
-  },
-
-  // Default parameters if industry not specified
-  default: {
-    baseMargin: 30,
-    materialMarkupRate: 1.2, // 20% markup on materials
-    emergency_multiplier: 1.5,
-    weekend_multiplier: 1.25
-  }
-};
-
-// Experience level modifiers
-const EXPERIENCE_MODIFIERS = {
-  novice: { marginAdjustment: -5, laborRateMultiplier: 0.85 },
-  apprentice: { marginAdjustment: -2, laborRateMultiplier: 0.9 },
-  intermediate: { marginAdjustment: 0, laborRateMultiplier: 1.0 },
-  advanced: { marginAdjustment: 2, laborRateMultiplier: 1.10 },
-  expert: { marginAdjustment: 5, laborRateMultiplier: 1.25 },
-  master: { marginAdjustment: 8, laborRateMultiplier: 1.4 }
-};
-
-// Season detection for seasonality adjustments
+// Utility function to get current season
 function getCurrentSeason() {
-  const month = new Date().getMonth();
-  // Northern hemisphere seasons
-  if (month >= 2 && month <= 4) return "spring";
-  if (month >= 5 && month <= 7) return "summer";
-  if (month >= 8 && month <= 10) return "fall";
-  return "winter";
+  const now = new Date();
+  const month = now.getMonth();
+  
+  if (month >= 2 && month <= 4) return 'spring';
+  if (month >= 5 && month <= 7) return 'summer';
+  if (month >= 8 && month <= 10) return 'fall';
+  return 'winter';
 }
 
-// Get industry peak seasons
+// Get industry seasonality factor
 function getIndustrySeasonality(industry, season) {
-  const PEAK_SEASONS = {
-    home_services: {
-      spring: "peak", // Spring cleaning, home improvements
-      summer: "peak", // Home renovations, landscaping
-      fall: "normal",
-      winter: "off_peak" // Except HVAC for winter regions
+  const seasonalityFactors = {
+    construction: {
+      spring: 1.15, summer: 1.2, fall: 1.05, winter: 0.9
     },
-    beauty_wellness: {
-      spring: "normal",
-      summer: "peak", // Wedding season, summer events
-      fall: "normal",
-      winter: "peak" // Holiday season
+    landscaping: {
+      spring: 1.3, summer: 1.15, fall: 1.1, winter: 0.7
     },
     automotive: {
-      spring: "peak", // Spring maintenance after winter
-      summer: "peak", // Summer travel season
-      fall: "normal",
-      winter: "peak" // Winter preparations, snow tires
+      spring: 1.05, summer: 1.1, fall: 1.05, winter: 1.15
+    },
+    plumbing: {
+      spring: 1.1, summer: 0.95, fall: 1.0, winter: 1.2
+    },
+    electrical: {
+      spring: 1.05, summer: 1.1, fall: 1.0, winter: 1.05
+    },
+    locksmith: {
+      spring: 1.0, summer: 1.0, fall: 1.0, winter: 1.05
+    },
+    cleaning: {
+      spring: 1.2, summer: 1.0, fall: 1.1, winter: 0.9
+    },
+    beauty: {
+      spring: 1.1, summer: 1.15, fall: 1.05, winter: 0.95
+    },
+    graphic_design: {
+      spring: 1.0, summer: 0.95, fall: 1.1, winter: 1.0
     },
     electronics_repair: {
-      spring: "normal",
-      summer: "off_peak",
-      fall: "peak", // Back to school, pre-holiday
-      winter: "peak" // Post-holiday repairs
+      spring: 0.95, summer: 1.0, fall: 1.05, winter: 1.15
     },
-    professional_services: {
-      spring: "peak", // New fiscal year for many businesses
-      summer: "off_peak", // Vacation season
-      fall: "peak", // Year-end planning
-      winter: "normal"
+    default: {
+      spring: 1.0, summer: 1.0, fall: 1.0, winter: 1.0
     }
   };
-
-  // Default to normal if no specific seasonality found
-  return (PEAK_SEASONS[industry] && PEAK_SEASONS[industry][season]) || "normal";
+  
+  const industryFactors = seasonalityFactors[industry] || seasonalityFactors.default;
+  return industryFactors[season];
 }
 
 /**
@@ -169,71 +68,166 @@ function getIndustrySeasonality(industry, season) {
  * This allows for personalized quotes that reflect the user's business
  */
 function getDynamicParameters(userId, serviceIndustry) {
-  // Get user profile
-  const userProfile = getUserProfile(userId);
-  
-  // Get industry parameters (default if not found)
-  const industryParams = INDUSTRY_PARAMETERS[serviceIndustry] || INDUSTRY_PARAMETERS.default;
-  
-  // Get experience level modifiers
-  const experienceModifiers = EXPERIENCE_MODIFIERS[userProfile?.experienceLevel || 'intermediate'];
-  
-  // Calculate target margin based on base industry margin and user preferences
-  let targetMargin = industryParams.baseMargin;
-  
-  // Apply user's preferred margin if available
-  if (userProfile?.targetMargin) {
-    targetMargin = userProfile.targetMargin;
-  }
-  
-  // Apply experience level adjustment to margin
-  targetMargin += experienceModifiers.marginAdjustment;
-  
-  // Get current season and seasonality
-  const currentSeason = getCurrentSeason();
-  const seasonality = getIndustrySeasonality(serviceIndustry, currentSeason);
-  
-  // Apply seasonality adjustments if applicable
-  if (seasonality === "peak" && industryParams.seasonality?.peak) {
-    targetMargin += industryParams.seasonality.peak.margin_adjustment;
-  } else if (seasonality === "off_peak" && industryParams.seasonality?.off_peak) {
-    targetMargin += industryParams.seasonality.off_peak.margin_adjustment;
-  }
-  
-  // Adjust target margin based on business goals
-  if (userProfile?.businessGoals) {
-    if (userProfile.businessGoals.includes('increase_revenue')) {
-      targetMargin += 2; // Slight increase for revenue goals
+  try {
+    // Try to get parameters from user profile if userId is provided
+    if (userId) {
+      const { getUserProfile } = require('./user-profile.js');
+      const userProfile = getUserProfile(userId);
+      
+      if (userProfile && userProfile.industryParameters) {
+        // Return industry-specific parameters from user profile
+        return userProfile.industryParameters[serviceIndustry] || getDefaultParameters(serviceIndustry);
+      }
     }
-    if (userProfile.businessGoals.includes('attract_new_clients')) {
-      targetMargin -= 3; // Reduction to be more competitive for new clients
-    }
+    
+    // Fallback to default parameters
+    return getDefaultParameters(serviceIndustry);
+  } catch (error) {
+    console.warn('Error getting dynamic parameters:', error);
+    return getDefaultParameters(serviceIndustry);
   }
-  
-  // Adjust based on service preferences
-  if (userProfile?.servicePreferences) {
-    if (userProfile.servicePreferences.includes('value_oriented')) {
-      targetMargin -= 5; // Lower margin for value-oriented providers
+}
+
+/**
+ * Default parameters by industry if user profile is not available
+ */
+function getDefaultParameters(serviceIndustry) {
+  const defaultParams = {
+    construction: {
+      baseMargin: 0.25,
+      laborMultiplier: 1.8,
+      materialMarkup: 0.2,
+      experienceWeight: 0.05,
+      regionFactor: 1.0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.2
+      }
+    },
+    automotive: {
+      baseMargin: 0.30,
+      laborMultiplier: 1.7,
+      materialMarkup: 0.25,
+      experienceWeight: 0.04,
+      regionFactor: 1.0,
+      complexity: {
+        low: 0.85,
+        medium: 1.0,
+        high: 1.25
+      }
+    },
+    plumbing: {
+      baseMargin: 0.28,
+      laborMultiplier: 1.75,
+      materialMarkup: 0.22,
+      experienceWeight: 0.04,
+      regionFactor: 1.0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.15
+      }
+    },
+    electrical: {
+      baseMargin: 0.27,
+      laborMultiplier: 1.8,
+      materialMarkup: 0.2,
+      experienceWeight: 0.05,
+      regionFactor: 1.0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.2
+      }
+    },
+    locksmith: {
+      baseMargin: 0.35,
+      laborMultiplier: 1.6,
+      materialMarkup: 0.3,
+      experienceWeight: 0.03,
+      regionFactor: 1.0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.1
+      }
+    },
+    cleaning: {
+      baseMargin: 0.33,
+      laborMultiplier: 1.5,
+      materialMarkup: 0.15,
+      experienceWeight: 0.02,
+      regionFactor: 1.0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.1
+      }
+    },
+    beauty: {
+      baseMargin: 0.40,
+      laborMultiplier: 1.4,
+      materialMarkup: 0.25,
+      experienceWeight: 0.04,
+      regionFactor: 1.0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.15
+      }
+    },
+    landscaping: {
+      baseMargin: 0.28,
+      laborMultiplier: 1.65,
+      materialMarkup: 0.2,
+      experienceWeight: 0.03,
+      regionFactor: 1.0,
+      complexity: {
+        low: 0.85,
+        medium: 1.0,
+        high: 1.2
+      }
+    },
+    graphic_design: {
+      baseMargin: 0.45,
+      laborMultiplier: 1.0,
+      materialMarkup: 0.0,
+      experienceWeight: 0.08,
+      regionFactor: 1.0,
+      complexity: {
+        low: 0.8,
+        medium: 1.0,
+        high: 1.3
+      }
+    },
+    electronics_repair: {
+      baseMargin: 0.32,
+      laborMultiplier: 1.6,
+      materialMarkup: 0.3,
+      experienceWeight: 0.05,
+      regionFactor: 1.0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.2
+      }
+    },
+    default: {
+      baseMargin: 0.3,
+      laborMultiplier: 1.7,
+      materialMarkup: 0.2,
+      experienceWeight: 0.04,
+      regionFactor: 1.0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.2
+      }
     }
-    if (userProfile.servicePreferences.includes('quality_oriented')) {
-      targetMargin += 5; // Higher margin for quality-oriented providers
-    }
-  }
-  
-  // Cap margin between reasonable bounds
-  targetMargin = Math.max(15, Math.min(60, targetMargin));
-  
-  return {
-    targetMargin,
-    serviceIndustry,
-    industryParams,
-    experienceLevel: userProfile?.experienceLevel || 'intermediate',
-    experienceModifiers,
-    seasonality,
-    currentSeason,
-    businessGoals: userProfile?.businessGoals || [],
-    servicePreferences: userProfile?.servicePreferences || []
   };
+  
+  return defaultParams[serviceIndustry] || defaultParams.default;
 }
 
 /**
@@ -241,205 +235,157 @@ function getDynamicParameters(userId, serviceIndustry) {
  * Accounts for industry standards, experience level, and regional factors
  */
 function calculateEnhancedProfitMargin(data, parameters) {
-  // Extract parameters
-  const { 
-    targetMargin, 
-    industryParams, 
-    experienceModifiers 
-  } = parameters;
+  // Base values
+  const baseMargin = parameters.baseMargin;
+  const complexity = data.complexity || 'medium';
+  const complexityFactor = parameters.complexity[complexity] || 1.0;
   
-  // Extract state from location
-  const state = getStateFromLocation(data.location);
+  // Experience adjustment (0-30 years)
+  const experienceYears = Math.min(30, parseInt(data.experienceYears) || 0);
+  const experienceMultiplier = 1 + (experienceYears * parameters.experienceWeight);
   
-  // Get region and rates
-  const region = stateToRegion[state] || 'northeast';
-  let baseRate = marketRates[data.jobType]?.[region] || 85; // Default rate if not found
-  const taxRate = stateTaxRates[state] || 0.06; // Default 6% if not found
+  // Get seasonal adjustment
+  const season = getCurrentSeason();
+  const seasonality = getIndustrySeasonality(data.serviceIndustry, season);
   
-  // Apply experience level modifier to labor rate
-  baseRate *= experienceModifiers.laborRateMultiplier;
+  // Regional adjustment
+  const regionFactor = parameters.regionFactor;
   
-  // Calculate labor cost with time-based multipliers if applicable
-  let laborRate = baseRate;
-  if (data.emergency && industryParams.emergency_multiplier) {
-    laborRate *= industryParams.emergency_multiplier;
-  }
-  if (data.weekend && industryParams.weekend_multiplier) {
-    laborRate *= industryParams.weekend_multiplier;
-  }
+  // Competition adjustment
+  const competitionLevel = data.competitionLevel || 'medium';
+  let competitionFactor = 1.0;
+  if (competitionLevel === 'high') competitionFactor = 0.92;
+  if (competitionLevel === 'low') competitionFactor = 1.08;
   
-  const laborCost = laborRate * data.laborHours;
+  // Urgency adjustment
+  const isUrgent = data.isUrgent || false;
+  const urgencyFactor = isUrgent ? 1.15 : 1.0;
   
-  // Calculate materials cost with industry-specific markup
-  const materialBase = data.materialsCost;
-  let materialsCost = materialBase;
+  // Calculate final margin with all factors
+  const calculatedMargin = baseMargin * complexityFactor * experienceMultiplier * 
+    seasonality * regionFactor * competitionFactor * urgencyFactor;
   
-  // Apply industry-specific material markup if applicable
-  if (industryParams.materialMarkupRate) {
-    materialsCost = materialBase * industryParams.materialMarkupRate;
-  }
-  
-  // Calculate materials tax
-  const materialsTax = materialBase * taxRate; // Tax is on base cost, not markup
-  
-  // Calculate cost basis (direct costs)
-  const costBasis = laborCost + materialBase; // Original material cost without markup
-  
-  // Calculate target revenue to achieve desired margin
-  // Formula: Revenue = Cost / (1 - Margin%)
-  const targetMarginDecimal = targetMargin / 100;
-  const targetRevenue = costBasis / (1 - targetMarginDecimal);
-  
-  // Add tax to get final total
-  const total = targetRevenue + materialsTax;
-  
-  // Calculate actual profit after tax considerations
-  const profit = targetRevenue - costBasis;
-  const actualProfitMargin = (profit / targetRevenue) * 100;
-  
-  // Generate competitive context for region
-  const regionalAverageMargin = getRegionalMarginData(data.jobType, region);
-  const competitivePosition = determineCompetitivePosition(actualProfitMargin, regionalAverageMargin);
-  
-  return {
-    laborRate,
-    laborCost,
-    materialsCost: materialBase, // Original material cost
-    materialMarkup: materialsCost - materialBase, // The markup amount
-    materialsTax,
-    costBasis,
-    targetRevenue,
-    total,
-    profit,
-    targetMargin,
-    actualProfitMargin,
-    regionalAverageMargin,
-    competitivePosition
-  };
+  // Round to the nearest 0.5% and ensure reasonable bounds
+  return Math.max(0.15, Math.min(0.6, Math.round(calculatedMargin * 200) / 200));
 }
 
 /**
  * Get regional margin data for competitive positioning
  */
 function getRegionalMarginData(jobType, region) {
-  // This would ideally come from a database with real market data
-  // For now using simulated data based on job type and region
-  const AVERAGE_MARGINS = {
-    'home_services': {
-      'northeast': 32,
-      'southeast': 30,
-      'midwest': 28,
-      'southwest': 31,
-      'west': 34
+  // Regional average margins by job type and region
+  // This would ideally come from a database of competitive intelligence
+  const regionalMargins = {
+    'Bathroom Remodel': {
+      'Northeast': 0.28,
+      'Southeast': 0.25,
+      'Midwest': 0.23,
+      'Southwest': 0.24,
+      'West': 0.29,
+      'default': 0.25
     },
-    'beauty_wellness': {
-      'northeast': 40,
-      'southeast': 38,
-      'midwest': 35,
-      'southwest': 37,
-      'west': 42
+    'Oil Change': {
+      'Northeast': 0.35,
+      'Southeast': 0.32,
+      'Midwest': 0.30,
+      'Southwest': 0.33,
+      'West': 0.38,
+      'default': 0.33
     },
-    'automotive': {
-      'northeast': 37,
-      'southeast': 35,
-      'midwest': 33,
-      'southwest': 34,
-      'west': 38
+    'Haircut': {
+      'Northeast': 0.42,
+      'Southeast': 0.38,
+      'Midwest': 0.36,
+      'Southwest': 0.37,
+      'West': 0.43,
+      'default': 0.40
     },
-    'electronics_repair': {
-      'northeast': 45,
-      'southeast': 42,
-      'midwest': 40,
-      'southwest': 41,
-      'west': 47
+    'Logo Design': {
+      'Northeast': 0.48,
+      'Southeast': 0.43,
+      'Midwest': 0.40,
+      'Southwest': 0.42,
+      'West': 0.50,
+      'default': 0.45
     },
-    'professional_services': {
-      'northeast': 42,
-      'southeast': 40,
-      'midwest': 38,
-      'southwest': 39,
-      'west': 44
+    'default': {
+      'Northeast': 0.32,
+      'Southeast': 0.29,
+      'Midwest': 0.27,
+      'Southwest': 0.28,
+      'West': 0.33,
+      'default': 0.30
     }
   };
-
-  // Map job type to industry category
-  const industryMap = {
-    'plumbing': 'home_services',
-    'electrical': 'home_services',
-    'hvac': 'home_services',
-    'handyman': 'home_services',
-    'locksmith': 'home_services',
-    'landscaping': 'home_services',
-    'cleaning': 'home_services',
-    'oil_change': 'automotive',
-    'brake_service': 'automotive',
-    'transmission': 'automotive',
-    'engine_repair': 'automotive',
-    'tire_service': 'automotive',
-    'diagnostics': 'automotive',
-    'hair_stylist': 'beauty_wellness',
-    'nail_technician': 'beauty_wellness',
-    'makeup_artist': 'beauty_wellness',
-    'esthetician': 'beauty_wellness',
-    'massage_therapist': 'beauty_wellness',
-    'spa_services': 'beauty_wellness',
-    'computer_repair': 'electronics_repair',
-    'cellphone_repair': 'electronics_repair',
-    'tv_repair': 'electronics_repair',
-    'appliance_repair': 'electronics_repair',
-  };
-
-  const industry = industryMap[jobType] || 'home_services';
-  return AVERAGE_MARGINS[industry]?.[region] || 30;
+  
+  const jobMargins = regionalMargins[jobType] || regionalMargins.default;
+  return jobMargins[region] || jobMargins.default;
 }
 
 /**
  * Determine competitive position compared to regional average
  */
 function determineCompetitivePosition(actualMargin, regionalAverage) {
-  const difference = actualMargin - regionalAverage;
+  const difference = ((actualMargin - regionalAverage) / regionalAverage) * 100;
   
-  if (difference < -5) {
-    return { 
-      position: 'significantly_below_market',
-      message: 'Your pricing is significantly below market average. This may signal value to customers but could limit profitability.',
-      recommendation: 'Consider a gradual price increase or adding premium service options.'
-    };
-  } else if (difference < -2) {
-    return { 
-      position: 'below_market',
-      message: 'Your pricing is slightly below market average, which may be attractive to price-sensitive customers.',
-      recommendation: 'Emphasize value in your client communications to avoid being seen as simply "cheap".'
-    };
-  } else if (difference < 2) {
-    return { 
-      position: 'at_market',
-      message: 'Your pricing is aligned with market averages in your region.',
-      recommendation: 'Differentiate your service with unique features or exceptional quality to stand out.'
-    };
-  } else if (difference < 5) {
-    return { 
-      position: 'above_market',
-      message: 'Your pricing is slightly above market average, which can signal premium quality.',
-      recommendation: 'Ensure your service quality and customer experience justify the premium price point.'
-    };
-  } else {
-    return { 
-      position: 'significantly_above_market',
-      message: 'Your pricing is significantly above market average. This requires exceptional service quality and clear value demonstration.',
-      recommendation: 'Be prepared to articulate your unique value proposition and premium service elements.'
-    };
-  }
+  if (difference < -10) return { position: 'below-market', percentDiff: Math.abs(difference) };
+  if (difference > 10) return { position: 'above-market', percentDiff: difference };
+  return { position: 'at-market', percentDiff: Math.abs(difference) };
 }
 
 /**
  * Extract state from location string
  */
 function getStateFromLocation(location) {
-  // Extract two-letter state code from location string
-  // Example: "New York, NY" -> "NY"
-  const stateMatch = location.match(/,\s*([A-Z]{2})$/);
-  return stateMatch ? stateMatch[1] : 'NY'; // Default to NY if not found
+  // Basic state extraction
+  const stateAbbrs = {
+    'AL': 'Southeast', 'AK': 'West', 'AZ': 'Southwest', 'AR': 'Southeast',
+    'CA': 'West', 'CO': 'West', 'CT': 'Northeast', 'DE': 'Northeast',
+    'FL': 'Southeast', 'GA': 'Southeast', 'HI': 'West', 'ID': 'West',
+    'IL': 'Midwest', 'IN': 'Midwest', 'IA': 'Midwest', 'KS': 'Midwest',
+    'KY': 'Southeast', 'LA': 'Southeast', 'ME': 'Northeast', 'MD': 'Northeast',
+    'MA': 'Northeast', 'MI': 'Midwest', 'MN': 'Midwest', 'MS': 'Southeast',
+    'MO': 'Midwest', 'MT': 'West', 'NE': 'Midwest', 'NV': 'West',
+    'NH': 'Northeast', 'NJ': 'Northeast', 'NM': 'Southwest', 'NY': 'Northeast',
+    'NC': 'Southeast', 'ND': 'Midwest', 'OH': 'Midwest', 'OK': 'Southwest',
+    'OR': 'West', 'PA': 'Northeast', 'RI': 'Northeast', 'SC': 'Southeast',
+    'SD': 'Midwest', 'TN': 'Southeast', 'TX': 'Southwest', 'UT': 'West',
+    'VT': 'Northeast', 'VA': 'Southeast', 'WA': 'West', 'WV': 'Southeast',
+    'WI': 'Midwest', 'WY': 'West'
+  };
+  
+  // Try to find a state abbreviation in the location string
+  for (const [abbr, region] of Object.entries(stateAbbrs)) {
+    if (location.includes(abbr) || location.includes(abbr.toLowerCase())) {
+      return region;
+    }
+  }
+  
+  // Try to match state names
+  const stateNames = {
+    'Alabama': 'Southeast', 'Alaska': 'West', 'Arizona': 'Southwest', 'Arkansas': 'Southeast',
+    'California': 'West', 'Colorado': 'West', 'Connecticut': 'Northeast', 'Delaware': 'Northeast',
+    'Florida': 'Southeast', 'Georgia': 'Southeast', 'Hawaii': 'West', 'Idaho': 'West',
+    'Illinois': 'Midwest', 'Indiana': 'Midwest', 'Iowa': 'Midwest', 'Kansas': 'Midwest',
+    'Kentucky': 'Southeast', 'Louisiana': 'Southeast', 'Maine': 'Northeast', 'Maryland': 'Northeast',
+    'Massachusetts': 'Northeast', 'Michigan': 'Midwest', 'Minnesota': 'Midwest', 'Mississippi': 'Southeast',
+    'Missouri': 'Midwest', 'Montana': 'West', 'Nebraska': 'Midwest', 'Nevada': 'West',
+    'New Hampshire': 'Northeast', 'New Jersey': 'Northeast', 'New Mexico': 'Southwest', 'New York': 'Northeast',
+    'North Carolina': 'Southeast', 'North Dakota': 'Midwest', 'Ohio': 'Midwest', 'Oklahoma': 'Southwest',
+    'Oregon': 'West', 'Pennsylvania': 'Northeast', 'Rhode Island': 'Northeast', 'South Carolina': 'Southeast',
+    'South Dakota': 'Midwest', 'Tennessee': 'Southeast', 'Texas': 'Southwest', 'Utah': 'West',
+    'Vermont': 'Northeast', 'Virginia': 'Southeast', 'Washington': 'West', 'West Virginia': 'Southeast',
+    'Wisconsin': 'Midwest', 'Wyoming': 'West'
+  };
+  
+  for (const [name, region] of Object.entries(stateNames)) {
+    if (location.includes(name)) {
+      return region;
+    }
+  }
+  
+  // Default to "unknown" region if no match
+  return 'default';
 }
 
 /**
@@ -447,44 +393,68 @@ function getStateFromLocation(location) {
  * for different service levels
  */
 function generateTieredOptions(data, parameters) {
-  // Generate basic, standard, and premium tier options
-  const basicParams = { ...data, targetMargin: parameters.targetMargin - 5 };
-  const standardParams = { ...data, targetMargin: parameters.targetMargin };
-  const premiumParams = { ...data, targetMargin: parameters.targetMargin + 7 };
+  const baseMargin = parameters.baseMargin;
   
-  // Calculate margins for each tier
-  const basicMargin = calculateEnhancedProfitMargin(basicParams, parameters);
-  const standardMargin = calculateEnhancedProfitMargin(standardParams, parameters);
-  const premiumMargin = calculateEnhancedProfitMargin(premiumParams, parameters);
-  
-  // Get industry specific features for each tier
-  const { industryParams, serviceIndustry } = parameters;
-  
-  const tiers = {
-    basic: {
-      ...basicMargin,
-      name: "Basic",
-      description: getBasicDescription(serviceIndustry, data.jobType),
-      features: getBasicFeatures(serviceIndustry, data.jobType, industryParams),
-      warranty: industryParams.service_warranty?.basic || 30
-    },
-    standard: {
-      ...standardMargin,
-      name: "Standard",
-      description: getStandardDescription(serviceIndustry, data.jobType),
-      features: getStandardFeatures(serviceIndustry, data.jobType, industryParams),
-      warranty: industryParams.service_warranty?.standard || 90
-    },
-    premium: {
-      ...premiumMargin,
-      name: "Premium",
-      description: getPremiumDescription(serviceIndustry, data.jobType),
-      features: getPremiumFeatures(serviceIndustry, data.jobType, industryParams),
-      warranty: industryParams.service_warranty?.premium || 365
-    }
+  // Define tier-specific margins
+  const tierMargins = {
+    basic: baseMargin * 0.85,
+    standard: baseMargin,
+    premium: baseMargin * 1.25
   };
   
-  return tiers;
+  // Get industry for tier descriptions
+  const serviceIndustry = data.serviceIndustry || mapJobTypeToIndustry(data.jobType);
+  
+  // Calculate base costs (labor + materials without profit)
+  const laborHours = parseFloat(data.laborHours) || 0;
+  const laborRate = parseFloat(data.laborRate) || 75;
+  const materialCost = parseFloat(data.materialCost) || 0;
+  
+  const baseLaborCost = laborHours * laborRate;
+  const baseCosts = baseLaborCost + materialCost;
+  
+  // Generate tier options
+  const basicTotal = Math.round(baseCosts / (1 - tierMargins.basic));
+  const standardTotal = Math.round(baseCosts / (1 - tierMargins.standard));
+  const premiumTotal = Math.round(baseCosts / (1 - tierMargins.premium));
+  
+  // Get tier descriptions
+  const basicDescription = getBasicDescription(serviceIndustry, data.jobType);
+  const standardDescription = getStandardDescription(serviceIndustry, data.jobType);
+  const premiumDescription = getPremiumDescription(serviceIndustry, data.jobType);
+  
+  // Calculate actual profit amounts
+  const basicProfit = basicTotal - baseCosts;
+  const standardProfit = standardTotal - baseCosts;
+  const premiumProfit = premiumTotal - baseCosts;
+  
+  return {
+    basic: {
+      name: "Basic",
+      description: basicDescription,
+      price: basicTotal,
+      profit: basicProfit,
+      profitMargin: tierMargins.basic,
+      features: getBasicFeatures(serviceIndustry, data.jobType, parameters)
+    },
+    standard: {
+      name: "Standard",
+      description: standardDescription,
+      price: standardTotal,
+      profit: standardProfit,
+      profitMargin: tierMargins.standard,
+      features: getStandardFeatures(serviceIndustry, data.jobType, parameters),
+      recommended: true
+    },
+    premium: {
+      name: "Premium",
+      description: premiumDescription,
+      price: premiumTotal,
+      profit: premiumProfit,
+      profitMargin: tierMargins.premium,
+      features: getPremiumFeatures(serviceIndustry, data.jobType, parameters)
+    }
+  };
 }
 
 /**
@@ -492,414 +462,500 @@ function generateTieredOptions(data, parameters) {
  */
 function getBasicDescription(serviceIndustry, jobType) {
   const descriptions = {
-    home_services: {
-      default: "Essential service with standard parts and basic guarantee.",
-      plumbing: "Basic plumbing service with standard parts and 30-day guarantee.",
-      electrical: "Basic electrical service with standard parts and 30-day guarantee.",
-      hvac: "Basic HVAC service with standard components and 30-day guarantee."
-    },
-    automotive: {
-      default: "Standard service with OEM-equivalent parts and basic warranty.",
-      oil_change: "Standard oil change with conventional oil and basic inspection.",
-      brake_service: "Basic brake service with standard parts and 90-day warranty."
-    },
-    beauty_wellness: {
-      default: "Standard service with essential products and techniques.",
-      hair_stylist: "Basic cut and style with standard products.",
-      nail_technician: "Basic manicure/pedicure with standard polish."
-    },
-    electronics_repair: {
-      default: "Standard diagnosis and repair with compatible parts.",
-      computer_repair: "Basic computer diagnostics and repair with compatible parts.",
-      cellphone_repair: "Standard phone repair with compatible replacement parts."
-    }
+    construction: "Essential service with standard materials and no frills.",
+    automotive: "Basic service using standard parts and materials.",
+    plumbing: "Standard repair with basic fixtures and components.",
+    electrical: "Basic electrical work with standard components.",
+    locksmith: "Standard lock service with basic hardware.",
+    cleaning: "Basic cleaning service for standard maintenance.",
+    beauty: "Standard service with basic styling products.",
+    landscaping: "Basic landscaping with standard plants and materials.",
+    graphic_design: "Simple design with limited revisions.",
+    electronics_repair: "Basic repair with standard parts."
   };
   
-  // Return job-specific description or industry default or general default
-  return descriptions[serviceIndustry]?.[jobType] || 
-         descriptions[serviceIndustry]?.default || 
-         "Basic service package with essential components.";
+  return descriptions[serviceIndustry] || "Basic service package with essential elements.";
 }
 
 function getStandardDescription(serviceIndustry, jobType) {
   const descriptions = {
-    home_services: {
-      default: "Complete service with quality parts and extended guarantee.",
-      plumbing: "Complete plumbing service with quality parts and 90-day guarantee.",
-      electrical: "Thorough electrical service with quality components and 90-day guarantee.",
-      hvac: "Complete HVAC service with quality components and 90-day guarantee."
-    },
-    automotive: {
-      default: "Complete service with OEM-quality parts and extended warranty.",
-      oil_change: "Complete oil change with synthetic-blend oil and comprehensive inspection.",
-      brake_service: "Complete brake service with quality parts and 6-month warranty."
-    },
-    beauty_wellness: {
-      default: "Complete service with quality products and detailed techniques.",
-      hair_stylist: "Complete cut, style, and treatment with quality products.",
-      nail_technician: "Complete manicure/pedicure with gel polish and hand treatment."
-    },
-    electronics_repair: {
-      default: "Thorough diagnosis and repair with high-quality replacement parts.",
-      computer_repair: "Complete computer repair with thorough diagnostics and quality replacement parts.",
-      cellphone_repair: "Complete phone repair with high-quality replacement parts and screen protector."
-    }
+    construction: "Complete service with quality materials and standard warranty.",
+    automotive: "Comprehensive service with quality parts and standard warranty.",
+    plumbing: "Complete plumbing service with quality fixtures and components.",
+    electrical: "Comprehensive electrical service with quality components.",
+    locksmith: "Complete lock service with quality hardware and additional security features.",
+    cleaning: "Thorough cleaning service with premium products.",
+    beauty: "Complete service with premium styling products.",
+    landscaping: "Comprehensive landscaping with quality plants and materials.",
+    graphic_design: "Professional design with multiple revisions and format options.",
+    electronics_repair: "Comprehensive repair with quality parts and extended testing."
   };
   
-  // Return job-specific description or industry default or general default
-  return descriptions[serviceIndustry]?.[jobType] || 
-         descriptions[serviceIndustry]?.default || 
-         "Standard service package with quality components and comprehensive coverage.";
+  return descriptions[serviceIndustry] || "Standard service package with quality materials and comprehensive coverage.";
 }
 
 function getPremiumDescription(serviceIndustry, jobType) {
   const descriptions = {
-    home_services: {
-      default: "Premium service with top-tier parts and comprehensive guarantee.",
-      plumbing: "Premium plumbing service with top-quality parts and 1-year guarantee.",
-      electrical: "Premium electrical service with high-end components and 1-year guarantee.",
-      hvac: "Premium HVAC service with top-tier components and 1-year guarantee."
-    },
-    automotive: {
-      default: "Premium service with OEM parts and comprehensive warranty.",
-      oil_change: "Premium oil change with full synthetic oil and detailed inspection with preventative maintenance.",
-      brake_service: "Premium brake service with ceramic pads and 1-year warranty."
-    },
-    beauty_wellness: {
-      default: "Premium service with luxury products and advanced techniques.",
-      hair_stylist: "Premium cut, color, and treatment with luxury products and styling lesson.",
-      nail_technician: "Premium manicure/pedicure with gel extensions and paraffin treatment."
-    },
-    electronics_repair: {
-      default: "Comprehensive diagnosis and repair with premium parts and optimization.",
-      computer_repair: "Premium computer repair with detailed diagnostics, premium parts, and performance optimization.",
-      cellphone_repair: "Premium phone repair with OEM parts, tempered glass, and case."
-    }
+    construction: "Premium service with top-tier materials, extended warranty and priority scheduling.",
+    automotive: "Premium service with top-quality parts, extended warranty and complimentary extras.",
+    plumbing: "Premium plumbing service with high-end fixtures and extended warranty.",
+    electrical: "Premium electrical service with high-end components and smart home integration.",
+    locksmith: "Premium lock service with high-security hardware and smart lock options.",
+    cleaning: "Premium cleaning service with eco-friendly products and detailed attention.",
+    beauty: "Premium service with luxury products and extended consultation.",
+    landscaping: "Premium landscaping with exotic plants and custom features.",
+    graphic_design: "Premium design with unlimited revisions, multiple concepts, and all file formats.",
+    electronics_repair: "Premium repair with highest quality parts and extended warranty."
   };
   
-  // Return job-specific description or industry default or general default
-  return descriptions[serviceIndustry]?.[jobType] || 
-         descriptions[serviceIndustry]?.default || 
-         "Premium service package with top-tier components and comprehensive coverage.";
+  return descriptions[serviceIndustry] || "Premium service package with top-tier materials and exclusive benefits.";
 }
 
 /**
  * Generate tier-specific features based on industry and job type
  */
 function getBasicFeatures(serviceIndustry, jobType, industryParams) {
-  const features = {
-    home_services: {
-      default: [
-        "Standard service call",
-        "Basic components and materials",
-        `${industryParams.service_warranty?.basic || 30}-day labor warranty`,
-        "Standard scheduling"
-      ],
-      plumbing: [
-        "Standard service call",
-        "Basic components and materials",
-        `${industryParams.service_warranty?.basic || 30}-day leak-free guarantee`,
-        "Standard scheduling"
-      ]
-    },
-    automotive: {
-      default: [
-        "Standard diagnostics",
-        "OEM-equivalent parts",
-        `${industryParams.service_warranty?.basic || 90}-day parts warranty`,
-        "Standard appointment scheduling"
-      ],
-      oil_change: [
-        "Conventional oil",
-        "Standard oil filter",
-        "Basic fluid check",
-        "Basic visual inspection"
-      ]
-    },
-    beauty_wellness: {
-      default: [
-        `${industryParams.booking_intervals?.basic || 30}-minute appointment`,
-        "Essential service only",
-        "Standard products",
-        `${industryParams.addon_services?.basic || 1} complimentary addon`
-      ]
-    },
-    electronics_repair: {
-      default: [
-        "Basic diagnostics",
-        "Compatible replacement parts",
-        `${industryParams.service_warranty?.basic || 30}-day repair warranty`,
-        "Standard turnaround time"
-      ]
-    }
+  const basicFeatures = {
+    construction: [
+      "Standard materials",
+      "30-day workmanship guarantee",
+      "Standard cleanup",
+      "Regular scheduling"
+    ],
+    automotive: [
+      "Standard parts",
+      "90-day parts warranty",
+      "Basic inspection",
+      "Regular scheduling"
+    ],
+    plumbing: [
+      "Standard fixtures",
+      "30-day warranty",
+      "Basic cleanup",
+      "Regular scheduling"
+    ],
+    electrical: [
+      "Standard components",
+      "Basic testing",
+      "30-day warranty",
+      "Regular scheduling"
+    ],
+    locksmith: [
+      "Standard hardware",
+      "Basic security",
+      "30-day warranty",
+      "Regular scheduling"
+    ],
+    cleaning: [
+      "Standard cleaning products",
+      "Basic surfaces cleaned",
+      "Regular scheduling",
+      "Satisfaction guarantee"
+    ],
+    beauty: [
+      "Standard products",
+      "Basic consultation",
+      "Regular scheduling",
+      "Basic styling"
+    ],
+    landscaping: [
+      "Standard plants and materials",
+      "Basic design",
+      "Regular scheduling",
+      "30-day plant guarantee"
+    ],
+    graphic_design: [
+      "1 design concept",
+      "2 revisions",
+      "Standard file formats",
+      "5-day delivery"
+    ],
+    electronics_repair: [
+      "Standard replacement parts",
+      "Basic testing",
+      "30-day warranty",
+      "Regular scheduling"
+    ]
   };
   
-  // Return job-specific features or industry default or general default
-  return features[serviceIndustry]?.[jobType] || 
-         features[serviceIndustry]?.default || 
-         [
-           "Basic service package",
-           "Standard components",
-           "30-day warranty",
-           "Essential service elements only"
-         ];
+  return basicFeatures[serviceIndustry] || [
+    "Essential service",
+    "Standard materials",
+    "Basic warranty",
+    "Regular scheduling"
+  ];
 }
 
 function getStandardFeatures(serviceIndustry, jobType, industryParams) {
-  const features = {
-    home_services: {
-      default: [
-        "Priority service call",
-        "Quality components and materials",
-        `${industryParams.service_warranty?.standard || 90}-day labor warranty`,
-        "Flexible scheduling",
-        "Detailed work documentation"
-      ],
-      plumbing: [
-        "Priority service call",
-        "Quality components and materials",
-        `${industryParams.service_warranty?.standard || 90}-day leak-free guarantee`,
-        "Flexible scheduling",
-        "Detailed plumbing inspection"
-      ]
-    },
-    automotive: {
-      default: [
-        "Comprehensive diagnostics",
-        "OEM-quality parts",
-        `${industryParams.service_warranty?.standard || 180}-day parts and labor warranty`,
-        "Priority scheduling",
-        "Detailed vehicle inspection"
-      ],
-      oil_change: [
-        "Synthetic-blend oil",
-        "Premium oil filter",
-        "Comprehensive fluid check and top-off",
-        "Multi-point inspection",
-        "Tire pressure adjustment"
-      ]
-    },
-    beauty_wellness: {
-      default: [
-        `${industryParams.booking_intervals?.standard || 45}-minute appointment`,
-        "Complete service package",
-        "Professional-grade products",
-        `${industryParams.addon_services?.standard || 2} complimentary addons`,
-        "Basic styling consultation"
-      ]
-    },
-    electronics_repair: {
-      default: [
-        "Thorough diagnostics and testing",
-        "High-quality replacement parts",
-        `${industryParams.service_warranty?.standard || 90}-day repair warranty`,
-        "Expedited turnaround time",
-        "Basic device optimization"
-      ]
-    }
+  const standardFeatures = {
+    construction: [
+      "Quality materials",
+      "1-year workmanship guarantee",
+      "Thorough cleanup",
+      "Flexible scheduling",
+      "Detailed documentation"
+    ],
+    automotive: [
+      "Quality OEM-equivalent parts",
+      "1-year parts warranty",
+      "Comprehensive inspection",
+      "Flexible scheduling",
+      "Detailed service report"
+    ],
+    plumbing: [
+      "Quality fixtures",
+      "1-year warranty",
+      "Thorough cleanup",
+      "Flexible scheduling",
+      "Follow-up inspection"
+    ],
+    electrical: [
+      "Quality components",
+      "Comprehensive testing",
+      "1-year warranty",
+      "Flexible scheduling",
+      "Code compliance guarantee"
+    ],
+    locksmith: [
+      "Quality hardware",
+      "Enhanced security features",
+      "1-year warranty",
+      "Flexible scheduling",
+      "Security assessment"
+    ],
+    cleaning: [
+      "Premium cleaning products",
+      "All surfaces cleaned",
+      "Flexible scheduling",
+      "Satisfaction guarantee",
+      "Follow-up inspection"
+    ],
+    beauty: [
+      "Premium products",
+      "Extended consultation",
+      "Flexible scheduling",
+      "Enhanced styling",
+      "Product recommendations"
+    ],
+    landscaping: [
+      "Quality plants and materials",
+      "Custom design",
+      "Flexible scheduling",
+      "1-year plant guarantee",
+      "Seasonal maintenance plan"
+    ],
+    graphic_design: [
+      "2 design concepts",
+      "5 revisions",
+      "Multiple file formats",
+      "3-day delivery",
+      "Social media optimization"
+    ],
+    electronics_repair: [
+      "Quality replacement parts",
+      "Comprehensive testing",
+      "1-year warranty",
+      "Flexible scheduling",
+      "Performance optimization"
+    ]
   };
   
-  // Return job-specific features or industry default or general default
-  return features[serviceIndustry]?.[jobType] || 
-         features[serviceIndustry]?.default || 
-         [
-           "Standard service package",
-           "Quality components",
-           "90-day warranty",
-           "Comprehensive service coverage",
-           "Additional value elements"
-         ];
+  return standardFeatures[serviceIndustry] || [
+    "Comprehensive service",
+    "Quality materials",
+    "1-year warranty",
+    "Flexible scheduling",
+    "Detailed documentation"
+  ];
 }
 
 function getPremiumFeatures(serviceIndustry, jobType, industryParams) {
-  const features = {
-    home_services: {
-      default: [
-        "Same-day service call",
-        "Top-tier components and materials",
-        `${industryParams.service_warranty?.premium || 365}-day labor warranty`,
-        "Priority scheduling with 2-hour window",
-        "Detailed work documentation with photos",
-        "Complimentary follow-up inspection",
-        "Emergency service discount"
-      ],
-      plumbing: [
-        "Same-day service call",
-        "Top-tier components and materials",
-        `${industryParams.service_warranty?.premium || 365}-day leak-free guarantee`,
-        "Priority scheduling with 2-hour window",
-        "Comprehensive plumbing inspection",
-        "Complimentary water pressure test",
-        "Future service discount"
-      ]
-    },
-    automotive: {
-      default: [
-        "Advanced computer diagnostics",
-        "OEM or premium aftermarket parts",
-        `${industryParams.service_warranty?.premium || 365}-day parts and labor warranty`,
-        "Same-day service when available",
-        "Comprehensive vehicle inspection",
-        "Complimentary detailing",
-        "Courtesy vehicle"
-      ],
-      oil_change: [
-        "Full synthetic oil",
-        "Premium extended-life oil filter",
-        "Complete fluid check and replacement",
-        "Comprehensive multi-point inspection",
-        "Tire rotation and pressure adjustment",
-        "Filter inspection and replacement",
-        "Exterior wash"
-      ]
-    },
-    beauty_wellness: {
-      default: [
-        `${industryParams.booking_intervals?.premium || 60}-minute appointment`,
-        "Premium service package",
-        "Luxury professional products",
-        `${industryParams.addon_services?.premium || 3} complimentary addons`,
-        "Personalized consultation",
-        "Complimentary beverage service",
-        "Take-home product sample"
-      ]
-    },
-    electronics_repair: {
-      default: [
-        "Comprehensive diagnostics and testing",
-        "Premium or OEM replacement parts",
-        `${industryParams.service_warranty?.premium || 180}-day repair warranty`,
-        "Express turnaround service",
-        "Complete device optimization and cleaning",
-        "Data backup and recovery",
-        "Protective accessories included"
-      ]
-    }
+  const premiumFeatures = {
+    construction: [
+      "Premium materials",
+      "5-year workmanship guarantee",
+      "White-glove cleanup",
+      "Priority scheduling",
+      "Detailed documentation",
+      "Project manager assigned",
+      "Complimentary follow-ups"
+    ],
+    automotive: [
+      "Premium OEM parts",
+      "3-year parts warranty",
+      "Comprehensive inspection",
+      "Priority scheduling",
+      "Detailed service report",
+      "Complimentary detailing",
+      "Loaner vehicle available"
+    ],
+    plumbing: [
+      "Premium fixtures",
+      "5-year warranty",
+      "White-glove cleanup",
+      "Priority scheduling",
+      "Regular maintenance checks",
+      "24/7 emergency support",
+      "Water efficiency upgrades"
+    ],
+    electrical: [
+      "Premium components",
+      "Comprehensive testing",
+      "5-year warranty",
+      "Priority scheduling",
+      "Code compliance guarantee",
+      "Smart home integration",
+      "Energy efficiency consultation"
+    ],
+    locksmith: [
+      "High-security hardware",
+      "Smart lock options",
+      "5-year warranty",
+      "Priority scheduling",
+      "Comprehensive security assessment",
+      "24/7 emergency support",
+      "Security system integration"
+    ],
+    cleaning: [
+      "Eco-friendly premium products",
+      "Deep cleaning of all surfaces",
+      "Priority scheduling",
+      "Satisfaction guarantee",
+      "Regular maintenance plan",
+      "Special treatments included",
+      "Personalized cleaning protocol"
+    ],
+    beauty: [
+      "Luxury products",
+      "Extended consultation",
+      "Priority scheduling",
+      "Advanced styling techniques",
+      "Take-home product package",
+      "Complimentary touch-up appointment",
+      "Personalized style guide"
+    ],
+    landscaping: [
+      "Exotic plants and premium materials",
+      "Custom design with 3D visualization",
+      "Priority scheduling",
+      "5-year plant guarantee",
+      "Comprehensive maintenance plan",
+      "Irrigation system installation",
+      "Seasonal decor changes"
+    ],
+    graphic_design: [
+      "5 unique design concepts",
+      "Unlimited revisions",
+      "All file formats included",
+      "1-day rush delivery",
+      "Social media optimization",
+      "Brand style guide",
+      "Marketing consultation"
+    ],
+    electronics_repair: [
+      "Premium replacement parts",
+      "Comprehensive testing suite",
+      "5-year warranty",
+      "Priority scheduling",
+      "Performance optimization",
+      "Protective case included",
+      "Data backup service"
+    ]
   };
   
-  // Return job-specific features or industry default or general default
-  return features[serviceIndustry]?.[jobType] || 
-         features[serviceIndustry]?.default || 
-         [
-           "Premium service package",
-           "Top-tier components",
-           "1-year warranty",
-           "Comprehensive coverage with extras",
-           "Priority scheduling and service",
-           "Complimentary add-ons and enhancements",
-           "Exclusive client benefits"
-         ];
+  return premiumFeatures[serviceIndustry] || [
+    "Premium service",
+    "Top-tier materials",
+    "5-year extended warranty",
+    "Priority scheduling",
+    "Dedicated account manager",
+    "Complimentary add-ons",
+    "24/7 support"
+  ];
 }
 
 /**
  * Main quote generation function with user profile integration
  */
 function generateEnhancedQuote(data, userId) {
-  // Determine service industry based on job type
-  const serviceIndustry = mapJobTypeToIndustry(data.jobType);
-  
-  // Get dynamic parameters based on user profile and industry
-  const parameters = getDynamicParameters(userId, serviceIndustry);
-  
-  // Calculate profit margin
-  const marginData = calculateEnhancedProfitMargin(data, parameters);
-  
-  // Generate tiered pricing options
-  const tiers = generateTieredOptions(data, parameters);
-  
-  // Compile quote information
-  const quote = {
-    quoteName: data.quoteName || `Quote for ${data.clientName || 'Client'}`,
-    jobType: data.jobType,
-    jobSubtype: data.jobSubtype,
-    location: data.location,
-    clientName: data.clientName,
-    dateCreated: new Date().toISOString(),
-    validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-    notes: data.notes || '',
+  try {
+    // Map job type to service industry if not provided
+    const serviceIndustry = data.serviceIndustry || mapJobTypeToIndustry(data.jobType);
+    data.serviceIndustry = serviceIndustry;
+
+    // Get dynamic parameters based on user profile and industry
+    const parameters = getDynamicParameters(userId, serviceIndustry);
     
-    // Core calculation results
-    laborRate: marginData.laborRate,
-    laborHours: data.laborHours,
-    laborCost: marginData.laborCost,
-    materialsCost: marginData.materialsCost,
-    materialMarkup: marginData.materialMarkup,
-    materialsTax: marginData.materialsTax,
-    total: marginData.total,
+    // Calculate enhanced profit margin
+    const enhancedMargin = calculateEnhancedProfitMargin(data, parameters);
     
-    // Profit analysis
-    targetMargin: parameters.targetMargin,
-    actualProfitMargin: marginData.actualProfitMargin,
-    profit: marginData.profit,
+    // Get region from location
+    const region = getStateFromLocation(data.location);
     
-    // Competitive context
-    regionalAverageMargin: marginData.regionalAverageMargin,
-    competitivePosition: marginData.competitivePosition,
+    // Get regional average for competitive positioning
+    const regionalAverage = getRegionalMarginData(data.jobType, region);
     
-    // User profile integration
-    userExperienceLevel: parameters.experienceLevel,
-    serviceIndustry: parameters.serviceIndustry,
-    businessGoals: parameters.businessGoals,
+    // Determine competitive position
+    const competitivePosition = determineCompetitivePosition(enhancedMargin, regionalAverage);
     
-    // Environment context
-    season: parameters.currentSeason,
-    seasonality: parameters.seasonality,
+    // Generate tiered pricing options
+    const tierOptions = generateTieredOptions(data, parameters);
     
-    // Tiered options
-    tiers: tiers,
+    // Generate recommendations based on analysis
+    const recommendations = generateRecommendations({
+      margin: enhancedMargin,
+      regional: regionalAverage,
+      position: competitivePosition
+    }, parameters, data);
     
-    // Recommendations based on all analysis
-    recommendations: generateRecommendations(marginData, parameters, data)
-  };
-  
-  return quote;
+    // Calculate base costs
+    const laborHours = parseFloat(data.laborHours) || 0;
+    const laborRate = parseFloat(data.laborRate) || 75;
+    const materialCost = parseFloat(data.materialCost) || 0;
+    
+    const baseLaborCost = laborHours * laborRate;
+    const baseCost = baseLaborCost + materialCost;
+    
+    // Calculate total with profit margin
+    const totalPrice = Math.round(baseCost / (1 - enhancedMargin));
+    const profit = totalPrice - baseCost;
+    
+    // Format the date
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    
+    // Include the current season in the response
+    const currentSeason = getCurrentSeason();
+    const seasonalityFactor = getIndustrySeasonality(serviceIndustry, currentSeason);
+    
+    // Determine deposit requirements based on job total
+    let depositPercent = totalPrice > 2000 ? 25 : 50;
+    let depositAmount = Math.round(totalPrice * (depositPercent / 100));
+    
+    // Return the enhanced quote
+    return {
+      quoteDate: formattedDate,
+      jobType: data.jobType,
+      serviceIndustry: serviceIndustry,
+      location: data.location,
+      region: region,
+      customerName: data.customerName || "Customer",
+      description: data.description || `${data.jobType} service`,
+      
+      // Pricing breakdown
+      laborHours: laborHours,
+      laborRate: laborRate,
+      laborCost: baseLaborCost,
+      materialCost: materialCost,
+      subtotal: baseCost,
+      profitMargin: enhancedMargin,
+      profitAmount: profit,
+      total: totalPrice,
+      
+      // Payment terms
+      depositRequired: totalPrice > 500, // Only require deposit for jobs over $500
+      depositPercent: depositPercent,
+      depositAmount: depositAmount,
+      balanceDue: totalPrice - depositAmount,
+      
+      // Competitive positioning
+      regionalAverage: regionalAverage,
+      competitivePosition: competitivePosition,
+      
+      // Seasonal factors
+      season: currentSeason,
+      seasonalityFactor: seasonalityFactor,
+      
+      // Tiered options
+      tierOptions: tierOptions,
+      
+      // Recommendations
+      recommendations: recommendations
+    };
+  } catch (error) {
+    console.error('Error generating enhanced quote:', error);
+    throw new Error(`Failed to generate quote: ${error.message}`);
+  }
 }
 
 /**
  * Map job type to service industry
  */
 function mapJobTypeToIndustry(jobType) {
-  const industryMap = {
-    // Home services
-    'plumbing': 'home_services',
-    'electrical': 'home_services',
-    'hvac': 'home_services',
-    'handyman': 'home_services',
-    'locksmith': 'home_services',
-    'landscaping': 'home_services',
-    'cleaning': 'home_services',
+  const jobTypeMap = {
+    // Construction
+    'Bathroom Remodel': 'construction',
+    'Kitchen Remodel': 'construction',
+    'Home Renovation': 'construction',
+    'Deck Building': 'construction',
+    'Fence Installation': 'construction',
+    'Room Addition': 'construction',
     
     // Automotive
-    'oil_change': 'automotive',
-    'brake_service': 'automotive',
-    'transmission': 'automotive',
-    'engine_repair': 'automotive',
-    'tire_service': 'automotive',
-    'diagnostics': 'automotive',
+    'Oil Change': 'automotive',
+    'Brake Replacement': 'automotive',
+    'Tire Rotation': 'automotive',
+    'Engine Repair': 'automotive',
+    'Car Detailing': 'automotive',
+    'Transmission Repair': 'automotive',
     
-    // Beauty/wellness
-    'hair_stylist': 'beauty_wellness',
-    'nail_technician': 'beauty_wellness',
-    'makeup_artist': 'beauty_wellness',
-    'esthetician': 'beauty_wellness',
-    'massage_therapist': 'beauty_wellness',
-    'spa_services': 'beauty_wellness',
+    // Beauty
+    'Haircut': 'beauty',
+    'Hair Coloring': 'beauty',
+    'Manicure': 'beauty',
+    'Pedicure': 'beauty',
+    'Facial': 'beauty',
+    'Makeup Application': 'beauty',
     
-    // Electronics repair
-    'computer_repair': 'electronics_repair',
-    'cellphone_repair': 'electronics_repair',
-    'tv_repair': 'electronics_repair',
-    'appliance_repair': 'electronics_repair',
+    // Electronics Repair
+    'Phone Screen Repair': 'electronics_repair',
+    'Computer Repair': 'electronics_repair',
+    'TV Repair': 'electronics_repair',
+    'Game Console Repair': 'electronics_repair',
     
-    // Professional services
-    'legal_services': 'professional_services',
-    'accounting': 'professional_services',
-    'consulting': 'professional_services',
-    'design_services': 'professional_services',
-    'marketing': 'professional_services',
+    // Graphic Design
+    'Logo Design': 'graphic_design',
+    'Business Card Design': 'graphic_design',
+    'Website Design': 'graphic_design',
+    'Brochure Design': 'graphic_design',
+    'Social Media Graphics': 'graphic_design',
+    
+    // Plumbing
+    'Pipe Repair': 'plumbing',
+    'Drain Cleaning': 'plumbing',
+    'Water Heater Installation': 'plumbing',
+    'Faucet Replacement': 'plumbing',
+    'Toilet Repair': 'plumbing',
+    
+    // Electrical
+    'Outlet Installation': 'electrical',
+    'Light Fixture Installation': 'electrical',
+    'Panel Upgrade': 'electrical',
+    'Wiring Repair': 'electrical',
+    'Ceiling Fan Installation': 'electrical',
+    
+    // Landscaping
+    'Lawn Mowing': 'landscaping',
+    'Garden Design': 'landscaping',
+    'Tree Trimming': 'landscaping',
+    'Irrigation Installation': 'landscaping',
+    'Mulch Installation': 'landscaping',
+    
+    // Locksmith
+    'Lock Replacement': 'locksmith',
+    'Key Duplication': 'locksmith',
+    'Lock Rekeying': 'locksmith',
+    'Safe Installation': 'locksmith',
+    
+    // Cleaning
+    'House Cleaning': 'cleaning',
+    'Office Cleaning': 'cleaning',
+    'Carpet Cleaning': 'cleaning',
+    'Window Cleaning': 'cleaning',
+    'Move-out Cleaning': 'cleaning'
   };
   
-  return industryMap[jobType] || 'default';
+  return jobTypeMap[jobType] || 'default';
 }
 
 /**
@@ -908,75 +964,96 @@ function mapJobTypeToIndustry(jobType) {
 function generateRecommendations(marginData, parameters, data) {
   const recommendations = [];
   
-  // Add competitive position recommendation
-  recommendations.push(marginData.competitivePosition.recommendation);
-  
-  // Add margin-based recommendations
-  if (marginData.actualProfitMargin < 15) {
-    recommendations.push(`Your profit margin is very low at ${marginData.actualProfitMargin.toFixed(1)}%. Consider increasing prices or finding ways to reduce costs.`);
-  } else if (marginData.actualProfitMargin > 45) {
-    recommendations.push(`Your profit margin of ${marginData.actualProfitMargin.toFixed(1)}% is very high. While profitable, this may price you out of competitive bids. Consider offering value-adds or premium service guarantees.`);
+  // Competitive positioning recommendations
+  if (marginData.position.position === 'above-market' && marginData.position.percentDiff > 15) {
+    recommendations.push({
+      type: 'pricing',
+      title: 'Consider competitive adjustment',
+      description: `Your margin is ${marginData.position.percentDiff.toFixed(1)}% above regional averages. Consider adjusting if experiencing customer resistance.`,
+      priority: 'medium'
+    });
+  } else if (marginData.position.position === 'below-market' && marginData.position.percentDiff > 15) {
+    recommendations.push({
+      type: 'pricing',
+      title: 'Potential for margin improvement',
+      description: `Your margin is ${marginData.position.percentDiff.toFixed(1)}% below regional averages. Consider increasing prices to improve profitability.`,
+      priority: 'high'
+    });
   }
   
-  // Add industry-specific recommendations
-  switch (parameters.serviceIndustry) {
-    case 'home_services':
-      if (parameters.seasonality === "peak") {
-        recommendations.push(`You're quoting during a peak season for ${parameters.serviceIndustry}. Consider adding a seasonal demand surcharge or highlighting limited availability to justify premium pricing.`);
-      } else if (parameters.seasonality === "off_peak") {
-        recommendations.push(`You're quoting during an off-peak season for ${parameters.serviceIndustry}. Consider offering a limited-time discount or package deals to incentivize bookings.`);
-      }
-      
-      // Add recommendation based on service type
-      if (data.jobType === 'plumbing' || data.jobType === 'electrical') {
-        recommendations.push(`Consider offering a preventative maintenance package or annual service plan to create recurring revenue.`);
-      }
-      break;
-      
-    case 'automotive':
-      recommendations.push(`For ${data.jobType}, successful shops in your region are offering free multi-point inspections as a lead generation tool, with a 60% upsell rate to additional services.`);
-      
-      if (data.jobType === 'oil_change') {
-        recommendations.push(`Consider offering a subscription-based oil change package (3-5 changes per year) at a discounted rate to increase customer retention.`);
-      }
-      break;
-      
-    case 'beauty_wellness':
-      recommendations.push(`For ${data.jobType}, top providers in your area are creating tiered service packages with take-home products included, increasing average transaction value by 35%.`);
-      
-      if (parameters.seasonality === "peak") {
-        recommendations.push(`During this peak season, consider offering bundle packages or introducing a booking fee for prime time slots that can be applied to the service.`);
-      }
-      break;
-      
-    case 'electronics_repair':
-      recommendations.push(`For ${data.jobType}, consider offering a "repair plus protection" package that includes the current repair plus a discounted extended warranty or insurance option.`);
-      
-      if (data.jobType === 'cellphone_repair' || data.jobType === 'computer_repair') {
-        recommendations.push(`Adding data backup/recovery as a premium service has shown a 25% attachment rate and 40% profit margin for top providers in your industry.`);
-      }
-      break;
-      
-    case 'professional_services':
-      recommendations.push(`Consider creating packaged services with clear deliverables and fixed pricing to improve conversion rates. Top firms report 30% higher close rates with defined packages versus hourly billing.`);
-      break;
+  // Season-specific recommendations
+  const season = getCurrentSeason();
+  if (season === 'winter' && data.serviceIndustry === 'construction') {
+    recommendations.push({
+      type: 'seasonal',
+      title: 'Winter construction incentive',
+      description: 'Consider offering a winter discount to attract customers during this typically slower season for construction.',
+      priority: 'medium'
+    });
+  } else if (season === 'spring' && data.serviceIndustry === 'landscaping') {
+    recommendations.push({
+      type: 'seasonal',
+      title: 'Spring demand premium',
+      description: 'Spring is peak season for landscaping. Consider a slight premium for priority scheduling.',
+      priority: 'high'
+    });
   }
   
-  // Add recommendations based on business goals
-  if (parameters.businessGoals.includes('attract_new_clients')) {
-    recommendations.push(`To support your goal of attracting new clients, consider creating an introductory offer at 10-15% below your standard rate with clear explanation of regular pricing for future services.`);
+  // Experience-based recommendations
+  const experienceYears = parseInt(data.experienceYears) || 0;
+  if (experienceYears < 2) {
+    recommendations.push({
+      type: 'experience',
+      title: 'New business positioning',
+      description: 'As a newer service provider, consider emphasizing customer service and satisfaction guarantees to overcome experience concerns.',
+      priority: 'high'
+    });
+  } else if (experienceYears > 10) {
+    recommendations.push({
+      type: 'experience',
+      title: 'Leverage your expertise',
+      description: 'With over 10 years of experience, emphasize your expertise and track record to justify premium pricing.',
+      priority: 'medium'
+    });
   }
   
-  if (parameters.businessGoals.includes('increase_revenue')) {
-    recommendations.push(`To increase revenue, focus on upselling to your premium tier. Highlighting the cost-per-benefit ratio can help clients see the value in selecting higher-priced options.`);
+  // Payment terms recommendations
+  const total = parseFloat(data.total) || 0;
+  if (total > 1000) {
+    recommendations.push({
+      type: 'payment',
+      title: 'Offer payment options',
+      description: 'For this higher-value job, consider offering payment plans or financing options to improve conversion rate.',
+      priority: 'medium'
+    });
+  }
+  
+  // Upsell recommendations based on job type
+  if (data.jobType === 'Bathroom Remodel') {
+    recommendations.push({
+      type: 'upsell',
+      title: 'Fixture package upsell',
+      description: 'Offer a premium fixture package as an upsell opportunity.',
+      priority: 'low'
+    });
+  } else if (data.jobType === 'Lawn Mowing') {
+    recommendations.push({
+      type: 'upsell',
+      title: 'Maintenance package',
+      description: 'Offer a seasonal maintenance package for recurring revenue.',
+      priority: 'high'
+    });
   }
   
   return recommendations;
 }
 
-// Export functions
+// Export functions for use in the application
 module.exports = {
   generateEnhancedQuote,
   calculateEnhancedProfitMargin,
-  getDynamicParameters
+  getDynamicParameters,
+  getCurrentSeason,
+  getIndustrySeasonality,
+  generateTieredOptions
 };

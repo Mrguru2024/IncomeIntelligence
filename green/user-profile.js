@@ -1,72 +1,55 @@
 /**
- * User Profile Module
- * Functions for working with user profiles to personalize quotes
- * Integrates with the enhanced quote generator
+ * User Profile Management for Stackr Quoting System
+ * 
+ * Features:
+ * - Profile persistence with industry-specific parameters
+ * - Quote history tracking
+ * - Preference learning from past quotes
+ * - Adaptive parameter adjustments based on user behavior
  */
 
-// In-memory cache for user profiles (would connect to database in production)
-const userProfileCache = new Map();
+const fs = require('fs');
+const path = require('path');
 
-// Experience Level options
-const ExperienceLevelEnum = [
-  'novice',
-  'apprentice',
-  'intermediate',
-  'advanced',
-  'expert',
-  'master'
-];
+// File path for storing user profiles
+const USER_PROFILES_FILE = path.join(process.cwd(), 'user-profiles.json');
 
-// Service industries
-const ServiceIndustryEnum = [
-  'home_services',
-  'professional_services',
-  'beauty_wellness',
-  'automotive',
-  'electronics_repair',
-  'construction',
-  'landscaping',
-  'cleaning',
-  'education_training',
-  'other'
-];
+// In-memory cache of user profiles
+let userProfilesCache = null;
 
-// Business goals
-const BusinessGoalEnum = [
-  'increase_revenue',
-  'reduce_costs',
-  'expand_services',
-  'improve_efficiency',
-  'attract_new_clients',
-  'retain_existing_clients',
-  'enter_new_markets',
-  'improve_quality',
-  'build_brand'
-];
+/**
+ * Load all user profiles from file
+ */
+function loadUserProfiles() {
+  try {
+    if (fs.existsSync(USER_PROFILES_FILE)) {
+      const fileContent = fs.readFileSync(USER_PROFILES_FILE, 'utf8');
+      const profiles = JSON.parse(fileContent);
+      console.log(`Loaded ${Object.keys(profiles).length} user profiles from file`);
+      return profiles;
+    } else {
+      // Initialize empty profiles object
+      console.log('No user profiles file found, creating new profiles store');
+      return {};
+    }
+  } catch (error) {
+    console.error('Error loading user profiles:', error);
+    return {};
+  }
+}
 
-// Business challenges
-const BusinessChallengeEnum = [
-  'limited_budget',
-  'time_constraints',
-  'competitive_market',
-  'finding_clients',
-  'pricing_strategy',
-  'skilled_labor_shortage',
-  'equipment_costs',
-  'cash_flow',
-  'marketing',
-  'seasonality'
-];
-
-// Service preferences
-const ServicePreferenceEnum = [
-  'value_oriented',
-  'quality_oriented',
-  'speed_oriented',
-  'relationship_oriented',
-  'detail_oriented',
-  'reliability_oriented'
-];
+/**
+ * Save user profiles to file
+ */
+function saveUserProfiles(profiles) {
+  try {
+    fs.writeFileSync(USER_PROFILES_FILE, JSON.stringify(profiles, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Error saving user profiles:', error);
+    return false;
+  }
+}
 
 /**
  * Get user profile by ID
@@ -76,29 +59,13 @@ const ServicePreferenceEnum = [
 function getUserProfile(userId) {
   if (!userId) return null;
   
-  // Try to get from cache first
-  if (userProfileCache.has(userId)) {
-    return userProfileCache.get(userId);
+  // Load profiles if not cached
+  if (!userProfilesCache) {
+    userProfilesCache = loadUserProfiles();
   }
   
-  try {
-    // In a real app, this would fetch from a database
-    // For now, check if we have a profile in localStorage
-    if (typeof window !== 'undefined') {
-      const storedProfile = localStorage.getItem(`userProfile_${userId}`);
-      if (storedProfile) {
-        const profile = JSON.parse(storedProfile);
-        userProfileCache.set(userId, profile);
-        return profile;
-      }
-    }
-    
-    // If no profile found, create a default one
-    return initializeUserProfile(userId);
-  } catch (error) {
-    console.error('Error getting user profile:', error);
-    return null;
-  }
+  // Return profile or null if not found
+  return userProfilesCache[userId] || null;
 }
 
 /**
@@ -107,43 +74,26 @@ function getUserProfile(userId) {
  * @returns {Object} New user profile
  */
 function initializeUserProfile(userId) {
-  console.log('No user profile found, attempting to initialize');
-  
-  // Create default profile
   const newProfile = {
-    userId: userId,
-    businessName: '',
-    businessType: '',
-    serviceIndustry: 'home_services',
-    experienceLevel: 'intermediate',
-    
-    // Business parameters
-    targetMargin: 30, // Default 30%
-    businessGoals: ['increase_revenue', 'attract_new_clients'],
-    businessChallenges: ['competitive_market', 'pricing_strategy'],
-    servicePreferences: ['quality_oriented', 'reliability_oriented'],
-    
-    // Service behavior and history
-    preferredJobTypes: [],
-    averageLaborRate: 0,
-    averageLaborHours: 0,
-    averageMaterialCost: 0,
-    
-    // Quote history
+    userId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    preferences: {
+      defaultIndustry: null,
+      preferredJobTypes: [],
+      preferredMargin: 0.3,
+      experienceYears: 0
+    },
+    statistics: {
+      totalQuotes: 0,
+      averageMargin: 0.3,
+      acceptedQuotes: 0,
+      rejectedQuotes: 0,
+      averageJobValue: 0
+    },
     quoteHistory: [],
-    
-    // Last updated timestamps
-    lastUpdated: new Date().toISOString(),
-    createdAt: new Date().toISOString()
+    industryParameters: {}
   };
-  
-  // Save to cache
-  userProfileCache.set(userId, newProfile);
-  
-  // Save to localStorage if available
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(`userProfile_${userId}`, JSON.stringify(newProfile));
-  }
   
   return newProfile;
 }
@@ -155,23 +105,41 @@ function initializeUserProfile(userId) {
  * @returns {Object} Updated profile
  */
 function saveUserProfile(userId, profileData) {
-  // Get existing profile or create new one
-  const existingProfile = getUserProfile(userId) || initializeUserProfile(userId);
+  if (!userId) throw new Error('User ID is required');
   
-  // Merge with existing profile
+  // Load profiles if not cached
+  if (!userProfilesCache) {
+    userProfilesCache = loadUserProfiles();
+  }
+  
+  // Get existing profile or initialize new one
+  const existingProfile = userProfilesCache[userId] || initializeUserProfile(userId);
+  
+  // Deep merge existing profile with new data
   const updatedProfile = {
     ...existingProfile,
     ...profileData,
-    lastUpdated: new Date().toISOString()
+    // Ensure nested objects are merged properly
+    preferences: {
+      ...existingProfile.preferences,
+      ...(profileData.preferences || {})
+    },
+    statistics: {
+      ...existingProfile.statistics,
+      ...(profileData.statistics || {})
+    },
+    industryParameters: {
+      ...existingProfile.industryParameters,
+      ...(profileData.industryParameters || {})
+    },
+    updatedAt: new Date().toISOString()
   };
   
-  // Save to cache
-  userProfileCache.set(userId, updatedProfile);
+  // Update cache
+  userProfilesCache[userId] = updatedProfile;
   
-  // Save to localStorage if available
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(`userProfile_${userId}`, JSON.stringify(updatedProfile));
-  }
+  // Save to file
+  saveUserProfiles(userProfilesCache);
   
   return updatedProfile;
 }
@@ -183,31 +151,56 @@ function saveUserProfile(userId, profileData) {
  * @returns {Object} Updated profile
  */
 function addQuoteToHistory(userId, quoteData) {
-  const profile = getUserProfile(userId);
-  if (!profile) return null;
+  if (!userId) throw new Error('User ID is required');
+  if (!quoteData) throw new Error('Quote data is required');
   
-  // Create a history entry with minimal data
-  const historyEntry = {
-    jobType: quoteData.jobType,
-    jobSubtype: quoteData.jobSubtype || '',
-    totalAmount: quoteData.total || 0,
-    date: new Date().toISOString(),
-    status: 'draft',
-    margin: quoteData.actualProfitMargin || 0
+  // Get user profile
+  const userProfile = getUserProfile(userId) || initializeUserProfile(userId);
+  
+  // Add timestamp if not present
+  const quoteWithTimestamp = {
+    ...quoteData,
+    createdAt: quoteData.createdAt || new Date().toISOString(),
+    status: quoteData.status || 'draft'
   };
   
-  // Add to history
-  const quoteHistory = [...(profile.quoteHistory || []), historyEntry];
+  // Add to quote history
+  const quoteHistory = [...(userProfile.quoteHistory || []), quoteWithTimestamp];
   
-  // Update profile with new history and recalculate averages
-  return saveUserProfile(userId, { 
+  // Update statistics
+  const margin = quoteData.profitMargin || 0.3;
+  const total = parseFloat(quoteData.total) || 0;
+  const totalQuotes = quoteHistory.length;
+  
+  // Calculate new average margin
+  const oldAverageMargin = userProfile.statistics.averageMargin || 0.3;
+  const oldTotalQuotes = userProfile.statistics.totalQuotes || 0;
+  const newAverageMargin = ((oldAverageMargin * oldTotalQuotes) + margin) / (oldTotalQuotes + 1);
+  
+  // Calculate new average job value
+  const oldAverageJobValue = userProfile.statistics.averageJobValue || 0;
+  const newAverageJobValue = ((oldAverageJobValue * oldTotalQuotes) + total) / (oldTotalQuotes + 1);
+  
+  // Extract preferred job types based on quote history
+  const preferredJobTypes = extractPreferredJobTypes(quoteHistory);
+  
+  // Update user profile
+  const updatedProfile = saveUserProfile(userId, {
     quoteHistory,
-    averageLaborRate: calculateAverageLaborRate(quoteHistory),
-    averageLaborHours: calculateAverageLaborHours(quoteHistory),
-    averageMaterialCost: calculateAverageMaterialCost(quoteHistory),
-    // Update preferred job types
-    preferredJobTypes: extractPreferredJobTypes(quoteHistory)
+    statistics: {
+      totalQuotes,
+      averageMargin: newAverageMargin,
+      acceptedQuotes: userProfile.statistics.acceptedQuotes || 0,
+      rejectedQuotes: userProfile.statistics.rejectedQuotes || 0,
+      averageJobValue: newAverageJobValue
+    },
+    preferences: {
+      ...userProfile.preferences,
+      preferredJobTypes
+    }
   });
+  
+  return updatedProfile;
 }
 
 /**
@@ -218,19 +211,54 @@ function addQuoteToHistory(userId, quoteData) {
  * @returns {Object} Updated profile
  */
 function updateQuoteStatus(userId, quoteDate, status) {
-  const profile = getUserProfile(userId);
-  if (!profile || !profile.quoteHistory) return null;
+  if (!userId) throw new Error('User ID is required');
+  if (!quoteDate) throw new Error('Quote date is required');
+  if (!status) throw new Error('Status is required');
+  
+  // Valid statuses
+  const validStatuses = ['draft', 'sent', 'accepted', 'rejected'];
+  if (!validStatuses.includes(status)) {
+    throw new Error(`Invalid status: ${status}. Must be one of: ${validStatuses.join(', ')}`);
+  }
+  
+  // Get user profile
+  const userProfile = getUserProfile(userId);
+  if (!userProfile) throw new Error('User profile not found');
   
   // Find the quote in history
-  const quoteHistory = profile.quoteHistory.map(quote => {
-    if (quote.date === quoteDate) {
-      return { ...quote, status };
+  const quoteHistory = [...(userProfile.quoteHistory || [])];
+  const quoteIndex = quoteHistory.findIndex(quote => quote.createdAt === quoteDate);
+  
+  if (quoteIndex === -1) throw new Error('Quote not found in history');
+  
+  // Update quote status
+  quoteHistory[quoteIndex] = {
+    ...quoteHistory[quoteIndex],
+    status,
+    updatedAt: new Date().toISOString()
+  };
+  
+  // Update acceptance/rejection counts
+  let acceptedQuotes = userProfile.statistics.acceptedQuotes || 0;
+  let rejectedQuotes = userProfile.statistics.rejectedQuotes || 0;
+  
+  if (status === 'accepted') {
+    acceptedQuotes++;
+  } else if (status === 'rejected') {
+    rejectedQuotes++;
+  }
+  
+  // Update user profile
+  const updatedProfile = saveUserProfile(userId, {
+    quoteHistory,
+    statistics: {
+      ...userProfile.statistics,
+      acceptedQuotes,
+      rejectedQuotes
     }
-    return quote;
   });
   
-  // Update profile with modified history
-  return saveUserProfile(userId, { quoteHistory });
+  return updatedProfile;
 }
 
 /**
@@ -239,20 +267,24 @@ function updateQuoteStatus(userId, quoteDate, status) {
  * @returns {Array} Array of preferred job types
  */
 function extractPreferredJobTypes(quoteHistory) {
-  if (!quoteHistory || quoteHistory.length === 0) return [];
+  if (!quoteHistory || !quoteHistory.length) return [];
   
-  // Count occurrences of each job type
+  // Count job types
   const jobTypeCounts = {};
   quoteHistory.forEach(quote => {
     const jobType = quote.jobType;
-    jobTypeCounts[jobType] = (jobTypeCounts[jobType] || 0) + 1;
+    if (jobType) {
+      jobTypeCounts[jobType] = (jobTypeCounts[jobType] || 0) + 1;
+    }
   });
   
-  // Sort by count and take top 3
-  return Object.entries(jobTypeCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(entry => entry[0]);
+  // Sort by count
+  const sortedJobTypes = Object.keys(jobTypeCounts).sort((a, b) => {
+    return jobTypeCounts[b] - jobTypeCounts[a];
+  });
+  
+  // Return top 5
+  return sortedJobTypes.slice(0, 5);
 }
 
 /**
@@ -261,225 +293,405 @@ function extractPreferredJobTypes(quoteHistory) {
  * @returns {number} Average labor rate
  */
 function calculateAverageLaborRate(quoteHistory) {
-  // In a real app, this would use the actual labor rates from each quote
-  // For now, using a placeholder calculation
-  return 0; // Would be calculated from actual quote data
+  if (!quoteHistory || !quoteHistory.length) return 75; // Default
+  
+  let totalRate = 0;
+  let count = 0;
+  
+  quoteHistory.forEach(quote => {
+    if (quote.laborRate) {
+      totalRate += parseFloat(quote.laborRate);
+      count++;
+    }
+  });
+  
+  return count > 0 ? totalRate / count : 75;
 }
 
 /**
- * Calculate average labor hours from quote history
- * @param {Array} quoteHistory - Quote history array
- * @returns {number} Average labor hours
- */
-function calculateAverageLaborHours(quoteHistory) {
-  // In a real app, this would use the actual labor hours from each quote
-  // For now, using a placeholder calculation
-  return 0; // Would be calculated from actual quote data
-}
-
-/**
- * Calculate average material cost from quote history
- * @param {Array} quoteHistory - Quote history array
- * @returns {number} Average material cost
- */
-function calculateAverageMaterialCost(quoteHistory) {
-  // In a real app, this would use the actual material costs from each quote
-  // For now, using a placeholder calculation
-  return 0; // Would be calculated from actual quote data
-}
-
-/**
- * Update user profile based on quote form data
- * This allows the system to learn from user's quoting behavior
+ * Update user profile parameters from quote form data
  * @param {string} userId - User ID
- * @param {Object} formData - Quote form data
+ * @param {Object} quoteFormData - Quote form data
  * @returns {Object} Updated profile
  */
-function updateProfileFromQuoteForm(userId, formData) {
-  console.log('Storing form data for future refreshes:', formData);
-  const profile = getUserProfile(userId);
-  if (!profile) {
-    console.log('No profile found for user ID:', userId);
-    return null;
+function updateProfileFromQuoteForm(userId, quoteFormData) {
+  if (!userId) throw new Error('User ID is required');
+  if (!quoteFormData) throw new Error('Quote form data is required');
+  
+  // Get user profile
+  const userProfile = getUserProfile(userId) || initializeUserProfile(userId);
+  
+  // Extract the service industry from the job type if not provided
+  const serviceIndustry = quoteFormData.serviceIndustry || mapJobTypeToIndustry(quoteFormData.jobType);
+  if (!serviceIndustry) {
+    console.warn('Unable to determine service industry from quote data');
+    return userProfile;
   }
   
-  // Extract relevant data that we want to save to the profile
-  const updatedData = {};
+  // Get existing industry parameters or initialize
+  const existingIndustryParams = 
+    (userProfile.industryParameters && userProfile.industryParameters[serviceIndustry]) || 
+    getDefaultIndustryParameters(serviceIndustry);
   
-  // If service industry can be determined from job type
-  const serviceIndustry = mapJobTypeToIndustry(formData.jobType);
-  if (serviceIndustry) {
-    updatedData.serviceIndustry = serviceIndustry;
+  // Update industry parameters based on form data
+  const updatedIndustryParams = { ...existingIndustryParams };
+  
+  // Update experience years if provided
+  if (quoteFormData.experienceYears) {
+    updatedIndustryParams.experienceYears = parseInt(quoteFormData.experienceYears) || 0;
   }
   
-  // If experience level is included
-  if (formData.experienceLevel && ExperienceLevelEnum.includes(formData.experienceLevel)) {
-    updatedData.experienceLevel = formData.experienceLevel;
-  }
-  
-  // If target margin is included
-  if (typeof formData.targetMargin === 'number') {
-    updatedData.targetMargin = formData.targetMargin;
-  }
-  
-  // Add job type to preferred if not already in top 3
-  if (formData.jobType && !profile.preferredJobTypes?.includes(formData.jobType)) {
-    const preferredJobTypes = [...(profile.preferredJobTypes || [])];
-    if (!preferredJobTypes.includes(formData.jobType)) {
-      preferredJobTypes.unshift(formData.jobType);
-      updatedData.preferredJobTypes = preferredJobTypes.slice(0, 3);
+  // Update complexity preferences if provided
+  if (quoteFormData.complexity) {
+    const complexity = quoteFormData.complexity;
+    if (!updatedIndustryParams.complexityPreferences) {
+      updatedIndustryParams.complexityPreferences = { low: 0, medium: 0, high: 0 };
     }
+    updatedIndustryParams.complexityPreferences[complexity] = 
+      (updatedIndustryParams.complexityPreferences[complexity] || 0) + 1;
   }
   
-  // Update profile with new data
-  return saveUserProfile(userId, updatedData);
+  // Update labor rate if provided
+  if (quoteFormData.laborRate) {
+    updatedIndustryParams.preferredLaborRate = parseFloat(quoteFormData.laborRate) || existingIndustryParams.preferredLaborRate;
+  }
+  
+  // Update industryParameters in user profile
+  const industryParameters = {
+    ...userProfile.industryParameters,
+    [serviceIndustry]: updatedIndustryParams
+  };
+  
+  // Update preferences based on form data
+  const preferences = {
+    ...userProfile.preferences,
+    defaultIndustry: userProfile.preferences.defaultIndustry || serviceIndustry,
+    experienceYears: quoteFormData.experienceYears || userProfile.preferences.experienceYears
+  };
+  
+  // Save updated profile
+  const updatedProfile = saveUserProfile(userId, {
+    industryParameters,
+    preferences
+  });
+  
+  return updatedProfile;
 }
 
 /**
  * Map job type to service industry
  * @param {string} jobType - Job type
- * @returns {string} Service industry or null if unknown
+ * @returns {string} Service industry
  */
 function mapJobTypeToIndustry(jobType) {
-  const industryMap = {
-    // Home services
-    'plumbing': 'home_services',
-    'electrical': 'home_services',
-    'hvac': 'home_services',
-    'handyman': 'home_services',
-    'locksmith': 'home_services',
-    'landscaping': 'home_services',
-    'cleaning': 'home_services',
+  const jobTypeMap = {
+    // Construction
+    'Bathroom Remodel': 'construction',
+    'Kitchen Remodel': 'construction',
+    'Home Renovation': 'construction',
+    'Deck Building': 'construction',
+    'Fence Installation': 'construction',
+    'Room Addition': 'construction',
     
     // Automotive
-    'oil_change': 'automotive',
-    'brake_service': 'automotive',
-    'transmission': 'automotive',
-    'engine_repair': 'automotive',
-    'tire_service': 'automotive',
-    'diagnostics': 'automotive',
+    'Oil Change': 'automotive',
+    'Brake Replacement': 'automotive',
+    'Tire Rotation': 'automotive',
+    'Engine Repair': 'automotive',
+    'Car Detailing': 'automotive',
+    'Transmission Repair': 'automotive',
     
-    // Beauty/wellness
-    'hair_stylist': 'beauty_wellness',
-    'nail_technician': 'beauty_wellness',
-    'makeup_artist': 'beauty_wellness',
-    'esthetician': 'beauty_wellness',
-    'massage_therapist': 'beauty_wellness',
-    'spa_services': 'beauty_wellness',
+    // Beauty
+    'Haircut': 'beauty',
+    'Hair Coloring': 'beauty',
+    'Manicure': 'beauty',
+    'Pedicure': 'beauty',
+    'Facial': 'beauty',
+    'Makeup Application': 'beauty',
     
-    // Electronics repair
-    'computer_repair': 'electronics_repair',
-    'cellphone_repair': 'electronics_repair',
-    'tv_repair': 'electronics_repair',
-    'appliance_repair': 'electronics_repair',
+    // Electronics Repair
+    'Phone Screen Repair': 'electronics_repair',
+    'Computer Repair': 'electronics_repair',
+    'TV Repair': 'electronics_repair',
+    'Game Console Repair': 'electronics_repair',
     
-    // Professional services
-    'legal_services': 'professional_services',
-    'accounting': 'professional_services',
-    'consulting': 'professional_services',
-    'design_services': 'professional_services',
-    'marketing': 'professional_services',
+    // Graphic Design
+    'Logo Design': 'graphic_design',
+    'Business Card Design': 'graphic_design',
+    'Website Design': 'graphic_design',
+    'Brochure Design': 'graphic_design',
+    'Social Media Graphics': 'graphic_design',
+    
+    // Plumbing
+    'Pipe Repair': 'plumbing',
+    'Drain Cleaning': 'plumbing',
+    'Water Heater Installation': 'plumbing',
+    'Faucet Replacement': 'plumbing',
+    'Toilet Repair': 'plumbing',
+    
+    // Electrical
+    'Outlet Installation': 'electrical',
+    'Light Fixture Installation': 'electrical',
+    'Panel Upgrade': 'electrical',
+    'Wiring Repair': 'electrical',
+    'Ceiling Fan Installation': 'electrical',
+    
+    // Landscaping
+    'Lawn Mowing': 'landscaping',
+    'Garden Design': 'landscaping',
+    'Tree Trimming': 'landscaping',
+    'Irrigation Installation': 'landscaping',
+    'Mulch Installation': 'landscaping',
+    
+    // Locksmith
+    'Lock Replacement': 'locksmith',
+    'Key Duplication': 'locksmith',
+    'Lock Rekeying': 'locksmith',
+    'Safe Installation': 'locksmith',
+    
+    // Cleaning
+    'House Cleaning': 'cleaning',
+    'Office Cleaning': 'cleaning',
+    'Carpet Cleaning': 'cleaning',
+    'Window Cleaning': 'cleaning',
+    'Move-out Cleaning': 'cleaning'
   };
   
-  return industryMap[jobType] || null;
+  return jobTypeMap[jobType] || 'default';
 }
 
 /**
- * Get all available options for user profile fields
- * Useful for UI form rendering
+ * Get default industry parameters
+ * @param {string} serviceIndustry - Service industry
+ * @returns {Object} Default industry parameters
  */
-function getProfileFieldOptions() {
-  return {
-    experienceLevels: ExperienceLevelEnum,
-    serviceIndustries: ServiceIndustryEnum,
-    businessGoals: BusinessGoalEnum,
-    businessChallenges: BusinessChallengeEnum,
-    servicePreferences: ServicePreferenceEnum
-  };
-}
-
-/**
- * Get complete user stats
- * @param {string} userId - User ID
- * @returns {Object} User statistics object
- */
-function getUserStats(userId) {
-  const profile = getUserProfile(userId);
-  if (!profile) return null;
-  
-  // Calculate quote stats
-  const quoteHistory = profile.quoteHistory || [];
-  const totalQuotes = quoteHistory.length;
-  
-  // Calculate acceptance rate
-  const acceptedQuotes = quoteHistory.filter(q => q.status === 'accepted').length;
-  const acceptanceRate = totalQuotes > 0 ? (acceptedQuotes / totalQuotes) * 100 : 0;
-  
-  // Calculate average margin
-  let avgMargin = 0;
-  if (totalQuotes > 0) {
-    avgMargin = quoteHistory.reduce((sum, q) => sum + (q.margin || 0), 0) / totalQuotes;
-  }
-  
-  // Calculate average quote amount
-  let avgAmount = 0;
-  if (totalQuotes > 0) {
-    avgAmount = quoteHistory.reduce((sum, q) => sum + (q.totalAmount || 0), 0) / totalQuotes;
-  }
-  
-  // Aggregate by job type
-  const jobTypeCounts = {};
-  quoteHistory.forEach(quote => {
-    const jobType = quote.jobType;
-    jobTypeCounts[jobType] = (jobTypeCounts[jobType] || 0) + 1;
-  });
-  
-  return {
-    userId: profile.userId,
-    businessName: profile.businessName,
-    serviceIndustry: profile.serviceIndustry,
-    experienceLevel: profile.experienceLevel,
-    totalQuotes,
-    acceptedQuotes,
-    acceptanceRate,
-    avgMargin,
-    avgAmount,
-    topJobTypes: Object.entries(jobTypeCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([type, count]) => ({ type, count })),
-    createdAt: profile.createdAt,
-    lastUpdated: profile.lastUpdated
-  };
-}
-
-// Auto-initialize profile from URL/localStorage when module loads
-if (typeof window !== 'undefined') {
-  try {
-    // Check if we can get user ID from localStorage
-    const userId = localStorage.getItem('currentUserId') ||
-                   localStorage.getItem('userId');
-                   
-    if (userId) {
-      console.log('Using user ID from localStorage:', userId);
-      // Initialize user profile
-      const profile = getUserProfile(userId);
-      if (profile) {
-        console.log('User profile initialized from quote generator:', 'success');
+function getDefaultIndustryParameters(serviceIndustry) {
+  const defaultParams = {
+    construction: {
+      baseMargin: 0.25,
+      laborMultiplier: 1.8,
+      materialMarkup: 0.2,
+      experienceWeight: 0.05,
+      regionFactor: 1.0,
+      preferredLaborRate: 85,
+      experienceYears: 0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.2
+      },
+      complexityPreferences: {
+        low: 0,
+        medium: 1,
+        high: 0
+      }
+    },
+    automotive: {
+      baseMargin: 0.30,
+      laborMultiplier: 1.7,
+      materialMarkup: 0.25,
+      experienceWeight: 0.04,
+      regionFactor: 1.0,
+      preferredLaborRate: 95,
+      experienceYears: 0,
+      complexity: {
+        low: 0.85,
+        medium: 1.0,
+        high: 1.25
+      },
+      complexityPreferences: {
+        low: 0,
+        medium: 1,
+        high: 0
+      }
+    },
+    plumbing: {
+      baseMargin: 0.28,
+      laborMultiplier: 1.75,
+      materialMarkup: 0.22,
+      experienceWeight: 0.04,
+      regionFactor: 1.0,
+      preferredLaborRate: 90,
+      experienceYears: 0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.15
+      },
+      complexityPreferences: {
+        low: 0,
+        medium: 1,
+        high: 0
+      }
+    },
+    electrical: {
+      baseMargin: 0.27,
+      laborMultiplier: 1.8,
+      materialMarkup: 0.2,
+      experienceWeight: 0.05,
+      regionFactor: 1.0,
+      preferredLaborRate: 95,
+      experienceYears: 0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.2
+      },
+      complexityPreferences: {
+        low: 0,
+        medium: 1,
+        high: 0
+      }
+    },
+    locksmith: {
+      baseMargin: 0.35,
+      laborMultiplier: 1.6,
+      materialMarkup: 0.3,
+      experienceWeight: 0.03,
+      regionFactor: 1.0,
+      preferredLaborRate: 75,
+      experienceYears: 0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.1
+      },
+      complexityPreferences: {
+        low: 0,
+        medium: 1,
+        high: 0
+      }
+    },
+    cleaning: {
+      baseMargin: 0.33,
+      laborMultiplier: 1.5,
+      materialMarkup: 0.15,
+      experienceWeight: 0.02,
+      regionFactor: 1.0,
+      preferredLaborRate: 45,
+      experienceYears: 0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.1
+      },
+      complexityPreferences: {
+        low: 0,
+        medium: 1,
+        high: 0
+      }
+    },
+    beauty: {
+      baseMargin: 0.40,
+      laborMultiplier: 1.4,
+      materialMarkup: 0.25,
+      experienceWeight: 0.04,
+      regionFactor: 1.0,
+      preferredLaborRate: 65,
+      experienceYears: 0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.15
+      },
+      complexityPreferences: {
+        low: 0,
+        medium: 1,
+        high: 0
+      }
+    },
+    landscaping: {
+      baseMargin: 0.28,
+      laborMultiplier: 1.65,
+      materialMarkup: 0.2,
+      experienceWeight: 0.03,
+      regionFactor: 1.0,
+      preferredLaborRate: 55,
+      experienceYears: 0,
+      complexity: {
+        low: 0.85,
+        medium: 1.0,
+        high: 1.2
+      },
+      complexityPreferences: {
+        low: 0,
+        medium: 1,
+        high: 0
+      }
+    },
+    graphic_design: {
+      baseMargin: 0.45,
+      laborMultiplier: 1.0,
+      materialMarkup: 0.0,
+      experienceWeight: 0.08,
+      regionFactor: 1.0,
+      preferredLaborRate: 85,
+      experienceYears: 0,
+      complexity: {
+        low: 0.8,
+        medium: 1.0,
+        high: 1.3
+      },
+      complexityPreferences: {
+        low: 0,
+        medium: 1,
+        high: 0
+      }
+    },
+    electronics_repair: {
+      baseMargin: 0.32,
+      laborMultiplier: 1.6,
+      materialMarkup: 0.3,
+      experienceWeight: 0.05,
+      regionFactor: 1.0,
+      preferredLaborRate: 75,
+      experienceYears: 0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.2
+      },
+      complexityPreferences: {
+        low: 0,
+        medium: 1,
+        high: 0
+      }
+    },
+    default: {
+      baseMargin: 0.3,
+      laborMultiplier: 1.7,
+      materialMarkup: 0.2,
+      experienceWeight: 0.04,
+      regionFactor: 1.0,
+      preferredLaborRate: 75,
+      experienceYears: 0,
+      complexity: {
+        low: 0.9,
+        medium: 1.0,
+        high: 1.2
+      },
+      complexityPreferences: {
+        low: 0,
+        medium: 1,
+        high: 0
       }
     }
-  } catch (e) {
-    console.error('Error auto-initializing user profile:', e);
-  }
+  };
+  
+  return defaultParams[serviceIndustry] || defaultParams.default;
 }
 
-// Export methods
+// Initialize the module by loading profiles
+userProfilesCache = loadUserProfiles();
+
+// Export functions
 module.exports = {
   getUserProfile,
+  initializeUserProfile,
   saveUserProfile,
   addQuoteToHistory,
   updateQuoteStatus,
   updateProfileFromQuoteForm,
-  getUserStats,
-  getProfileFieldOptions
+  mapJobTypeToIndustry,
+  getDefaultIndustryParameters
 };
