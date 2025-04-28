@@ -1615,25 +1615,8 @@ function generateMultiQuote(data) {
             // Add business profile button to the quote form section
             const formContainer = document.querySelector('.quote-form-container');
             if (formContainer && !document.getElementById('business-profile-btn')) {
-              const profileBtn = document.createElement('button');
-              profileBtn.id = 'business-profile-btn';
-              profileBtn.className = 'btn btn-outline';
-              profileBtn.innerHTML = '<i class="fas fa-building mr-2"></i> Business Profile';
-              profileBtn.style.marginLeft = '10px';
-              
-              // Insert button after the generate quote button
-              const generateBtn = formContainer.querySelector('button[type="submit"]');
-              if (generateBtn && generateBtn.parentNode) {
-                generateBtn.parentNode.insertBefore(profileBtn, generateBtn.nextSibling);
-              } else {
-                formContainer.appendChild(profileBtn);
-              }
-              
-              // Add click handler to open business profile modal
-              profileBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                openBusinessProfileModal(module, currentProfile);
-              });
+              // Business profile information now automatically used without modal
+              // We'll silently load and use profile data without adding a button
             }
           } catch (moduleError) {
             console.error('Error processing user profile module:', moduleError);
@@ -3117,9 +3100,139 @@ function showInvoiceWorkflowModal(quote, tierName) {
   clientEmailGroup.appendChild(clientEmailLabel);
   clientEmailGroup.appendChild(clientEmailInput);
   
+  // Add client phone field
+  const clientPhoneGroup = document.createElement('div');
+  clientPhoneGroup.style.marginBottom = '16px';
+  
+  const clientPhoneLabel = document.createElement('label');
+  clientPhoneLabel.htmlFor = 'client-phone';
+  clientPhoneLabel.textContent = 'Client Phone (optional)';
+  clientPhoneLabel.style.display = 'block';
+  clientPhoneLabel.style.marginBottom = '8px';
+  clientPhoneLabel.style.fontSize = '14px';
+  
+  const clientPhoneInput = document.createElement('input');
+  clientPhoneInput.type = 'tel';
+  clientPhoneInput.id = 'client-phone';
+  clientPhoneInput.name = 'clientPhone';
+  clientPhoneInput.placeholder = 'Enter client phone number';
+  clientPhoneInput.style.width = '100%';
+  clientPhoneInput.style.padding = '10px';
+  clientPhoneInput.style.borderRadius = '6px';
+  clientPhoneInput.style.border = '1px solid var(--color-border, #e5e7eb)';
+  
+  clientPhoneGroup.appendChild(clientPhoneLabel);
+  clientPhoneGroup.appendChild(clientPhoneInput);
+  
+  // Create delivery method options
+  const deliveryMethodGroup = document.createElement('div');
+  deliveryMethodGroup.style.marginBottom = '16px';
+  
+  const deliveryMethodLabel = document.createElement('label');
+  deliveryMethodLabel.textContent = 'Delivery Method';
+  deliveryMethodLabel.style.display = 'block';
+  deliveryMethodLabel.style.marginBottom = '8px';
+  deliveryMethodLabel.style.fontSize = '14px';
+  
+  const deliveryOptions = document.createElement('div');
+  deliveryOptions.style.display = 'flex';
+  deliveryOptions.style.gap = '16px';
+  
+  // Email option
+  const emailOptionDiv = document.createElement('div');
+  emailOptionDiv.style.display = 'flex';
+  emailOptionDiv.style.alignItems = 'center';
+  
+  const emailRadio = document.createElement('input');
+  emailRadio.type = 'radio';
+  emailRadio.id = 'delivery-email';
+  emailRadio.name = 'deliveryMethod';
+  emailRadio.value = 'email';
+  emailRadio.checked = true;
+  emailRadio.style.marginRight = '8px';
+  
+  const emailRadioLabel = document.createElement('label');
+  emailRadioLabel.htmlFor = 'delivery-email';
+  emailRadioLabel.textContent = 'Email';
+  
+  emailOptionDiv.appendChild(emailRadio);
+  emailOptionDiv.appendChild(emailRadioLabel);
+  
+  // SMS option
+  const smsOptionDiv = document.createElement('div');
+  smsOptionDiv.style.display = 'flex';
+  smsOptionDiv.style.alignItems = 'center';
+  
+  const smsRadio = document.createElement('input');
+  smsRadio.type = 'radio';
+  smsRadio.id = 'delivery-sms';
+  smsRadio.name = 'deliveryMethod';
+  smsRadio.value = 'sms';
+  smsRadio.style.marginRight = '8px';
+  
+  const smsRadioLabel = document.createElement('label');
+  smsRadioLabel.htmlFor = 'delivery-sms';
+  smsRadioLabel.textContent = 'SMS';
+  
+  smsOptionDiv.appendChild(smsRadio);
+  smsOptionDiv.appendChild(smsRadioLabel);
+  
+  // Both option
+  const bothOptionDiv = document.createElement('div');
+  bothOptionDiv.style.display = 'flex';
+  bothOptionDiv.style.alignItems = 'center';
+  
+  const bothRadio = document.createElement('input');
+  bothRadio.type = 'radio';
+  bothRadio.id = 'delivery-both';
+  bothRadio.name = 'deliveryMethod';
+  bothRadio.value = 'both';
+  bothRadio.style.marginRight = '8px';
+  
+  const bothRadioLabel = document.createElement('label');
+  bothRadioLabel.htmlFor = 'delivery-both';
+  bothRadioLabel.textContent = 'Both';
+  
+  bothOptionDiv.appendChild(bothRadio);
+  bothOptionDiv.appendChild(bothRadioLabel);
+  
+  deliveryOptions.appendChild(emailOptionDiv);
+  deliveryOptions.appendChild(smsOptionDiv);
+  deliveryOptions.appendChild(bothOptionDiv);
+  
+  deliveryMethodGroup.appendChild(deliveryMethodLabel);
+  deliveryMethodGroup.appendChild(deliveryOptions);
+  
+  // Add validation for SMS option
+  smsRadio.addEventListener('change', () => {
+    if (smsRadio.checked) {
+      clientPhoneInput.required = true;
+      clientPhoneInput.setAttribute('required', 'required');
+      clientPhoneLabel.textContent = 'Client Phone (required)';
+    }
+  });
+  
+  bothRadio.addEventListener('change', () => {
+    if (bothRadio.checked) {
+      clientPhoneInput.required = true;
+      clientPhoneInput.setAttribute('required', 'required');
+      clientPhoneLabel.textContent = 'Client Phone (required)';
+    }
+  });
+  
+  emailRadio.addEventListener('change', () => {
+    if (emailRadio.checked) {
+      clientPhoneInput.required = false;
+      clientPhoneInput.removeAttribute('required');
+      clientPhoneLabel.textContent = 'Client Phone (optional)';
+    }
+  });
+  
   clientSection.appendChild(clientSectionTitle);
   clientSection.appendChild(clientNameGroup);
   clientSection.appendChild(clientEmailGroup);
+  clientSection.appendChild(clientPhoneGroup);
+  clientSection.appendChild(deliveryMethodGroup);
   
   // Quote details section
   const quoteSection = document.createElement('div');
@@ -3332,6 +3445,8 @@ function showInvoiceWorkflowModal(quote, tierName) {
     const invoiceData = {
       clientName: formData.get('clientName'),
       clientEmail: formData.get('clientEmail'),
+      clientPhone: formData.get('clientPhone'),
+      deliveryMethod: formData.get('deliveryMethod'),
       dueDate: formData.get('dueDate'),
       notes: formData.get('notes'),
       lineItems: lineItems,
@@ -3342,11 +3457,32 @@ function showInvoiceWorkflowModal(quote, tierName) {
     };
     
     // In a real application, this would send the invoice data to the server
-    // and trigger an email to the client
+    // and trigger an email and/or SMS to the client
     
-    // Show success message
+    // Form validation for phone when SMS is selected
+    if ((invoiceData.deliveryMethod === 'sms' || invoiceData.deliveryMethod === 'both') && !invoiceData.clientPhone) {
+      alert('Phone number is required for SMS delivery');
+      return;
+    }
+    
+    // Show appropriate success message based on delivery method
+    let successMessage = '';
+    switch(invoiceData.deliveryMethod) {
+      case 'email':
+        successMessage = 'Invoice sent successfully to ' + invoiceData.clientEmail + '!';
+        break;
+      case 'sms':
+        successMessage = 'Invoice sent successfully to ' + invoiceData.clientPhone + '!';
+        break;
+      case 'both':
+        successMessage = 'Invoice sent successfully to ' + invoiceData.clientEmail + ' and ' + invoiceData.clientPhone + '!';
+        break;
+      default:
+        successMessage = 'Invoice sent successfully!';
+    }
+    
     if (window.showToast) {
-      window.showToast('Invoice sent successfully!', 'success');
+      window.showToast(successMessage, 'success');
     }
     
     // Store the invoice in localStorage for demo purposes
