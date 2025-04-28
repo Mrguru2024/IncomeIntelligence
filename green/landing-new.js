@@ -1,5 +1,5 @@
 /**
- * Landing Page for Stackr Finance GREEN version
+ * Landing Page for Stackzen Finance GREEN version
  * High-conversion landing page to drive signups and subscriptions
  */
 
@@ -89,7 +89,7 @@ function createNavbar() {
   // Replace with SVG logo
   const logo = document.createElement('img');
   logo.src = '/green/public/stackrzenlogo.svg';
-  logo.alt = 'Stackr Zen Logo';
+  logo.alt = 'Stackzen Logo';
   logo.style.height = '40px';
   logoContainer.style.backgroundColor = '#233D4D'; // Add dark background for white logo
   logoContainer.style.padding = '5px 10px';
