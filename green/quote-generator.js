@@ -1057,6 +1057,29 @@ function renderQuoteGeneratorPage(containerId) {
     emergencyGroup.appendChild(emergencyCheckbox);
     emergencyGroup.appendChild(emergencyLabel);
     
+    // Required deposit toggle checkbox
+    const depositGroup = document.createElement('div');
+    depositGroup.className = 'form-check';
+    depositGroup.style.display = 'flex';
+    depositGroup.style.alignItems = 'center';
+    depositGroup.style.marginTop = '12px';
+    depositGroup.style.padding = '10px';
+    depositGroup.style.backgroundColor = '#f8f9fa';
+    depositGroup.style.borderRadius = '6px';
+    depositGroup.style.border = '1px solid #e9ecef';
+    
+    const depositCheckbox = createInput('checkbox', 'requireDeposit');
+    depositCheckbox.checked = true; // Default to requiring deposit
+    depositCheckbox.style.width = 'auto';
+    depositCheckbox.style.marginRight = '8px';
+    
+    const depositLabel = document.createElement('label');
+    depositLabel.innerHTML = '<strong>Require Deposit</strong> (50% for quotes under $2,000, 25% for quotes over $2,000)';
+    depositLabel.style.fontSize = '14px';
+    
+    depositGroup.appendChild(depositCheckbox);
+    depositGroup.appendChild(depositLabel);
+    
     // Target profit margin field
     const marginGroup = createFormGroup('Target Profit Margin (%)', createInput('range', 'targetMargin', '25', '', '10', '100', '1'));
     const marginValue = document.createElement('div');
@@ -1087,6 +1110,7 @@ function renderQuoteGeneratorPage(containerId) {
     form.appendChild(quantityGroup); // Add quantity field (initially hidden)
     form.appendChild(materialsGroup);
     form.appendChild(emergencyGroup);
+    form.appendChild(depositGroup);
     form.appendChild(marginGroup);
     
     // Create button group
@@ -5295,6 +5319,40 @@ if (quote.editable) {
     });
   }
 
+  // Add deposit information if required
+  if (document.querySelector('input[name="requireDeposit"]') && 
+      document.querySelector('input[name="requireDeposit"]').checked) {
+    
+    // Calculate deposit based on total amount
+    const depositPercentage = quote.total > 2000 ? 0.25 : 0.5;
+    const depositAmount = quote.total * depositPercentage;
+    const remainingAmount = quote.total - depositAmount;
+    
+    // Store in quote object for later use
+    quote.requireDeposit = true;
+    quote.depositPercentage = depositPercentage;
+    quote.depositAmount = depositAmount;
+    quote.remainingAmount = remainingAmount;
+    
+    // Add deposit info to breakdown (before total)
+    breakdownItems.push({
+      label: `Required Deposit (${depositPercentage * 100}%)`,
+      value: depositAmount,
+      isDeposit: true
+    });
+    
+    breakdownItems.push({
+      label: 'Remaining Balance',
+      value: remainingAmount,
+      isRemaining: true
+    });
+  } else {
+    // No deposit required
+    quote.requireDeposit = false;
+    quote.depositAmount = 0;
+    quote.remainingAmount = quote.total;
+  }
+  
   // Add the total as the last item
   breakdownItems.push({
     label: 'Total',
