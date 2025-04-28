@@ -649,7 +649,7 @@ function createHeader() {
     },
     { 
       id: 'gigs', 
-      title: 'Stackr Gigs',
+      title: 'Stackzen Gigs',
       icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>'
     },
     { 
@@ -802,23 +802,15 @@ function createFooter() {
   // Create logo using SVG from public folder with standard size
   const logoImg = document.createElement('img');
   logoImg.src = 'public/stackr-logo.svg'; // Path relative to green folder
-  logoImg.alt = 'Stackr';
+  logoImg.alt = 'Stackzen';
   logoImg.style.height = '48px'; // Standard size
   logoImg.style.width = 'auto';
   logoImg.style.marginRight = '10px';
   
-  // Add the "Finance" text
-  const logoText = document.createElement('span');
-  logoText.textContent = 'Finance';
-  logoText.style.fontSize = '26px'; // Increased for better proportions
-  logoText.style.fontWeight = 'bold';
-  logoText.style.color = 'var(--color-text)';
-  
   logoContainer.appendChild(logoImg);
-  logoContainer.appendChild(logoText);
   
   const footerTagline = document.createElement('p');
-  footerTagline.textContent = 'Helping service providers manage their finances better';
+  footerTagline.textContent = 'Track what matters. Earn with clarity.';
   footerTagline.style.color = 'var(--color-text-secondary)';
   footerTagline.style.fontSize = 'var(--font-size-sm)';
   footerTagline.style.margin = '10px 0 0 0';
@@ -858,7 +850,7 @@ function createFooter() {
     {
       title: 'About',
       links: [
-        { name: 'About Stackr', url: '#' },
+        { name: 'About Stackzen', url: '#' },
         { name: 'Firebase-free', url: '#' }
       ]
     }
