@@ -611,7 +611,7 @@
       </div>
 
       <!-- Quote Breakdown Section -->
-      <div class="p-6 hidden fade-in" id="quote-breakdown-section">
+      <div class="p-6 hidden fade-in-element" id="quote-breakdown-section">
         <h3 class="text-lg font-semibold mb-4">Quote Breakdown</h3>
         <div class="bg-white rounded-lg border shadow-sm hover:shadow-md transition-all duration-300">
           <table class="w-full text-sm">
@@ -697,7 +697,7 @@
     </div>
     
     <!-- Selected Package Section -->
-    <div id="selected-package" class="mt-6 p-6 bg-white border border-gray-200 rounded-lg shadow-md hidden fade-in">
+    <div id="selected-package" class="mt-6 p-6 bg-white border border-gray-200 rounded-lg shadow-md hidden fade-in-element">
       <h3 class="text-lg font-semibold mb-3">Your Selected Package</h3>
       <div class="bg-blue-50 p-5 rounded-lg border border-blue-200 hover:shadow-lg transition-all duration-300">
         <div class="flex justify-between items-center mb-4">
@@ -860,6 +860,7 @@
     </div>
     
     <style>
+      /* Animations */
       @keyframes bounce-subtle {
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-10px); }
@@ -868,14 +869,74 @@
         animation: bounce-subtle 2s infinite;
       }
       
+      @keyframes fade-in {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .fade-in {
+        animation: fade-in 0.6s ease forwards;
+      }
+      
+      @keyframes price-float {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+      .price-float {
+        animation: price-float 0.5s ease-in-out infinite;
+        transition: top 1s ease, left 1s ease, opacity 0.8s ease;
+      }
+      
+      @keyframes feature-pulse {
+        0% { background-color: transparent; }
+        50% { background-color: rgba(59, 130, 246, 0.1); }
+        100% { background-color: transparent; }
+      }
+      .feature-pulse {
+        animation: feature-pulse 1.5s ease-in-out;
+        border-radius: 4px;
+      }
+      
+      @keyframes highlight-pulse {
+        0% { color: inherit; transform: scale(1); }
+        50% { color: #2563EB; transform: scale(1.1); }
+        100% { color: inherit; transform: scale(1); }
+      }
+      .highlight-pulse {
+        animation: highlight-pulse 1s ease-in-out;
+      }
+      
+      /* Modal styling */
       #modal-content.show {
         transform: scale(1);
         opacity: 1;
       }
+      
+      /* Fade out animation */
+      .fade-out {
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      }
+      
+      /* Tier card transitions */
+      .tier-card {
+        transition: all 0.5s ease-in-out;
+      }
+      
+      /* Feature highlight styling */
+      .feature-highlight {
+        transition: all 0.3s ease;
+        padding: 4px;
+        margin: -4px;
+      }
+      .feature-highlight:hover {
+        background-color: rgba(59, 130, 246, 0.1);
+        border-radius: 4px;
+      }
     </style>
 
     <!-- Success Message (initially hidden) -->
-    <div id="success-message" class="mt-8 p-8 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl shadow-lg hidden fade-in">
+    <div id="success-message" class="mt-8 p-8 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl shadow-lg hidden fade-in-element">
       <div class="flex flex-col md:flex-row items-center">
         <div class="flex-shrink-0 mb-6 md:mb-0">
           <div class="rounded-full bg-green-100 p-5 border-4 border-green-200 animate-bounce-subtle">

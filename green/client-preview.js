@@ -391,10 +391,128 @@ function setupEventListeners() {
 
 // Show success message after accepting quote
 function showSuccessMessage() {
-  document.getElementById('success-message').classList.remove('hidden');
+  // Generate random reference number for confirmation
+  const refNumber = `REF-${Math.floor(10000 + Math.random() * 90000)}`;
+  const refElement = document.getElementById('reference-number');
   
-  // Scroll to success message
-  document.getElementById('success-message').scrollIntoView({ behavior: 'smooth' });
+  // Hide the quote details with fade-out effect
+  const quoteDetails = document.getElementById('quote-details');
+  quoteDetails.style.opacity = '0';
+  quoteDetails.style.transform = 'translateY(20px)';
+  quoteDetails.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  
+  // Hide the selected package with fade-out effect
+  const selectedPackage = document.getElementById('selected-package');
+  if (!selectedPackage.classList.contains('hidden')) {
+    selectedPackage.style.opacity = '0';
+    selectedPackage.style.transform = 'translateY(20px)';
+    selectedPackage.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  }
+  
+  // After the fade-out completes, hide the elements and show success message
+  setTimeout(() => {
+    quoteDetails.classList.add('hidden');
+    selectedPackage.classList.add('hidden');
+    
+    // Show success message with entrance animation
+    const successMessage = document.getElementById('success-message');
+    successMessage.classList.remove('hidden');
+    
+    // Add confetti effect
+    addConfettiEffect();
+    
+    // Animate the reference number with a typewriter effect
+    if (refElement) {
+      refElement.textContent = '';
+      let i = 0;
+      const typeRefNumber = () => {
+        if (i < refNumber.length) {
+          refElement.textContent += refNumber.charAt(i);
+          i++;
+          setTimeout(typeRefNumber, 50);
+        }
+      };
+      setTimeout(typeRefNumber, 500);
+    }
+    
+    // Scroll to the top of the success message
+    successMessage.scrollIntoView({ behavior: 'smooth' });
+  }, 600);
+}
+
+// Add confetti effect to celebrate successful quote acceptance
+function addConfettiEffect() {
+  // Create canvas element for confetti
+  const canvas = document.createElement('canvas');
+  canvas.id = 'confetti-canvas';
+  canvas.style.position = 'fixed';
+  canvas.style.top = '0';
+  canvas.style.left = '0';
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.pointerEvents = 'none';
+  canvas.style.zIndex = '1000';
+  document.body.appendChild(canvas);
+  
+  // Draw confetti particles
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  
+  const particles = [];
+  const colors = ['#4CAF50', '#2196F3', '#FFC107', '#E91E63', '#9C27B0'];
+  
+  // Create particles
+  for (let i = 0; i < 200; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: Math.random() * 10 + 5,
+      speed: Math.random() * 5 + 2
+    });
+  }
+  
+  // Animate confetti falling
+  let animationFrame;
+  function animateConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    let complete = true;
+    
+    particles.forEach(particle => {
+      ctx.fillStyle = particle.color;
+      ctx.fillRect(particle.x, particle.y, particle.size, particle.size);
+      
+      particle.y += particle.speed;
+      
+      // Add some horizontal movement
+      particle.x += Math.sin(particle.y / 30) * 2;
+      
+      // If any particle is still on screen, continue animation
+      if (particle.y < canvas.height) {
+        complete = false;
+      }
+    });
+    
+    if (!complete) {
+      animationFrame = requestAnimationFrame(animateConfetti);
+    } else {
+      // Remove canvas after animation completes
+      setTimeout(() => {
+        canvas.remove();
+      }, 1000);
+    }
+  }
+  
+  // Start animation
+  animationFrame = requestAnimationFrame(animateConfetti);
+  
+  // Clean up after 4 seconds
+  setTimeout(() => {
+    cancelAnimationFrame(animationFrame);
+    canvas.remove();
+  }, 4000);
 }
 
 // Loading animation functions
