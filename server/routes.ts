@@ -372,8 +372,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('Delivery test routes registered');
   
   // Register quote routes
-  app.use(quoteRoutes);
+  app.use('/api', quoteRoutes);
   console.log('Quote routes registered');
+  
+  // Create Stripe payment intent for invoice payment
+  app.post('/api/create-payment-intent', async (req, res) => {
+    try {
+      const { amount, invoiceId, customerName, description, tier } = req.body;
+      
+      if (!amount) {
+        return res.status(400).json({ error: 'amount is required' });
+      }
+      
+      // Initialize Stripe
+      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      
+      if (!stripeSecretKey) {
+        console.log('STRIPE_SECRET_KEY is not set, returning simulated client secret for development');
+        // For development, return a fake client secret
+        return res.json({ 
+          clientSecret: `demo_${Date.now()}_secret_${Math.random().toString(36).substring(2, 15)}`,
+          isDevelopment: true
+        });
+      }
+      
+      try {
+        // Create a payment intent
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(amount * 100), // Convert dollars to cents
+          currency: 'usd',
+          description: `Payment for ${description || 'services'} - ${tier} tier`,
+          metadata: {
+            invoiceId,
+            customerName,
+            tier
+          },
+          // Optional: Set up automatic payment methods
+          automatic_payment_methods: {
+            enabled: true,
+          },
+        });
+        
+        return res.json({ 
+          clientSecret: paymentIntent.client_secret,
+          paymentIntentId: paymentIntent.id
+        });
+      } catch (stripeError) {
+        console.error('Stripe payment intent creation error:', stripeError);
+        
+        // For development, provide a fallback
+        if (process.env.NODE_ENV === 'development') {
+          return res.json({ 
+            clientSecret: `demo_${Date.now()}_secret_${Math.random().toString(36).substring(2, 15)}`,
+            isDevelopment: true,
+            stripeError: true
+          });
+        }
+        
+        return res.status(500).json({ 
+          error: 'Error creating payment intent',
+          message: stripeError.message
+        });
+      }
+    } catch (error) {
+      console.error('Error in POST /api/create-payment-intent:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
   
   // Serve GREEN version directly at root path
   app.get("/", (req, res) => {

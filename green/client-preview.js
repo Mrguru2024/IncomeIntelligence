@@ -275,8 +275,8 @@ function setupEventListeners() {
     const quoteId = new URLSearchParams(window.location.search).get('id') || 'demo';
     
     if (quoteId === 'demo') {
-      // Just show success message for demo
-      showSuccessMessage();
+      // In demo mode, show the Stripe payment flow
+      redirectToStripeCheckout();
       return;
     }
     
@@ -305,7 +305,8 @@ function setupEventListeners() {
       const data = await response.json();
       
       if (data.success) {
-        showSuccessMessage();
+        // Now redirect to Stripe for payment
+        redirectToStripeCheckout(data.invoice);
       } else {
         console.error('Error accepting quote:', data.error);
         alert('There was an error accepting this quote. Please try again.');
@@ -315,6 +316,66 @@ function setupEventListeners() {
       alert('There was an error accepting this quote. Please try again.');
     }
   });
+  
+  // Function to redirect to Stripe Checkout
+  function redirectToStripeCheckout(invoice) {
+    // Get current price from the breakdown
+    const totalPriceText = document.getElementById('breakdown-total').textContent;
+    const totalPrice = parseFloat(totalPriceText.replace(/[^0-9.]/g, ''));
+    const selectedTier = document.querySelector('.select-tier.bg-blue-500').dataset.tier;
+    
+    // If we have an invoice object from the API, use that data
+    const amount = invoice ? invoice.amount : totalPrice;
+    const invoiceId = invoice ? invoice.id : `INV-DEMO-${Date.now()}`;
+    const customerName = document.getElementById('customer-name').textContent;
+    const description = document.getElementById('quote-description').textContent;
+    
+    // In a real app, we'd call our backend to create a Stripe Checkout session
+    // For demo purposes, we'll simulate going to Stripe Checkout
+    fetch('/api/create-payment-intent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        amount: amount,
+        invoiceId: invoiceId,
+        customerName: customerName,
+        description: description,
+        tier: selectedTier
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.clientSecret) {
+        // In a real app, this would redirect to Stripe's checkout page
+        // For now, we'll simulate the redirect for development testing
+        console.log('Redirecting to Stripe with client secret:', data.clientSecret);
+        
+        // For development environment, we'll show a confirmation dialog
+        if (confirm('In production, you would now be redirected to Stripe to complete payment. Press OK to simulate a successful payment or Cancel to cancel.')) {
+          // Simulate successful payment
+          showSuccessMessage();
+        }
+      } else if (data.url) {
+        // If the API returns a URL, redirect to it
+        window.location.href = data.url;
+      } else {
+        // For development, show demo success
+        if (confirm('Stripe payment processing is in development mode. Press OK to simulate a successful payment.')) {
+          showSuccessMessage();
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error creating Stripe checkout session:', error);
+      
+      // For development, show demo success
+      if (confirm('Error connecting to payment processor. In development mode, press OK to simulate a successful payment.')) {
+        showSuccessMessage();
+      }
+    });
+  }
 }
 
 // Show success message after accepting quote

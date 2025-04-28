@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stripe Payment Integration Test - Stackr</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+  <!-- Load Stripe.js -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    .results {
+      font-family: monospace;
+      white-space: pre-wrap;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+    .success { color: green; }
+    .error { color: red; }
+    .warning { color: orange; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-8">
+  <div class="container mx-auto bg-white rounded-lg shadow-lg p-8 max-w-3xl">
+    <h1 class="text-2xl font-bold mb-4">Stripe Payment Integration Test</h1>
+    <p class="mb-6 text-gray-600">This page tests the Stripe payment integration for the quote-to-invoice workflow.</p>
+    
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold mb-3">Test Payment Creation</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+          <input type="number" id="amount" value="99.99" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Invoice ID</label>
+          <input type="text" id="invoiceId" value="TEST-INV-123" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
+          <input type="text" id="customerName" value="Test Customer" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <input type="text" id="description" value="Test Quote for Stripe Integration" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tier</label>
+          <select id="tier" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+            <option value="basic">Basic</option>
+            <option value="standard" selected>Standard</option>
+            <option value="premium">Premium</option>
+          </select>
+        </div>
+      </div>
+      
+      <button id="test-payment" class="mt-4 px-5 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors">
+        Test Payment Creation
+      </button>
+    </div>
+    
+    <div id="payment-form-container" class="hidden mb-8 p-4 border border-gray-200 rounded-lg">
+      <h2 class="text-xl font-semibold mb-3">Stripe Payment Form (Simulation)</h2>
+      <p class="mb-4 text-gray-600">In a real implementation, Stripe payment elements would be inserted here.</p>
+      
+      <div id="payment-element" class="mb-4 min-h-[100px] border border-dashed border-gray-300 p-4 rounded-md flex items-center justify-center">
+        <p class="text-gray-500">Payment Element Placeholder</p>
+      </div>
+      
+      <button id="submit-payment" class="w-full px-5 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors">
+        Submit Payment
+      </button>
+    </div>
+    
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold mb-3">Test Results</h2>
+      <div id="results" class="results">Test results will appear here...</div>
+    </div>
+    
+    <hr class="my-6">
+    
+    <div class="flex justify-between items-center">
+      <a href="/green/index.html" class="text-blue-600 hover:underline">Back to Dashboard</a>
+      <a href="/green/client-preview.html" class="text-blue-600 hover:underline">Go to Client Preview</a>
+    </div>
+  </div>
+  
+  <script>
+    // Initialize the results display
+    const resultsDiv = document.getElementById('results');
+    const paymentFormContainer = document.getElementById('payment-form-container');
+    
+    // Log to both console and results div
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const formattedMessage = `[${timestamp}] ${message}`;
+      
+      console.log(formattedMessage);
+      
+      const messageElement = document.createElement('div');
+      messageElement.textContent = formattedMessage;
+      messageElement.classList.add(type);
+      resultsDiv.appendChild(messageElement);
+      
+      // Scroll to bottom
+      resultsDiv.scrollTop = resultsDiv.scrollHeight;
+    }
+    
+    // Clear the results
+    function clearResults() {
+      resultsDiv.innerHTML = '';
+    }
+    
+    // Function to test the create-payment-intent API endpoint
+    async function testCreatePaymentIntent(paymentData) {
+      log('Testing /api/create-payment-intent endpoint...');
+      
+      try {
+        const response = await fetch('/api/create-payment-intent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(paymentData)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        log('Successfully created payment intent:', 'success');
+        log('Client Secret: ' + (data.clientSecret ? 'PRESENT (first 10 chars: ' + data.clientSecret.substr(0, 10) + '...)' : 'MISSING'));
+        log('Payment Intent ID: ' + (data.paymentIntentId || 'Not provided'));
+        log('Development Mode: ' + (data.isDevelopment ? 'YES' : 'NO'));
+        
+        if (data.isDevelopment) {
+          log('Note: Running in development mode. Stripe API key may not be configured.', 'warning');
+        }
+        
+        if (data.stripeError) {
+          log('A Stripe error occurred but the system provided a fallback client secret for development testing.', 'warning');
+        }
+        
+        return data;
+      } catch (error) {
+        log('Error testing create-payment-intent: ' + error.message, 'error');
+        throw error;
+      }
+    }
+    
+    // Function to simulate a Stripe payment form
+    function simulateStripePaymentForm(clientSecret) {
+      log('\nSimulating Stripe payment form initialization...');
+      
+      try {
+        if (typeof Stripe !== 'function') {
+          log('Stripe.js is not loaded. Please run this test from a page with Stripe.js included.', 'error');
+          return;
+        }
+        
+        paymentFormContainer.classList.remove('hidden');
+        
+        log('Initializing Stripe with publishable key (or using test key in development)...');
+        
+        // Use test publishable key for simulation
+        // In production, this would be your actual publishable key
+        const stripe = Stripe('pk_test_TYooMQauvdEDq54NiTphI7jx');
+        
+        log('Creating payment element with client secret...');
+        
+        log('\nSimulation complete - in a real implementation, the user would enter their payment details and submit.');
+        log('Stripe.js would then handle tokenization and confirmation of the payment.');
+        
+        // Setup submit handler
+        document.getElementById('submit-payment').addEventListener('click', function() {
+          log('Submit button clicked. In a real implementation, this would submit the payment to Stripe.');
+          log('Payment successful! (Simulated)', 'success');
+          
+          // Show a success message after a short delay
+          setTimeout(() => {
+            alert('Payment simulation complete. In a real implementation, the user would be redirected to a success page or back to the application.');
+          }, 500);
+        });
+      } catch (error) {
+        log('Error simulating Stripe payment form: ' + error.message, 'error');
+      }
+    }
+    
+    // Set up the test button
+    document.getElementById('test-payment').addEventListener('click', async function() {
+      clearResults();
+      paymentFormContainer.classList.add('hidden');
+      
+      log('=== STRIPE INTEGRATION TEST ===');
+      
+      const paymentData = {
+        amount: parseFloat(document.getElementById('amount').value),
+        invoiceId: document.getElementById('invoiceId').value,
+        customerName: document.getElementById('customerName').value,
+        description: document.getElementById('description').value,
+        tier: document.getElementById('tier').value
+      };
+      
+      log('Payment data: ' + JSON.stringify(paymentData, null, 2));
+      
+      try {
+        // Test creating a payment intent
+        const response = await testCreatePaymentIntent(paymentData);
+        
+        // If we have a client secret, simulate the payment form
+        if (response.clientSecret) {
+          simulateStripePaymentForm(response.clientSecret);
+        }
+        
+        log('\n=== TEST COMPLETED ===', 'success');
+      } catch (error) {
+        log('\n=== TEST FAILED ===', 'error');
+        log('Error: ' + error.message, 'error');
+      }
+    });
+  </script>
+</body>
+</html>
