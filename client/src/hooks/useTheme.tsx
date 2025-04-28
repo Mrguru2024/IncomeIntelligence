@@ -1,3 +1,6 @@
+// DEPRECATED: Use @/components/ThemeProvider instead
+// This file is kept for compatibility but should not be used in new code
+
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "light" | "dark" | "system";
@@ -9,6 +12,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+// DEPRECATED: Use ThemeProvider from @/components/ThemeProvider instead
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem("theme") as Theme) || "light",

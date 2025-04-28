@@ -1,3 +1,6 @@
+// DEPRECATED: Use @/components/ThemeProvider instead
+// This file is kept for compatibility but should not be used in new code
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
@@ -22,6 +25,7 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
+// DEPRECATED: Use ThemeProvider from @/components/ThemeProvider instead
 export function ThemeProvider({
   children,
   defaultTheme = 'system',

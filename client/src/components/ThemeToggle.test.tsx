@@ -13,7 +13,7 @@ const mockUseTheme = jest.fn().mockReturnValue({
   setTheme: mockSetTheme,
 });
 
-jest.mock("@/hooks/useTheme", () => ({
+jest.mock("@/components/ThemeProvider", () => ({
   useTheme: () => mockUseTheme(),
 }));
 
