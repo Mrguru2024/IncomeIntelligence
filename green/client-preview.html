@@ -992,11 +992,80 @@
   <script type="module">
     // Load quote data from URL parameters
     const quoteParams = new URLSearchParams(window.location.search);
-    const quoteId = quoteParams.get('id') || 'demo';
-    const userId = quoteParams.get('userId') || '';
+    const quoteId = quoteParams.get('id') || quoteParams.get('quoteId') || getSessionQuoteId();
+    const userId = quoteParams.get('userId') || getUserIdFromSession();
+    const previewMode = quoteParams.get('previewMode') || 'client'; // 'client' or 'contractor'
     
     // Reference to store the actual quote data that will be fetched from the server
     let quoteData = null;
+    
+    // Get stored quote ID from session storage
+    function getSessionQuoteId() {
+      return sessionStorage.getItem('lastQuoteId') || 'demo';
+    }
+    
+    // Get user ID from session storage
+    function getUserIdFromSession() {
+      return sessionStorage.getItem('userId') || localStorage.getItem('userId') || '';
+    }
+    
+    // Store session data
+    function storeSessionData(quoteId, userId) {
+      if (quoteId && quoteId !== 'demo') {
+        sessionStorage.setItem('lastQuoteId', quoteId);
+      }
+      
+      if (userId) {
+        sessionStorage.setItem('userId', userId);
+        // Also store in localStorage for persistence between sessions
+        localStorage.setItem('userId', userId);
+      }
+    }
+    
+    // Create contractor preview toolbar
+    function createContractorToolbar() {
+      // Only show in contractor preview mode
+      if (previewMode !== 'contractor') return;
+      
+      const toolbar = document.createElement('div');
+      toolbar.className = 'fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 flex items-center justify-between z-50';
+      toolbar.innerHTML = `
+        <div class="flex items-center">
+          <span class="font-bold mr-2">Contractor Preview Mode</span>
+          <span class="bg-yellow-500 text-black px-2 py-1 rounded text-xs">TESTING</span>
+        </div>
+        <div class="flex space-x-4">
+          <button id="switch-to-client" class="px-3 py-1 bg-blue-500 hover:bg-blue-600 rounded">
+            Client View
+          </button>
+          <button id="edit-quote" class="px-3 py-1 bg-green-500 hover:bg-green-600 rounded">
+            Edit Quote
+          </button>
+          <button id="close-preview" class="px-3 py-1 bg-red-500 hover:bg-red-600 rounded">
+            Exit Preview
+          </button>
+        </div>
+      `;
+      
+      document.body.appendChild(toolbar);
+      
+      // Add event listeners for toolbar buttons
+      document.getElementById('switch-to-client').addEventListener('click', () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('previewMode', 'client');
+        window.location.href = url.toString();
+      });
+      
+      document.getElementById('edit-quote').addEventListener('click', () => {
+        // Navigate to quote editor (you'll need to implement this page)
+        window.location.href = `/green/quote-editor.html?quoteId=${quoteId}&userId=${userId}`;
+      });
+      
+      document.getElementById('close-preview').addEventListener('click', () => {
+        // Return to quote dashboard or main app
+        window.location.href = '/';
+      });
+    }
     
     // Function to fetch quote data from the server
     async function fetchQuoteData() {
@@ -1005,7 +1074,8 @@
       
       try {
         // Construct API URL with appropriate parameters
-        let apiUrl = `/api/quotes/${quoteId}`;
+        const effectiveQuoteId = quoteId || 'demo';
+        let apiUrl = `/api/quotes/${effectiveQuoteId}`;
         
         // Only add userId as query param if it exists
         if (userId) {
@@ -1026,6 +1096,9 @@
         if (!data.quote) {
           throw new Error('No quote data found in API response');
         }
+        
+        // Store session data for future use
+        storeSessionData(effectiveQuoteId, userId);
         
         // Return the actual quote data 
         return data.quote;
@@ -1078,68 +1151,78 @@
         document.body.appendChild(errorContainer);
       }
       
+      // Create contractor preview toolbar if needed
+      createContractorToolbar();
+      
       // Fetch quote data from the server
       const fetchedQuote = await fetchQuoteData();
       
-      // If we couldn't fetch the data, use demo data as fallback
-      const quoteData = fetchedQuote || {
-        id: "QT12345",
-        businessName: "Stackr Remodeling",
-        businessTagline: "Quality renovations you can trust",
+      // If we couldn't fetch the data, use demo data as fallback only for demo
+      const quoteData = fetchedQuote || (quoteId === 'demo' ? {
+        id: "QT-DEMO-12345",
+        businessName: "Stackr Professional Services",
+        businessTagline: "Quality service you can trust",
         date: new Date().toLocaleDateString(),
         validUntil: new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString(),
-        customerName: "David Thompson",
-        description: "Complete bathroom renovation with modern fixtures",
-        serviceType: "Bathroom Remodel",
-        serviceLocation: "Denver, CO",
-        serviceComplexity: "Medium",
-        providerName: "John Smith",
-        providerExperience: "5 years",
-        providerRating: 4.8,
+        customerName: "Demo Customer",
+        description: "Professional service demonstration",
+        serviceType: "Locksmith",
+        serviceLocation: "Customer Location",
+        serviceComplexity: "Standard",
+        providerName: "Professional Provider",
+        providerExperience: "10 years",
+        providerRating: 4.9,
         tierOptions: {
           basic: {
             name: "Basic",
-            price: 7492,
+            price: 125,
             features: [
-              "Standard fixtures",
-              "Basic materials",
+              "Standard service",
+              "Standard materials",
               "30-day warranty",
-              "Standard cleanup"
-            ]
+              "Standard response time"
+            ],
+            laborCost: 75,
+            materialCost: 30
           },
           standard: {
             name: "Standard",
-            price: 7867,
+            price: 175,
             features: [
-              "Premium fixtures",
+              "Enhanced service",
               "Quality materials",
               "90-day warranty",
               "Priority scheduling",
-              "Thorough cleanup"
-            ]
+              "Follow-up support"
+            ],
+            laborCost: 100,
+            materialCost: 50
           },
           premium: {
             name: "Premium",
-            price: 8582,
+            price: 250,
             features: [
-              "Luxury fixtures",
+              "Premium service",
               "Premium materials",
               "1-year warranty",
-              "Priority scheduling",
+              "VIP scheduling",
               "Free follow-up inspection",
-              "Detailed cleanup",
-              "Designer consultation"
-            ]
+              "Extended support",
+              "Emergency availability"
+            ],
+            laborCost: 150,
+            materialCost: 70
           }
         },
         breakdown: {
-          labor: 5000,
-          materials: 2500,
+          labor: 100,
+          materials: 50,
           taxRate: 0.05
         },
         depositRequired: true,
-        depositPercent: 25
-      };
+        depositPercent: 30,
+        reference: "REF-DEMO-12345"
+      } : null);
       
       // Store the quote data globally for other functions to use
       window.demoQuote = quoteData;
@@ -1191,10 +1274,22 @@
       document.getElementById('provider-name').textContent = quoteData.providerName || 'Professional Provider';
       document.getElementById('provider-experience').textContent = quoteData.providerExperience || quoteData.experienceYears + ' years' || 'Experienced';
       
-      // Set pricing options - needs to handle both API structures
-      document.getElementById('basic-price').textContent = `$${(tiersData.basic.price).toLocaleString()}`;
-      document.getElementById('standard-price').textContent = `$${(tiersData.standard.price).toLocaleString()}`;
-      document.getElementById('premium-price').textContent = `$${(tiersData.premium.price).toLocaleString()}`;
+      // Set pricing options - use the consistent tiers structure we created
+      const basicPriceEl = document.getElementById('basic-price');
+      const standardPriceEl = document.getElementById('standard-price');
+      const premiumPriceEl = document.getElementById('premium-price');
+      
+      if (basicPriceEl && quoteData.tiers.basic) {
+        basicPriceEl.textContent = `$${(quoteData.tiers.basic.price).toLocaleString()}`;
+      }
+      
+      if (standardPriceEl && quoteData.tiers.standard) {
+        standardPriceEl.textContent = `$${(quoteData.tiers.standard.price).toLocaleString()}`;
+      }
+      
+      if (premiumPriceEl && quoteData.tiers.premium) {
+        premiumPriceEl.textContent = `$${(quoteData.tiers.premium.price).toLocaleString()}`;
+      }
       
       // Function to handle features array for any tier
       const renderFeaturesList = (tier, targetId) => {
@@ -1209,10 +1304,22 @@
         `).join('');
       };
       
-      // Set features for each tier
-      renderFeaturesList(tiersData.basic, 'basic-features');
-      renderFeaturesList(tiersData.standard, 'standard-features');  
-      renderFeaturesList(tiersData.premium, 'premium-features');
+      // Set features for each tier using our safely structured data
+      const basicFeaturesEl = document.getElementById('basic-features');
+      const standardFeaturesEl = document.getElementById('standard-features');
+      const premiumFeaturesEl = document.getElementById('premium-features');
+      
+      if (basicFeaturesEl && quoteData.tiers.basic) {
+        renderFeaturesList(quoteData.tiers.basic, 'basic-features');
+      }
+      
+      if (standardFeaturesEl && quoteData.tiers.standard) {
+        renderFeaturesList(quoteData.tiers.standard, 'standard-features');
+      }
+      
+      if (premiumFeaturesEl && quoteData.tiers.premium) {
+        renderFeaturesList(quoteData.tiers.premium, 'premium-features');
+      }
       
       // Set reference number if available
       if (quoteData.reference) {
@@ -1225,86 +1332,153 @@
     
     // Update quote breakdown based on selected tier
     function updateBreakdown(tier) {
-      // Get the quote data from the global variable
-      const quoteData = window.demoQuote;
-      
-      // Handle both data structures (tierOptions or tiers)
-      const tierData = quoteData.tiers[tier];
-      
-      // Check if breakdown information exists in the quote
-      const breakdownData = quoteData.breakdown || {};
-      
-      // Get price from tier data
-      const price = tierData.price;
-      
-      // Get labor and materials costs
-      const labor = breakdownData.labor || tierData.laborCost || 0;
-      const materials = breakdownData.materials || tierData.materialCost || 0;
-      
-      // Calculate subtotal (either use the one from the API or calculate it)
-      const subtotal = tierData.subtotal || price;
-      
-      // Get tax rate from quote or use default
-      const taxRate = breakdownData.taxRate || quoteData.taxRate || 0.05;
-      
-      // Calculate tax
-      const tax = tierData.tax || (subtotal * taxRate);
-      
-      // Calculate total
-      const total = tierData.total || (subtotal + tax);
-      
-      // Determine deposit info
-      const depositRequired = quoteData.depositRequired !== undefined ? quoteData.depositRequired : true;
-      const depositPercent = quoteData.depositPercent || breakdownData.depositPercent || (price > 2000 ? 25 : 50);
-      const deposit = depositRequired ? (total * (depositPercent / 100)) : 0;
-      
-      // Update the breakdown display
-      document.getElementById('breakdown-labor').textContent = `$${labor.toLocaleString()}`;
-      document.getElementById('breakdown-materials').textContent = `$${materials.toLocaleString()}`;
-      document.getElementById('breakdown-subtotal').textContent = `$${subtotal.toLocaleString()}`;
-      document.getElementById('breakdown-tax').textContent = `$${tax.toLocaleString()}`;
-      document.getElementById('breakdown-total').textContent = `$${total.toLocaleString()}`;
-      
-      // Update deposit information
-      const depositText = depositRequired 
-        ? `$${deposit.toLocaleString()} (${depositPercent}%)`
-        : 'Not required';
-      document.getElementById('deposit-amount').textContent = depositText;
-      
-      // Show the breakdown section
-      document.getElementById('quote-breakdown-section').classList.remove('hidden');
+      try {
+        // Get the quote data from the global variable
+        const quoteData = window.demoQuote;
+        if (!quoteData || !quoteData.tiers) {
+          console.warn('Quote data not fully loaded yet for breakdown');
+          return;
+        }
+        
+        // Get tier data, make sure it exists
+        const tierData = quoteData.tiers[tier];
+        if (!tierData) {
+          console.warn(`Tier data for ${tier} not found in breakdown`);
+          return;
+        }
+        
+        // Check if breakdown information exists in the quote
+        const breakdownData = quoteData.breakdown || {};
+        
+        // Get price from tier data (with safeguards)
+        const price = parseFloat(tierData.price) || 0;
+        
+        // Get labor and materials costs (with safeguards)
+        const labor = parseFloat(breakdownData.labor) || parseFloat(tierData.laborCost) || 0;
+        const materials = parseFloat(breakdownData.materials) || parseFloat(tierData.materialCost) || 0;
+        
+        // Calculate subtotal (either use the one from the API or calculate it)
+        const subtotal = parseFloat(tierData.subtotal) || price;
+        
+        // Get tax rate from quote or use default
+        const taxRate = parseFloat(breakdownData.taxRate) || parseFloat(quoteData.taxRate) || 0.05;
+        
+        // Calculate tax
+        const tax = parseFloat(tierData.tax) || (subtotal * taxRate);
+        
+        // Calculate total
+        const total = parseFloat(tierData.total) || (subtotal + tax);
+        
+        // Determine deposit info
+        const depositRequired = quoteData.depositRequired !== undefined ? quoteData.depositRequired : true;
+        const depositPercent = parseFloat(quoteData.depositPercent) || parseFloat(breakdownData.depositPercent) || (price > 2000 ? 25 : 50);
+        const deposit = depositRequired ? (total * (depositPercent / 100)) : 0;
+        
+        // Get elements before updating them - make sure they exist
+        const breakdownLaborEl = document.getElementById('breakdown-labor');
+        const breakdownMaterialsEl = document.getElementById('breakdown-materials');
+        const breakdownSubtotalEl = document.getElementById('breakdown-subtotal');
+        const breakdownTaxEl = document.getElementById('breakdown-tax');
+        const breakdownTotalEl = document.getElementById('breakdown-total');
+        const depositAmountEl = document.getElementById('deposit-amount');
+        const breakdownSectionEl = document.getElementById('quote-breakdown-section');
+        
+        // Update the breakdown display with null checks
+        if (breakdownLaborEl) {
+          breakdownLaborEl.textContent = `$${labor.toLocaleString()}`;
+        }
+        
+        if (breakdownMaterialsEl) {
+          breakdownMaterialsEl.textContent = `$${materials.toLocaleString()}`;
+        }
+        
+        if (breakdownSubtotalEl) {
+          breakdownSubtotalEl.textContent = `$${subtotal.toLocaleString()}`;
+        }
+        
+        if (breakdownTaxEl) {
+          breakdownTaxEl.textContent = `$${tax.toLocaleString()}`;
+        }
+        
+        if (breakdownTotalEl) {
+          breakdownTotalEl.textContent = `$${total.toLocaleString()}`;
+        }
+        
+        // Update deposit information
+        if (depositAmountEl) {
+          const depositText = depositRequired 
+            ? `$${deposit.toLocaleString()} (${depositPercent}%)`
+            : 'Not required';
+          depositAmountEl.textContent = depositText;
+        }
+        
+        // Show the breakdown section
+        if (breakdownSectionEl) {
+          breakdownSectionEl.classList.remove('hidden');
+        }
+      } catch (error) {
+        console.error('Error in updateBreakdown:', error);
+      }
     }
     
     // Set up event listeners
     // Update the selected package display
     function updateSelectedPackage(tier) {
-      // Get the quote data from the global variable
-      const quoteData = window.demoQuote;
-      
-      // Handle both data structures (tierOptions or tiers)
-      const tierData = quoteData.tiers[tier];
-      
-      // Define display name
-      const displayName = tierData.name || (tier.charAt(0).toUpperCase() + tier.slice(1) + ' Package');
-      
-      // Update name, description and price
-      document.getElementById('selected-tier-name').textContent = displayName;
-      document.getElementById('selected-tier-description').textContent = tierData.description || getTierDescription(tier);
-      document.getElementById('selected-tier-price').textContent = `$${tierData.price.toLocaleString()}`;
-      
-      // Update features list
-      const features = tierData.features || [];
-      document.getElementById('selected-tier-features').innerHTML = features.map(feature => `
-        <li class="flex items-start">
-          <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-          <span>${feature}</span>
-        </li>
-      `).join('');
-      
-      // Update deposit information
-      updatePaymentAmount();
+      try {
+        // Get the quote data from the global variable
+        const quoteData = window.demoQuote;
+        if (!quoteData || !quoteData.tiers) {
+          console.warn('Quote data not fully loaded yet for selected package');
+          return;
+        }
+        
+        // Get tier data, make sure it exists
+        const tierData = quoteData.tiers[tier];
+        if (!tierData) {
+          console.warn(`Tier data for ${tier} not found in selected package`);
+          return;
+        }
+        
+        // Define display name with fallback
+        const displayName = tierData.name || (tier.charAt(0).toUpperCase() + tier.slice(1) + ' Package');
+        
+        // Get UI elements and check if they exist
+        const selectedTierNameEl = document.getElementById('selected-tier-name');
+        const selectedTierDescriptionEl = document.getElementById('selected-tier-description');
+        const selectedTierPriceEl = document.getElementById('selected-tier-price');
+        const selectedTierFeaturesEl = document.getElementById('selected-tier-features');
+        
+        // Update name, description and price with null checks
+        if (selectedTierNameEl) {
+          selectedTierNameEl.textContent = displayName;
+        }
+        
+        if (selectedTierDescriptionEl) {
+          selectedTierDescriptionEl.textContent = tierData.description || getTierDescription(tier);
+        }
+        
+        if (selectedTierPriceEl) {
+          selectedTierPriceEl.textContent = `$${parseFloat(tierData.price).toLocaleString()}`;
+        }
+        
+        // Update features list
+        if (selectedTierFeaturesEl) {
+          const features = Array.isArray(tierData.features) ? tierData.features : [];
+          selectedTierFeaturesEl.innerHTML = features.map(feature => `
+            <li class="flex items-start">
+              <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span>${feature}</span>
+            </li>
+          `).join('');
+        }
+        
+        // Update deposit information
+        updatePaymentAmount();
+      } catch (error) {
+        console.error('Error in updateSelectedPackage:', error);
+      }
     }
     
     // Get a description for each tier
@@ -1392,9 +1566,13 @@
           const selectedRadio = document.querySelector('input[name="payment-option"]:checked');
           if (selectedRadio) {
             const selectedOption = selectedRadio.value;
-            const selectedContainer = document.querySelector(`input[value="${selectedOption}"]`).closest('.payment-option-container');
-            if (selectedContainer) {
-              selectedContainer.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+            // Add null check for the selector
+            const selectedInput = document.querySelector(`input[value="${selectedOption}"]`);
+            if (selectedInput) {
+              const selectedContainer = selectedInput.closest('.payment-option-container');
+              if (selectedContainer) {
+                selectedContainer.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+              }
             }
             
             // Update payment button text based on selection
