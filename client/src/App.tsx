@@ -118,7 +118,7 @@ function App() {
         <div className="flex flex-col items-center space-y-4">
           <Icons.spinner className="h-12 w-12 animate-spin text-primary" />
           <h1 className="text-xl font-semibold text-foreground">
-            Loading Stackr Finance...
+            Loading Stackr Zen...
           </h1>
         </div>
       </div>
