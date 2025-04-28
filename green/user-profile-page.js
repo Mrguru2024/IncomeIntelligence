@@ -31,9 +31,31 @@ async function initializeProfilePage() {
   console.log('Initializing user profile page...');
   
   try {
-    // Import user profile module
-    const userProfileModule = await import('./user-profile.js');
-    const UserProfile = userProfileModule.default;
+    // Get user profile from browser-compatible module
+    let UserProfile;
+    
+    // Try to use the browser-compatible version that's already loaded
+    if (window.UserProfile) {
+      UserProfile = window.UserProfile;
+    } else {
+      // Otherwise, load the browser-compatible version
+      const script = document.createElement('script');
+      script.src = './user-profile-browser.js';
+      document.head.appendChild(script);
+      
+      // Wait for script to load
+      await new Promise((resolve, reject) => {
+        script.onload = resolve;
+        script.onerror = reject;
+      });
+      
+      if (!window.UserProfile) {
+        throw new Error('Failed to load UserProfile module');
+      }
+      
+      UserProfile = window.UserProfile;
+    }
+    
     const userId = getCurrentUserId();
     
     if (!userId) {
@@ -41,8 +63,8 @@ async function initializeProfilePage() {
       return;
     }
     
-    // Load user profile data
-    const profile = await UserProfile.initUserProfile(userId);
+    // Load user profile data - use initializeUserProfile instead of initUserProfile
+    const profile = UserProfile.initializeUserProfile(userId);
     if (!profile) {
       showError('Failed to load profile data. Please try again later.');
       return;
@@ -459,7 +481,11 @@ function setupProfileEventListeners(userProfileModule) {
         return;
       }
       
-      const updatedProfile = await userProfileModule.updateUserProfile(profileData);
+      // Get the current user ID
+      const userId = getCurrentUserId();
+      
+      // Use saveUserProfile instead of updateUserProfile
+      const updatedProfile = userProfileModule.saveUserProfile(userId, profileData);
       
       if (updatedProfile) {
         showSuccess('Profile updated successfully');
