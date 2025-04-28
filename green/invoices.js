@@ -561,6 +561,29 @@ function openCreateInvoiceModal() {
         <input type="email" id="client-email" name="clientEmail" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;" required>
       </div>
       
+      <div style="margin-bottom: 16px;">
+        <label for="client-phone" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Client Phone Number</label>
+        <input type="tel" id="client-phone" name="clientPhone" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="(optional)">
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Delivery Method</label>
+        <div style="display: flex; gap: 16px;">
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="radio" name="deliveryMethod" value="email" checked style="margin-right: 8px;">
+            <span>Email</span>
+          </label>
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="radio" name="deliveryMethod" value="sms" style="margin-right: 8px;">
+            <span>SMS</span>
+          </label>
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="radio" name="deliveryMethod" value="both" style="margin-right: 8px;">
+            <span>Both</span>
+          </label>
+        </div>
+      </div>
+      
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
         <div>
           <label for="issue-date" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Issue Date</label>
@@ -689,6 +712,8 @@ function openCreateInvoiceModal() {
     const invoiceData = {
       clientName: formData.get('clientName'),
       clientEmail: formData.get('clientEmail'),
+      clientPhone: formData.get('clientPhone'),
+      deliveryMethod: formData.get('deliveryMethod'),
       issuedDate: formData.get('issuedDate'),
       dueDate: formData.get('dueDate'),
       notes: formData.get('notes'),
