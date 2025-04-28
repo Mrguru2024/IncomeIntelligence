@@ -1490,32 +1490,10 @@ function createIncomeOpportunitiesSection() {
   baseIncomeLine.style.borderTopRightRadius = '4px';
   baseIncomeLine.style.clipPath = 'polygon(0% 20%, 20% 30%, 40% 25%, 60% 40%, 80% 35%, 100% 30%)';
   
-  const stackzenIncomeGraph = document.createElement('div');
-  stackzenIncomeGraph.style.position = 'absolute';
-  stackzenIncomeGraph.style.left = '10%';
-  stackzenIncomeGraph.style.right = '0';
-  stackzenIncomeGraph.style.bottom = '0';
-  stackzenIncomeGraph.style.height = '75%';
-  stackzenIncomeGraph.style.background = 'linear-gradient(to top, rgba(0, 198, 167, 0.2) 0%, rgba(0, 198, 167, 0) 100%)'; // Mint Green with transparency
-  stackzenIncomeGraph.style.borderTopLeftRadius = '4px';
-  stackzenIncomeGraph.style.borderTopRightRadius = '4px';
-  stackzenIncomeGraph.style.clipPath = 'polygon(0% 100%, 0% 60%, 20% 50%, 40% 40%, 60% 25%, 80% 15%, 100% 10%, 100% 100%)';
-  
-  const stackzenIncomeLine = document.createElement('div');
-  stackzenIncomeLine.style.position = 'absolute';
-  stackzenIncomeLine.style.left = '10%';
-  stackzenIncomeLine.style.right = '0';
-  stackzenIncomeLine.style.bottom = '0';
-  stackzenIncomeLine.style.height = '75%';
-  stackzenIncomeLine.style.borderTop = '2px solid #00C6A7'; // Mint Green
-  stackzenIncomeLine.style.borderTopLeftRadius = '4px';
-  stackzenIncomeLine.style.borderTopRightRadius = '4px';
-  stackzenIncomeLine.style.clipPath = 'polygon(0% 60%, 20% 50%, 40% 40%, 60% 25%, 80% 15%, 100% 10%)';
+  // Removed stackzenIncomeGraph and stackzenIncomeLine elements per user request
   
   chartCanvas.appendChild(baseIncomeGraph);
   chartCanvas.appendChild(baseIncomeLine);
-  chartCanvas.appendChild(stackzenIncomeGraph);
-  chartCanvas.appendChild(stackzenIncomeLine);
   
   // Chart legend
   const legend = document.createElement('div');
@@ -1545,27 +1523,9 @@ function createIncomeOpportunitiesSection() {
   legendItem1.appendChild(legend1Color);
   legendItem1.appendChild(legend1Text);
   
-  const legendItem2 = document.createElement('div');
-  legendItem2.style.display = 'flex';
-  legendItem2.style.alignItems = 'center';
-  legendItem2.style.gap = '0.5rem';
-  
-  const legend2Color = document.createElement('div');
-  legend2Color.style.width = '12px';
-  legend2Color.style.height = '12px';
-  legend2Color.style.backgroundColor = '#00C6A7'; // Mint Green
-  legend2Color.style.borderRadius = '2px';
-  
-  const legend2Text = document.createElement('span');
-  legend2Text.textContent = 'With Stackzen';
-  legend2Text.style.fontSize = '0.85rem';
-  legend2Text.style.color = '#555';
-  
-  legendItem2.appendChild(legend2Color);
-  legendItem2.appendChild(legend2Text);
+  // Removed the "With Stackzen" legend item since we removed the corresponding graph element
   
   legend.appendChild(legendItem1);
-  legend.appendChild(legendItem2);
   
   chartCanvas.appendChild(legend);
   chartContainer.appendChild(chartCanvas);
