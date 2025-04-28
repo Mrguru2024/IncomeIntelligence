@@ -60,7 +60,7 @@ import { registerAIStatusRoutes } from "./routes/ai-status-routes";
 import { registerExportRoutes } from "./routes/export-routes";
 import userProfileRoutes from "./routes/user-profile-routes";
 import guardrailsRoutes from "./routes/guardrails-routes";
-import { sendEmail, sendPaymentConfirmationEmail } from "./email-service";
+import { sendEmail, sendPaymentConfirmationEmail, sendTestEmail, sendSms } from "./email-service";
 import Stripe from "stripe";
 // Express already imported at top
 import dotenv from "dotenv";
