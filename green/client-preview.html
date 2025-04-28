@@ -1673,7 +1673,21 @@
     // Initialize page
     document.addEventListener('DOMContentLoaded', async function() {
       // Create an error container for API fetch issues
-      const contentContainer = document.querySelector('.max-w-7xl');
+      // First ensure we have a content container to work with
+      let contentContainer = document.querySelector('.max-w-7xl');
+      
+      // If the max-w-7xl container doesn't exist, fall back to body or create one
+      if (!contentContainer) {
+        contentContainer = document.querySelector('main') || document.querySelector('body');
+        
+        // If we're using body as a fallback, create a more suitable container
+        if (contentContainer === document.body) {
+          const mainContainer = document.createElement('main');
+          mainContainer.className = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8';
+          document.body.appendChild(mainContainer);
+          contentContainer = mainContainer;
+        }
+      }
       
       if (!document.getElementById('error-container')) {
         const errorContainer = document.createElement('div');
