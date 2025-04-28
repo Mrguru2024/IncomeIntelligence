@@ -132,6 +132,7 @@
     "tailwindcss-animate": "^1.0.7",
     "ts-jest": "^29.3.1",
     "ts-node": "^10.9.2",
+    "twilio": "^5.5.2",
     "uuid": "^11.1.0",
     "vaul": "^1.1.0",
     "web-speech-cognitive-services": "^8.1.1",

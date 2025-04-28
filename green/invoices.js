@@ -605,15 +605,15 @@ function openCreateInvoiceModal() {
               
               // Document write the appropriate grid based on device size
               if (isFoldableDevice) {
-                document.write(`
-                  <div style="display: grid; grid-template-rows: auto auto auto; gap: 6px;">
-                    <input type="text" name="description[]" placeholder="Description" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" required>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                      <input type="number" name="quantity[]" placeholder="Qty" min="1" value="1" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" required>
-                      <input type="number" name="price[]" placeholder="Price" min="0" step="0.01" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" required>
-                    </div>
-                  </div>
-                `);
+                document.write(
+                  '<div style="display: grid; grid-template-rows: auto auto auto; gap: 6px;">' +
+                  '<input type="text" name="description[]" placeholder="Description" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" required>'
+                    + '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">' +
+                      '<input type="number" name="quantity[]" placeholder="Qty" min="1" value="1" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" required>' +
+                      '<input type="number" name="price[]" placeholder="Price" min="0" step="0.01" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" required>' +
+                    '</div>' +
+                  '</div>'
+                );
               } else {
                 document.write(`
                   <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
