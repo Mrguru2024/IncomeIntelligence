@@ -378,9 +378,10 @@ function showClientPreviewModal(quote, tierName) {
   additionalInfoTitle.style.color = '#111827';
   
   const additionalInfoText = document.createElement('p');
+  const depositTerms = quote.total > 2000 ? '25% deposit' : '50% deposit';
   additionalInfoText.innerHTML = `
     This quote is valid for 30 days from the issue date.<br>
-    Payment terms: 50% deposit required to secure booking.<br>
+    Payment terms: ${depositTerms} required to secure booking (for quotes ${quote.total > 2000 ? 'over $2,000' : 'under $2,000'}).<br>
     Please contact us with any questions regarding this quote.
   `;
   additionalInfoText.style.margin = '0';
@@ -545,8 +546,12 @@ function transformToPayableInvoice(quote, tierName, modalOverlay) {
   serviceLine.appendChild(serviceLabel);
   serviceLine.appendChild(serviceValue);
   
-  // Calculate deposit amount (25% of total)
-  const depositAmount = quote.total * 0.25;
+  // Calculate deposit amount based on quote total
+  // 50% for quotes under $2,000, 25% for quotes over $2,000
+  const depositPercentage = quote.total > 2000 ? 0.25 : 0.5;
+  const depositPercentText = quote.total > 2000 ? '25%' : '50%';
+  const depositAmount = quote.total * depositPercentage;
+  
   const depositLine = document.createElement('div');
   depositLine.style.display = 'flex';
   depositLine.style.justifyContent = 'space-between';
@@ -555,7 +560,7 @@ function transformToPayableInvoice(quote, tierName, modalOverlay) {
   depositLine.style.borderTop = '1px dashed #e5e7eb';
   
   const depositLabel = document.createElement('span');
-  depositLabel.textContent = 'Deposit Due Now (25%)';
+  depositLabel.textContent = `Deposit Due Now (${depositPercentText})`;
   depositLabel.style.fontWeight = 'bold';
   
   const depositValue = document.createElement('span');
@@ -862,7 +867,8 @@ function showPaymentConfirmation(quote, tierName, amount) {
   confirmationTitle.style.marginBottom = '16px';
   
   const confirmationMessage = document.createElement('p');
-  confirmationMessage.innerHTML = `Your deposit of <strong>${formatCurrency(amount)}</strong> for the ${tierName} ${quote.jobTypeDisplay} service has been processed successfully.`;
+  const depositPercentText = quote.total > 2000 ? '25%' : '50%';
+  confirmationMessage.innerHTML = `Your ${depositPercentText} deposit of <strong>${formatCurrency(amount)}</strong> for the ${tierName} ${quote.jobTypeDisplay} service has been processed successfully.`;
   confirmationMessage.style.marginBottom = '24px';
   confirmationMessage.style.fontSize = '16px';
   confirmationMessage.style.lineHeight = '1.5';
