@@ -20,7 +20,8 @@ import { users, type User, type InsertUser, incomes, type Income, type InsertInc
   affiliatePrograms, type AffiliateProgram, type InsertAffiliateProgram,
   userAffiliates, type UserAffiliate, type InsertUserAffiliate,
   invoices, type Invoice, type InsertInvoice,
-  scheduledExports, type ScheduledExport, type InsertScheduledExport
+  scheduledExports, type ScheduledExport, type InsertScheduledExport,
+  guardrails, type Guardrail, type InsertGuardrail
 } from "@shared/schema";
 import { eq, sql, and, or, desc, asc } from 'drizzle-orm';
 import { db } from './db';
@@ -272,6 +273,14 @@ export interface IStorage {
   deleteScheduledExport(id: number): Promise<boolean>;
   markScheduledExportSent(id: number, lastSentAt: Date, nextSendAt: Date): Promise<ScheduledExport | undefined>;
   getDueScheduledExports(): Promise<ScheduledExport[]>;
+  
+  // Guardrails methods
+  getGuardrails(userId: number): Promise<Guardrail[]>;
+  getGuardrailById(id: number): Promise<Guardrail | undefined>;
+  createGuardrail(guardrail: InsertGuardrail): Promise<Guardrail>;
+  updateGuardrail(id: number, guardrail: Partial<InsertGuardrail>): Promise<Guardrail | undefined>;
+  deleteGuardrail(id: number): Promise<boolean>;
+  getGuardrailsByCategory(userId: number, category: string): Promise<Guardrail[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -300,6 +309,7 @@ export class MemStorage implements IStorage {
   private userAffiliates: Map<number, UserAffiliate>;
   private invoices: Map<number, Invoice>;
   private scheduledExports: Map<number, ScheduledExport>;
+  private guardrails: Map<number, Guardrail>;
   
   private userCurrentId: number;
   private userProfileCurrentId: number;
@@ -326,6 +336,7 @@ export class MemStorage implements IStorage {
   private userAffiliateCurrentId: number;
   private invoiceCurrentId: number;
   private scheduledExportCurrentId: number;
+  private guardrailCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -353,6 +364,7 @@ export class MemStorage implements IStorage {
     this.userAffiliates = new Map();
     this.invoices = new Map();
     this.scheduledExports = new Map();
+    this.guardrails = new Map();
     
     this.userCurrentId = 1;
     this.userProfileCurrentId = 1;
@@ -379,6 +391,7 @@ export class MemStorage implements IStorage {
     this.userAffiliateCurrentId = 1;
     this.invoiceCurrentId = 1;
     this.scheduledExportCurrentId = 1;
+    this.guardrailCurrentId = 1;
     
     // Add some initial data
     this.setupInitialData();
