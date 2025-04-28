@@ -828,74 +828,17 @@
       document.getElementById('loading-indicator').classList.remove('hidden');
       
       try {
-        // If demo mode or no quoteId/userId, use demo data
-        if (quoteId === 'demo' || !userId) {
-          console.log('Using demo quote data');
-          return {
-            id: "QT12345",
-            businessName: "Stackr Remodeling",
-            businessTagline: "Quality renovations you can trust",
-            date: new Date().toLocaleDateString(),
-            validUntil: new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString(),
-            customerName: "David Thompson",
-            description: "Complete bathroom renovation with modern fixtures",
-            serviceType: "Bathroom Remodel",
-            serviceLocation: "Denver, CO",
-            serviceComplexity: "Medium",
-            providerName: "John Smith",
-            providerExperience: "5 years",
-            providerRating: 4.8,
-            tierOptions: {
-              basic: {
-                name: "Basic",
-                price: 7492,
-                features: [
-                  "Standard fixtures",
-                  "Basic materials",
-                  "30-day warranty",
-                  "Standard cleanup"
-                ]
-              },
-              standard: {
-                name: "Standard",
-                price: 7867,
-                features: [
-                  "Premium fixtures",
-                  "Quality materials",
-                  "90-day warranty",
-                  "Priority scheduling",
-                  "Thorough cleanup"
-                ]
-              },
-              premium: {
-                name: "Premium",
-                price: 8582,
-                features: [
-                  "Luxury fixtures",
-                  "Premium materials",
-                  "1-year warranty", 
-                  "Priority scheduling",
-                  "Free follow-up inspection",
-                  "Detailed cleanup",
-                  "Designer consultation"
-                ]
-              }
-            },
-            breakdown: {
-              labor: 5000,
-              materials: 2500,
-              taxRate: 0.05,
-              depositPercent: 25
-            },
-            depositRequired: true,
-            depositPercent: 25,
-            reference: "REF-78945"
-          };
+        // Construct API URL with appropriate parameters
+        let apiUrl = `/api/quotes/${quoteId}`;
+        
+        // Only add userId as query param if it exists
+        if (userId) {
+          apiUrl += `?userId=${userId}`;
         }
         
         // Fetch quote data from the server API
-        console.log(`Fetching quote data for ID: ${quoteId}, User ID: ${userId}`);
-        const response = await fetch(`/api/quotes/${quoteId}?userId=${userId}`);
+        console.log(`Fetching quote data from: ${apiUrl}`);
+        const response = await fetch(apiUrl);
         
         if (!response.ok) {
           throw new Error(`Error fetching quote: ${response.status} ${response.statusText}`);
@@ -904,8 +847,12 @@
         const data = await response.json();
         console.log('Quote data received:', data);
         
+        if (!data.quote) {
+          throw new Error('No quote data found in API response');
+        }
+        
         // Return the actual quote data 
-        return data.quote || null;
+        return data.quote;
       } catch (error) {
         console.error('Error fetching quote data:', error);
         
@@ -914,9 +861,16 @@
         if (errorContainer) {
           errorContainer.textContent = `Error loading quote: ${error.message}`;
           errorContainer.classList.remove('hidden');
+          
+          // For demo quotes, don't show the error (we'll use default data)
+          if (quoteId === 'demo') {
+            setTimeout(() => {
+              errorContainer.classList.add('hidden');
+            }, 3000);
+          }
         }
         
-        // Fallback to demo data in case of error
+        // Return null to trigger fallback in the initPage function
         return null;
       } finally {
         // Hide loading indicator
