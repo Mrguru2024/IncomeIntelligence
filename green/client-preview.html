@@ -10,22 +10,145 @@
   <style>
     /* Additional custom styles */
     .quote-header {
-      background: linear-gradient(to right, #3b82f6, #2563eb);
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
     }
+    .quote-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB4PSIwIiB5PSIwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSgzMCkiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvcGF0dGVybj48cmVjdCBmaWxsPSJ1cmwoI3BhdHRlcm4pIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIi8+PC9zdmc+');
+      opacity: 0.7;
+      z-index: 0;
+    }
+    .quote-header > * {
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Card styles */
     .tier-card {
-      transition: transform 0.3s, box-shadow 0.3s;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 2px solid transparent;
+      position: relative;
     }
     .tier-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      transform: translateY(-8px);
+      box-shadow: 0 15px 30px -5px rgba(59, 130, 246, 0.15), 0 10px 15px -5px rgba(0, 0, 0, 0.07);
     }
+    .tier-card.border-blue-500 {
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    }
+    
+    /* Button effects */
+    .select-tier {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .select-tier::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 300%;
+      height: 300%;
+      background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+    }
+    .select-tier:active::after {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      transition: transform 0s, opacity 0.2s ease;
+    }
+    
+    /* Price tag style */
+    .price-tag {
+      position: relative;
+      display: inline-block;
+    }
+    .price-tag::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: rgba(59, 130, 246, 0.15);
+      border-radius: 3px;
+      z-index: -1;
+    }
+    
+    /* Feature pills style */
+    .feature-pill {
+      display: inline-flex;
+      align-items: center;
+      background-color: rgba(59, 130, 246, 0.08);
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+      font-size: 0.75rem;
+    }
+    
+    /* Animations */
     .fade-in {
-      animation: fadeIn 0.5s ease-in;
+      animation: fadeIn 0.5s ease-in-out;
     }
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
+    .pulse-animation {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
+    
+    /* Progress bar */
+    .progress-bar {
+      height: 4px;
+      width: 100%;
+      background-color: #e2e8f0;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(to right, #3b82f6, #60a5fa);
+      width: 0;
+      transition: width 1s ease;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    
+    /* Recommended badge */
+    .recommended-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      font-weight: 600;
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      border-bottom-left-radius: 8px;
+      box-shadow: -2px 2px 6px rgba(37, 99, 235, 0.2);
+      z-index: 10;
+    }
+    
     /* Mobile-specific adjustments for Samsung ZFold4 */
     @media (max-width: 768px) {
       .quote-container {
@@ -134,8 +257,13 @@
       <!-- Pricing Section -->
       <div class="p-6 border-b">
         <h3 class="text-lg font-semibold mb-3">Select Your Package</h3>
+        <h4 class="text-sm text-gray-500 mb-4">Choose a package that fits your needs. All quotes include our professional service guarantee.</h4>
         
-        <div class="tier-section flex flex-wrap gap-4 mt-6">
+        <div class="progress-bar mb-5 mt-3">
+          <div class="progress-bar-fill" style="width: 0%;"></div>
+        </div>
+        
+        <div class="tier-section flex flex-wrap gap-6 mt-6">
           <!-- Basic Tier -->
           <div class="tier-card flex-1 min-w-[250px] bg-white rounded-lg border border-gray-200 p-5 transition">
             <div class="mb-4">
