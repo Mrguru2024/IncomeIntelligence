@@ -1582,49 +1582,60 @@ function generateMultiQuote(data) {
         personalizedData = window.UserProfile.personalizeQuote(personalizedData);
       }
     } else {
-      // Dynamically import the user profile module as fallback
-      import('/green/user-profile.js')
-        .then(async module => {
+      // Instead of trying to import as a module, load the browser-compatible version
+      if (!window._loadingUserProfile) {
+        window._loadingUserProfile = true;
+        
+        // Create script element to load the browser-compatible version
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = '/green/user-profile-browser.js';
+        
+        script.onload = function() {
+          window._loadingUserProfile = false;
+          console.log('UserProfile module loaded successfully for personalization');
+          
           try {
-            // Access the default export which is the UserProfile object
-            const UserProfileModule = module.default;
-            
-            // First load the current profile data
-            await UserProfileModule.loadCurrentUserProfile();
-            
-            // Now we can access the cached profile
-            const currentProfile = UserProfileModule.getCurrentProfile();
-            
-            // If we have a profile, use it to personalize the data
-            if (currentProfile) {
-              console.log('Personalizing quotes based on user profile:', currentProfile);
-              personalizedData = UserProfileModule.personalizeQuote(personalizedData);
-            }
-            
-            // Use the personalized data to regenerate quotes if significant changes were made
-            const hasSignificantChanges = 
-              personalizedData.experienceLevel !== data.experienceLevel ||
-              personalizedData.targetMargin !== data.targetMargin ||
-              personalizedData.laborRate !== data.laborRate;
-            
-            if (hasSignificantChanges) {
-              console.log('Significant profile changes detected, regenerating quotes');
-              updateQuotesWithPersonalizedData();
-            }
-            
-            // Add business profile button to the quote form section
-            const formContainer = document.querySelector('.quote-form-container');
-            if (formContainer && !document.getElementById('business-profile-btn')) {
-              // Business profile information now automatically used without modal
-              // We'll silently load and use profile data without adding a button
+            // Access the UserProfile object from the window
+            if (window.UserProfile && window.UserProfile.loadCurrentUserProfile) {
+              // The current user profile
+              const currentProfile = window.UserProfile.loadCurrentUserProfile();
+              
+              // If we have a profile, use it to personalize the data
+              if (currentProfile) {
+                console.log('Personalizing quotes based on user profile:', currentProfile);
+                if (window.UserProfile.personalizeQuote) {
+                  personalizedData = window.UserProfile.personalizeQuote(personalizedData);
+                }
+              }
+              
+              // Use the personalized data to regenerate quotes if significant changes were made
+              const hasSignificantChanges = 
+                personalizedData.experienceLevel !== data.experienceLevel ||
+                personalizedData.targetMargin !== data.targetMargin ||
+                personalizedData.laborRate !== data.laborRate;
+              
+              if (hasSignificantChanges) {
+                console.log('Significant profile changes detected, regenerating quotes');
+                updateQuotesWithPersonalizedData();
+              }
+            } else {
+              console.error('UserProfile module loaded but required methods are missing');
             }
           } catch (moduleError) {
             console.error('Error processing user profile module:', moduleError);
           }
-        })
-        .catch(err => {
-          console.error('Error loading user profile module:', err);
-        });
+        };
+        
+        script.onerror = function() {
+          window._loadingUserProfile = false;
+          console.error('Failed to load user profile module for personalization');
+        };
+        
+        document.head.appendChild(script);
+      } else {
+        console.log('UserProfile module already loading');
+      }
     }
   } catch (error) {
     console.error('Error during profile personalization:', error);
@@ -7854,7 +7865,7 @@ function ensureUserProfileInitialized() {
       return; // Profile handled, exit function
     }
     
-    // If UserProfile not available in global scope, create a script to load it
+    // If UserProfile not available in global scope, load our browser-compatible version
     console.log('UserProfile not available, attempting to load the module');
     
     // IMPORTANT: Check if we're already trying to load it to prevent infinite loops
@@ -7866,52 +7877,42 @@ function ensureUserProfileInitialized() {
     // Set a flag to prevent multiple loading attempts
     window._loadingUserProfile = true;
     
-    // We need to create a non-module version of the script (without export statements)
-    fetch('/green/user-profile.js')
-      .then(response => response.text())
-      .then(code => {
-        // Create a non-module version by removing export statements
-        const nonModuleCode = code.replace(/export default UserProfile;/g, '');
-        
-        // Create an in-page script element with the modified code
-        const script = document.createElement('script');
-        script.type = 'text/javascript'; // Explicitly set as regular JS, not a module
-        script.textContent = nonModuleCode;
-        
-        script.onload = function() {
-          console.log('UserProfile module loaded via inline script');
-          
-          // Reset loading flag to prevent infinite loops
-          window._loadingUserProfile = false;
-          
-          // Try to get user ID from various sources
-          const userId = window.appState?.user?.id || 
-                        (localStorage.getItem('stackrUser') ? 
-                          JSON.parse(localStorage.getItem('stackrUser'))?.id : null) || 
-                        `temp-${Date.now()}`;
-          
-          // Initialize with a slight delay to ensure the module is fully processed
-          setTimeout(() => {
-            if (window.UserProfile) {
-              window.UserProfile.initUserProfile(userId)
-                .then(profile => {
-                  console.log('User profile initialized after script load:', profile ? 'success' : 'failed');
-                })
-                .catch(err => {
-                  console.error('Error initializing user profile after script load:', err);
-                });
-            } else {
-              console.error('UserProfile still not available after script load');
-            }
-          }, 50);
-        };
-        
-        document.head.appendChild(script);
-      })
-      .catch(err => {
-        console.error('Failed to load and modify UserProfile module:', err);
-        window._loadingUserProfile = false; // Reset flag on error
-      });
+    // Load our browser-compatible version directly
+    const script = document.createElement('script');
+    script.type = 'text/javascript'; // Explicitly set as regular JS, not a module
+    script.src = '/green/user-profile-browser.js'; // Use our browser-compatible version
+    
+    script.onload = function() {
+      console.log('UserProfile module loaded successfully');
+      
+      // Reset loading flag to prevent infinite loops
+      window._loadingUserProfile = false;
+      
+      // Try to get user ID from various sources
+      const userId = window.appState?.user?.id || 
+                    (localStorage.getItem('stackrUser') ? 
+                      JSON.parse(localStorage.getItem('stackrUser'))?.id : null) || 
+                    `temp-${Date.now()}`;
+      
+      // Check if the module is available
+      if (window.UserProfile && window.UserProfile.initializeUserProfile) {
+        try {
+          const profile = window.UserProfile.initializeUserProfile(userId);
+          console.log('User profile initialized successfully:', profile ? 'success' : 'failed');
+        } catch (err) {
+          console.error('Error initializing user profile:', err);
+        }
+      } else {
+        console.error('UserProfile still not available after script load or missing required methods');
+      }
+    };
+    
+    script.onerror = function(e) {
+      console.error('Failed to load UserProfile script:', e);
+      window._loadingUserProfile = false; // Reset flag on error
+    };
+    
+    document.head.appendChild(script);
     
   } catch (error) {
     console.error('Error in ensureUserProfileInitialized:', error);
