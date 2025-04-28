@@ -2083,11 +2083,71 @@ function showQuoteOptionsModal(quote, tierName) {
   buttonRow.appendChild(cancelButton);
   buttonRow.appendChild(saveButton);
   
+  // Option 3: Preview as Client
+  const previewOption = document.createElement('div');
+  previewOption.style.border = '1px solid var(--color-border, #e5e7eb)';
+  previewOption.style.borderRadius = '8px';
+  previewOption.style.padding = '16px';
+  previewOption.style.marginBottom = '16px';
+  previewOption.style.cursor = 'pointer';
+  previewOption.style.transition = 'all 0.2s ease';
+  
+  const previewHeader = document.createElement('div');
+  previewHeader.style.display = 'flex';
+  previewHeader.style.alignItems = 'center';
+  previewHeader.style.marginBottom = '10px';
+  
+  const previewIcon = document.createElement('span');
+  previewIcon.innerHTML = '👁️';
+  previewIcon.style.fontSize = '20px';
+  previewIcon.style.marginRight = '12px';
+  
+  const previewTitle = document.createElement('h5');
+  previewTitle.textContent = 'Preview as Client';
+  previewTitle.style.margin = '0';
+  previewTitle.style.fontSize = '15px';
+  previewTitle.style.fontWeight = '600';
+  
+  previewHeader.appendChild(previewIcon);
+  previewHeader.appendChild(previewTitle);
+  
+  const previewDesc = document.createElement('p');
+  previewDesc.textContent = 'Preview how this quote will appear to clients before sending it out.';
+  previewDesc.style.margin = '0';
+  previewDesc.style.fontSize = '14px';
+  previewDesc.style.color = 'var(--color-text-secondary, #6b7280)';
+  
+  previewOption.appendChild(previewHeader);
+  previewOption.appendChild(previewDesc);
+  
+  // Add hover effects for preview option
+  previewOption.addEventListener('mouseenter', () => {
+    previewOption.style.borderColor = 'var(--color-primary, #4F46E5)';
+    previewOption.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
+  });
+  
+  previewOption.addEventListener('mouseleave', () => {
+    previewOption.style.borderColor = 'var(--color-border, #e5e7eb)';
+    previewOption.style.backgroundColor = 'transparent';
+  });
+
   // Add click handlers for the options
   invoiceOption.addEventListener('click', () => {
     // Handle send as invoice by redirecting to invoice workflow
     document.body.removeChild(modalOverlay);
     showInvoiceWorkflowModal(quote, tierName);
+  });
+  
+  previewOption.addEventListener('click', () => {
+    // Handle client preview
+    document.body.removeChild(modalOverlay);
+    // Call the client preview function we've added
+    if (typeof window.showClientPreviewModal === 'function') {
+      window.showClientPreviewModal(quote, tierName);
+    } else {
+      console.error('Client preview function not found');
+      showToast('Client preview feature is not available', 'error');
+    }
   });
   
   manualOption.addEventListener('click', () => {
@@ -2100,6 +2160,7 @@ function showQuoteOptionsModal(quote, tierName) {
   content.appendChild(quoteInfo);
   content.appendChild(optionsTitle);
   content.appendChild(invoiceOption);
+  content.appendChild(previewOption); // Add the preview option
   content.appendChild(manualOption);
   content.appendChild(buttonRow);
   
