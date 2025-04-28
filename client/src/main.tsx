@@ -26,7 +26,7 @@ if (typeof window !== 'undefined') {
 console.log("STARTUP: Application initialization beginning");
 
 // Log that we're using Firebase-free version
-console.log("STARTUP: Using Firebase-free version of Stackr Zen");
+console.log("STARTUP: Using Firebase-free version of Stackzen");
 
 // Configure the query client for API requests
 const queryClient = new QueryClient({

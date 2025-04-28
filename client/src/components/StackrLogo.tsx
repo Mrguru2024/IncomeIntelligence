@@ -11,13 +11,13 @@ const StackrLogo: React.FC<StackrLogoProps> = ({ className = "", showText = true
       <div className="bg-[#233D4D] p-1 rounded">
         <img 
           src="/green/public/stackrzenlogo.svg" 
-          alt="Stackr Zen Logo" 
+          alt="Stackzen Logo" 
           className="h-10 w-auto" 
         />
       </div>
       {showText && (
         <div className="ml-3">
-          <h1 className="text-2xl font-semibold text-foreground">Stackr Zen</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Stackzen</h1>
           <p className="text-sm text-muted-foreground">Track what matters. Earn with clarity.</p>
         </div>
       )}
