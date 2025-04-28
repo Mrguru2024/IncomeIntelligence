@@ -1,472 +1,485 @@
 /**
  * User Profile Module
- * Handles loading, saving, and managing user profile data
+ * Functions for working with user profiles to personalize quotes
+ * Integrates with the enhanced quote generator
  */
 
-// Default profile template
-const DEFAULT_PROFILE = {
-  displayName: '',
-  email: '',
-  phone: '',
-  location: '',
-  businessName: '',
-  industry: '',
-  experienceLevel: 'intermediate',
-  targetMargin: 30,
-  servicePreferences: [],
-  businessGoals: [],
-  businessChallenges: [],
-  splitRatio: {
-    needs: 40,
-    investments: 30,
-    savings: 30
-  },
-  lastUpdated: new Date().toISOString()
-};
+// In-memory cache for user profiles (would connect to database in production)
+const userProfileCache = new Map();
 
-// Create a UserProfile module object and make it globally available immediately
-const UserProfile = {};
+// Experience Level options
+const ExperienceLevelEnum = [
+  'novice',
+  'apprentice',
+  'intermediate',
+  'advanced',
+  'expert',
+  'master'
+];
 
-// Make UserProfile globally available for AI personalization and other modules
-window.UserProfile = UserProfile;
+// Service industries
+const ServiceIndustryEnum = [
+  'home_services',
+  'professional_services',
+  'beauty_wellness',
+  'automotive',
+  'electronics_repair',
+  'construction',
+  'landscaping',
+  'cleaning',
+  'education_training',
+  'other'
+];
 
-// Global event for when profile is updated - other modules can listen to this
-const USER_PROFILE_UPDATED_EVENT = 'user-profile-updated';
+// Business goals
+const BusinessGoalEnum = [
+  'increase_revenue',
+  'reduce_costs',
+  'expand_services',
+  'improve_efficiency',
+  'attract_new_clients',
+  'retain_existing_clients',
+  'enter_new_markets',
+  'improve_quality',
+  'build_brand'
+];
+
+// Business challenges
+const BusinessChallengeEnum = [
+  'limited_budget',
+  'time_constraints',
+  'competitive_market',
+  'finding_clients',
+  'pricing_strategy',
+  'skilled_labor_shortage',
+  'equipment_costs',
+  'cash_flow',
+  'marketing',
+  'seasonality'
+];
+
+// Service preferences
+const ServicePreferenceEnum = [
+  'value_oriented',
+  'quality_oriented',
+  'speed_oriented',
+  'relationship_oriented',
+  'detail_oriented',
+  'reliability_oriented'
+];
 
 /**
- * Initialize user profile
+ * Get user profile by ID
  * @param {string} userId - User ID
- * @returns {Promise<Object>} User profile data
+ * @returns {Object|null} User profile or null if not found
  */
-UserProfile.initUserProfile = async function(userId) {
-  if (!userId) {
-    console.error('Cannot initialize profile: No user ID provided');
-    return null;
+function getUserProfile(userId) {
+  if (!userId) return null;
+  
+  // Try to get from cache first
+  if (userProfileCache.has(userId)) {
+    return userProfileCache.get(userId);
   }
   
   try {
-    // Load existing profile or create new one
-    let profile = await UserProfile.loadUserProfile(userId);
-    
-    if (!profile) {
-      profile = { ...DEFAULT_PROFILE, userId };
-      await UserProfile.saveUserProfile(profile);
-    }
-    
-    return profile;
-  } catch (error) {
-    console.error('Error initializing user profile:', error);
-    return null;
-  }
-}
-
-/**
- * Load user profile from storage
- * @param {string} userId - User ID
- * @returns {Promise<Object|null>} User profile or null if not found
- */
-UserProfile.loadUserProfile = async function(userId) {
-  if (!userId) {
-    console.error('Cannot load profile: No user ID provided');
-    return null;
-  }
-  
-  try {
-    // First try to get from local storage
-    const profileKey = `stackrUserProfile_${userId}`;
-    const storedProfile = localStorage.getItem(profileKey);
-    
-    if (storedProfile) {
-      return JSON.parse(storedProfile);
-    }
-    
-    // If not found in local storage, try to get from API
-    // Note: In a real app, this would be an API call to fetch from a database
-    // For now, we'll return null and let the initUserProfile function create a new profile
-    return null;
-  } catch (error) {
-    console.error('Error loading user profile:', error);
-    return null;
-  }
-}
-
-/**
- * Save user profile to storage
- * @param {Object} profile - User profile data
- * @returns {Promise<boolean>} Success status
- */
-UserProfile.saveUserProfile = async function(profile) {
-  if (!profile || !profile.userId) {
-    console.error('Cannot save profile: No user ID in profile data');
-    return false;
-  }
-  
-  try {
-    // Update lastUpdated timestamp
-    profile.lastUpdated = new Date().toISOString();
-    
-    // Save to local storage
-    const profileKey = `stackrUserProfile_${profile.userId}`;
-    localStorage.setItem(profileKey, JSON.stringify(profile));
-    
-    // In a real app, this would also save to a database via API call
-    
-    return true;
-  } catch (error) {
-    console.error('Error saving user profile:', error);
-    return false;
-  }
-}
-
-/**
- * Update user profile with new data
- * @param {Object} profileData - New profile data
- * @returns {Promise<Object|null>} Updated profile or null if failed
- */
-UserProfile.updateUserProfile = async function(profileData) {
-  if (!profileData || !profileData.userId) {
-    console.error('Cannot update profile: No user ID in profile data');
-    return null;
-  }
-  
-  try {
-    // Load existing profile
-    const currentProfile = await UserProfile.loadUserProfile(profileData.userId);
-    
-    if (!currentProfile) {
-      console.error('Cannot update profile: Profile not found');
-      return null;
-    }
-    
-    // Merge current profile with new data
-    const updatedProfile = {
-      ...currentProfile,
-      ...profileData,
-      // Ensure nested objects are properly merged
-      splitRatio: {
-        ...currentProfile.splitRatio,
-        ...profileData.splitRatio
-      },
-      lastUpdated: new Date().toISOString()
-    };
-    
-    // Save updated profile
-    const success = await UserProfile.saveUserProfile(updatedProfile);
-    
-    if (success) {
-      // Update the cached profile
-      cachedProfile = updatedProfile;
-      
-      // Dispatch an event to notify the app that profile was updated
-      // This allows AI personalization to update across the app
-      const profileUpdatedEvent = new CustomEvent(USER_PROFILE_UPDATED_EVENT, {
-        detail: updatedProfile,
-        bubbles: true
-      });
-      document.dispatchEvent(profileUpdatedEvent);
-      
-      // Also dispatch a generic event for legacy code
-      const legacyEvent = new CustomEvent('userProfileUpdated', {
-        detail: updatedProfile,
-        bubbles: true
-      });
-      document.dispatchEvent(legacyEvent);
-      
-      console.log('User profile updated, dispatched update events');
-      return updatedProfile;
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error('Error updating user profile:', error);
-    return null;
-  }
-}
-
-/**
- * Get user's current ID
- * @returns {string|null} User ID or null if not found
- */
-UserProfile.getCurrentUserId = function() {
-  // Try to get from window.appState first
-  if (window.appState && window.appState.user && window.appState.user.id) {
-    return window.appState.user.id;
-  }
-  
-  // Fall back to localStorage
-  try {
-    const userData = localStorage.getItem('stackrUser');
-    if (userData) {
-      const user = JSON.parse(userData);
-      return user.id;
-    }
-  } catch (error) {
-    console.error('Error getting current user ID:', error);
-  }
-  
-  return null;
-}
-
-/**
- * Check if the current user is a service provider
- * @param {string} userId - User ID
- * @returns {Promise<boolean>} True if user is a service provider
- */
-UserProfile.isServiceProvider = async function(userId) {
-  if (!userId) {
-    return false;
-  }
-  
-  try {
-    const profile = await UserProfile.loadUserProfile(userId);
-    
-    if (!profile) {
-      return false;
-    }
-    
-    // Check if user has business name and industry set
-    return Boolean(profile.businessName && profile.industry);
-  } catch (error) {
-    console.error('Error checking if user is service provider:', error);
-    return false;
-  }
-}
-
-/**
- * Get user basic info
- * @param {string} userId - User ID
- * @returns {Promise<Object|null>} User basic info or null if not found
- */
-UserProfile.getUserBasicInfo = async function(userId) {
-  if (!userId) {
-    return null;
-  }
-  
-  try {
-    const profile = await UserProfile.loadUserProfile(userId);
-    
-    if (!profile) {
-      return null;
-    }
-    
-    return {
-      userId: profile.userId,
-      displayName: profile.displayName,
-      businessName: profile.businessName,
-      location: profile.location,
-      experienceLevel: profile.experienceLevel
-    };
-  } catch (error) {
-    console.error('Error getting user basic info:', error);
-    return null;
-  }
-}
-
-/**
- * Get current user profile with synchronous access
- * Uses cached profile data for immediate access
- * @returns {Object|null} User profile or null if not available
- */
-let cachedProfile = null;
-
-UserProfile.getCurrentProfile = function() {
-  return cachedProfile;
-}
-
-/**
- * Load and cache the current user profile
- * @returns {Promise<Object|null>} User profile or null if error
- */
-UserProfile.loadCurrentUserProfile = async function() {
-  try {
-    const userId = UserProfile.getCurrentUserId();
-    if (!userId) return null;
-    
-    const profile = await UserProfile.loadUserProfile(userId);
-    if (profile) {
-      cachedProfile = profile;
-      return profile;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error loading current user profile:', error);
-    return null;
-  }
-}
-
-/**
- * Personalize quote data based on user profile
- * @param {Object} quoteData - Original quote data
- * @returns {Object} Personalized quote data
- */
-UserProfile.personalizeQuote = function(quoteData) {
-  // If no cached profile, return original data
-  if (!cachedProfile) return quoteData;
-  
-  // Create a copy to avoid modifying the original
-  const personalizedData = { ...quoteData };
-  
-  // Apply user profile settings if they exist
-  if (cachedProfile.experienceLevel) {
-    personalizedData.experienceLevel = cachedProfile.experienceLevel;
-  }
-  
-  if (cachedProfile.targetMargin) {
-    personalizedData.targetMargin = cachedProfile.targetMargin;
-  }
-  
-  if (cachedProfile.location && !personalizedData.location) {
-    personalizedData.location = cachedProfile.location;
-  }
-  
-  // Apply industry-specific adjustments if available
-  if (cachedProfile.industry) {
-    // Adjust material costs based on industry knowledge
-    if (personalizedData.materialsCost > 0) {
-      const industryFactors = {
-        'construction': 1.1,   // 10% higher materials for construction
-        'automotive': 1.05,    // 5% higher for automotive
-        'beauty': 0.95,        // 5% lower for beauty
-        'technology': 1.2,     // 20% higher for technology
-        'healthcare': 1.15     // 15% higher for healthcare
-      };
-      
-      const factor = industryFactors[cachedProfile.industry.toLowerCase()] || 1;
-      personalizedData.materialsCost *= factor;
-    }
-  }
-  
-  // Apply AI-enhanced adjustment based on business goals
-  if (cachedProfile.businessGoals && cachedProfile.businessGoals.length > 0) {
-    // Check for specific business goals
-    if (cachedProfile.businessGoals.some(goal => 
-        goal.toLowerCase().includes('growth') || 
-        goal.toLowerCase().includes('expansion'))) {
-      // Growth-focused businesses might have more competitive pricing
-      personalizedData.targetMargin = Math.max(15, personalizedData.targetMargin - 5);
-    }
-    
-    if (cachedProfile.businessGoals.some(goal => 
-        goal.toLowerCase().includes('premium') || 
-        goal.toLowerCase().includes('luxury'))) {
-      // Premium service providers have higher margins
-      personalizedData.targetMargin = Math.min(50, personalizedData.targetMargin + 8);
-    }
-  }
-  
-  return personalizedData;
-}
-
-/**
- * Show the profile editor and handle updates
- * This is used by other modules like the quote generator
- * @param {Function} callback - Called when profile is updated
- */
-UserProfile.showProfileEditor = function(callback) {
-  try {
-    // Check if we're in a modern web environment
-    if (typeof document === 'undefined') {
-      console.error('Cannot show profile editor: document is not available');
-      return;
-    }
-    
-    // Check if the profile page is available
-    const profilePageContainer = document.getElementById('profile-page-container');
-    if (profilePageContainer) {
-      // If the profile page is already in the DOM, just scroll to it
-      profilePageContainer.scrollIntoView({ behavior: 'smooth' });
-      console.log('Profile page is already in the DOM, scrolling to it');
-      
-      // Add a listener for profile updates
-      if (typeof callback === 'function') {
-        const onProfileUpdate = function(event) {
-          console.log('Profile updated, calling callback');
-          callback(event.detail);
-          // Remove listener after it's called
-          document.removeEventListener('userProfileUpdated', onProfileUpdate);
-        };
-        
-        document.addEventListener('userProfileUpdated', onProfileUpdate);
-      }
-      
-      return;
-    }
-    
-    // Otherwise, redirect to the profile page if possible
-    if (typeof window !== 'undefined' && window.location) {
-      if (window.navigateTo && typeof window.navigateTo === 'function') {
-        window.navigateTo('profile');
-        console.log('Navigating to profile page');
-        
-        // Add a listener for profile updates
-        if (typeof callback === 'function') {
-          const onProfileUpdate = function(event) {
-            console.log('Profile updated, calling callback');
-            callback(event.detail);
-            // Remove listener after it's called
-            document.removeEventListener('userProfileUpdated', onProfileUpdate);
-          };
-          
-          document.addEventListener('userProfileUpdated', onProfileUpdate);
-        }
-      } else {
-        console.warn('Cannot navigate to profile page: navigateTo function not found');
-        // As a fallback, create a message to inform the user
-        if (typeof window.showToast === 'function') {
-          window.showToast('Please visit your profile page to edit your profile settings.', 'info');
-        } else {
-          alert('Please visit your profile page to edit your profile settings.');
-        }
+    // In a real app, this would fetch from a database
+    // For now, check if we have a profile in localStorage
+    if (typeof window !== 'undefined') {
+      const storedProfile = localStorage.getItem(`userProfile_${userId}`);
+      if (storedProfile) {
+        const profile = JSON.parse(storedProfile);
+        userProfileCache.set(userId, profile);
+        return profile;
       }
     }
+    
+    // If no profile found, create a default one
+    return initializeUserProfile(userId);
   } catch (error) {
-    console.error('Error showing profile editor:', error);
+    console.error('Error getting user profile:', error);
+    return null;
   }
 }
 
 /**
- * Initialize the profile module 
- * Loads current user profile and sets up listeners
+ * Initialize a new user profile with default values
+ * @param {string} userId - User ID
+ * @returns {Object} New user profile
  */
-function initProfileModule() {
-  try {
-    // Load the current user's profile
-    UserProfile.loadCurrentUserProfile()
-      .then(() => {
-        console.log('User profile module initialized successfully');
-      })
-      .catch(error => {
-        console.error('Error initializing user profile module:', error);
-      });
-  } catch (error) {
-    console.error('Error in profile module initialization:', error);
+function initializeUserProfile(userId) {
+  console.log('No user profile found, attempting to initialize');
+  
+  // Create default profile
+  const newProfile = {
+    userId: userId,
+    businessName: '',
+    businessType: '',
+    serviceIndustry: 'home_services',
+    experienceLevel: 'intermediate',
+    
+    // Business parameters
+    targetMargin: 30, // Default 30%
+    businessGoals: ['increase_revenue', 'attract_new_clients'],
+    businessChallenges: ['competitive_market', 'pricing_strategy'],
+    servicePreferences: ['quality_oriented', 'reliability_oriented'],
+    
+    // Service behavior and history
+    preferredJobTypes: [],
+    averageLaborRate: 0,
+    averageLaborHours: 0,
+    averageMaterialCost: 0,
+    
+    // Quote history
+    quoteHistory: [],
+    
+    // Last updated timestamps
+    lastUpdated: new Date().toISOString(),
+    createdAt: new Date().toISOString()
+  };
+  
+  // Save to cache
+  userProfileCache.set(userId, newProfile);
+  
+  // Save to localStorage if available
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(`userProfile_${userId}`, JSON.stringify(newProfile));
   }
+  
+  return newProfile;
 }
 
-// Expose the UserProfile object globally and also as an ES module export
+/**
+ * Save or update user profile
+ * @param {string} userId - User ID
+ * @param {Object} profileData - Profile data to update
+ * @returns {Object} Updated profile
+ */
+function saveUserProfile(userId, profileData) {
+  // Get existing profile or create new one
+  const existingProfile = getUserProfile(userId) || initializeUserProfile(userId);
+  
+  // Merge with existing profile
+  const updatedProfile = {
+    ...existingProfile,
+    ...profileData,
+    lastUpdated: new Date().toISOString()
+  };
+  
+  // Save to cache
+  userProfileCache.set(userId, updatedProfile);
+  
+  // Save to localStorage if available
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(`userProfile_${userId}`, JSON.stringify(updatedProfile));
+  }
+  
+  return updatedProfile;
+}
 
-// IMMEDIATE GLOBAL ASSIGNMENT - Must happen at the top level
-// This ensures the object is available as early as possible in the page lifecycle
+/**
+ * Add a quote to the user's quote history
+ * @param {string} userId - User ID
+ * @param {Object} quoteData - Quote data
+ * @returns {Object} Updated profile
+ */
+function addQuoteToHistory(userId, quoteData) {
+  const profile = getUserProfile(userId);
+  if (!profile) return null;
+  
+  // Create a history entry with minimal data
+  const historyEntry = {
+    jobType: quoteData.jobType,
+    jobSubtype: quoteData.jobSubtype || '',
+    totalAmount: quoteData.total || 0,
+    date: new Date().toISOString(),
+    status: 'draft',
+    margin: quoteData.actualProfitMargin || 0
+  };
+  
+  // Add to history
+  const quoteHistory = [...(profile.quoteHistory || []), historyEntry];
+  
+  // Update profile with new history and recalculate averages
+  return saveUserProfile(userId, { 
+    quoteHistory,
+    averageLaborRate: calculateAverageLaborRate(quoteHistory),
+    averageLaborHours: calculateAverageLaborHours(quoteHistory),
+    averageMaterialCost: calculateAverageMaterialCost(quoteHistory),
+    // Update preferred job types
+    preferredJobTypes: extractPreferredJobTypes(quoteHistory)
+  });
+}
+
+/**
+ * Update quote status in history
+ * @param {string} userId - User ID
+ * @param {string} quoteDate - Original quote date as ISO string
+ * @param {string} status - New status
+ * @returns {Object} Updated profile
+ */
+function updateQuoteStatus(userId, quoteDate, status) {
+  const profile = getUserProfile(userId);
+  if (!profile || !profile.quoteHistory) return null;
+  
+  // Find the quote in history
+  const quoteHistory = profile.quoteHistory.map(quote => {
+    if (quote.date === quoteDate) {
+      return { ...quote, status };
+    }
+    return quote;
+  });
+  
+  // Update profile with modified history
+  return saveUserProfile(userId, { quoteHistory });
+}
+
+/**
+ * Extract the most common job types from quote history
+ * @param {Array} quoteHistory - Quote history array
+ * @returns {Array} Array of preferred job types
+ */
+function extractPreferredJobTypes(quoteHistory) {
+  if (!quoteHistory || quoteHistory.length === 0) return [];
+  
+  // Count occurrences of each job type
+  const jobTypeCounts = {};
+  quoteHistory.forEach(quote => {
+    const jobType = quote.jobType;
+    jobTypeCounts[jobType] = (jobTypeCounts[jobType] || 0) + 1;
+  });
+  
+  // Sort by count and take top 3
+  return Object.entries(jobTypeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(entry => entry[0]);
+}
+
+/**
+ * Calculate average labor rate from quote history
+ * @param {Array} quoteHistory - Quote history array
+ * @returns {number} Average labor rate
+ */
+function calculateAverageLaborRate(quoteHistory) {
+  // In a real app, this would use the actual labor rates from each quote
+  // For now, using a placeholder calculation
+  return 0; // Would be calculated from actual quote data
+}
+
+/**
+ * Calculate average labor hours from quote history
+ * @param {Array} quoteHistory - Quote history array
+ * @returns {number} Average labor hours
+ */
+function calculateAverageLaborHours(quoteHistory) {
+  // In a real app, this would use the actual labor hours from each quote
+  // For now, using a placeholder calculation
+  return 0; // Would be calculated from actual quote data
+}
+
+/**
+ * Calculate average material cost from quote history
+ * @param {Array} quoteHistory - Quote history array
+ * @returns {number} Average material cost
+ */
+function calculateAverageMaterialCost(quoteHistory) {
+  // In a real app, this would use the actual material costs from each quote
+  // For now, using a placeholder calculation
+  return 0; // Would be calculated from actual quote data
+}
+
+/**
+ * Update user profile based on quote form data
+ * This allows the system to learn from user's quoting behavior
+ * @param {string} userId - User ID
+ * @param {Object} formData - Quote form data
+ * @returns {Object} Updated profile
+ */
+function updateProfileFromQuoteForm(userId, formData) {
+  console.log('Storing form data for future refreshes:', formData);
+  const profile = getUserProfile(userId);
+  if (!profile) {
+    console.log('No profile found for user ID:', userId);
+    return null;
+  }
+  
+  // Extract relevant data that we want to save to the profile
+  const updatedData = {};
+  
+  // If service industry can be determined from job type
+  const serviceIndustry = mapJobTypeToIndustry(formData.jobType);
+  if (serviceIndustry) {
+    updatedData.serviceIndustry = serviceIndustry;
+  }
+  
+  // If experience level is included
+  if (formData.experienceLevel && ExperienceLevelEnum.includes(formData.experienceLevel)) {
+    updatedData.experienceLevel = formData.experienceLevel;
+  }
+  
+  // If target margin is included
+  if (typeof formData.targetMargin === 'number') {
+    updatedData.targetMargin = formData.targetMargin;
+  }
+  
+  // Add job type to preferred if not already in top 3
+  if (formData.jobType && !profile.preferredJobTypes?.includes(formData.jobType)) {
+    const preferredJobTypes = [...(profile.preferredJobTypes || [])];
+    if (!preferredJobTypes.includes(formData.jobType)) {
+      preferredJobTypes.unshift(formData.jobType);
+      updatedData.preferredJobTypes = preferredJobTypes.slice(0, 3);
+    }
+  }
+  
+  // Update profile with new data
+  return saveUserProfile(userId, updatedData);
+}
+
+/**
+ * Map job type to service industry
+ * @param {string} jobType - Job type
+ * @returns {string} Service industry or null if unknown
+ */
+function mapJobTypeToIndustry(jobType) {
+  const industryMap = {
+    // Home services
+    'plumbing': 'home_services',
+    'electrical': 'home_services',
+    'hvac': 'home_services',
+    'handyman': 'home_services',
+    'locksmith': 'home_services',
+    'landscaping': 'home_services',
+    'cleaning': 'home_services',
+    
+    // Automotive
+    'oil_change': 'automotive',
+    'brake_service': 'automotive',
+    'transmission': 'automotive',
+    'engine_repair': 'automotive',
+    'tire_service': 'automotive',
+    'diagnostics': 'automotive',
+    
+    // Beauty/wellness
+    'hair_stylist': 'beauty_wellness',
+    'nail_technician': 'beauty_wellness',
+    'makeup_artist': 'beauty_wellness',
+    'esthetician': 'beauty_wellness',
+    'massage_therapist': 'beauty_wellness',
+    'spa_services': 'beauty_wellness',
+    
+    // Electronics repair
+    'computer_repair': 'electronics_repair',
+    'cellphone_repair': 'electronics_repair',
+    'tv_repair': 'electronics_repair',
+    'appliance_repair': 'electronics_repair',
+    
+    // Professional services
+    'legal_services': 'professional_services',
+    'accounting': 'professional_services',
+    'consulting': 'professional_services',
+    'design_services': 'professional_services',
+    'marketing': 'professional_services',
+  };
+  
+  return industryMap[jobType] || null;
+}
+
+/**
+ * Get all available options for user profile fields
+ * Useful for UI form rendering
+ */
+function getProfileFieldOptions() {
+  return {
+    experienceLevels: ExperienceLevelEnum,
+    serviceIndustries: ServiceIndustryEnum,
+    businessGoals: BusinessGoalEnum,
+    businessChallenges: BusinessChallengeEnum,
+    servicePreferences: ServicePreferenceEnum
+  };
+}
+
+/**
+ * Get complete user stats
+ * @param {string} userId - User ID
+ * @returns {Object} User statistics object
+ */
+function getUserStats(userId) {
+  const profile = getUserProfile(userId);
+  if (!profile) return null;
+  
+  // Calculate quote stats
+  const quoteHistory = profile.quoteHistory || [];
+  const totalQuotes = quoteHistory.length;
+  
+  // Calculate acceptance rate
+  const acceptedQuotes = quoteHistory.filter(q => q.status === 'accepted').length;
+  const acceptanceRate = totalQuotes > 0 ? (acceptedQuotes / totalQuotes) * 100 : 0;
+  
+  // Calculate average margin
+  let avgMargin = 0;
+  if (totalQuotes > 0) {
+    avgMargin = quoteHistory.reduce((sum, q) => sum + (q.margin || 0), 0) / totalQuotes;
+  }
+  
+  // Calculate average quote amount
+  let avgAmount = 0;
+  if (totalQuotes > 0) {
+    avgAmount = quoteHistory.reduce((sum, q) => sum + (q.totalAmount || 0), 0) / totalQuotes;
+  }
+  
+  // Aggregate by job type
+  const jobTypeCounts = {};
+  quoteHistory.forEach(quote => {
+    const jobType = quote.jobType;
+    jobTypeCounts[jobType] = (jobTypeCounts[jobType] || 0) + 1;
+  });
+  
+  return {
+    userId: profile.userId,
+    businessName: profile.businessName,
+    serviceIndustry: profile.serviceIndustry,
+    experienceLevel: profile.experienceLevel,
+    totalQuotes,
+    acceptedQuotes,
+    acceptanceRate,
+    avgMargin,
+    avgAmount,
+    topJobTypes: Object.entries(jobTypeCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([type, count]) => ({ type, count })),
+    createdAt: profile.createdAt,
+    lastUpdated: profile.lastUpdated
+  };
+}
+
+// Auto-initialize profile from URL/localStorage when module loads
 if (typeof window !== 'undefined') {
-  window.UserProfile = UserProfile;
-  
-  // Also make it available in the modules registry
-  if (!window.modules) window.modules = {};
-  window.modules['user-profile'] = UserProfile;
-  
-  // Log successful global assignment
-  console.log('UserProfile successfully assigned to global scope');
-  
-  // Initialize the profile module after global setup with a slight delay
-  // to ensure the DOM is ready
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(initProfileModule, 50);
-  } else {
-    document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(initProfileModule, 50);
-    });
+  try {
+    // Check if we can get user ID from localStorage
+    const userId = localStorage.getItem('currentUserId') ||
+                   localStorage.getItem('userId');
+                   
+    if (userId) {
+      console.log('Using user ID from localStorage:', userId);
+      // Initialize user profile
+      const profile = getUserProfile(userId);
+      if (profile) {
+        console.log('User profile initialized from quote generator:', 'success');
+      }
+    }
+  } catch (e) {
+    console.error('Error auto-initializing user profile:', e);
   }
 }
 
-// Also export as ES module
-export default UserProfile;
+// Export methods
+module.exports = {
+  getUserProfile,
+  saveUserProfile,
+  addQuoteToHistory,
+  updateQuoteStatus,
+  updateProfileFromQuoteForm,
+  getUserStats,
+  getProfileFieldOptions
+};
