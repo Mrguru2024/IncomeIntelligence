@@ -5341,19 +5341,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the invoice in the database with the delivery method used
       await storage.updateInvoice(id, { deliveryMethod });
       
-      // Return appropriate success message
+      // Return appropriate success message with delivery status
       if (deliveryMethod === 'both') {
         if (sendResult.email && sendResult.sms) {
-          res.json({ message: "Invoice sent successfully via email and SMS" });
+          res.json({ 
+            message: "Invoice sent successfully via email and SMS",
+            emailSent: true,
+            smsSent: true
+          });
         } else if (sendResult.email) {
-          res.json({ message: "Invoice sent successfully via email only. SMS delivery failed." });
+          res.json({ 
+            message: "Invoice sent successfully via email only. SMS delivery failed.",
+            emailSent: true,
+            smsSent: false
+          });
         } else {
-          res.json({ message: "Invoice sent successfully via SMS only. Email delivery failed." });
+          res.json({ 
+            message: "Invoice sent successfully via SMS only. Email delivery failed.",
+            emailSent: false,
+            smsSent: true
+          });
         }
       } else if (deliveryMethod === 'email') {
-        res.json({ message: "Invoice sent successfully via email" });
+        res.json({ 
+          message: "Invoice sent successfully via email",
+          emailSent: true,
+          smsSent: false
+        });
       } else {
-        res.json({ message: "Invoice sent successfully via SMS" });
+        res.json({ 
+          message: "Invoice sent successfully via SMS",
+          emailSent: false,
+          smsSent: true
+        });
       }
     } catch (error) {
       console.error('Error sending invoice:', error);
