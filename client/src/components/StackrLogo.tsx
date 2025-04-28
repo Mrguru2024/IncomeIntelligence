@@ -8,15 +8,17 @@ interface StackrLogoProps {
 const StackrLogo: React.FC<StackrLogoProps> = ({ className = "", showText = true }) => {
   return (
     <div className={`flex items-center ${className}`}>
-      <img 
-        src="/stackr-logo-vector.svg" 
-        alt="Stackr Logo" 
-        className="h-12 w-auto" 
-      />
+      <div className="bg-[#233D4D] p-1 rounded">
+        <img 
+          src="/green/public/stackrzenlogo.svg" 
+          alt="Stackr Zen Logo" 
+          className="h-10 w-auto" 
+        />
+      </div>
       {showText && (
         <div className="ml-3">
-          <h1 className="text-2xl font-semibold text-foreground">Stackr</h1>
-          <p className="text-sm text-muted-foreground">40/30/30 Income Manager</p>
+          <h1 className="text-2xl font-semibold text-foreground">Stackr Zen</h1>
+          <p className="text-sm text-muted-foreground">Track what matters. Earn with clarity.</p>
         </div>
       )}
     </div>

@@ -86,40 +86,15 @@ function createNavbar() {
   logoContainer.style.alignItems = 'center';
   logoContainer.style.cursor = 'pointer';
   
-  // Stackr logo icon with stacked elements
-  const logoIcon = document.createElement('div');
-  logoIcon.style.marginRight = '10px';
-  logoIcon.style.display = 'flex';
-  logoIcon.style.flexDirection = 'column';
-  logoIcon.style.alignItems = 'center';
-  logoIcon.style.justifyContent = 'center';
-  logoIcon.style.width = '32px';
-  logoIcon.style.height = '32px';
+  // Replace with SVG logo
+  const logo = document.createElement('img');
+  logo.src = '/green/public/stackrzenlogo.svg';
+  logo.alt = 'Stackr Zen Logo';
+  logo.style.height = '40px';
+  logoContainer.style.backgroundColor = '#233D4D'; // Add dark background for white logo
+  logoContainer.style.padding = '5px 10px';
+  logoContainer.style.borderRadius = '4px';
   
-  // Create stacked blocks for logo
-  const blocks = ['#233D4D', '#00C6A7', '#F4A300']; // Deep Sapphire Blue, Mint Green, Sunstone Gold
-  blocks.forEach((color, index) => {
-    const block = document.createElement('div');
-    block.style.width = `${32 - index * 4}px`;
-    block.style.height = '6px';
-    block.style.backgroundColor = color;
-    block.style.borderRadius = '2px';
-    block.style.marginBottom = '2px';
-    logoIcon.appendChild(block);
-  });
-  
-  logoContainer.appendChild(logoIcon);
-  
-  const logo = document.createElement('h1');
-  logo.textContent = 'Stackr';
-  logo.style.margin = '0';
-  logo.style.fontSize = '1.6rem';
-  logo.style.fontWeight = 'bold';
-  logo.style.background = 'linear-gradient(90deg, #233D4D 0%, #00C6A7 50%, #F4A300 100%)'; // Deep Sapphire Blue, Mint Green, Sunstone Gold
-  logo.style.WebkitBackgroundClip = 'text';
-  logo.style.WebkitTextFillColor = 'transparent';
-  logo.style.backgroundClip = 'text';
-  logo.style.color = 'transparent';
   logoContainer.appendChild(logo);
   
   // Navigation links
@@ -2167,16 +2142,19 @@ function createFooter() {
   logoContainer.style.alignItems = 'center';
   logoContainer.style.marginBottom = '1rem';
   
-  const logo = document.createElement('h3');
-  logo.textContent = 'Stackr Finance';
-  logo.style.margin = '0';
-  logo.style.fontSize = '1.5rem';
-  logo.style.fontWeight = 'bold';
+  const logo = document.createElement('img');
+  logo.src = '/green/public/stackrzenlogo.svg';
+  logo.alt = 'Stackr Zen Logo';
+  logo.style.height = '36px';
+  
+  logoContainer.style.backgroundColor = '#233D4D'; // Add dark background for white logo
+  logoContainer.style.padding = '5px 10px';
+  logoContainer.style.borderRadius = '4px';
   
   logoContainer.appendChild(logo);
   
   const tagline = document.createElement('p');
-  tagline.textContent = 'Helping service providers build wealth through the 40/30/30 method.';
+  tagline.textContent = 'Track what matters. Earn with clarity.';
   tagline.style.fontSize = '0.95rem';
   tagline.style.lineHeight = '1.6';
   tagline.style.color = '#aaa';
@@ -2285,7 +2263,7 @@ function createFooter() {
   bottomFooter.style.gap = '1rem';
   
   const copyright = document.createElement('div');
-  copyright.textContent = `© ${new Date().getFullYear()} Stackr Finance. All rights reserved.`;
+  copyright.textContent = `© ${new Date().getFullYear()} Stackr Zen. All rights reserved.`;
   copyright.style.fontSize = '0.9rem';
   copyright.style.color = '#888';
   
