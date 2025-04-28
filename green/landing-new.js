@@ -440,7 +440,7 @@ function createHeroSection() {
   
   const dashboardTitle = document.createElement('div');
   dashboardTitle.style.fontWeight = 'bold';
-  dashboardTitle.textContent = 'Stackr Dashboard';
+  dashboardTitle.textContent = 'Stackzen Dashboard';
   
   const userAvatar = document.createElement('div');
   userAvatar.style.width = '32px';
@@ -681,7 +681,7 @@ function createFeaturesSection() {
   heading.style.color = '#333';
   
   const subheading = document.createElement('p');
-  subheading.textContent = 'Stackr gives you all the tools you need to track, manage, and grow your income while building wealth through the proven 40/30/30 method.';
+  subheading.textContent = 'Stackzen gives you all the tools you need to track, manage, and grow your income while building wealth through the proven 40/30/30 method.';
   subheading.style.fontSize = '1.1rem';
   subheading.style.lineHeight = '1.6';
   subheading.style.color = '#555';
@@ -1061,7 +1061,7 @@ function createTestimonialsSection() {
   heading.style.color = '#333';
   
   const subheading = document.createElement('p');
-  subheading.textContent = 'Hear from other service providers who have transformed their financial future with Stackr.';
+  subheading.textContent = 'Hear from other service providers who have transformed their financial future with Stackzen.';
   subheading.style.fontSize = '1.1rem';
   subheading.style.lineHeight = '1.6';
   subheading.style.color = '#555';
@@ -1080,19 +1080,19 @@ function createTestimonialsSection() {
   
   const testimonials = [
     {
-      quote: "Since I started using the 40/30/30 method with Stackr, I've saved over $5,000 in just 6 months. It's completely changed how I think about my freelance income.",
+      quote: "Since I started using the 40/30/30 method with Stackzen, I've saved over $5,000 in just 6 months. It's completely changed how I think about my freelance income.",
       name: "Michael T.",
       role: "Freelance Graphic Designer",
       avatar: "MT"
     },
     {
-      quote: "As a hair stylist, my income used to be unpredictable. Stackr helped me organize my finances and start investing for the first time. Now I'm building wealth while doing what I love.",
+      quote: "As a hair stylist, my income used to be unpredictable. Stackzen helped me organize my finances and start investing for the first time. Now I'm building wealth while doing what I love.",
       name: "Jessica K.",
       role: "Hair Stylist & Salon Owner",
       avatar: "JK"
     },
     {
-      quote: "I was living paycheck to paycheck before Stackr. Their income tools helped me find new gig opportunities and increase my monthly earnings by 35%. Game changer!",
+      quote: "I was living paycheck to paycheck before Stackzen. Their income tools helped me find new gig opportunities and increase my monthly earnings by 35%. Game changer!",
       name: "David L.",
       role: "Rideshare & Delivery Driver",
       avatar: "DL"
@@ -1217,14 +1217,14 @@ function createIncomeOpportunitiesSection() {
   contentContainer.style.textAlign = window.innerWidth <= 960 ? 'center' : 'left';
   
   const heading = document.createElement('h2');
-  heading.textContent = 'Boost Your Income with Stackr Tools';
+  heading.textContent = 'Boost Your Income with Stackzen Tools';
   heading.style.fontSize = '2.2rem';
   heading.style.fontWeight = '700';
   heading.style.marginBottom = '1.5rem';
   heading.style.color = '#333';
   
   const description = document.createElement('p');
-  description.textContent = 'Stackr doesn\'t just help you manage your income — it helps you increase it. Discover new income streams designed specifically for service providers.';
+  description.textContent = 'Stackzen doesn\'t just help you manage your income — it helps you increase it. Discover new income streams designed specifically for service providers.';
   description.style.fontSize = '1.1rem';
   description.style.lineHeight = '1.6';
   description.style.color = '#555';
@@ -1241,7 +1241,7 @@ function createIncomeOpportunitiesSection() {
   
   const opportunities = [
     {
-      title: 'Stackr Gigs',
+      title: 'Stackzen Gigs',
       description: 'Access our curated marketplace of gigs and side hustles specifically for service providers.',
       icon: '👔',
       color: '#00C6A7' // Mint Green
