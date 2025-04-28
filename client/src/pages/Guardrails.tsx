@@ -287,7 +287,7 @@ const GuardrailsPage = () => {
       <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold mb-1 flex items-center">
           <Shield className="h-8 w-8 mr-2 text-primary" />
-          Stackr Guardrails
+          Stackzen Guardrails
         </h1>
         <p className="text-muted-foreground mb-6">
           Set weekly or monthly spending limits by category and get alerted before you overspend.
@@ -479,13 +479,13 @@ const GuardrailsPage = () => {
       {/* Guardrails Information */}
       <Alert className="bg-background">
         <Shield className="h-5 w-5 text-primary" />
-        <AlertTitle>About Stackr Guardrails</AlertTitle>
+        <AlertTitle>About Stackzen Guardrails</AlertTitle>
         <AlertDescription>
           <p className="mb-2">
             Guardrails help you stay on track with your financial goals by preventing overspending in specific categories.
           </p>
           <p>
-            When you approach or exceed your set limits, Stackr will notify you to help keep your spending in check.
+            When you approach or exceed your set limits, Stackzen will notify you to help keep your spending in check.
           </p>
         </AlertDescription>
       </Alert>
