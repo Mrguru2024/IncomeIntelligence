@@ -2188,58 +2188,474 @@ function showQuoteOptionsModal(quote, tierName) {
     // Handle client preview
     document.body.removeChild(modalOverlay);
     
-    // Define a fallback preview function in case the module didn't load
+    // Define an enhanced client preview function
     function fallbackPreviewModal(quote, tierName) {
-      console.log('Using fallback preview modal');
-      // Create simple modal to show quote details
+      console.log('Using enhanced client preview modal');
+      
+      // Create modal overlay
       const modalOverlay = document.createElement('div');
       modalOverlay.style.position = 'fixed';
       modalOverlay.style.top = '0';
       modalOverlay.style.left = '0';
       modalOverlay.style.width = '100%';
       modalOverlay.style.height = '100%';
-      modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+      modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
       modalOverlay.style.display = 'flex';
       modalOverlay.style.alignItems = 'center';
       modalOverlay.style.justifyContent = 'center';
       modalOverlay.style.zIndex = '9999';
       
+      // Create modal content container
       const content = document.createElement('div');
       content.style.backgroundColor = 'white';
-      content.style.borderRadius = '8px';
-      content.style.padding = '20px';
-      content.style.maxWidth = '90%';
+      content.style.borderRadius = '12px';
+      content.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.15)';
+      content.style.width = '90%';
+      content.style.maxWidth = '600px';
       content.style.maxHeight = '90vh';
       content.style.overflow = 'auto';
+      content.style.position = 'relative';
       
-      const title = document.createElement('h3');
-      title.textContent = `Client Preview - ${tierName} Quote`;
-      title.style.marginBottom = '15px';
+      // Create header section
+      const header = document.createElement('div');
+      header.style.backgroundColor = 'var(--color-primary, #4F46E5)';
+      header.style.padding = '24px';
+      header.style.borderTopLeftRadius = '12px';
+      header.style.borderTopRightRadius = '12px';
+      header.style.color = 'white';
+      header.style.position = 'relative';
       
+      // Create close button
       const closeBtn = document.createElement('button');
-      closeBtn.textContent = 'Close';
-      closeBtn.style.marginTop = '20px';
-      closeBtn.style.padding = '8px 16px';
-      closeBtn.style.backgroundColor = '#4F46E5';
-      closeBtn.style.color = 'white';
+      closeBtn.innerHTML = '&times;';
+      closeBtn.style.position = 'absolute';
+      closeBtn.style.top = '16px';
+      closeBtn.style.right = '16px';
+      closeBtn.style.backgroundColor = 'transparent';
       closeBtn.style.border = 'none';
-      closeBtn.style.borderRadius = '4px';
+      closeBtn.style.color = 'white';
+      closeBtn.style.fontSize = '24px';
       closeBtn.style.cursor = 'pointer';
+      closeBtn.style.fontWeight = 'bold';
+      closeBtn.style.padding = '0';
+      closeBtn.style.lineHeight = '1';
       closeBtn.onclick = () => document.body.removeChild(modalOverlay);
       
-      const details = document.createElement('div');
-      details.innerHTML = `
-        <p><strong>Service:</strong> ${quote.jobTypeDisplay}</p>
-        <p><strong>Location:</strong> ${quote.location}</p>
-        <p><strong>Labor:</strong> ${quote.laborHours} hour(s)</p>
-        <p><strong>Materials:</strong> $${quote.materialsCost.toFixed(2)}</p>
-        <p><strong>Total:</strong> $${quote.total.toFixed(2)}</p>
-      `;
+      // Add title and service info to header
+      const title = document.createElement('h3');
+      title.textContent = `${tierName} Service Quote`;
+      title.style.margin = '0';
+      title.style.fontSize = '24px';
+      title.style.fontWeight = 'bold';
+      title.style.marginBottom = '8px';
       
-      content.appendChild(title);
-      content.appendChild(details);
-      content.appendChild(closeBtn);
+      const serviceType = document.createElement('div');
+      serviceType.textContent = quote.jobTypeDisplay;
+      serviceType.style.fontSize = '18px';
+      serviceType.style.fontWeight = '500';
+      serviceType.style.opacity = '0.9';
+      
+      header.appendChild(title);
+      header.appendChild(serviceType);
+      header.appendChild(closeBtn);
+      
+      // Create main content area
+      const mainContent = document.createElement('div');
+      mainContent.style.padding = '24px';
+      
+      // Add company logo/provider info
+      const companyInfo = document.createElement('div');
+      companyInfo.style.display = 'flex';
+      companyInfo.style.alignItems = 'center';
+      companyInfo.style.marginBottom = '20px';
+      
+      const companyLogo = document.createElement('div');
+      companyLogo.innerHTML = '<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="8" fill="#4F46E5"/><path d="M13 20H27M20 13V27" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      companyLogo.style.marginRight = '12px';
+      
+      const companyName = document.createElement('div');
+      companyName.textContent = 'Professional Services';
+      companyName.style.fontSize = '16px';
+      companyName.style.fontWeight = 'bold';
+      
+      companyInfo.appendChild(companyLogo);
+      companyInfo.appendChild(companyName);
+      
+      // Create quote details section
+      const quoteDetails = document.createElement('div');
+      quoteDetails.style.backgroundColor = '#f9fafb';
+      quoteDetails.style.borderRadius = '8px';
+      quoteDetails.style.padding = '16px';
+      quoteDetails.style.marginBottom = '24px';
+      
+      // Quote ID and date
+      const quoteHeader = document.createElement('div');
+      quoteHeader.style.display = 'flex';
+      quoteHeader.style.justifyContent = 'space-between';
+      quoteHeader.style.marginBottom = '16px';
+      
+      const quoteId = document.createElement('div');
+      quoteId.innerHTML = `<strong>Quote #:</strong> ${quote.id || 'Q-' + Date.now().toString().slice(-6)}`;
+      quoteId.style.fontSize = '14px';
+      
+      const quoteDate = document.createElement('div');
+      const today = new Date();
+      quoteDate.innerHTML = `<strong>Date:</strong> ${today.toLocaleDateString()}`;
+      quoteDate.style.fontSize = '14px';
+      
+      quoteHeader.appendChild(quoteId);
+      quoteHeader.appendChild(quoteDate);
+      quoteDetails.appendChild(quoteHeader);
+      
+      // Service details
+      const details = document.createElement('div');
+      details.style.fontSize = '14px';
+      details.style.lineHeight = '1.6';
+      
+      // Build an array of details to display
+      const detailItems = [
+        { label: 'Service Type', value: quote.jobTypeDisplay + (quote.jobSubtypeDisplay ? ` - ${quote.jobSubtypeDisplay}` : '') },
+        { label: 'Location', value: quote.location },
+        { label: 'Provider Level', value: (() => {
+          const levelMap = {
+            'junior': 'Junior (1-2 years experience)',
+            'intermediate': 'Intermediate (3-5 years experience)',
+            'senior': 'Senior (6-10 years experience)',
+            'expert': 'Expert (10+ years experience)'
+          };
+          return levelMap[quote.experienceLevel] || 'Professional Provider';
+        })() }
+      ];
+      
+      // Add each detail item
+      detailItems.forEach(item => {
+        const detailRow = document.createElement('div');
+        detailRow.style.display = 'flex';
+        detailRow.style.justifyContent = 'space-between';
+        detailRow.style.margin = '8px 0';
+        
+        const detailLabel = document.createElement('span');
+        detailLabel.innerHTML = `<strong>${item.label}:</strong>`;
+        
+        const detailValue = document.createElement('span');
+        detailValue.textContent = item.value;
+        
+        detailRow.appendChild(detailLabel);
+        detailRow.appendChild(detailValue);
+        details.appendChild(detailRow);
+      });
+      
+      quoteDetails.appendChild(details);
+      
+      // Create price breakdown section
+      const breakdownSection = document.createElement('div');
+      breakdownSection.style.marginBottom = '24px';
+      
+      const breakdownTitle = document.createElement('h4');
+      breakdownTitle.textContent = 'Cost Breakdown';
+      breakdownTitle.style.fontSize = '16px';
+      breakdownTitle.style.marginBottom = '12px';
+      breakdownTitle.style.fontWeight = 'bold';
+      
+      breakdownSection.appendChild(breakdownTitle);
+      
+      // Breakdown items
+      const breakdownItems = [
+        { label: `Labor (${quote.laborHours} hours @ $${quote.laborRate.toFixed(2)}/hr)`, value: quote.laborCost },
+        { label: 'Materials', value: quote.materialsCost }
+      ];
+      
+      // Add tax if applicable
+      if (quote.materialsTax > 0) {
+        breakdownItems.push({ label: `Tax (${(quote.taxRate * 100).toFixed(2)}%)`, value: quote.materialsTax });
+      }
+      
+      // Add deposit information if required
+      if (quote.requireDeposit) {
+        breakdownItems.push({
+          label: 'Total',
+          value: quote.total,
+          isSubtotal: true
+        });
+        
+        breakdownItems.push({
+          label: `Required Deposit (${quote.depositPercentage * 100}%)`,
+          value: quote.depositAmount,
+          isDeposit: true
+        });
+        
+        breakdownItems.push({
+          label: 'Remaining Balance',
+          value: quote.remainingAmount,
+          isRemaining: true
+        });
+      }
+      
+      // Add total as the last item (only if no deposit info)
+      if (!quote.requireDeposit) {
+        breakdownItems.push({
+          label: 'Total',
+          value: quote.total,
+          isTotal: true
+        });
+      }
+      
+      // Create breakdown table
+      const breakdownTable = document.createElement('div');
+      breakdownTable.style.width = '100%';
+      
+      breakdownItems.forEach(item => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.margin = '8px 0';
+        
+        // Style based on item type
+        if (item.isTotal || item.isSubtotal) {
+          row.style.borderTop = '1px solid #e5e7eb';
+          row.style.paddingTop = '8px';
+          row.style.fontWeight = 'bold';
+        }
+        
+        if (item.isDeposit) {
+          row.style.color = 'var(--color-primary, #4F46E5)';
+          row.style.fontWeight = '600';
+          row.style.backgroundColor = 'rgba(79, 70, 229, 0.08)';
+          row.style.padding = '8px';
+          row.style.borderRadius = '4px';
+          row.style.marginTop = '12px';
+        }
+        
+        const label = document.createElement('span');
+        label.textContent = item.label;
+        
+        const value = document.createElement('span');
+        value.textContent = `$${item.value.toFixed(2)}`;
+        
+        row.appendChild(label);
+        row.appendChild(value);
+        breakdownTable.appendChild(row);
+      });
+      
+      breakdownSection.appendChild(breakdownTable);
+      
+      // Note section
+      const noteSection = document.createElement('div');
+      noteSection.style.marginBottom = '24px';
+      noteSection.style.backgroundColor = 'rgba(243, 244, 246, 0.7)';
+      noteSection.style.padding = '12px';
+      noteSection.style.borderRadius = '6px';
+      noteSection.style.fontSize = '14px';
+      noteSection.style.fontStyle = 'italic';
+      noteSection.style.color = '#4b5563';
+      
+      noteSection.textContent = 'This quote is valid for 30 days from the issue date.';
+      
+      // Create action buttons
+      const actionButtons = document.createElement('div');
+      actionButtons.style.display = 'flex';
+      actionButtons.style.flexDirection = 'column';
+      actionButtons.style.gap = '12px';
+      
+      // Accept Quote button
+      const acceptButton = document.createElement('button');
+      acceptButton.textContent = quote.requireDeposit ? 
+        `Accept Quote & Pay Deposit ($${quote.depositAmount.toFixed(2)})` : 
+        'Accept Quote & Pay';
+      acceptButton.style.backgroundColor = 'var(--color-primary, #4F46E5)';
+      acceptButton.style.color = 'white';
+      acceptButton.style.border = 'none';
+      acceptButton.style.borderRadius = '6px';
+      acceptButton.style.padding = '14px 20px';
+      acceptButton.style.fontSize = '16px';
+      acceptButton.style.fontWeight = 'bold';
+      acceptButton.style.cursor = 'pointer';
+      acceptButton.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+      acceptButton.style.width = '100%';
+      
+      // Add pulse effect
+      acceptButton.style.animation = 'pulse 2s infinite';
+      
+      // Add style for the pulse animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes pulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // Request changes button
+      const requestChangesButton = document.createElement('button');
+      requestChangesButton.textContent = 'Request Changes';
+      requestChangesButton.style.backgroundColor = 'transparent';
+      requestChangesButton.style.color = 'var(--color-text, #111827)';
+      requestChangesButton.style.border = '1px solid #e5e7eb';
+      requestChangesButton.style.borderRadius = '6px';
+      requestChangesButton.style.padding = '12px 20px';
+      requestChangesButton.style.fontSize = '14px';
+      requestChangesButton.style.cursor = 'pointer';
+      requestChangesButton.style.width = '100%';
+      
+      // Add event listeners for buttons
+      acceptButton.addEventListener('click', () => {
+        // If Stripe is integrated, show payment modal
+        if (typeof showStripePaymentModal === 'function') {
+          document.body.removeChild(modalOverlay);
+          showStripePaymentModal(quote, quote.requireDeposit ? quote.depositAmount : quote.total);
+        } else {
+          // Otherwise redirect to the deposit payment modal
+          document.body.removeChild(modalOverlay);
+          showDepositPaymentModal(quote, tierName);
+        }
+      });
+      
+      requestChangesButton.addEventListener('click', () => {
+        // Show request changes modal
+        document.body.removeChild(modalOverlay);
+        showRequestChangesModal(quote, tierName);
+      });
+      
+      // Add the buttons to the action section
+      actionButtons.appendChild(acceptButton);
+      actionButtons.appendChild(requestChangesButton);
+      
+      // Assemble all sections
+      mainContent.appendChild(companyInfo);
+      mainContent.appendChild(quoteDetails);
+      mainContent.appendChild(breakdownSection);
+      mainContent.appendChild(noteSection);
+      mainContent.appendChild(actionButtons);
+      
+      // Assemble final modal
+      content.appendChild(header);
+      content.appendChild(mainContent);
       modalOverlay.appendChild(content);
+      document.body.appendChild(modalOverlay);
+    }
+    
+    // Function to show request changes modal
+    function showRequestChangesModal(quote, tierName) {
+      const modalOverlay = document.createElement('div');
+      modalOverlay.style.position = 'fixed';
+      modalOverlay.style.top = '0';
+      modalOverlay.style.left = '0';
+      modalOverlay.style.width = '100%';
+      modalOverlay.style.height = '100%';
+      modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+      modalOverlay.style.display = 'flex';
+      modalOverlay.style.alignItems = 'center';
+      modalOverlay.style.justifyContent = 'center';
+      modalOverlay.style.zIndex = '9999';
+      
+      const modal = document.createElement('div');
+      modal.style.backgroundColor = 'white';
+      modal.style.borderRadius = '12px';
+      modal.style.padding = '24px';
+      modal.style.width = '90%';
+      modal.style.maxWidth = '500px';
+      modal.style.maxHeight = '90vh';
+      modal.style.overflow = 'auto';
+      
+      const title = document.createElement('h3');
+      title.textContent = 'Request Changes';
+      title.style.marginTop = '0';
+      title.style.marginBottom = '16px';
+      title.style.fontSize = '20px';
+      title.style.fontWeight = 'bold';
+      
+      const description = document.createElement('p');
+      description.textContent = 'Please let us know what changes you would like to make to this quote:';
+      description.style.marginBottom = '16px';
+      description.style.fontSize = '14px';
+      
+      const form = document.createElement('form');
+      
+      const textarea = document.createElement('textarea');
+      textarea.placeholder = 'Describe the changes you need...';
+      textarea.style.width = '100%';
+      textarea.style.minHeight = '120px';
+      textarea.style.padding = '12px';
+      textarea.style.borderRadius = '6px';
+      textarea.style.border = '1px solid #e5e7eb';
+      textarea.style.resize = 'vertical';
+      textarea.style.fontFamily = 'inherit';
+      textarea.style.fontSize = '14px';
+      textarea.style.marginBottom = '20px';
+      
+      const buttonRow = document.createElement('div');
+      buttonRow.style.display = 'flex';
+      buttonRow.style.justifyContent = 'space-between';
+      buttonRow.style.gap = '12px';
+      
+      const cancelButton = document.createElement('button');
+      cancelButton.textContent = 'Cancel';
+      cancelButton.type = 'button';
+      cancelButton.style.flex = '1';
+      cancelButton.style.padding = '12px';
+      cancelButton.style.backgroundColor = 'transparent';
+      cancelButton.style.border = '1px solid #e5e7eb';
+      cancelButton.style.borderRadius = '6px';
+      cancelButton.style.cursor = 'pointer';
+      
+      const submitButton = document.createElement('button');
+      submitButton.textContent = 'Send Request';
+      submitButton.type = 'button';
+      submitButton.style.flex = '1';
+      submitButton.style.padding = '12px';
+      submitButton.style.backgroundColor = 'var(--color-primary, #4F46E5)';
+      submitButton.style.color = 'white';
+      submitButton.style.border = 'none';
+      submitButton.style.borderRadius = '6px';
+      submitButton.style.cursor = 'pointer';
+      submitButton.style.fontWeight = 'bold';
+      
+      cancelButton.addEventListener('click', () => {
+        document.body.removeChild(modalOverlay);
+        fallbackPreviewModal(quote, tierName);
+      });
+      
+      submitButton.addEventListener('click', () => {
+        if (textarea.value.trim() === '') {
+          alert('Please describe the changes you need.');
+          return;
+        }
+        
+        // Simulate sending request
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
+        
+        setTimeout(() => {
+          document.body.removeChild(modalOverlay);
+          
+          // Show success message
+          if (window.showToast) {
+            window.showToast('Change request sent successfully!', 'success');
+          } else {
+            alert('Change request sent successfully!');
+          }
+        }, 1000);
+      });
+      
+      buttonRow.appendChild(cancelButton);
+      buttonRow.appendChild(submitButton);
+      
+      form.appendChild(textarea);
+      form.appendChild(buttonRow);
+      
+      modal.appendChild(title);
+      modal.appendChild(description);
+      modal.appendChild(form);
+      
+      modalOverlay.appendChild(modal);
       document.body.appendChild(modalOverlay);
     }
     
@@ -2382,7 +2798,7 @@ function showDepositPaymentModal(quote, tierName) {
   depositDiv.style.marginTop = '16px';
   
   const depositLabel = document.createElement('span');
-  depositLabel.textContent = 'Required Deposit (25%):';
+  depositLabel.textContent = `Required Deposit (${quote.depositPercentage * 100}%):`;
   
   const depositValue = document.createElement('span');
   depositValue.textContent = quote.depositAmount !== undefined ? `$${quote.depositAmount.toFixed(2)}` : '$0.00';
@@ -2406,7 +2822,11 @@ function showDepositPaymentModal(quote, tierName) {
   remainingLabel.textContent = 'Remaining Balance (due at completion):';
   
   const remainingValue = document.createElement('span');
-  remainingValue.textContent = quote.remainingAmount !== undefined ? `$${quote.remainingAmount.toFixed(2)}` : `$${(quote.total * 0.75).toFixed(2)}`;
+  // Calculate the remaining amount based on our new deposit logic
+  const remainingAmount = quote.remainingAmount !== undefined ? 
+    quote.remainingAmount : 
+    (quote.total - (quote.total * (quote.total > 2000 ? 0.25 : 0.5)));
+  remainingValue.textContent = `$${remainingAmount.toFixed(2)}`;
   remainingValue.style.fontWeight = 'bold';
   
   remainingDiv.appendChild(remainingLabel);
@@ -2505,7 +2925,10 @@ function showDepositPaymentModal(quote, tierName) {
   
   // Payment button
   const payButton = document.createElement('button');
-  payButton.textContent = quote.depositAmount !== undefined ? `Pay Deposit: $${quote.depositAmount.toFixed(2)}` : `Pay Deposit: $${(quote.total * 0.25).toFixed(2)}`;
+  // Use the correct deposit amount based on the new calculation logic
+  const depositPercentage = quote.depositPercentage || (quote.total > 2000 ? 0.25 : 0.5);
+  const depositAmount = quote.depositAmount !== undefined ? quote.depositAmount : (quote.total * depositPercentage);
+  payButton.textContent = `Pay Deposit: $${depositAmount.toFixed(2)}`;
   payButton.style.backgroundColor = 'var(--color-primary, #4F46E5)';
   payButton.style.color = 'white';
   payButton.style.border = 'none';
@@ -5466,11 +5889,23 @@ if (quote.editable) {
   selectButton.style.cursor = 'pointer';
   selectButton.style.minWidth = '80px';
   
-  // Add deposit info to quote for quotes over $300 (for later use)
-  if (quote.total >= 300) {
-    // Calculate deposit (25% of total)
-    quote.depositAmount = Math.round(quote.total * 0.25);
-    quote.remainingAmount = quote.total - quote.depositAmount;
+  // Deposit info is already calculated during breakdown creation
+  // Make sure it's present if not already set
+  if (!quote.hasOwnProperty('depositAmount')) {
+    const requireDeposit = document.querySelector('input[name="requireDeposit"]') && 
+                           document.querySelector('input[name="requireDeposit"]').checked;
+    
+    if (requireDeposit) {
+      const depositPercentage = quote.total > 2000 ? 0.25 : 0.5;
+      quote.requireDeposit = true;
+      quote.depositPercentage = depositPercentage;
+      quote.depositAmount = quote.total * depositPercentage;
+      quote.remainingAmount = quote.total - quote.depositAmount;
+    } else {
+      quote.requireDeposit = false;
+      quote.depositAmount = 0;
+      quote.remainingAmount = quote.total;
+    }
   }
   
   // Add checkmark icon to select button
