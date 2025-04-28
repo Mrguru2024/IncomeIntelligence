@@ -419,19 +419,28 @@ function initProfileModule() {
 }
 
 // Expose the UserProfile object globally and also as an ES module export
-// Ensure we're in a browser environment before trying to use window
+
+// IMMEDIATE GLOBAL ASSIGNMENT - Must happen at the top level
+// This ensures the object is available as early as possible in the page lifecycle
 if (typeof window !== 'undefined') {
-  // Assign to window before doing anything else to ensure early availability
   window.UserProfile = UserProfile;
   
-  // Make sure the window.modules object exists
+  // Also make it available in the modules registry
   if (!window.modules) window.modules = {};
-  
-  // Register the UserProfile in the modules registry for easier access
   window.modules['user-profile'] = UserProfile;
   
-  // Initialize the profile module after global setup
-  setTimeout(initProfileModule, 100);
+  // Log successful global assignment
+  console.log('UserProfile successfully assigned to global scope');
+  
+  // Initialize the profile module after global setup with a slight delay
+  // to ensure the DOM is ready
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(initProfileModule, 50);
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(initProfileModule, 50);
+    });
+  }
 }
 
 // Also export as ES module
