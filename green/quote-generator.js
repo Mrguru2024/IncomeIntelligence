@@ -576,20 +576,31 @@ function renderQuoteGeneratorPage(containerId) {
         if (typeof window.UserProfile === 'undefined') {
           console.log('UserProfile not found in global scope, attempting to load it dynamically');
           
-          // Create a script element to load user-profile.js
-          const script = document.createElement('script');
-          script.src = '/green/user-profile.js';
-          script.async = false; // We want this to load synchronously
-          script.onload = function() {
-            console.log('UserProfile module loaded dynamically');
-            // Now call the function again after loading
-            setTimeout(() => profileButton.click(), 100);
-          };
-          script.onerror = function() {
-            console.error('Failed to load UserProfile module');
-            showToast('Unable to load profile editor. Please try again later.', 'error');
-          };
-          document.head.appendChild(script);
+          // We need to create a non-module version of the script (without export statements)
+          fetch('/green/user-profile.js')
+            .then(response => response.text())
+            .then(code => {
+              // Create a non-module version by removing export statements
+              const nonModuleCode = code.replace(/export default UserProfile;/g, '');
+              
+              // Create an in-page script element with the modified code
+              const script = document.createElement('script');
+              script.type = 'text/javascript'; // Explicitly set as regular JS, not a module
+              script.textContent = nonModuleCode;
+              
+              script.onload = function() {
+                console.log('UserProfile module loaded dynamically via inline script');
+                // Now call the function again after loading
+                setTimeout(() => profileButton.click(), 100);
+              };
+              
+              document.head.appendChild(script);
+            })
+            .catch(err => {
+              console.error('Failed to load and modify UserProfile module:', err);
+              showToast('Unable to load profile editor. Please try again later.', 'error');
+            });
+          
           return; // Exit early to prevent further execution until module is loaded
         }
         
@@ -6975,41 +6986,61 @@ function ensureUserProfileInitialized() {
     // If UserProfile not available in global scope, create a script to load it
     console.log('UserProfile not available, attempting to load the module');
     
-    // Create a script element to load user-profile.js
-    const script = document.createElement('script');
-    script.src = '/green/user-profile.js';
-    script.async = false; // Load synchronously 
+    // IMPORTANT: Check if we're already trying to load it to prevent infinite loops
+    if (window._loadingUserProfile) {
+      console.log('Already attempting to load UserProfile, skipping to prevent infinite loop');
+      return;
+    }
     
-    script.onload = function() {
-      console.log('UserProfile module loaded via script element');
-      
-      // Try to get user ID from various sources
-      const userId = window.appState?.user?.id || 
-                    (localStorage.getItem('stackrUser') ? 
-                      JSON.parse(localStorage.getItem('stackrUser'))?.id : null) || 
-                    `temp-${Date.now()}`;
-      
-      // Initialize with a slight delay to ensure the module is fully processed
-      setTimeout(() => {
-        if (window.UserProfile) {
-          window.UserProfile.initUserProfile(userId)
-            .then(profile => {
-              console.log('User profile initialized after script load:', profile ? 'success' : 'failed');
-            })
-            .catch(err => {
-              console.error('Error initializing user profile after script load:', err);
-            });
-        } else {
-          console.error('UserProfile still not available after script load');
-        }
-      }, 50);
-    };
+    // Set a flag to prevent multiple loading attempts
+    window._loadingUserProfile = true;
     
-    script.onerror = function() {
-      console.error('Failed to load UserProfile script');
-    };
-    
-    document.head.appendChild(script);
+    // We need to create a non-module version of the script (without export statements)
+    fetch('/green/user-profile.js')
+      .then(response => response.text())
+      .then(code => {
+        // Create a non-module version by removing export statements
+        const nonModuleCode = code.replace(/export default UserProfile;/g, '');
+        
+        // Create an in-page script element with the modified code
+        const script = document.createElement('script');
+        script.type = 'text/javascript'; // Explicitly set as regular JS, not a module
+        script.textContent = nonModuleCode;
+        
+        script.onload = function() {
+          console.log('UserProfile module loaded via inline script');
+          
+          // Reset loading flag to prevent infinite loops
+          window._loadingUserProfile = false;
+          
+          // Try to get user ID from various sources
+          const userId = window.appState?.user?.id || 
+                        (localStorage.getItem('stackrUser') ? 
+                          JSON.parse(localStorage.getItem('stackrUser'))?.id : null) || 
+                        `temp-${Date.now()}`;
+          
+          // Initialize with a slight delay to ensure the module is fully processed
+          setTimeout(() => {
+            if (window.UserProfile) {
+              window.UserProfile.initUserProfile(userId)
+                .then(profile => {
+                  console.log('User profile initialized after script load:', profile ? 'success' : 'failed');
+                })
+                .catch(err => {
+                  console.error('Error initializing user profile after script load:', err);
+                });
+            } else {
+              console.error('UserProfile still not available after script load');
+            }
+          }, 50);
+        };
+        
+        document.head.appendChild(script);
+      })
+      .catch(err => {
+        console.error('Failed to load and modify UserProfile module:', err);
+        window._loadingUserProfile = false; // Reset flag on error
+      });
     
   } catch (error) {
     console.error('Error in ensureUserProfileInitialized:', error);
