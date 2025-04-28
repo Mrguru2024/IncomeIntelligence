@@ -11,16 +11,27 @@ document.addEventListener('DOMContentLoaded', function() {
   const quoteParams = new URLSearchParams(window.location.search);
   const quoteId = quoteParams.get('id');
   
+  // Initialize animations and loading state
+  startLoadingAnimation();
+  animateProgressBar();
+  
   if (quoteId) {
     // Fetch quote data from API
     fetchQuoteData(quoteId);
   } else {
     // Just use demo data if no ID is provided
-    initPageWithDemoData();
+    // Adding a small delay makes the loading feel more natural
+    setTimeout(() => {
+      initPageWithDemoData();
+      completeLoadingAnimation();
+    }, 1200);
   }
   
   // Set up event listeners
   setupEventListeners();
+  
+  // Set up interactive features
+  initializeInteractiveFeatures();
 });
 
 // Fetch quote data from API
@@ -384,6 +395,217 @@ function showSuccessMessage() {
   
   // Scroll to success message
   document.getElementById('success-message').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Loading animation functions
+function startLoadingAnimation() {
+  const container = document.createElement('div');
+  container.id = 'loading-overlay';
+  container.className = 'fixed inset-0 flex items-center justify-center bg-white bg-opacity-90 z-50';
+  container.innerHTML = `
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+      <p class="text-gray-700 text-lg">Loading your quote...</p>
+    </div>
+  `;
+  document.body.appendChild(container);
+}
+
+function completeLoadingAnimation() {
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) {
+    overlay.classList.add('fade-out');
+    setTimeout(() => {
+      overlay.remove();
+      // Reveal content with animation
+      document.querySelectorAll('.fade-in-element').forEach((el, index) => {
+        setTimeout(() => {
+          el.classList.add('fade-in');
+        }, index * 150); // Stagger the animations
+      });
+    }, 500);
+  }
+}
+
+// Progress bar animation
+function animateProgressBar() {
+  const progressBar = document.querySelector('.progress-bar-fill');
+  if (progressBar) {
+    setTimeout(() => {
+      progressBar.style.width = '100%';
+    }, 500);
+  }
+}
+
+// Interactive features for quote preview
+function initializeInteractiveFeatures() {
+  // Add comparison popover functionality
+  setupComparisonPopovers();
+  
+  // Add interactive pricing slider if available
+  setupPricingSliders();
+  
+  // Add interactive feature highlights
+  setupFeatureHighlights();
+  
+  // Add tier card hover effects
+  setupTierCardEffects();
+  
+  // Add floating price counter effect when tiers change
+  setupPriceCounters();
+}
+
+// Setup comparison popovers
+function setupComparisonPopovers() {
+  const comparisonButtons = document.querySelectorAll('.comparison-button');
+  comparisonButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const popoverId = this.dataset.popover;
+      const popover = document.getElementById(popoverId);
+      
+      // Toggle popover visibility
+      if (popover) {
+        // Hide all other popovers first
+        document.querySelectorAll('.comparison-popover').forEach(p => {
+          if (p.id !== popoverId) {
+            p.classList.add('hidden');
+          }
+        });
+        
+        // Toggle this popover
+        popover.classList.toggle('hidden');
+        
+        // Position the popover
+        const buttonRect = this.getBoundingClientRect();
+        popover.style.top = buttonRect.bottom + window.scrollY + 10 + 'px';
+        popover.style.left = buttonRect.left + window.scrollX + 'px';
+      }
+    });
+  });
+  
+  // Close popovers when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.comparison-button') && !e.target.closest('.comparison-popover')) {
+      document.querySelectorAll('.comparison-popover').forEach(p => {
+        p.classList.add('hidden');
+      });
+    }
+  });
+}
+
+// Setup interactive price sliders
+function setupPricingSliders() {
+  const sliders = document.querySelectorAll('.pricing-slider');
+  sliders.forEach(slider => {
+    slider.addEventListener('input', function() {
+      const targetId = this.dataset.target;
+      const valueDisplay = document.getElementById(targetId);
+      
+      if (valueDisplay) {
+        // Update the display value
+        const value = parseInt(this.value);
+        valueDisplay.textContent = value;
+        
+        // If this affects pricing, recalculate
+        if (this.dataset.affects === 'price') {
+          const selectedTier = document.querySelector('.select-tier.bg-blue-500')?.dataset.tier || 'standard';
+          updateBreakdown(selectedTier);
+        }
+      }
+    });
+  });
+}
+
+// Setup feature highlights
+function setupFeatureHighlights() {
+  const features = document.querySelectorAll('.feature-highlight');
+  features.forEach(feature => {
+    feature.addEventListener('mouseenter', function() {
+      this.classList.add('feature-pulse');
+    });
+    
+    feature.addEventListener('mouseleave', function() {
+      this.classList.remove('feature-pulse');
+    });
+  });
+}
+
+// Setup tier card effects
+function setupTierCardEffects() {
+  const cards = document.querySelectorAll('.tier-card');
+  cards.forEach(card => {
+    // Add 3D tilt effect on mouse move
+    card.addEventListener('mousemove', function(e) {
+      if (window.innerWidth >= 768) { // Only on desktop
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left; // x position within the card
+        const y = e.clientY - rect.top; // y position within the card
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const deltaX = (x - centerX) / centerX * 5; // Max tilt of 5 degrees
+        const deltaY = (y - centerY) / centerY * 5;
+        
+        this.style.transform = `perspective(1000px) rotateX(${-deltaY}deg) rotateY(${deltaX}deg) translateY(-5px)`;
+      }
+    });
+    
+    // Reset on mouse leave
+    card.addEventListener('mouseleave', function() {
+      this.style.transform = '';
+    });
+  });
+}
+
+// Setup floating price counter effect
+function setupPriceCounters() {
+  const tierButtons = document.querySelectorAll('.select-tier');
+  tierButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const tier = this.dataset.tier;
+      const priceElement = document.getElementById(`${tier}-price`);
+      
+      if (priceElement) {
+        const priceText = priceElement.textContent;
+        const priceValue = parseFloat(priceText.replace(/[^0-9.]/g, ''));
+        
+        // Create floating element
+        const floatingPrice = document.createElement('div');
+        floatingPrice.className = 'absolute text-xl font-bold text-blue-600 price-float z-20';
+        floatingPrice.textContent = priceText;
+        
+        // Position near the price element
+        const rect = priceElement.getBoundingClientRect();
+        floatingPrice.style.top = rect.top + window.scrollY + 'px';
+        floatingPrice.style.left = rect.left + window.scrollX + 'px';
+        
+        // Add to document
+        document.body.appendChild(floatingPrice);
+        
+        // Animate to the total in breakdown
+        const totalElement = document.getElementById('breakdown-total');
+        const totalRect = totalElement.getBoundingClientRect();
+        
+        // Start animation after a small delay
+        setTimeout(() => {
+          floatingPrice.style.top = totalRect.top + window.scrollY + 'px';
+          floatingPrice.style.left = totalRect.left + window.scrollX + 'px';
+          floatingPrice.style.opacity = '0';
+          
+          // Highlight the total
+          totalElement.classList.add('highlight-pulse');
+          
+          // Clean up after animation
+          setTimeout(() => {
+            floatingPrice.remove();
+            totalElement.classList.remove('highlight-pulse');
+          }, 1000);
+        }, 50);
+      }
+    });
+  });
 }
 
 // Helper function to format dates
