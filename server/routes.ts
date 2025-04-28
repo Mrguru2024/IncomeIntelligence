@@ -381,6 +381,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/payment-scripts', paymentScriptsRoutes);
   console.log('Payment scripts routes registered');
   
+  // Securely provide Stripe public key
+  app.get('/api/stripe-public-key', (req, res) => {
+    const stripePublicKey = process.env.VITE_STRIPE_PUBLIC_KEY;
+    
+    if (!stripePublicKey) {
+      console.warn('VITE_STRIPE_PUBLIC_KEY is not set in environment variables');
+      return res.status(404).json({
+        error: 'Stripe public key not configured',
+        message: 'The Stripe public key is missing from server configuration'
+      });
+    }
+    
+    res.json({ 
+      key: stripePublicKey,
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
+  
   // Create Stripe payment intent for invoice payment
   app.post('/api/create-payment-intent', async (req, res) => {
     try {
