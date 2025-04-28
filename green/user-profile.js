@@ -8,6 +8,18 @@
  * - Adaptive parameter adjustments based on user behavior
  */
 
+// ES module exports for environments that support it
+export const UserProfileModule = {
+  getUserProfile: null,
+  initializeUserProfile: null,
+  saveUserProfile: null,
+  addQuoteToHistory: null, 
+  updateQuoteStatus: null,
+  updateProfileFromQuoteForm: null,
+  getDefaultIndustryParameters: null,
+  mapJobTypeToIndustry: null
+};
+
 // In-memory cache of user profiles
 let userProfilesCache = null;
 
@@ -717,8 +729,8 @@ function getDefaultIndustryParameters(serviceIndustry) {
 // Initialize the module by loading profiles
 userProfilesCache = loadUserProfiles();
 
-// ES module exports to work in both Node.js and browser environments
-export {
+// Create a bundle of all exports
+const profileModule = {
   getUserProfile,
   initializeUserProfile,
   saveUserProfile,
@@ -729,17 +741,24 @@ export {
   mapJobTypeToIndustry
 };
 
-// Check if we're in a browser environment before using window
-if (typeof window !== 'undefined') {
-  // Export methods for browser usage
-  window.UserProfile = {
-    getUserProfile,
-    initializeUserProfile,
-    saveUserProfile,
-    addQuoteToHistory,
-    updateQuoteStatus,
-    updateProfileFromQuoteForm,
-    getDefaultIndustryParameters,
-    mapJobTypeToIndustry
-  };
+// Update the exported ES module object with the actual functions
+if (typeof UserProfileModule !== 'undefined') {
+  UserProfileModule.getUserProfile = getUserProfile;
+  UserProfileModule.initializeUserProfile = initializeUserProfile;
+  UserProfileModule.saveUserProfile = saveUserProfile;
+  UserProfileModule.addQuoteToHistory = addQuoteToHistory;
+  UserProfileModule.updateQuoteStatus = updateQuoteStatus;
+  UserProfileModule.updateProfileFromQuoteForm = updateProfileFromQuoteForm;
+  UserProfileModule.getDefaultIndustryParameters = getDefaultIndustryParameters;
+  UserProfileModule.mapJobTypeToIndustry = mapJobTypeToIndustry;
+}
+
+// Check environment and export accordingly
+if (typeof module !== 'undefined' && module.exports) {
+  // CommonJS environment (Node.js)
+  module.exports = profileModule;
+} else if (typeof window !== 'undefined') {
+  // Browser environment - add to global scope
+  window.UserProfile = profileModule;
+  window.UserProfileModule = profileModule; // Alternative name for compatibility
 }

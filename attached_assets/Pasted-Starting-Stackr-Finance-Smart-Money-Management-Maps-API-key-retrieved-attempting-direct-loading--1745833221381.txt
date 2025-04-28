@@ -1,0 +1,73 @@
+Starting Stackr Finance - Smart Money Management
+Maps API key retrieved - attempting direct loading
+Note: Using Maps fallback implementation
+Loading fallback Google Maps implementation from index.html
+Loading Google Maps enhanced fallback implementation
+No Maps initialization function found, will initialize when called by application
+Fallback Google Maps implementation added to page
+Design system initialized
+Stackr Finance initializing...
+Viewport: mobile
+Page rendered: landing
+Viewport: mobile
+Stackr Finance loaded successfully!
+User authenticated: ProUser
+Ensured onboarding completion state is synced
+Viewport: mobile
+Page rendered: landing
+Viewport: mobile
+Maps fallback is working, not showing error notification
+Viewport: mobile
+Page rendered: login
+Viewport: mobile
+Initiating Google OAuth login flow...
+Viewport: mobile
+Page rendered: dashboard
+Viewport: mobile
+User object in sidebar: 
+Object {username: "ProUser", subscriptionTier: "pro", subscriptionStatus: "pro", subscription: {…}}
+Sidebar displaying subscription tier: pro
+Notification system initialized successfully
+Hamburger menu clicked - toggling sidebar
+Viewport: mobile
+Navigation requested to page: quote-generator
+Viewport: mobile
+Page rendered: quote-generator
+Viewport: mobile
+User object in sidebar: 
+Object {username: "ProUser", subscriptionTier: "pro", subscriptionStatus: "pro", subscription: {…}}
+Sidebar displaying subscription tier: pro
+Created app-container for quote generator: 
+<div id="app-container" class="quote-generator-container" style="font-family: var(--font-family);">…</div>
+Notification system initialized successfully
+Quote Generator module initialized
+Quote Generator script loaded successfully
+Google Maps already loaded, initializing autocomplete immediately
+Using Google Maps Places API for address autocomplete
+Creating autocomplete for input: auto-address-input
+[Maps Autocomplete] Autocomplete initialized for input: auto-address-input
+Adding listener for place_changed
+Google Maps Places autocomplete initialized successfully
+Quote Generator page rendered successfully
+[Maps Autocomplete] Fetching suggestions for: '9970 Cormac Street, Jonesboro, GA, USA'
+[Maps Autocomplete] Positioned dropdown at: 48px, 482.796875px, width: 501px
+[Maps Autocomplete] Received 1 suggestions
+[Maps Autocomplete] First suggestion: '9970 Cormac Street, Jonesboro, GA, USA'
+[Maps Autocomplete] Positioned dropdown at: 48px, 482.796875px, width: 501px
+[Maps Autocomplete] Fetching suggestions for: '9970 Cormac Street, Jonesboro, GA, USA'
+[Maps Autocomplete] Positioned dropdown at: 48px, 482.796875px, width: 501px
+Address selected: 9970 Cormac Street, Jonesboro, GA, USA
+[Maps Autocomplete] Received 1 suggestions
+[Maps Autocomplete] First suggestion: '9970 Cormac Street, Jonesboro, GA, USA'
+[Maps Autocomplete] Positioned dropdown at: 48px, 482.796875px, width: 501px
+UserProfile not available, attempting to load the module
+Storing form data for future refreshes: 
+Object {jobType: "locksmith", jobSubtype: "rekey", location: "9970 Cormac Street, Jonesboro, GA, USA", experienceLevel: "senior", laborHours: 1, …}
+Failed to execute 'appendChild' on 'Node': Unexpected token 'export'
+at https://4fe150ec-4a73-444f-82a4-7514174e7386-00-3h5k75ty8hekc.kirk.replit.dev/quote-generator.js:7909:23
+No user profiles found, creating new profiles store
+Error processing user profile module: 
+TypeError {}
+
+External client preview function not found, using fallback
+Using enhanced client preview modal
