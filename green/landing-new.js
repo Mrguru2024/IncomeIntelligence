@@ -1943,20 +1943,20 @@ function createFAQSection() {
       answer: 'Stackzen provides tools like Stackzen Gigs (curated job opportunities), Affiliate Program Hub (earn commissions through referrals), and daily money challenges. These tools are designed specifically for service providers to help you discover and capitalize on new income streams.'
     },
     {
-      question: 'Do I need a bank account to use Stackr?',
-      answer: 'No, you can use Stackr without connecting a bank account. You can manually track your income and use the 40/30/30 method. However, connecting your bank makes the experience more powerful with automatic transaction imports and real-time balance updates.'
+      question: 'Do I need a bank account to use Stackzen?',
+      answer: 'No, you can use Stackzen without connecting a bank account. You can manually track your income and use the 40/30/30 method. However, connecting your bank makes the experience more powerful with automatic transaction imports and real-time balance updates.'
     },
     {
       question: 'Is my financial data secure?',
-      answer: 'Yes, we take security seriously. We use bank-level encryption to secure your data, and we never store your banking credentials. Our secure Plaid integration means your login information is never seen or stored by Stackr.'
+      answer: 'Yes, we take security seriously. We use bank-level encryption to secure your data, and we never store your banking credentials. Our secure Plaid integration means your login information is never seen or stored by Stackzen.'
     },
     {
       question: 'What\'s the difference between Pro and Free plans?',
-      answer: 'The Free plan gives you basic income tracking and the 40/30/30 split visualization. The Pro plan adds bank connections, automatic transaction imports, income opportunities, advanced analytics, priority support, and customizable split ratios.'
+      answer: 'The Free plan gives you basic income tracking and the 40/30/30 split visualization. The Stackzen Pro plan adds bank connections, automatic transaction imports, income opportunities, advanced analytics, priority support, and customizable split ratios.'
     },
     {
       question: 'Can I customize the 40/30/30 split?',
-      answer: 'Yes! With Stackr Pro, you can customize the split percentages to match your financial situation and goals. Whether you want a 50/30/20 split or something completely different, Stackr adapts to your needs.'
+      answer: 'Yes! With Stackzen Pro, you can customize the split percentages to match your financial situation and goals. Whether you want a 50/30/20 split or something completely different, Stackzen adapts to your needs.'
     }
   ];
   
@@ -2065,7 +2065,7 @@ function createCTASection() {
   heading.style.marginBottom = '1.5rem';
   
   const subheading = document.createElement('p');
-  subheading.textContent = 'Join thousands of service providers who are using Stackr to track, grow, and optimize their income with the 40/30/30 method.';
+  subheading.textContent = 'Join thousands of service providers who are using Stackzen to track, grow, and optimize their income with the 40/30/30 method.';
   subheading.style.fontSize = '1.2rem';
   subheading.style.lineHeight = '1.6';
   subheading.style.marginBottom = '2.5rem';
@@ -2144,7 +2144,7 @@ function createFooter() {
   
   const logo = document.createElement('img');
   logo.src = '/green/public/stackrzenlogo.svg';
-  logo.alt = 'Stackr Zen Logo';
+  logo.alt = 'Stackzen Logo';
   logo.style.height = '36px';
   
   logoContainer.style.backgroundColor = '#233D4D'; // Add dark background for white logo
@@ -2263,7 +2263,7 @@ function createFooter() {
   bottomFooter.style.gap = '1rem';
   
   const copyright = document.createElement('div');
-  copyright.textContent = `© ${new Date().getFullYear()} Stackr Zen. All rights reserved.`;
+  copyright.textContent = `© ${new Date().getFullYear()} Stackzen. All rights reserved.`;
   copyright.style.fontSize = '0.9rem';
   copyright.style.color = '#888';
   

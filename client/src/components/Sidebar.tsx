@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/use-auth";
-import StackrLogo from "@/components/StackrLogo";
+import StackzenLogo from "@/components/StackrLogo";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -283,7 +283,7 @@ export default function Sidebar({
           </div>
         ) : (
           <>
-            <StackrLogo />
+            <StackzenLogo />
           </>
         )}
         
@@ -530,7 +530,7 @@ export default function Sidebar({
         aria-label="Mobile navigation"
       >
         <div className="p-3 xxs:p-4 xs:p-6 border-b border-border flex justify-between items-center">
-          <StackrLogo className="scale-90" />
+          <StackzenLogo className="scale-90" />
           <button
             onClick={closeMobileMenu}
             className="text-foreground p-1.5 xxs:p-2 rounded-full hover:bg-muted-background flex items-center justify-center cursor-pointer touch-manipulation"
