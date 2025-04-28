@@ -1,206 +1,288 @@
 import { Router } from 'express';
-const router = Router();
+import fs from 'fs';
+import path from 'path';
+import { storage } from '../storage';
 
-/**
- * Quote routes for the enhanced quote generator
- * Integrates user profile data with advanced profit margin calculation
- * and industry-specific parameters
- */
+// Import quote generator utilities using dynamic import to handle ES modules in a CommonJS context
+let generateEnhancedQuote: any;
+let addQuoteToHistory: any;
+let saveUserProfile: any;
+let getUserProfile: any;
 
-// Enhanced Quote generator routes with user profile integration
-router.post("/api/generate-enhanced-quote", (req, res) => {
+// Dynamically import the ES modules
+async function importModules() {
   try {
-    const { quoteData, userId } = req.body;
+    const quoteGeneratorModule = await import('../../green/enhanced-quote-generator.js');
+    const userProfileModule = await import('../../green/user-profile.js');
     
-    if (!quoteData) {
-      return res.status(400).json({ error: "Quote data is required" });
-    }
+    generateEnhancedQuote = quoteGeneratorModule.generateEnhancedQuote;
+    addQuoteToHistory = userProfileModule.addQuoteToHistory;
+    saveUserProfile = userProfileModule.saveUserProfile;
+    getUserProfile = userProfileModule.getUserProfile;
     
-    // Validate essential fields
-    const requiredFields = ['jobType', 'laborHours', 'location'];
-    for (const field of requiredFields) {
-      if (!quoteData[field]) {
-        return res.status(400).json({ error: `${field} is required` });
-      }
-    }
-    
-    // Import the enhanced quote generator
-    try {
-      const { generateEnhancedQuote } = require('../../green/enhanced-quote-generator.js');
-      
-      // Update user profile if userId is provided
-      if (userId) {
-        try {
-          const { updateProfileFromQuoteForm } = require('../../green/user-profile.js');
-          updateProfileFromQuoteForm(userId, quoteData);
-          console.log(`Updated user profile for user ${userId} based on quote data`);
-        } catch (profileError) {
-          console.warn("Warning: Could not update user profile:", profileError);
-          // Continue with quote generation even if profile update fails
-        }
-      }
-      
-      // Generate enhanced quote with user profiling
-      const enhancedQuote = generateEnhancedQuote(quoteData, userId);
-      
-      res.json(enhancedQuote);
-    } catch (importError) {
-      console.error("Error importing enhanced quote generator:", importError);
-      res.status(500).json({ 
-        error: "Failed to load quote generator module",
-        message: importError.message
-      });
-    }
-  } catch (error) {
-    console.error("Error generating enhanced quote:", error);
-    res.status(500).json({ 
-      error: "Failed to generate enhanced quote",
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    console.log('Quote generator modules imported successfully');
+  } catch (importError) {
+    console.error('Error importing quote generator modules:', importError);
   }
+}
+
+// Initialize module imports
+importModules().catch(error => {
+  console.error('Failed to initialize quote modules:', error);
 });
 
-// Get user quote history from profile
-router.get("/api/user/:userId/quote-history", (req, res) => {
+const router = Router();
+
+// Get all quotes for a user
+router.get('/quotes', async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.query.userId as string;
     
     if (!userId) {
-      return res.status(400).json({ error: "User ID is required" });
+      return res.status(400).json({ error: 'userId is required' });
     }
     
-    // Get user profile
     try {
-      const { getUserProfile } = require('../../green/user-profile.js');
       const userProfile = getUserProfile(userId);
       
       if (!userProfile) {
-        return res.status(404).json({ error: "User profile not found" });
+        return res.status(404).json({ error: 'User profile not found' });
       }
       
-      // Return quote history from profile
-      res.json({ 
-        userId,
-        quoteHistory: userProfile.quoteHistory || [],
-        stats: {
-          totalQuotes: (userProfile.quoteHistory || []).length,
-          averageMargin: userProfile.averageMargin || 0,
-          preferredJobTypes: userProfile.preferredJobTypes || []
-        }
-      });
+      const quotes = userProfile.quoteHistory || [];
+      
+      return res.json({ quotes });
     } catch (profileError) {
-      console.error("Error retrieving user profile:", profileError);
-      res.status(500).json({ 
-        error: "Failed to retrieve user profile",
-        message: profileError.message
-      });
+      console.error('Error fetching user profile:', profileError);
+      return res.status(500).json({ error: 'Error fetching user quotes' });
     }
   } catch (error) {
-    console.error("Error retrieving quote history:", error);
-    res.status(500).json({ 
-      error: "Failed to retrieve quote history",
-      message: error.message
-    });
+    console.error('Error in GET /quotes:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Save a quote to user history
-router.post("/api/user/:userId/save-quote", (req, res) => {
+// Get a specific quote by ID
+router.get('/quotes/:quoteId', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { quoteData } = req.body;
+    const { quoteId } = req.params;
+    const userId = req.query.userId as string;
     
     if (!userId) {
-      return res.status(400).json({ error: "User ID is required" });
+      return res.status(400).json({ error: 'userId is required' });
     }
     
-    if (!quoteData) {
-      return res.status(400).json({ error: "Quote data is required" });
-    }
-    
-    // Add quote to history
     try {
-      const { addQuoteToHistory } = require('../../green/user-profile.js');
-      const updatedProfile = addQuoteToHistory(userId, quoteData);
+      const userProfile = getUserProfile(userId);
       
-      if (!updatedProfile) {
-        return res.status(404).json({ error: "User profile not found" });
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User profile not found' });
       }
       
-      // Return updated history
-      res.json({ 
-        success: true, 
-        message: "Quote saved to history",
-        quoteHistory: updatedProfile.quoteHistory
-      });
+      const quotes = userProfile.quoteHistory || [];
+      const quote = quotes.find(q => q.id === quoteId);
+      
+      if (!quote) {
+        return res.status(404).json({ error: 'Quote not found' });
+      }
+      
+      return res.json({ quote });
     } catch (profileError) {
-      console.error("Error saving quote to history:", profileError);
-      res.status(500).json({ 
-        error: "Failed to save quote to history",
-        message: profileError.message
-      });
+      console.error('Error fetching user profile:', profileError);
+      return res.status(500).json({ error: 'Error fetching quote' });
     }
   } catch (error) {
-    console.error("Error saving quote:", error);
-    res.status(500).json({ 
-      error: "Failed to save quote",
-      message: error.message
-    });
+    console.error('Error in GET /quotes/:quoteId:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Update quote status in history
-router.patch("/api/user/:userId/quote-status", (req, res) => {
+// Create a new quote
+router.post('/quotes', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { quoteDate, status } = req.body;
+    const quoteData = req.body;
+    const userId = req.body.userId;
     
     if (!userId) {
-      return res.status(400).json({ error: "User ID is required" });
+      return res.status(400).json({ error: 'userId is required' });
     }
     
-    if (!quoteDate || !status) {
-      return res.status(400).json({ error: "Quote date and status are required" });
+    if (!quoteData.jobType) {
+      return res.status(400).json({ error: 'jobType is required' });
     }
     
-    // Valid status values
+    try {
+      // Generate enhanced quote
+      const enhancedQuote = generateEnhancedQuote(quoteData, userId);
+      
+      // Add unique ID to quote if not present
+      if (!enhancedQuote.id) {
+        enhancedQuote.id = `QT${Date.now()}`;
+      }
+      
+      // Add quote to user's history
+      const updatedProfile = addQuoteToHistory(userId, enhancedQuote);
+      
+      // Update user profile
+      if (quoteData.experienceYears) {
+        saveUserProfile(userId, {
+          preferences: {
+            experienceYears: quoteData.experienceYears
+          }
+        });
+      }
+      
+      return res.status(201).json({
+        success: true,
+        quote: enhancedQuote
+      });
+    } catch (profileError) {
+      console.error('Error with user profile operations:', profileError);
+      return res.status(500).json({ error: 'Error generating or saving quote' });
+    }
+  } catch (error) {
+    console.error('Error in POST /quotes:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update quote status
+router.patch('/quotes/:quoteId/status', async (req, res) => {
+  try {
+    const { quoteId } = req.params;
+    const { status, userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+    
+    if (!status) {
+      return res.status(400).json({ error: 'status is required' });
+    }
+    
     const validStatuses = ['draft', 'sent', 'accepted', 'rejected'];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ 
-        error: "Invalid status", 
-        message: `Status must be one of: ${validStatuses.join(', ')}`
+      return res.status(400).json({
+        error: `Invalid status: ${status}. Valid statuses are: ${validStatuses.join(', ')}`
       });
     }
     
-    // Update quote status
     try {
-      const { updateQuoteStatus } = require('../../green/user-profile.js');
-      const updatedProfile = updateQuoteStatus(userId, quoteDate, status);
+      const userProfile = getUserProfile(userId);
       
-      if (!updatedProfile) {
-        return res.status(404).json({ error: "User profile or quote not found" });
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User profile not found' });
       }
       
-      // Return updated history
-      res.json({ 
-        success: true, 
-        message: `Quote status updated to ${status}`,
-        quoteHistory: updatedProfile.quoteHistory
-      });
-    } catch (profileError) {
-      console.error("Error updating quote status:", profileError);
-      res.status(500).json({ 
-        error: "Failed to update quote status",
-        message: profileError.message
-      });
+      const quotes = userProfile.quoteHistory || [];
+      const quoteIndex = quotes.findIndex(q => q.id === quoteId);
+      
+      if (quoteIndex === -1) {
+        return res.status(404).json({ error: 'Quote not found' });
+      }
+      
+      // Update the quote status
+      const quote = { ...quotes[quoteIndex], status, updatedAt: new Date().toISOString() };
+      
+      // Save updated quote to user profile
+      userProfile.quoteHistory[quoteIndex] = quote;
+      saveUserProfile(userId, userProfile);
+      
+      return res.json({ success: true, quote });
+    } catch (error) {
+      console.error('Error updating quote status:', error);
+      return res.status(500).json({ error: 'Error updating quote status' });
     }
   } catch (error) {
-    console.error("Error updating quote:", error);
-    res.status(500).json({ 
-      error: "Failed to update quote",
-      message: error.message
-    });
+    console.error('Error in PATCH /quotes/:quoteId/status:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Convert quote to invoice
+router.post('/quotes/:quoteId/convert', async (req, res) => {
+  try {
+    const { quoteId } = req.params;
+    const { userId, tier } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+    
+    if (!tier) {
+      return res.status(400).json({ error: 'tier is required' });
+    }
+    
+    // Valid tiers
+    const validTiers = ['basic', 'standard', 'premium'];
+    if (!validTiers.includes(tier)) {
+      return res.status(400).json({
+        error: `Invalid tier: ${tier}. Valid tiers are: ${validTiers.join(', ')}`
+      });
+    }
+    
+    try {
+      const userProfile = getUserProfile(userId);
+      
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User profile not found' });
+      }
+      
+      const quotes = userProfile.quoteHistory || [];
+      const quote = quotes.find(q => q.id === quoteId);
+      
+      if (!quote) {
+        return res.status(404).json({ error: 'Quote not found' });
+      }
+      
+      // Create an invoice from the quote (simplified for demo)
+      const invoice = {
+        id: `INV${Date.now()}`,
+        quoteId,
+        userId,
+        customerName: quote.customerName,
+        jobType: quote.jobType,
+        description: quote.description,
+        location: quote.location,
+        createdAt: new Date().toISOString(),
+        dueDate: new Date(Date.now() + 30*24*60*60*1000).toISOString(), // 30 days from now
+        status: 'pending',
+        tier,
+        amount: quote.tierOptions[tier].price,
+        depositAmount: quote.depositRequired ? (quote.tierOptions[tier].price * (quote.depositPercent / 100)) : 0,
+        depositRequired: quote.depositRequired,
+        depositPercent: quote.depositPercent,
+        items: [
+          {
+            description: `${quote.jobType} - ${tier.charAt(0).toUpperCase() + tier.slice(1)} tier`,
+            quantity: 1,
+            rate: quote.tierOptions[tier].price,
+            amount: quote.tierOptions[tier].price
+          }
+        ]
+      };
+      
+      // In a real app, we would store this in a database
+      // For demo purposes, we'll just return it
+      
+      // Update the quote status to reflect that it was converted to an invoice
+      const quoteIndex = quotes.findIndex(q => q.id === quoteId);
+      quotes[quoteIndex].status = 'accepted';
+      quotes[quoteIndex].updatedAt = new Date().toISOString();
+      quotes[quoteIndex].invoiceId = invoice.id;
+      
+      // Save updated quote to user profile
+      userProfile.quoteHistory = quotes;
+      saveUserProfile(userId, userProfile);
+      
+      return res.json({ success: true, invoice });
+    } catch (error) {
+      console.error('Error converting quote to invoice:', error);
+      return res.status(500).json({ error: 'Error converting quote to invoice' });
+    }
+  } catch (error) {
+    console.error('Error in POST /quotes/:quoteId/convert:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 

@@ -18,5 +18,119 @@
     },
     "quoteHistory": [],
     "industryParameters": {}
+  },
+  "test-preview-user": {
+    "userId": "test-preview-user",
+    "createdAt": "2025-04-28T06:43:15.355Z",
+    "updatedAt": "2025-04-28T06:43:15.355Z",
+    "preferences": {
+      "defaultIndustry": null,
+      "preferredJobTypes": [
+        "Bathroom Remodel"
+      ],
+      "preferredMargin": 0.3,
+      "experienceYears": 0
+    },
+    "statistics": {
+      "totalQuotes": 1,
+      "averageMargin": 0.36,
+      "acceptedQuotes": 0,
+      "rejectedQuotes": 0,
+      "averageJobValue": 10156
+    },
+    "quoteHistory": [
+      {
+        "quoteDate": "2025-04-28",
+        "jobType": "Bathroom Remodel",
+        "serviceIndustry": "construction",
+        "location": "Denver, CO",
+        "region": "West",
+        "customerName": "Alex Johnson",
+        "description": "Complete renovation of master bathroom with premium fixtures",
+        "laborHours": 40,
+        "laborRate": 75,
+        "laborCost": 3000,
+        "materialCost": 3500,
+        "subtotal": 6500,
+        "profitMargin": 0.36,
+        "profitAmount": 3656,
+        "total": 10156,
+        "depositRequired": true,
+        "depositPercent": 25,
+        "depositAmount": 2539,
+        "balanceDue": 7617,
+        "regionalAverage": 0.29,
+        "competitivePosition": {
+          "position": "above-market",
+          "percentDiff": 24.13793103448276
+        },
+        "season": "spring",
+        "seasonalityFactor": 1.15,
+        "tierOptions": {
+          "basic": {
+            "name": "Basic",
+            "description": "Essential service with standard materials and no frills.",
+            "price": 8254,
+            "profit": 1754,
+            "profitMargin": 0.2125,
+            "features": [
+              "Standard materials",
+              "30-day workmanship guarantee",
+              "Standard cleanup",
+              "Regular scheduling"
+            ]
+          },
+          "standard": {
+            "name": "Standard",
+            "description": "Complete service with quality materials and standard warranty.",
+            "price": 8667,
+            "profit": 2167,
+            "profitMargin": 0.25,
+            "features": [
+              "Quality materials",
+              "1-year workmanship guarantee",
+              "Thorough cleanup",
+              "Flexible scheduling",
+              "Detailed documentation"
+            ],
+            "recommended": true
+          },
+          "premium": {
+            "name": "Premium",
+            "description": "Premium service with top-tier materials, extended warranty and priority scheduling.",
+            "price": 9455,
+            "profit": 2955,
+            "profitMargin": 0.3125,
+            "features": [
+              "Premium materials",
+              "5-year workmanship guarantee",
+              "White-glove cleanup",
+              "Priority scheduling",
+              "Detailed documentation",
+              "Project manager assigned",
+              "Complimentary follow-ups"
+            ]
+          }
+        },
+        "recommendations": [
+          {
+            "type": "pricing",
+            "title": "Consider competitive adjustment",
+            "description": "Your margin is 24.1% above regional averages. Consider adjusting if experiencing customer resistance.",
+            "priority": "medium"
+          },
+          {
+            "type": "upsell",
+            "title": "Fixture package upsell",
+            "description": "Offer a premium fixture package as an upsell opportunity.",
+            "priority": "low"
+          }
+        ],
+        "id": "QT-TEST-1745822595355",
+        "createdAt": "2025-04-28T06:43:15.355Z",
+        "status": "draft"
+      }
+    ],
+    "industryParameters": {}
   }
 }

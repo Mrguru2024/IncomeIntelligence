@@ -1,468 +1,340 @@
 /**
- * Client Preview Modal
+ * Client Quote Preview JavaScript
  * 
- * This module provides functionality to preview quotes as they would appear to clients
- * before sending them via email or as payable invoices.
+ * This script handles loading and displaying quote data for client review,
+ * as well as handling client interactions like selecting tiers and accepting quotes.
  */
 
-// Immediately make the function available globally
-var showClientPreviewModal;
+// Load quote data from URL parameter (in a real app, would get this from a database)
+document.addEventListener('DOMContentLoaded', function() {
+  // Get quote ID from URL
+  const quoteParams = new URLSearchParams(window.location.search);
+  const quoteId = quoteParams.get('id');
+  
+  if (quoteId) {
+    // Fetch quote data from API
+    fetchQuoteData(quoteId);
+  } else {
+    // Just use demo data if no ID is provided
+    initPageWithDemoData();
+  }
+  
+  // Set up event listeners
+  setupEventListeners();
+});
 
-/**
- * Shows a modal that previews how the quote will appear to clients
- * @param {Object} quote - The quote data object
- * @param {string} tierName - The name of the quote tier (Basic, Standard, Premium)
- */
-showClientPreviewModal = function(quote, tierName) {
-  // Create modal container
-  const modalOverlay = document.createElement('div');
-  modalOverlay.style.position = 'fixed';
-  modalOverlay.style.top = '0';
-  modalOverlay.style.left = '0';
-  modalOverlay.style.width = '100%';
-  modalOverlay.style.height = '100%';
-  modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-  modalOverlay.style.display = 'flex';
-  modalOverlay.style.alignItems = 'center';
-  modalOverlay.style.justifyContent = 'center';
-  modalOverlay.style.zIndex = '9999';
-  
-  const content = document.createElement('div');
-  content.style.backgroundColor = 'white';
-  content.style.borderRadius = '8px';
-  content.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-  content.style.width = '90%';
-  content.style.maxWidth = '650px';
-  content.style.maxHeight = '90vh';
-  content.style.overflow = 'auto';
-  content.style.padding = '24px';
-  
-  // Modal header with title and close button
-  const header = document.createElement('div');
-  header.style.display = 'flex';
-  header.style.justifyContent = 'space-between';
-  header.style.alignItems = 'center';
-  header.style.marginBottom = '20px';
-  
-  const title = document.createElement('h3');
-  title.textContent = 'Client Quote Preview';
-  title.style.margin = '0';
-  title.style.fontSize = '20px';
-  title.style.fontWeight = 'bold';
-  
-  const previewBadge = document.createElement('span');
-  previewBadge.textContent = 'PREVIEW MODE';
-  previewBadge.style.fontSize = '12px';
-  previewBadge.style.fontWeight = 'bold';
-  previewBadge.style.color = 'white';
-  previewBadge.style.backgroundColor = '#f97316'; // Orange color for visibility
-  previewBadge.style.padding = '4px 8px';
-  previewBadge.style.borderRadius = '4px';
-  previewBadge.style.marginLeft = '12px';
-  
-  title.appendChild(previewBadge);
-  
-  const closeButton = document.createElement('button');
-  closeButton.innerHTML = '&times;';
-  closeButton.style.background = 'none';
-  closeButton.style.border = 'none';
-  closeButton.style.fontSize = '24px';
-  closeButton.style.cursor = 'pointer';
-  closeButton.style.padding = '0';
-  closeButton.style.lineHeight = '1';
-  closeButton.addEventListener('click', () => {
-    document.body.removeChild(modalOverlay);
-  });
-  
-  header.appendChild(title);
-  header.appendChild(closeButton);
-  content.appendChild(header);
-  
-  // Instructions note about preview mode
-  const instructions = document.createElement('div');
-  instructions.style.backgroundColor = '#f9fafb';
-  instructions.style.borderRadius = '6px';
-  instructions.style.padding = '12px 16px';
-  instructions.style.marginBottom = '20px';
-  instructions.style.borderLeft = '4px solid #f97316';
-  
-  const instructionsText = document.createElement('p');
-  instructionsText.innerHTML = '<strong>Preview Mode:</strong> This is how your quote will appear to clients when sent via email or as a payable invoice. Review all details carefully before sending.';
-  instructionsText.style.margin = '0';
-  instructionsText.style.fontSize = '14px';
-  
-  instructions.appendChild(instructionsText);
-  content.appendChild(instructions);
-  
-  // Create business card section (mimicking the sender information)
-  const businessCard = document.createElement('div');
-  businessCard.style.backgroundColor = '#f0f9ff'; // Light blue background
-  businessCard.style.borderRadius = '6px';
-  businessCard.style.padding = '16px';
-  businessCard.style.marginBottom = '24px';
-  businessCard.style.display = 'flex';
-  businessCard.style.alignItems = 'center';
-  
-  // Business icon/avatar
-  const businessAvatar = document.createElement('div');
-  businessAvatar.style.width = '50px';
-  businessAvatar.style.height = '50px';
-  businessAvatar.style.borderRadius = '50%';
-  businessAvatar.style.backgroundColor = '#0284c7'; // Blue
-  businessAvatar.style.display = 'flex';
-  businessAvatar.style.alignItems = 'center';
-  businessAvatar.style.justifyContent = 'center';
-  businessAvatar.style.marginRight = '16px';
-  businessAvatar.style.color = 'white';
-  businessAvatar.style.fontWeight = 'bold';
-  businessAvatar.style.fontSize = '24px';
-  
-  // Get business name initial or fallback to "P" for professional
-  const businessName = window.UserProfile && window.UserProfile.getCurrentProfile && window.UserProfile.getCurrentProfile() ? 
-    window.UserProfile.getCurrentProfile().businessName || "Professional Services" : "Professional Services";
-  businessAvatar.textContent = businessName.charAt(0).toUpperCase();
-  
-  const businessInfo = document.createElement('div');
-  
-  const businessNameElement = document.createElement('h4');
-  businessNameElement.textContent = businessName;
-  businessNameElement.style.margin = '0 0 4px 0';
-  businessNameElement.style.fontWeight = '600';
-  
-  const businessDetail = document.createElement('p');
-  businessDetail.textContent = `Professional ${quote.jobTypeDisplay} Services`;
-  businessDetail.style.margin = '0';
-  businessDetail.style.fontSize = '14px';
-  businessDetail.style.color = '#4b5563';
-  
-  businessInfo.appendChild(businessNameElement);
-  businessInfo.appendChild(businessDetail);
-  
-  businessCard.appendChild(businessAvatar);
-  businessCard.appendChild(businessInfo);
-  
-  content.appendChild(businessCard);
-  
-  // Quote title section
-  const quoteTitle = document.createElement('h2');
-  quoteTitle.textContent = `${tierName} ${quote.jobTypeDisplay} Service Quote`;
-  quoteTitle.style.fontSize = '22px';
-  quoteTitle.style.fontWeight = 'bold';
-  quoteTitle.style.marginBottom = '8px';
-  quoteTitle.style.textAlign = 'center';
-  
-  const quoteDateElement = document.createElement('p');
-  const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  quoteDateElement.textContent = `Quote issued: ${currentDate}`;
-  quoteDateElement.style.textAlign = 'center';
-  quoteDateElement.style.fontSize = '14px';
-  quoteDateElement.style.color = '#6b7280';
-  quoteDateElement.style.marginBottom = '24px';
-  
-  content.appendChild(quoteTitle);
-  content.appendChild(quoteDateElement);
-  
-  // Quote details section
-  const quoteDetails = document.createElement('div');
-  quoteDetails.style.marginBottom = '24px';
-  
-  // Service details
-  const serviceDetails = document.createElement('div');
-  serviceDetails.style.marginBottom = '16px';
-  
-  const serviceTitle = document.createElement('h4');
-  serviceTitle.textContent = 'Service Details';
-  serviceTitle.style.fontSize = '16px';
-  serviceTitle.style.fontWeight = '600';
-  serviceTitle.style.marginBottom = '8px';
-  
-  const serviceType = document.createElement('p');
-  serviceType.innerHTML = `<strong>Service:</strong> ${quote.jobSubtypeDisplay || quote.jobTypeDisplay}`;
-  serviceType.style.margin = '0 0 4px 0';
-  
-  const serviceLocation = document.createElement('p');
-  serviceLocation.innerHTML = `<strong>Location:</strong> ${quote.location}`;
-  serviceLocation.style.margin = '0 0 4px 0';
-  
-  const serviceScope = document.createElement('p');
-  serviceScope.innerHTML = `<strong>Scope:</strong> ${quote.quantity} unit(s), ${quote.laborHours} labor hour(s)`;
-  serviceScope.style.margin = '0';
-  
-  serviceDetails.appendChild(serviceTitle);
-  serviceDetails.appendChild(serviceType);
-  serviceDetails.appendChild(serviceLocation);
-  serviceDetails.appendChild(serviceScope);
-  
-  quoteDetails.appendChild(serviceDetails);
-  
-  // Cost breakdown section
-  const costBreakdown = document.createElement('div');
-  
-  const breakdownTitle = document.createElement('h4');
-  breakdownTitle.textContent = 'Cost Breakdown';
-  breakdownTitle.style.fontSize = '16px';
-  breakdownTitle.style.fontWeight = '600';
-  breakdownTitle.style.marginBottom = '12px';
-  
-  costBreakdown.appendChild(breakdownTitle);
-  
-  // Table for pricing
-  const table = document.createElement('table');
-  table.style.width = '100%';
-  table.style.borderCollapse = 'collapse';
-  
-  // Table head
-  const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  
-  const headers = ['Item', 'Details', 'Amount'];
-  headers.forEach(headerText => {
-    const th = document.createElement('th');
-    th.textContent = headerText;
-    th.style.textAlign = 'left';
-    th.style.padding = '8px 12px';
-    th.style.borderBottom = '2px solid #e5e7eb';
-    th.style.fontSize = '14px';
-    headerRow.appendChild(th);
-  });
-  
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
-  
-  // Table body
-  const tbody = document.createElement('tbody');
-  
-  // Add labor costs
-  const laborRow = document.createElement('tr');
-  
-  const laborLabel = document.createElement('td');
-  laborLabel.textContent = 'Labor';
-  laborLabel.style.padding = '8px 12px';
-  laborLabel.style.borderBottom = '1px solid #e5e7eb';
-  
-  const laborDetails = document.createElement('td');
-  laborDetails.textContent = `${quote.laborHours} hours`;
-  laborDetails.style.padding = '8px 12px';
-  laborDetails.style.borderBottom = '1px solid #e5e7eb';
-  
-  const laborCost = document.createElement('td');
-  laborCost.textContent = formatCurrency(quote.laborCost);
-  laborCost.style.padding = '8px 12px';
-  laborCost.style.borderBottom = '1px solid #e5e7eb';
-  
-  laborRow.appendChild(laborLabel);
-  laborRow.appendChild(laborDetails);
-  laborRow.appendChild(laborCost);
-  tbody.appendChild(laborRow);
-  
-  // Add materials costs
-  const materialsRow = document.createElement('tr');
-  
-  const materialsLabel = document.createElement('td');
-  materialsLabel.textContent = 'Materials';
-  materialsLabel.style.padding = '8px 12px';
-  materialsLabel.style.borderBottom = '1px solid #e5e7eb';
-  
-  const materialsDetails = document.createElement('td');
-  materialsDetails.textContent = quote.materialsCost > 0 ? 'Required materials' : 'None required';
-  materialsDetails.style.padding = '8px 12px';
-  materialsDetails.style.borderBottom = '1px solid #e5e7eb';
-  
-  const materialsCost = document.createElement('td');
-  materialsCost.textContent = formatCurrency(quote.materialsCost);
-  materialsCost.style.padding = '8px 12px';
-  materialsCost.style.borderBottom = '1px solid #e5e7eb';
-  
-  materialsRow.appendChild(materialsLabel);
-  materialsRow.appendChild(materialsDetails);
-  materialsRow.appendChild(materialsCost);
-  tbody.appendChild(materialsRow);
-  
-  // Add travel costs if applicable
-  if (quote.travelCost > 0) {
-    const travelRow = document.createElement('tr');
+// Fetch quote data from API
+async function fetchQuoteData(quoteId) {
+  try {
+    // In a real app, we'd also pass user authentication headers
+    const userId = localStorage.getItem('user_id') || 'test-user-123';
     
-    const travelLabel = document.createElement('td');
-    travelLabel.textContent = 'Travel';
-    travelLabel.style.padding = '8px 12px';
-    travelLabel.style.borderBottom = '1px solid #e5e7eb';
+    const response = await fetch(`/api/quotes/${quoteId}?userId=${userId}`);
     
-    const travelDetails = document.createElement('td');
-    travelDetails.textContent = 'Service location travel fee';
-    travelDetails.style.padding = '8px 12px';
-    travelDetails.style.borderBottom = '1px solid #e5e7eb';
+    if (!response.ok) {
+      throw new Error(`Error fetching quote: ${response.statusText}`);
+    }
     
-    const travelCost = document.createElement('td');
-    travelCost.textContent = formatCurrency(quote.travelCost);
-    travelCost.style.padding = '8px 12px';
-    travelCost.style.borderBottom = '1px solid #e5e7eb';
+    const data = await response.json();
     
-    travelRow.appendChild(travelLabel);
-    travelRow.appendChild(travelDetails);
-    travelRow.appendChild(travelCost);
-    tbody.appendChild(travelRow);
+    if (data.quote) {
+      initPageWithQuoteData(data.quote);
+    } else {
+      console.error('Quote data not found in API response');
+      initPageWithDemoData(); // Fallback to demo data
+    }
+  } catch (error) {
+    console.error('Error fetching quote data:', error);
+    initPageWithDemoData(); // Fallback to demo data
   }
-  
-  // Add taxes if applicable
-  if (quote.laborTax > 0 || quote.materialsTax > 0) {
-    const taxRow = document.createElement('tr');
-    
-    const taxLabel = document.createElement('td');
-    taxLabel.textContent = 'Taxes';
-    taxLabel.style.padding = '8px 12px';
-    taxLabel.style.borderBottom = '1px solid #e5e7eb';
-    
-    const taxDetails = document.createElement('td');
-    taxDetails.textContent = 'Local sales taxes';
-    taxDetails.style.padding = '8px 12px';
-    taxDetails.style.borderBottom = '1px solid #e5e7eb';
-    
-    const taxCost = document.createElement('td');
-    taxCost.textContent = formatCurrency((quote.laborTax || 0) + (quote.materialsTax || 0));
-    taxCost.style.padding = '8px 12px';
-    taxCost.style.borderBottom = '1px solid #e5e7eb';
-    
-    taxRow.appendChild(taxLabel);
-    taxRow.appendChild(taxDetails);
-    taxRow.appendChild(taxCost);
-    tbody.appendChild(taxRow);
-  }
-  
-  // Add total row
-  const totalRow = document.createElement('tr');
-  
-  const totalLabel = document.createElement('td');
-  totalLabel.textContent = 'Total';
-  totalLabel.style.padding = '12px';
-  totalLabel.style.fontWeight = 'bold';
-  totalLabel.style.backgroundColor = '#f9fafb';
-  
-  const totalDetails = document.createElement('td');
-  totalDetails.textContent = tierName;
-  totalDetails.style.padding = '12px';
-  totalDetails.style.fontWeight = 'bold';
-  totalDetails.style.backgroundColor = '#f9fafb';
-  
-  const totalCost = document.createElement('td');
-  totalCost.textContent = formatCurrency(quote.total);
-  totalCost.style.padding = '12px';
-  totalCost.style.fontWeight = 'bold';
-  totalCost.style.backgroundColor = '#f9fafb';
-  
-  totalRow.appendChild(totalLabel);
-  totalRow.appendChild(totalDetails);
-  totalRow.appendChild(totalCost);
-  tbody.appendChild(totalRow);
-  
-  table.appendChild(tbody);
-  costBreakdown.appendChild(table);
-  
-  quoteDetails.appendChild(costBreakdown);
-  content.appendChild(quoteDetails);
-  
-  // Additional information section
-  const additionalInfo = document.createElement('div');
-  additionalInfo.style.marginTop = '20px';
-  additionalInfo.style.fontSize = '14px';
-  additionalInfo.style.color = '#6b7280';
-  additionalInfo.style.padding = '16px';
-  additionalInfo.style.backgroundColor = '#f9fafb';
-  additionalInfo.style.borderRadius = '6px';
-  
-  const additionalInfoTitle = document.createElement('h4');
-  additionalInfoTitle.textContent = 'Additional Information';
-  additionalInfoTitle.style.margin = '0 0 8px 0';
-  additionalInfoTitle.style.fontSize = '16px';
-  additionalInfoTitle.style.color = '#111827';
-  
-  const additionalInfoText = document.createElement('p');
-  additionalInfoText.innerHTML = `
-    This quote is valid for 30 days from the issue date.<br>
-    Payment terms: 50% deposit required to secure booking.<br>
-    Please contact us with any questions regarding this quote.
-  `;
-  additionalInfoText.style.margin = '0';
-  additionalInfoText.style.lineHeight = '1.5';
-  
-  additionalInfo.appendChild(additionalInfoTitle);
-  additionalInfo.appendChild(additionalInfoText);
-  
-  content.appendChild(additionalInfo);
-  
-  // Action buttons section
-  const actionButtons = document.createElement('div');
-  actionButtons.style.marginTop = '24px';
-  actionButtons.style.display = 'flex';
-  actionButtons.style.justifyContent = 'space-between';
-  actionButtons.style.gap = '12px';
-  
-  // Back button
-  const backButton = document.createElement('button');
-  backButton.textContent = 'Close Preview';
-  backButton.style.padding = '10px 16px';
-  backButton.style.border = '1px solid #d1d5db';
-  backButton.style.borderRadius = '6px';
-  backButton.style.backgroundColor = 'white';
-  backButton.style.cursor = 'pointer';
-  backButton.addEventListener('click', () => {
-    document.body.removeChild(modalOverlay);
-  });
-  
-  // Client view options section - what clients would see
-  const clientActions = document.createElement('div');
-  clientActions.style.display = 'flex';
-  clientActions.style.gap = '12px';
-  
-  // Accept quote button (shown as disabled in preview)
-  const acceptButton = document.createElement('button');
-  acceptButton.textContent = 'Accept Quote';
-  acceptButton.style.padding = '10px 16px';
-  acceptButton.style.backgroundColor = '#16a34a'; // Green
-  acceptButton.style.color = 'white';
-  acceptButton.style.border = 'none';
-  acceptButton.style.borderRadius = '6px';
-  acceptButton.style.cursor = 'default';
-  acceptButton.style.opacity = '0.7';
-  acceptButton.title = 'This button is for preview only, clients would see this option';
-  
-  // Request changes button (shown as disabled in preview)
-  const changesButton = document.createElement('button');
-  changesButton.textContent = 'Request Changes';
-  changesButton.style.padding = '10px 16px';
-  changesButton.style.backgroundColor = '#f97316'; // Orange
-  changesButton.style.color = 'white';
-  changesButton.style.border = 'none';
-  changesButton.style.borderRadius = '6px';
-  changesButton.style.cursor = 'default';
-  changesButton.style.opacity = '0.7';
-  changesButton.title = 'This button is for preview only, clients would see this option';
-  
-  clientActions.appendChild(acceptButton);
-  clientActions.appendChild(changesButton);
-  
-  actionButtons.appendChild(backButton);
-  actionButtons.appendChild(clientActions);
-  
-  content.appendChild(actionButtons);
-  
-  modalOverlay.appendChild(content);
-  document.body.appendChild(modalOverlay);
 }
 
-// Helper function for formatting currency values
-const formatCurrency = function(value) {
-  return `$${(value || 0).toFixed(2)}`;
-};
+// Initialize page with data from API
+function initPageWithQuoteData(quote) {
+  // Set basic quote information
+  document.getElementById('business-name').textContent = quote.businessName || 'Professional Services';
+  document.getElementById('business-tagline').textContent = quote.businessTagline || 'Quality service you can trust';
+  document.getElementById('quote-number').textContent = quote.id || 'QT12345';
+  document.getElementById('quote-date').textContent = formatDate(quote.createdAt) || new Date().toLocaleDateString();
+  
+  // Calculate valid until date (30 days from creation)
+  const createdDate = new Date(quote.createdAt || Date.now());
+  const validUntil = new Date(createdDate);
+  validUntil.setDate(validUntil.getDate() + 30);
+  document.getElementById('valid-until').textContent = validUntil.toLocaleDateString();
+  
+  // Set customer and service details
+  document.getElementById('customer-name').textContent = quote.customerName || 'Client';
+  document.getElementById('quote-description').textContent = quote.description || '';
+  document.getElementById('service-type').textContent = quote.jobType || '';
+  document.getElementById('service-location').textContent = quote.location || '';
+  document.getElementById('service-complexity').textContent = quote.complexity || 'Medium';
+  
+  // Set provider details if available
+  if (quote.providerName) {
+    document.getElementById('provider-name').textContent = quote.providerName;
+  }
+  if (quote.providerExperience) {
+    document.getElementById('provider-experience').textContent = quote.providerExperience;
+  }
+  
+  // Set pricing options
+  if (quote.tierOptions) {
+    // Basic tier
+    if (quote.tierOptions.basic) {
+      document.getElementById('basic-price').textContent = `$${quote.tierOptions.basic.price.toLocaleString()}`;
+      
+      // Set features if available
+      if (quote.tierOptions.basic.features && quote.tierOptions.basic.features.length > 0) {
+        document.getElementById('basic-features').innerHTML = quote.tierOptions.basic.features.map(feature => `
+          <li class="flex items-start">
+            <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>${feature}</span>
+          </li>
+        `).join('');
+      }
+    }
+    
+    // Standard tier
+    if (quote.tierOptions.standard) {
+      document.getElementById('standard-price').textContent = `$${quote.tierOptions.standard.price.toLocaleString()}`;
+      
+      // Set features if available
+      if (quote.tierOptions.standard.features && quote.tierOptions.standard.features.length > 0) {
+        document.getElementById('standard-features').innerHTML = quote.tierOptions.standard.features.map(feature => `
+          <li class="flex items-start">
+            <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>${feature}</span>
+          </li>
+        `).join('');
+      }
+    }
+    
+    // Premium tier
+    if (quote.tierOptions.premium) {
+      document.getElementById('premium-price').textContent = `$${quote.tierOptions.premium.price.toLocaleString()}`;
+      
+      // Set features if available
+      if (quote.tierOptions.premium.features && quote.tierOptions.premium.features.length > 0) {
+        document.getElementById('premium-features').innerHTML = quote.tierOptions.premium.features.map(feature => `
+          <li class="flex items-start">
+            <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>${feature}</span>
+          </li>
+        `).join('');
+      }
+    }
+  }
+  
+  // Initialize breakdown with standard tier as default
+  updateBreakdown('standard', quote);
+}
 
-// Export the function for both global and ES module usage
-window.showClientPreviewModal = showClientPreviewModal;
+// Initialize page with demo data
+function initPageWithDemoData() {
+  // Demo data for the bathroom remodel example
+  const demoQuote = {
+    id: "QT12345",
+    businessName: "Stackr Remodeling",
+    businessTagline: "Quality renovations you can trust",
+    createdAt: new Date().toISOString(),
+    customerName: "David Thompson",
+    description: "Complete bathroom renovation with modern fixtures",
+    jobType: "Bathroom Remodel",
+    location: "Denver, CO",
+    complexity: "Medium",
+    providerName: "John Smith",
+    providerExperience: "5 years",
+    providerRating: 4.8,
+    tierOptions: {
+      basic: {
+        price: 7492,
+        features: [
+          "Standard fixtures",
+          "Basic materials",
+          "30-day warranty",
+          "Standard cleanup"
+        ]
+      },
+      standard: {
+        price: 7867,
+        features: [
+          "Premium fixtures",
+          "Quality materials",
+          "90-day warranty",
+          "Priority scheduling",
+          "Thorough cleanup"
+        ]
+      },
+      premium: {
+        price: 8582,
+        features: [
+          "Luxury fixtures",
+          "Premium materials",
+          "1-year warranty",
+          "Priority scheduling",
+          "Free follow-up inspection",
+          "Detailed cleanup",
+          "Designer consultation"
+        ]
+      }
+    },
+    laborCost: 5000,
+    materialCost: 2500,
+    depositRequired: true,
+    depositPercent: 25
+  };
+  
+  // Initialize page with demo data
+  initPageWithQuoteData(demoQuote);
+}
 
-// Log confirmation of function availability
-console.log('Client preview function loaded successfully');
+// Update quote breakdown based on selected tier
+function updateBreakdown(tier, quoteData) {
+  // Use provided quote data or get it from a data attribute
+  const quote = quoteData || window.currentQuote;
+  
+  // Default values if no quote data is available
+  const labor = quote?.laborCost || 5000;
+  const materials = quote?.materialCost || 2500;
+  const price = quote?.tierOptions?.[tier]?.price || 0;
+  
+  // If we don't have the price, try to calculate it
+  const calculatedPrice = price || (labor + materials);
+  
+  const taxRate = 0.05; // 5% tax rate
+  const tax = calculatedPrice * taxRate;
+  const total = calculatedPrice + tax;
+  
+  const depositPercent = quote?.depositPercent || 25;
+  const depositRequired = quote?.depositRequired || total >= 2000;
+  const deposit = depositRequired ? (total * (depositPercent / 100)) : 0;
+  
+  // Update the breakdown display
+  document.getElementById('breakdown-labor').textContent = `$${labor.toLocaleString()}`;
+  document.getElementById('breakdown-materials').textContent = `$${materials.toLocaleString()}`;
+  document.getElementById('breakdown-subtotal').textContent = `$${calculatedPrice.toLocaleString()}`;
+  document.getElementById('breakdown-tax').textContent = `$${tax.toLocaleString()}`;
+  document.getElementById('breakdown-total').textContent = `$${total.toLocaleString()}`;
+  
+  // Update deposit information
+  if (depositRequired) {
+    document.getElementById('deposit-amount').textContent = `$${deposit.toLocaleString()} (${depositPercent}%)`;
+    document.getElementById('deposit-notice').classList.remove('hidden');
+  } else {
+    document.getElementById('deposit-notice').classList.add('hidden');
+  }
+  
+  // Show the breakdown section
+  document.getElementById('quote-breakdown-section').classList.remove('hidden');
+}
 
-// Also make it available in the modules registry
-if (!window.modules) window.modules = {};
-window.modules['client-preview'] = { showClientPreviewModal };
+// Set up event listeners for user interactions
+function setupEventListeners() {
+  // Tier selection
+  const tierButtons = document.querySelectorAll('.select-tier');
+  tierButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const tier = this.dataset.tier;
+      
+      // Reset all tier cards and buttons
+      document.querySelectorAll('.tier-card').forEach(card => {
+        card.classList.remove('border-2', 'border-blue-500', 'shadow-md');
+        card.classList.add('border', 'border-gray-200');
+      });
+      
+      document.querySelectorAll('.select-tier').forEach(btn => {
+        btn.classList.remove('bg-blue-500', 'hover:bg-blue-600', 'text-white');
+        btn.classList.add('bg-gray-100', 'hover:bg-gray-200', 'text-gray-800');
+      });
+      
+      // Highlight selected tier
+      const selectedCard = this.closest('.tier-card');
+      selectedCard.classList.remove('border', 'border-gray-200');
+      selectedCard.classList.add('border-2', 'border-blue-500', 'shadow-md');
+      
+      this.classList.remove('bg-gray-100', 'hover:bg-gray-200', 'text-gray-800');
+      this.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white');
+      
+      // Update breakdown
+      updateBreakdown(tier);
+      
+      // Enable accept button
+      document.getElementById('accept-quote').removeAttribute('disabled');
+    });
+  });
+  
+  // Accept quote button
+  document.getElementById('accept-quote').addEventListener('click', async function() {
+    const quoteId = new URLSearchParams(window.location.search).get('id') || 'demo';
+    
+    if (quoteId === 'demo') {
+      // Just show success message for demo
+      showSuccessMessage();
+      return;
+    }
+    
+    // Get selected tier
+    const selectedTier = document.querySelector('.select-tier.bg-blue-500').dataset.tier;
+    
+    try {
+      // Make API call to convert quote to invoice
+      const userId = localStorage.getItem('user_id') || 'test-user-123';
+      
+      const response = await fetch(`/api/quotes/${quoteId}/convert`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          tier: selectedTier
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error accepting quote: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        showSuccessMessage();
+      } else {
+        console.error('Error accepting quote:', data.error);
+        alert('There was an error accepting this quote. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error accepting quote:', error);
+      alert('There was an error accepting this quote. Please try again.');
+    }
+  });
+}
 
-// Also export as ES module
-export default { showClientPreviewModal };
+// Show success message after accepting quote
+function showSuccessMessage() {
+  document.getElementById('success-message').classList.remove('hidden');
+  
+  // Scroll to success message
+  document.getElementById('success-message').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Helper function to format dates
+function formatDate(dateString) {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return '';
+  }
+  
+  return date.toLocaleDateString();
+}
