@@ -1,128 +1,193 @@
 :root {
-  /* Main brand colors */
+  /* Main Color Palette */
   --deep-sapphire-blue: #233D4D;
   --mint-green: #00C6A7;
   --soft-zen-gray: #C6CED8;
   --sunstone-gold: #F4A300;
   --electric-sky-blue: #58C1E2;
   --matte-charcoal: #1B1B1E;
+
+  /* Gradient Combinations */
+  --blue-gradient: linear-gradient(to right, var(--deep-sapphire-blue), var(--electric-sky-blue));
+  --green-gradient: linear-gradient(to right, var(--mint-green), var(--electric-sky-blue));
+  --gold-gradient: linear-gradient(to right, var(--sunstone-gold), var(--mint-green));
+  --professional-gradient: linear-gradient(to right, var(--deep-sapphire-blue), var(--mint-green));
   
-  /* Light theme colors */
-  --background-light: var(--soft-zen-gray);
-  --foreground-light: var(--deep-sapphire-blue);
+  /* Opacity Variants */
+  --deep-sapphire-blue-10: rgba(35, 61, 77, 0.1);
+  --mint-green-10: rgba(0, 198, 167, 0.1);
+  --soft-zen-gray-10: rgba(198, 206, 216, 0.1);
+  --sunstone-gold-10: rgba(244, 163, 0, 0.1);
+  --electric-sky-blue-10: rgba(88, 193, 226, 0.1);
+  
+  --deep-sapphire-blue-20: rgba(35, 61, 77, 0.2);
+  --mint-green-20: rgba(0, 198, 167, 0.2);
+  --soft-zen-gray-20: rgba(198, 206, 216, 0.2);
+  --sunstone-gold-20: rgba(244, 163, 0, 0.2);
+  --electric-sky-blue-20: rgba(88, 193, 226, 0.2);
+  
+  --deep-sapphire-blue-50: rgba(35, 61, 77, 0.5);
+  --mint-green-50: rgba(0, 198, 167, 0.5);
+  --soft-zen-gray-50: rgba(198, 206, 216, 0.5);
+  --sunstone-gold-50: rgba(244, 163, 0, 0.5);
+  --electric-sky-blue-50: rgba(88, 193, 226, 0.5);
+
+  /* Light Mode Specific */
   --primary-light: var(--deep-sapphire-blue);
-  --primary-foreground-light: white;
-  --secondary-light: var(--mint-green);
-  --secondary-foreground-light: var(--deep-sapphire-blue);
-  --accent-light: var(--sunstone-gold);
-  --accent-foreground-light: var(--deep-sapphire-blue);
-  --tech-accent-light: var(--electric-sky-blue);
+  --accent-light: var(--mint-green);
+  --background-light: #FFFFFF;
+  --card-background-light: #F8F9FA;
+  --text-primary-light: var(--deep-sapphire-blue);
+  --text-secondary-light: var(--matte-charcoal);
+  --muted-light: var(--soft-zen-gray);
+  --border-light: #E5E7EB;
+  --highlight-light: var(--sunstone-gold);
+  --success-light: var(--mint-green);
+  --warning-light: var(--sunstone-gold);
+  --error-light: #E53935;
+  --info-light: var(--electric-sky-blue);
 
-  /* Dark theme colors */
-  --background-dark: var(--matte-charcoal);
-  --foreground-dark: white;
+  /* Dark Mode Specific */
   --primary-dark: var(--mint-green);
-  --primary-foreground-dark: var(--matte-charcoal);
-  --secondary-dark: var(--deep-sapphire-blue);
-  --secondary-foreground-dark: white;
-  --accent-dark: var(--sunstone-gold);
-  --accent-foreground-dark: var(--matte-charcoal);
-  --tech-accent-dark: var(--electric-sky-blue);
+  --accent-dark: var(--electric-sky-blue);
+  --background-dark: var(--matte-charcoal);
+  --card-background-dark: #2A2B31;
+  --text-primary-dark: #FFFFFF;
+  --text-secondary-dark: var(--soft-zen-gray);
+  --muted-dark: #6B7280;
+  --border-dark: #3E4049;
+  --highlight-dark: var(--sunstone-gold);
+  --success-dark: var(--mint-green);
+  --warning-dark: var(--sunstone-gold);
+  --error-dark: #F44336;
+  --info-dark: var(--electric-sky-blue);
 }
 
-/* Light theme (default) */
-:root {
-  --background: var(--background-light);
-  --foreground: var(--foreground-light);
+/* Light mode */
+.light {
   --primary: var(--primary-light);
-  --primary-foreground: var(--primary-foreground-light);
-  --secondary: var(--secondary-light);
-  --secondary-foreground: var(--secondary-foreground-light);
   --accent: var(--accent-light);
-  --accent-foreground: var(--accent-foreground-light);
-  --tech-accent: var(--tech-accent-light);
+  --background: var(--background-light);
+  --card-background: var(--card-background-light);
+  --text-primary: var(--text-primary-light);
+  --text-secondary: var(--text-secondary-light);
+  --muted: var(--muted-light);
+  --border: var(--border-light);
+  --highlight: var(--highlight-light);
+  --success: var(--success-light);
+  --warning: var(--warning-light);
+  --error: var(--error-light);
+  --info: var(--info-light);
 }
 
-/* Dark theme */
+/* Dark mode */
 .dark {
-  --background: var(--background-dark);
-  --foreground: var(--foreground-dark);
   --primary: var(--primary-dark);
-  --primary-foreground: var(--primary-foreground-dark);
-  --secondary: var(--secondary-dark);
-  --secondary-foreground: var(--secondary-foreground-dark);
   --accent: var(--accent-dark);
-  --accent-foreground: var(--accent-foreground-dark);
-  --tech-accent: var(--tech-accent-dark);
+  --background: var(--background-dark);
+  --card-background: var(--card-background-dark);
+  --text-primary: var(--text-primary-dark);
+  --text-secondary: var(--text-secondary-dark);
+  --muted: var(--muted-dark);
+  --border: var(--border-dark);
+  --highlight: var(--highlight-dark);
+  --success: var(--success-dark);
+  --warning: var(--warning-dark);
+  --error: var(--error-dark);
+  --info: var(--info-dark);
 }
 
-/* Custom classes using our color palette */
-.bg-sapphire {
-  background-color: var(--deep-sapphire-blue);
-}
-
-.text-sapphire {
+/* Utility classes for our color palette */
+.text-deep-sapphire {
   color: var(--deep-sapphire-blue);
 }
 
-.bg-mint {
-  background-color: var(--mint-green);
+.bg-deep-sapphire {
+  background-color: var(--deep-sapphire-blue);
 }
 
-.text-mint {
+.text-mint-green {
   color: var(--mint-green);
 }
 
-.bg-zen {
-  background-color: var(--soft-zen-gray);
+.bg-mint-green {
+  background-color: var(--mint-green);
 }
 
-.text-zen {
+.text-soft-zen {
   color: var(--soft-zen-gray);
 }
 
-.bg-gold {
-  background-color: var(--sunstone-gold);
+.bg-soft-zen {
+  background-color: var(--soft-zen-gray);
 }
 
-.text-gold {
+.text-sunstone-gold {
   color: var(--sunstone-gold);
 }
 
-.bg-sky {
-  background-color: var(--electric-sky-blue);
+.bg-sunstone-gold {
+  background-color: var(--sunstone-gold);
 }
 
-.text-sky {
+.text-electric-sky {
   color: var(--electric-sky-blue);
 }
 
-.bg-charcoal {
-  background-color: var(--matte-charcoal);
+.bg-electric-sky {
+  background-color: var(--electric-sky-blue);
 }
 
-.text-charcoal {
+.text-matte-charcoal {
   color: var(--matte-charcoal);
 }
 
-/* Gradient classes */
-.gradient-sapphire-mint {
-  background: linear-gradient(135deg, var(--deep-sapphire-blue), var(--mint-green));
+.bg-matte-charcoal {
+  background-color: var(--matte-charcoal);
 }
 
-.gradient-mint-sky {
-  background: linear-gradient(135deg, var(--mint-green), var(--electric-sky-blue));
+/* Gradient backgrounds */
+.bg-blue-gradient {
+  background: var(--blue-gradient);
 }
 
-.gradient-gold-mint {
-  background: linear-gradient(135deg, var(--sunstone-gold), var(--mint-green));
+.bg-green-gradient {
+  background: var(--green-gradient);
 }
 
-/* Text gradient class */
-.text-gradient-sapphire-mint {
-  background: linear-gradient(135deg, var(--deep-sapphire-blue), var(--mint-green));
+.bg-gold-gradient {
+  background: var(--gold-gradient);
+}
+
+.bg-professional-gradient {
+  background: var(--professional-gradient);
+}
+
+/* Text gradient (for headings etc) */
+.text-gradient-blue {
+  background: var(--blue-gradient);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-fill-color: transparent;
+  color: transparent;
+}
+
+.text-gradient-green {
+  background: var(--green-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-gold {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-professional {
+  background: var(--professional-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }

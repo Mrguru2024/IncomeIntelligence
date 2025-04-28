@@ -110,7 +110,7 @@ const navigationStructure = [
         path: "/invoices",
         icon: <FileText size={20} />,
         badge: "New",
-        badgeColor: "bg-gradient-to-r from-blue-500 to-cyan-500"
+        badgeColor: "bg-gradient-to-r from-[var(--deep-sapphire-blue)] to-[var(--electric-sky-blue)]"
       },
       {
         name: "Stackr Gigs",
@@ -143,7 +143,7 @@ const navigationStructure = [
         path: "/money-mentor",
         icon: <Brain size={20} />,
         badge: "Pro",
-        badgeColor: "bg-gradient-to-r from-indigo-500 to-purple-500",
+        badgeColor: "bg-gradient-to-r from-[var(--mint-green)] to-[var(--electric-sky-blue)]",
       },
       {
         name: "Financial Blog",
@@ -161,7 +161,7 @@ const navigationStructure = [
         path: "/exports",
         icon: <FileDown size={20} />,
         badge: "New",
-        badgeColor: "bg-gradient-to-r from-emerald-500 to-green-500"
+        badgeColor: "bg-gradient-to-r from-[var(--mint-green)] to-[var(--sunstone-gold)]"
       }
     ]
   },
