@@ -1046,7 +1046,12 @@
           updateSelectedPackage(tier);
           
           // Enable accept button
-          document.getElementById('accept-quote').removeAttribute('disabled');
+          const acceptButton = document.getElementById('accept-quote');
+          acceptButton.removeAttribute('disabled');
+          acceptButton.classList.add('pulse-animation');
+          
+          // Update progress bar to show completion of package selection
+          document.querySelector('.progress-bar-fill').style.width = '33%';
         });
       });
       
@@ -1061,6 +1066,17 @@
         
         // Hide the action section with the Accept button
         this.closest('.p-6').classList.add('hidden');
+        
+        // Update progress bar to next step
+        document.querySelector('.progress-bar-fill').style.width = '66%';
+        
+        // Remove the pulse animation from accept button
+        this.classList.remove('pulse-animation');
+        
+        // Add pulse to pay now button
+        setTimeout(() => {
+          document.getElementById('pay-now').classList.add('pulse-animation');
+        }, 500);
         
         // Scroll to selected package
         document.getElementById('selected-package').scrollIntoView({ behavior: 'smooth' });
@@ -1101,6 +1117,8 @@
         document.getElementById('success-message').classList.remove('hidden');
         // Hide selected package
         document.getElementById('selected-package').classList.add('hidden');
+        // Complete progress bar
+        document.querySelector('.progress-bar-fill').style.width = '100%';
         // Scroll to success message
         document.getElementById('success-message').scrollIntoView({ behavior: 'smooth' });
       });
@@ -1111,6 +1129,8 @@
         document.getElementById('success-message').classList.remove('hidden');
         // Hide selected package
         document.getElementById('selected-package').classList.add('hidden');
+        // Complete progress bar
+        document.querySelector('.progress-bar-fill').style.width = '100%';
         // Scroll to success message
         document.getElementById('success-message').scrollIntoView({ behavior: 'smooth' });
       });
