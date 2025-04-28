@@ -403,15 +403,20 @@ UserProfile.showProfileEditor = function(callback) {
  * Initialize the profile module 
  * Loads current user profile and sets up listeners
  */
-(async function initProfileModule() {
+function initProfileModule() {
   try {
     // Load the current user's profile
-    await UserProfile.loadCurrentUserProfile();
-    console.log('User profile module initialized successfully');
+    UserProfile.loadCurrentUserProfile()
+      .then(() => {
+        console.log('User profile module initialized successfully');
+      })
+      .catch(error => {
+        console.error('Error initializing user profile module:', error);
+      });
   } catch (error) {
-    console.error('Error initializing user profile module:', error);
+    console.error('Error in profile module initialization:', error);
   }
-})();
+}
 
 // Expose the UserProfile object globally and also as an ES module export
 // Ensure we're in a browser environment before trying to use window
@@ -424,6 +429,9 @@ if (typeof window !== 'undefined') {
   
   // Register the UserProfile in the modules registry for easier access
   window.modules['user-profile'] = UserProfile;
+  
+  // Initialize the profile module after global setup
+  setTimeout(initProfileModule, 100);
 }
 
 // Also export as ES module
