@@ -851,6 +851,8 @@ function viewInvoice(invoiceId) {
           <h3 style="font-size: 16px; color: #4b5563; margin-bottom: 8px;">To</h3>
           <p style="font-size: 16px; font-weight: 600; color: #111827; margin-bottom: 4px;">${invoice.clientName}</p>
           <p style="color: #6b7280; margin-bottom: 4px;">${invoice.clientEmail || 'No email provided'}</p>
+          ${invoice.clientPhone ? `<p style="color: #6b7280; margin-bottom: 4px;">${invoice.clientPhone}</p>` : ''}
+          ${invoice.deliveryMethod ? `<p style="color: #6b7280; margin-bottom: 0;"><span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 11px; background-color: #EFF6FF; color: #1E40AF;">Delivery: ${invoice.deliveryMethod.charAt(0).toUpperCase() + invoice.deliveryMethod.slice(1)}</span></p>` : ''}
         </div>
         
         <div>
@@ -1045,6 +1047,29 @@ function editInvoice(invoiceId) {
         <input type="email" id="client-email" name="clientEmail" value="${invoice.clientEmail || ''}" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;" required>
       </div>
       
+      <div style="margin-bottom: 16px;">
+        <label for="client-phone" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Client Phone Number</label>
+        <input type="tel" id="client-phone" name="clientPhone" value="${invoice.clientPhone || ''}" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="(optional)">
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Delivery Method</label>
+        <div style="display: flex; gap: 16px;">
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="radio" name="deliveryMethod" value="email" ${!invoice.deliveryMethod || invoice.deliveryMethod === 'email' ? 'checked' : ''} style="margin-right: 8px;">
+            <span>Email</span>
+          </label>
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="radio" name="deliveryMethod" value="sms" ${invoice.deliveryMethod === 'sms' ? 'checked' : ''} style="margin-right: 8px;">
+            <span>SMS</span>
+          </label>
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="radio" name="deliveryMethod" value="both" ${invoice.deliveryMethod === 'both' ? 'checked' : ''} style="margin-right: 8px;">
+            <span>Both</span>
+          </label>
+        </div>
+      </div>
+      
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
         <div>
           <label for="issue-date" style="display: block; margin-bottom: 6px; font-size: 14px; color: #4b5563; font-weight: 500;">Issue Date</label>
@@ -1184,6 +1209,8 @@ function editInvoice(invoiceId) {
       id: invoice.id,
       clientName: formData.get('clientName'),
       clientEmail: formData.get('clientEmail'),
+      clientPhone: formData.get('clientPhone'),
+      deliveryMethod: formData.get('deliveryMethod'),
       issuedDate: formData.get('issuedDate'),
       dueDate: formData.get('dueDate'),
       status: formData.get('status'),
@@ -1262,25 +1289,50 @@ function sendInvoice(invoiceId) {
     return;
   }
   
-  // Check if invoice has an email
-  if (!invoice.clientEmail) {
-    showNotification('This invoice has no client email. Please edit the invoice and add an email address.', 'warning');
-    return;
+  // Determine delivery method - use stored delivery method if available, otherwise default to email
+  const deliveryMethod = invoice.deliveryMethod || 'email';
+  
+  // Validate contact information based on delivery method
+  if (deliveryMethod === 'email' || deliveryMethod === 'both') {
+    if (!invoice.clientEmail) {
+      showNotification('This invoice has no client email. Please edit the invoice and add an email address.', 'warning');
+      return;
+    }
+  }
+  
+  if (deliveryMethod === 'sms' || deliveryMethod === 'both') {
+    if (!invoice.clientPhone) {
+      showNotification('This invoice has no client phone number. Please edit the invoice and add a phone number.', 'warning');
+      return;
+    }
+  }
+  
+  // Format confirmation message based on delivery method
+  let confirmMessage = `Send invoice #${invoice.invoiceNumber || invoice.id} `;
+  if (deliveryMethod === 'email') {
+    confirmMessage += `via email to ${invoice.clientEmail}?`;
+  } else if (deliveryMethod === 'sms') {
+    confirmMessage += `via SMS to ${invoice.clientPhone}?`;
+  } else if (deliveryMethod === 'both') {
+    confirmMessage += `via email to ${invoice.clientEmail} AND via SMS to ${invoice.clientPhone}?`;
   }
   
   // Show confirmation dialog
-  if (!confirm(`Send invoice #${invoice.invoiceNumber || invoice.id} to ${invoice.clientEmail}?`)) {
+  if (!confirm(confirmMessage)) {
     return;
   }
   
   // Send the invoice
-  showNotification('Sending invoice...', 'info');
+  showNotification(`Sending invoice via ${deliveryMethod}...`, 'info');
   
   fetch(`/api/invoices/${invoice.id}/send`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
-    }
+    },
+    body: JSON.stringify({
+      deliveryMethod: deliveryMethod
+    })
   })
     .then(response => {
       if (!response.ok) {
@@ -1289,8 +1341,21 @@ function sendInvoice(invoiceId) {
       return response.json();
     })
     .then(data => {
-      // Show success notification
-      showNotification(`Invoice sent successfully to ${invoice.clientEmail}`, 'success');
+      // Show success notification based on delivery status
+      let successMessage = '';
+      
+      if (data.emailSent && data.smsSent) {
+        successMessage = `Invoice sent successfully via email and SMS`;
+      } else if (data.emailSent) {
+        successMessage = `Invoice sent successfully via email to ${invoice.clientEmail}`;
+      } else if (data.smsSent) {
+        successMessage = `Invoice sent successfully via SMS to ${invoice.clientPhone}`;
+      } else {
+        // This shouldn't happen if the server is configured properly, but just in case
+        throw new Error('Invoice was not sent. Please check your delivery settings.');
+      }
+      
+      showNotification(successMessage, 'success');
       
       // Refresh the invoices list
       renderInvoicesPage();
