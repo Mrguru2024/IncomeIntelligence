@@ -499,7 +499,7 @@
       <!-- Quote Breakdown Section -->
       <div class="p-6 hidden fade-in" id="quote-breakdown-section">
         <h3 class="text-lg font-semibold mb-4">Quote Breakdown</h3>
-        <div class="bg-white rounded-lg border shadow-sm">
+        <div class="bg-white rounded-lg border shadow-sm hover:shadow-md transition-all duration-300">
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b bg-gray-50">
@@ -507,24 +507,24 @@
                 <th class="text-right py-3 px-4 font-semibold text-gray-700">Cost</th>
               </tr>
             </thead>
-            <tbody>
-              <tr class="border-b">
+            <tbody id="breakdown-table-body">
+              <tr class="border-b hover:bg-blue-50 transition-colors duration-150">
                 <td class="py-3 px-4 text-gray-800">Labor (professional services)</td>
                 <td class="text-right py-3 px-4 font-medium" id="breakdown-labor">$5,000.00</td>
               </tr>
-              <tr class="border-b">
+              <tr class="border-b hover:bg-blue-50 transition-colors duration-150">
                 <td class="py-3 px-4 text-gray-800">Materials</td>
                 <td class="text-right py-3 px-4 font-medium" id="breakdown-materials">$2,500.00</td>
               </tr>
-              <tr class="border-b bg-gray-50">
+              <tr class="border-b bg-gray-50 hover:bg-blue-50 transition-colors duration-150">
                 <td class="py-3 px-4 font-medium text-gray-800">Subtotal</td>
                 <td class="text-right py-3 px-4 font-medium" id="breakdown-subtotal">$7,500.00</td>
               </tr>
-              <tr class="border-b">
+              <tr class="border-b hover:bg-blue-50 transition-colors duration-150">
                 <td class="py-3 px-4 text-gray-800">Estimated tax (5%)</td>
                 <td class="text-right py-3 px-4 font-medium" id="breakdown-tax">$375.00</td>
               </tr>
-              <tr class="bg-blue-50">
+              <tr class="bg-blue-50 hover:bg-blue-100 transition-colors duration-150">
                 <td class="py-4 px-4 font-bold text-blue-900">Total</td>
                 <td class="text-right py-4 px-4 font-bold text-blue-900" id="breakdown-total">$7,875.00</td>
               </tr>
@@ -533,9 +533,9 @@
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <div class="bg-yellow-50 rounded-lg border border-yellow-200 p-4" id="deposit-notice">
+          <div class="bg-yellow-50 rounded-lg border border-yellow-200 p-4 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1" id="deposit-notice">
             <div class="flex items-start">
-              <div class="flex-shrink-0 bg-yellow-100 rounded-full p-1">
+              <div class="flex-shrink-0 bg-yellow-100 rounded-full p-1 animate-pulse">
                 <svg class="h-5 w-5 text-yellow-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                 </svg>
@@ -543,13 +543,13 @@
               <div class="ml-3">
                 <h3 class="text-sm font-medium text-yellow-800">Deposit Required</h3>
                 <div class="mt-1 text-sm text-yellow-700">
-                  <p>A deposit of <span id="deposit-amount" class="font-semibold">$1,968.75</span> (<span id="deposit-percentage">25%</span>) is required to secure your booking.</p>
+                  <p>A deposit of <span id="deposit-amount" class="font-semibold bg-yellow-100 px-2 py-0.5 rounded">$1,968.75</span> (<span id="deposit-percentage">25%</span>) is required to secure your booking.</p>
                 </div>
               </div>
             </div>
           </div>
           
-          <div class="bg-blue-50 rounded-lg border border-blue-200 p-4">
+          <div class="bg-blue-50 rounded-lg border border-blue-200 p-4 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
             <div class="flex items-start">
               <div class="flex-shrink-0 bg-blue-100 rounded-full p-1">
                 <svg class="h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -559,7 +559,7 @@
               <div class="ml-3">
                 <h3 class="text-sm font-medium text-blue-800">Quote Validity</h3>
                 <div class="mt-1 text-sm text-blue-700">
-                  <p>This quote is valid until <span class="font-semibold" id="quote-validity-date">May 28, 2025</span>. Please accept before this date.</p>
+                  <p>This quote is valid until <span class="font-semibold bg-blue-100 px-2 py-0.5 rounded" id="quote-validity-date">May 28, 2025</span>. Please accept before this date.</p>
                 </div>
               </div>
             </div>
@@ -583,25 +583,30 @@
     </div>
     
     <!-- Selected Package Section -->
-    <div id="selected-package" class="mt-6 p-6 bg-white border border-gray-200 rounded-lg hidden fade-in">
+    <div id="selected-package" class="mt-6 p-6 bg-white border border-gray-200 rounded-lg shadow-md hidden fade-in">
       <h3 class="text-lg font-semibold mb-3">Your Selected Package</h3>
-      <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+      <div class="bg-blue-50 p-5 rounded-lg border border-blue-200 hover:shadow-lg transition-all duration-300">
         <div class="flex justify-between items-center mb-4">
           <div>
-            <h4 class="font-semibold text-lg" id="selected-tier-name">Standard Package</h4>
+            <h4 class="font-semibold text-lg text-blue-900" id="selected-tier-name">Standard Package</h4>
             <p class="text-gray-600" id="selected-tier-description">Enhanced service with quality materials</p>
           </div>
           <div class="text-right">
-            <span class="text-2xl font-bold text-blue-700" id="selected-tier-price">$7,867</span>
+            <span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent" id="selected-tier-price">$7,867</span>
           </div>
         </div>
         <hr class="my-3 border-blue-200">
-        <h5 class="font-medium mb-2">What's included:</h5>
-        <ul class="text-sm text-gray-600 space-y-1 mb-4" id="selected-tier-features">
+        <h5 class="font-medium mb-2 text-blue-800">What's included:</h5>
+        <ul class="text-sm text-gray-600 space-y-2 mb-4 pl-1" id="selected-tier-features">
           <!-- Features will be inserted here -->
         </ul>
-        <div class="mt-4">
-          <p class="italic text-gray-500 text-sm">By accepting this quote, you agree to the terms and conditions outlined by the service provider.</p>
+        <div class="mt-4 bg-blue-100 p-3 rounded-md border border-blue-200">
+          <p class="italic text-blue-800 text-sm flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            By accepting this quote, you agree to the terms and conditions outlined by the service provider.
+          </p>
         </div>
       </div>
       
