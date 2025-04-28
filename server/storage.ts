@@ -1627,6 +1627,71 @@ export class MemStorage implements IStorage {
       export_ => export_.isActive && export_.nextSendAt <= now
     );
   }
+  
+  // Guardrails implementation
+  async getGuardrails(userId: number): Promise<Guardrail[]> {
+    return Array.from(this.guardrails.values()).filter(
+      guardrail => guardrail.userId === userId
+    );
+  }
+
+  async getGuardrailById(id: number): Promise<Guardrail | undefined> {
+    return this.guardrails.get(id);
+  }
+
+  async createGuardrail(guardrail: InsertGuardrail): Promise<Guardrail> {
+    const id = this.guardrailCurrentId++;
+    const now = new Date();
+    
+    const guardrailObj: Guardrail = {
+      id,
+      userId: guardrail.userId,
+      category: guardrail.category,
+      limit: guardrail.limit,
+      period: guardrail.period || 'monthly',
+      allocation: guardrail.allocation || 'needs',
+      allocationType: guardrail.allocationType || 'percentage',
+      allocationValue: guardrail.allocationValue || '100',
+      createdAt: now,
+      updatedAt: now,
+      isActive: guardrail.isActive !== undefined ? guardrail.isActive : true,
+      notificationType: guardrail.notificationType || 'warning',
+      notificationThreshold: guardrail.notificationThreshold || 80,
+      description: guardrail.description || null
+    };
+    
+    this.guardrails.set(id, guardrailObj);
+    return guardrailObj;
+  }
+
+  async updateGuardrail(id: number, guardrail: Partial<InsertGuardrail>): Promise<Guardrail | undefined> {
+    const existingGuardrail = this.guardrails.get(id);
+    if (!existingGuardrail) return undefined;
+    
+    const updatedGuardrail: Guardrail = {
+      ...existingGuardrail,
+      ...guardrail,
+      updatedAt: new Date()
+    };
+    
+    this.guardrails.set(id, updatedGuardrail);
+    return updatedGuardrail;
+  }
+
+  async deleteGuardrail(id: number): Promise<boolean> {
+    const exists = this.guardrails.has(id);
+    if (exists) {
+      this.guardrails.delete(id);
+      return true;
+    }
+    return false;
+  }
+
+  async getGuardrailsByCategory(userId: number, category: string): Promise<Guardrail[]> {
+    return Array.from(this.guardrails.values()).filter(
+      guardrail => guardrail.userId === userId && guardrail.category === category
+    );
+  }
 }
 
 export const storage = new MemStorage();
