@@ -87,7 +87,7 @@ const navigationStructure = [
         path: "/guardrails",
         icon: <Shield size={20} />,
         badge: "New",
-        badgeColor: "bg-gradient-to-r from-purple-500 to-indigo-500",
+        badgeColor: "bg-gradient-to-r from-[var(--deep-sapphire-blue)] to-[var(--electric-sky-blue)]",
       },
       {
         name: "Reminders",
