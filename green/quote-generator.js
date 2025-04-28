@@ -1561,60 +1561,64 @@ function generateMultiQuote(data) {
       // Dynamically import the user profile module as fallback
       import('/green/user-profile.js')
         .then(async module => {
-          // Access the default export which is the UserProfile object
-          const UserProfileModule = module.default;
-          
-          // First load the current profile data
-          await UserProfileModule.loadCurrentUserProfile();
-          
-          // Now we can access the cached profile
-          const currentProfile = UserProfileModule.getCurrentProfile();
-          
-          // If we have a profile, use it to personalize the data
-          if (currentProfile) {
-            console.log('Personalizing quotes based on user profile:', currentProfile);
-            personalizedData = UserProfileModule.personalizeQuote(personalizedData);
-          }
-          
-          // Use the personalized data to regenerate quotes if significant changes were made
-          const hasSignificantChanges = 
-            personalizedData.experienceLevel !== data.experienceLevel ||
-            personalizedData.targetMargin !== data.targetMargin ||
-            personalizedData.laborRate !== data.laborRate;
-          
-          if (hasSignificantChanges) {
-            console.log('Significant profile changes detected, regenerating quotes');
-            updateQuotesWithPersonalizedData();
-          }
-          
-          // Add business profile button to the quote form section
-          const formContainer = document.querySelector('.quote-form-container');
-          if (formContainer && !document.getElementById('business-profile-btn')) {
-            const profileBtn = document.createElement('button');
-            profileBtn.id = 'business-profile-btn';
-            profileBtn.className = 'btn btn-outline';
-            profileBtn.innerHTML = '<i class="fas fa-building mr-2"></i> Business Profile';
-            profileBtn.style.marginLeft = '10px';
+          try {
+            // Access the default export which is the UserProfile object
+            const UserProfileModule = module.default;
             
-            // Insert button after the generate quote button
-            const generateBtn = formContainer.querySelector('button[type="submit"]');
-            if (generateBtn && generateBtn.parentNode) {
-              generateBtn.parentNode.insertBefore(profileBtn, generateBtn.nextSibling);
-            } else {
-              formContainer.appendChild(profileBtn);
+            // First load the current profile data
+            await UserProfileModule.loadCurrentUserProfile();
+            
+            // Now we can access the cached profile
+            const currentProfile = UserProfileModule.getCurrentProfile();
+            
+            // If we have a profile, use it to personalize the data
+            if (currentProfile) {
+              console.log('Personalizing quotes based on user profile:', currentProfile);
+              personalizedData = UserProfileModule.personalizeQuote(personalizedData);
             }
             
-            // Add click handler to open business profile modal
-            profileBtn.addEventListener('click', (e) => {
-              e.preventDefault();
-              openBusinessProfileModal(module, currentProfile);
-            });
+            // Use the personalized data to regenerate quotes if significant changes were made
+            const hasSignificantChanges = 
+              personalizedData.experienceLevel !== data.experienceLevel ||
+              personalizedData.targetMargin !== data.targetMargin ||
+              personalizedData.laborRate !== data.laborRate;
+            
+            if (hasSignificantChanges) {
+              console.log('Significant profile changes detected, regenerating quotes');
+              updateQuotesWithPersonalizedData();
+            }
+            
+            // Add business profile button to the quote form section
+            const formContainer = document.querySelector('.quote-form-container');
+            if (formContainer && !document.getElementById('business-profile-btn')) {
+              const profileBtn = document.createElement('button');
+              profileBtn.id = 'business-profile-btn';
+              profileBtn.className = 'btn btn-outline';
+              profileBtn.innerHTML = '<i class="fas fa-building mr-2"></i> Business Profile';
+              profileBtn.style.marginLeft = '10px';
+              
+              // Insert button after the generate quote button
+              const generateBtn = formContainer.querySelector('button[type="submit"]');
+              if (generateBtn && generateBtn.parentNode) {
+                generateBtn.parentNode.insertBefore(profileBtn, generateBtn.nextSibling);
+              } else {
+                formContainer.appendChild(profileBtn);
+              }
+              
+              // Add click handler to open business profile modal
+              profileBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                openBusinessProfileModal(module, currentProfile);
+              });
+            }
+          } catch (moduleError) {
+            console.error('Error processing user profile module:', moduleError);
           }
-        }
-      })
-      .catch(err => {
-        console.error('Error loading user profile module:', err);
-      });
+        })
+        .catch(err => {
+          console.error('Error loading user profile module:', err);
+        });
+    }
   } catch (error) {
     console.error('Error during profile personalization:', error);
   }
