@@ -97,8 +97,8 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 export async function sendTestEmail(to: string): Promise<boolean> {
   return sendEmail({
     to,
-    from: 'noreply@stackr.finance',
-    subject: 'Stackr Finance - Email System Test',
+    from: 'test@stackr.app',
+    subject: 'Stackr Finance - Email System Test (sent from test-delivery page)',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #2c3e50;">Stackr Finance Email System</h1>
@@ -320,11 +320,14 @@ export async function sendSms(options: SmsOptions): Promise<boolean> {
     if (resend) {
       console.log('Using Resend to deliver SMS message as email');
       
-      const testEmail = to.replace(/[^\d]/g, '') + '@example.com';
+      // Convert phone to valid email for testing purposes only
+      // In production, this would use a real SMS gateway
+      const phoneDigits = to.replace(/[^\d]/g, '');
+      const testEmail = `sms-${phoneDigits}@stackr.app`;
       console.log(`Sending SMS content to test email: ${testEmail}`);
       
       const response = await resend.emails.send({
-        from: 'sms@stackr.finance',
+        from: 'sms@stackr.app',
         to: testEmail, // Send to the test email for now
         subject: 'Stackr SMS Message',
         html: `

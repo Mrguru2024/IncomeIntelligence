@@ -60,6 +60,7 @@ import { registerAIStatusRoutes } from "./routes/ai-status-routes";
 import { registerExportRoutes } from "./routes/export-routes";
 import userProfileRoutes from "./routes/user-profile-routes";
 import guardrailsRoutes from "./routes/guardrails-routes";
+import deliveryTestRoutes from "./routes/delivery-test-routes";
 import { sendEmail, sendPaymentConfirmationEmail, sendTestEmail, sendSms } from "./email-service";
 import Stripe from "stripe";
 // Express already imported at top
@@ -364,6 +365,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register user profile routes
   app.use(userProfileRoutes);
   console.log('User profile routes registered');
+  
+  // Register delivery test routes
+  app.use(deliveryTestRoutes);
+  console.log('Delivery test routes registered');
   
   // Serve GREEN version directly at root path
   app.get("/", (req, res) => {
