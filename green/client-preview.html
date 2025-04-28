@@ -1149,11 +1149,29 @@
       const tiersData = quoteData.tierOptions || quoteData.tiers;
       if (!tiersData) {
         console.error('No tier data found in quote');
+        const errorContainer = document.getElementById('error-container');
+        if (errorContainer) {
+          errorContainer.textContent = 'Error: No pricing tiers found in quote data.';
+          errorContainer.classList.remove('hidden');
+        }
         return;
       }
       
-      // Ensure quote data has the proper structure
-      quoteData.tiers = tiersData;
+      // Map the tier data to a consistent structure for the rest of the application
+      quoteData.tiers = {};
+      for (const tier in tiersData) {
+        // Make sure each tier has a properly structured object with defaults if needed
+        quoteData.tiers[tier] = {
+          name: tiersData[tier].name || (tier.charAt(0).toUpperCase() + tier.slice(1)),
+          price: parseFloat(tiersData[tier].price) || 0,
+          features: Array.isArray(tiersData[tier].features) ? tiersData[tier].features : [],
+          description: tiersData[tier].description || '',
+          laborCost: parseFloat(tiersData[tier].laborCost) || 0,
+          materialCost: parseFloat(tiersData[tier].materialCost) || 0
+        };
+      }
+      
+      console.log('Processed tiers structure:', quoteData.tiers);
       
       // Set basic quote information
       document.getElementById('business-name').textContent = quoteData.businessName || 'Stackr Services';
@@ -1301,76 +1319,119 @@
     
     // Update payment amount based on selected option
     function updatePaymentAmount() {
-      // Get the quote data from the global variable
-      const quoteData = window.demoQuote;
-      
-      // Get the selected tier
-      const selectedTier = getCurrentSelectedTier();
-      const tierData = quoteData.tiers[selectedTier];
-      
-      // Get price from the selected tier
-      const price = tierData.price;
-      
-      // Get payment option selection
-      const isFullPayment = document.getElementById('payment-full').checked;
-      const payNowBtn = document.getElementById('pay-now');
-      
-      // Determine deposit percentage based on price and quote data
-      const depositRequired = quoteData.depositRequired !== undefined ? quoteData.depositRequired : true;
-      let depositPercent = quoteData.depositPercent || (price > 2000 ? 25 : 50);
-      
-      // If deposit is not required, default to full payment
-      if (!depositRequired) {
-        document.getElementById('payment-full').checked = true;
-      }
-      
-      // Update deposit percent display
-      document.getElementById('deposit-percent').textContent = `${depositPercent}%`;
-      
-      // Calculate deposit amount
-      const depositAmount = price * (depositPercent / 100);
-      
-      // Update deposit value display
-      document.getElementById('deposit-value').textContent = `$${depositAmount.toLocaleString()}`;
-      
-      // Remove any previous highlight classes
-      document.querySelectorAll('.payment-option-container').forEach(container => {
-        container.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
-      });
-      
-      // Highlight the selected option
-      const selectedOption = document.querySelector('input[name="payment-option"]:checked').value;
-      const selectedContainer = document.querySelector(`input[value="${selectedOption}"]`).closest('.payment-option-container');
-      if (selectedContainer) {
-        selectedContainer.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
-      }
-      
-      // Update payment button text based on selection
-      if (selectedOption === 'deposit' && depositRequired) {
-        payNowBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>Pay Deposit ($${depositAmount.toLocaleString()})`;
-      } else {
-        payNowBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>Pay Full ($${price.toLocaleString()})`;
-      }
-      
-      // Add pulse animation to the payment button
-      payNowBtn.classList.add('pulse-animation');
-      
-      // Remove the animation after 2 seconds
-      setTimeout(() => {
-        payNowBtn.classList.remove('pulse-animation');
-      }, 2000);
-      
-      // If deposit is not required, disable the deposit option
-      if (!depositRequired) {
-        document.getElementById('payment-deposit').disabled = true;
-        document.getElementById('deposit-option-label').classList.add('opacity-50');
-      } else {
-        document.getElementById('payment-deposit').disabled = false;
-        document.getElementById('deposit-option-label').classList.remove('opacity-50');
+      try {
+        // Get the quote data from the global variable
+        const quoteData = window.demoQuote;
+        if (!quoteData || !quoteData.tiers) {
+          console.warn('Quote data not fully loaded yet');
+          return;
+        }
+        
+        // Get the selected tier
+        const selectedTier = getCurrentSelectedTier();
+        if (!selectedTier) {
+          console.warn('No tier selected yet');
+          return;
+        }
+        
+        const tierData = quoteData.tiers[selectedTier];
+        if (!tierData) {
+          console.warn(`Tier data for ${selectedTier} not found`);
+          return;
+        }
+        
+        // Get price from the selected tier
+        const price = tierData.price;
+        
+        // Safety check for payment elements - they may not be present yet
+        // since they appear later in the flow
+        const paymentFullEl = document.getElementById('payment-full');
+        const payNowBtn = document.getElementById('pay-now');
+        const depositPercentEl = document.getElementById('deposit-percent');
+        const depositValueEl = document.getElementById('deposit-value');
+        const paymentDepositEl = document.getElementById('payment-deposit');
+        const depositOptionLabelEl = document.getElementById('deposit-option-label');
+        
+        // If we don't have the payment elements yet, just exit gracefully - they'll be updated when shown
+        if (!payNowBtn) {
+          console.log('Payment elements not yet loaded in the DOM');
+          return;
+        }
+        
+        // Determine deposit percentage based on price and quote data
+        const depositRequired = quoteData.depositRequired !== undefined ? quoteData.depositRequired : true;
+        let depositPercent = quoteData.depositPercent || (price > 2000 ? 25 : 50);
+        
+        // If deposit is not required and element exists, default to full payment
+        if (!depositRequired && paymentFullEl) {
+          paymentFullEl.checked = true;
+        }
+        
+        // Update deposit percent display
+        if (depositPercentEl) {
+          depositPercentEl.textContent = `${depositPercent}%`;
+        }
+        
+        // Calculate deposit amount
+        const depositAmount = price * (depositPercent / 100);
+        
+        // Update deposit value display
+        if (depositValueEl) {
+          depositValueEl.textContent = `$${depositAmount.toLocaleString()}`;
+        }
+        
+        // Safely update payment option containers if they exist
+        const paymentOptionContainers = document.querySelectorAll('.payment-option-container');
+        if (paymentOptionContainers && paymentOptionContainers.length > 0) {
+          // Remove any previous highlight classes
+          paymentOptionContainers.forEach(container => {
+            container.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+          });
+          
+          // Get selected option if radio buttons exist
+          const selectedRadio = document.querySelector('input[name="payment-option"]:checked');
+          if (selectedRadio) {
+            const selectedOption = selectedRadio.value;
+            const selectedContainer = document.querySelector(`input[value="${selectedOption}"]`).closest('.payment-option-container');
+            if (selectedContainer) {
+              selectedContainer.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+            }
+            
+            // Update payment button text based on selection
+            if (payNowBtn) {
+              if (selectedOption === 'deposit' && depositRequired) {
+                payNowBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>Pay Deposit ($${depositAmount.toLocaleString()})`;
+              } else {
+                payNowBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>Pay Full ($${price.toLocaleString()})`;
+              }
+              
+              // Add pulse animation to the payment button
+              payNowBtn.classList.add('pulse-animation');
+              
+              // Remove the animation after 2 seconds
+              setTimeout(() => {
+                payNowBtn.classList.remove('pulse-animation');
+              }, 2000);
+            }
+          }
+        }
+        
+        // If deposit is not required, update the deposit option UI if elements exist
+        if (paymentDepositEl && depositOptionLabelEl) {
+          if (!depositRequired) {
+            paymentDepositEl.disabled = true;
+            depositOptionLabelEl.classList.add('opacity-50');
+          } else {
+            paymentDepositEl.disabled = false;
+            depositOptionLabelEl.classList.remove('opacity-50');
+          }
+        }
+      } catch (error) {
+        console.error('Error in updatePaymentAmount:', error);
       }
     }
     
