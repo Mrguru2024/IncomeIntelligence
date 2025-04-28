@@ -176,8 +176,8 @@ function createNavbar() {
   const loginButton = document.createElement('button');
   loginButton.textContent = 'Log In';
   loginButton.style.backgroundColor = 'transparent';
-  loginButton.style.color = '#4CAF50';
-  loginButton.style.border = '1px solid #4CAF50';
+  loginButton.style.color = '#00C6A7'; // Mint Green
+  loginButton.style.border = '1px solid #00C6A7'; // Mint Green
   loginButton.style.borderRadius = '4px';
   loginButton.style.padding = '0.6rem 1.2rem';
   loginButton.style.fontWeight = '600';
@@ -186,7 +186,7 @@ function createNavbar() {
   loginButton.style.transition = 'all 0.2s ease';
   
   loginButton.addEventListener('mouseover', () => {
-    loginButton.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+    loginButton.style.backgroundColor = 'rgba(0, 198, 167, 0.1)'; // Mint Green 10% opacity
   });
   
   loginButton.addEventListener('mouseout', () => {
@@ -199,7 +199,7 @@ function createNavbar() {
   
   const signupButton = document.createElement('button');
   signupButton.textContent = 'Start Free';
-  signupButton.style.backgroundColor = '#4CAF50';
+  signupButton.style.backgroundColor = '#233D4D'; // Deep Sapphire Blue
   signupButton.style.color = 'white';
   signupButton.style.border = 'none';
   signupButton.style.borderRadius = '4px';
@@ -208,18 +208,18 @@ function createNavbar() {
   signupButton.style.fontSize = '0.9rem';
   signupButton.style.cursor = 'pointer';
   signupButton.style.transition = 'all 0.2s ease';
-  signupButton.style.boxShadow = '0 4px 10px rgba(76, 175, 80, 0.2)';
+  signupButton.style.boxShadow = '0 4px 10px rgba(35, 61, 77, 0.2)'; // Deep Sapphire Blue 20% opacity
   
   signupButton.addEventListener('mouseover', () => {
-    signupButton.style.backgroundColor = '#43A047';
+    signupButton.style.backgroundColor = '#1B2B35'; // Darker Deep Sapphire Blue
     signupButton.style.transform = 'translateY(-2px)';
-    signupButton.style.boxShadow = '0 6px 15px rgba(76, 175, 80, 0.25)';
+    signupButton.style.boxShadow = '0 6px 15px rgba(35, 61, 77, 0.25)'; // Deep Sapphire Blue 25% opacity
   });
   
   signupButton.addEventListener('mouseout', () => {
-    signupButton.style.backgroundColor = '#4CAF50';
+    signupButton.style.backgroundColor = '#233D4D'; // Deep Sapphire Blue
     signupButton.style.transform = 'translateY(0)';
-    signupButton.style.boxShadow = '0 4px 10px rgba(76, 175, 80, 0.2)';
+    signupButton.style.boxShadow = '0 4px 10px rgba(35, 61, 77, 0.2)'; // Deep Sapphire Blue 20% opacity
   });
   
   signupButton.addEventListener('click', () => {
@@ -339,7 +339,7 @@ function createHeroSection() {
   
   const primaryCta = document.createElement('button');
   primaryCta.textContent = 'Start For Free';
-  primaryCta.style.backgroundColor = '#4CAF50';
+  primaryCta.style.backgroundColor = '#00C6A7'; // Mint Green
   primaryCta.style.color = 'white';
   primaryCta.style.border = 'none';
   primaryCta.style.borderRadius = '4px';
@@ -348,18 +348,18 @@ function createHeroSection() {
   primaryCta.style.fontSize = '1rem';
   primaryCta.style.cursor = 'pointer';
   primaryCta.style.transition = 'all 0.2s ease';
-  primaryCta.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.2)';
+  primaryCta.style.boxShadow = '0 4px 12px rgba(0, 198, 167, 0.2)'; // Mint Green 20% opacity
   
   primaryCta.addEventListener('mouseover', () => {
-    primaryCta.style.backgroundColor = '#43A047';
+    primaryCta.style.backgroundColor = '#00A88F'; // Darker Mint Green
     primaryCta.style.transform = 'translateY(-2px)';
-    primaryCta.style.boxShadow = '0 6px 15px rgba(76, 175, 80, 0.25)';
+    primaryCta.style.boxShadow = '0 6px 15px rgba(0, 198, 167, 0.25)'; // Mint Green 25% opacity
   });
   
   primaryCta.addEventListener('mouseout', () => {
-    primaryCta.style.backgroundColor = '#4CAF50';
+    primaryCta.style.backgroundColor = '#00C6A7'; // Mint Green
     primaryCta.style.transform = 'translateY(0)';
-    primaryCta.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.2)';
+    primaryCta.style.boxShadow = '0 4px 12px rgba(0, 198, 167, 0.2)'; // Mint Green 20% opacity
   });
   
   primaryCta.addEventListener('click', () => {
@@ -369,16 +369,16 @@ function createHeroSection() {
   const secondaryCta = document.createElement('button');
   secondaryCta.innerHTML = `
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
-      <circle cx="12" cy="12" r="10" stroke="#2196F3" stroke-width="2"/>
-      <path d="M9.5 16V8L16 12L9.5 16Z" fill="#2196F3"/>
+      <circle cx="12" cy="12" r="10" stroke="#233D4D" stroke-width="2"/>
+      <path d="M9.5 16V8L16 12L9.5 16Z" fill="#233D4D"/>
     </svg>
     Watch Demo
   `;
   secondaryCta.style.display = 'flex';
   secondaryCta.style.alignItems = 'center';
   secondaryCta.style.backgroundColor = 'white';
-  secondaryCta.style.color = '#2196F3';
-  secondaryCta.style.border = '1px solid #2196F3';
+  secondaryCta.style.color = '#233D4D'; // Deep Sapphire Blue
+  secondaryCta.style.border = '1px solid #233D4D'; // Deep Sapphire Blue
   secondaryCta.style.borderRadius = '4px';
   secondaryCta.style.padding = '0.85rem 1.75rem';
   secondaryCta.style.fontWeight = '600';
@@ -387,7 +387,7 @@ function createHeroSection() {
   secondaryCta.style.transition = 'all 0.2s ease';
   
   secondaryCta.addEventListener('mouseover', () => {
-    secondaryCta.style.backgroundColor = 'rgba(33, 150, 243, 0.05)';
+    secondaryCta.style.backgroundColor = 'rgba(35, 61, 77, 0.05)'; // Deep Sapphire Blue 5% opacity
   });
   
   secondaryCta.addEventListener('mouseout', () => {
@@ -456,7 +456,7 @@ function createHeroSection() {
   
   // Dashboard header
   const dashboardHeader = document.createElement('div');
-  dashboardHeader.style.backgroundColor = '#4CAF50';
+  dashboardHeader.style.backgroundColor = '#233D4D'; // Deep Sapphire Blue
   dashboardHeader.style.color = 'white';
   dashboardHeader.style.padding = '1rem';
   dashboardHeader.style.display = 'flex';
@@ -498,7 +498,7 @@ function createHeroSection() {
   incomeViz.style.overflow = 'hidden';
   
   // Three colored sections representing 40/30/30 split
-  ['#4CAF50', '#2196F3', '#FFC107'].forEach((color, index) => {
+  ['#00C6A7', '#233D4D', '#F4A300'].forEach((color, index) => { // Mint Green, Deep Sapphire Blue, Sunstone Gold
     const portion = document.createElement('div');
     portion.style.height = '100%';
     portion.style.flex = index === 0 ? '4' : '3';
@@ -550,7 +550,7 @@ function createHeroSection() {
     
     const entryAmount = document.createElement('div');
     entryAmount.style.fontWeight = '500';
-    entryAmount.style.color = '#4CAF50';
+    entryAmount.style.color = '#00C6A7'; // Mint Green
     entryAmount.textContent = entry.amount;
     
     entryRow.appendChild(entryInfo);
@@ -664,7 +664,7 @@ function createSocialProofSection() {
     countEl.textContent = stat.count;
     countEl.style.fontSize = '2rem';
     countEl.style.fontWeight = 'bold';
-    countEl.style.color = '#4CAF50';
+    countEl.style.color = '#00C6A7'; // Mint Green
     countEl.style.marginBottom = '0.5rem';
     
     const labelEl = document.createElement('div');
@@ -833,9 +833,9 @@ function createIncomeSplitSection() {
   
   // Create the pie chart segments for the 40/30/30 split
   const segments = [
-    { percent: 40, color: '#4CAF50', label: 'Needs' },
-    { percent: 30, color: '#2196F3', label: 'Investments' },
-    { percent: 30, color: '#FFC107', label: 'Savings' }
+    { percent: 40, color: '#00C6A7', label: 'Needs' }, // Mint Green
+    { percent: 30, color: '#233D4D', label: 'Investments' }, // Deep Sapphire Blue
+    { percent: 30, color: '#F4A300', label: 'Savings' } // Sunstone Gold
   ];
   
   let cumulativePercent = 0;
@@ -965,19 +965,19 @@ function createIncomeSplitSection() {
   const splits = [
     {
       title: '40% for Needs',
-      color: '#4CAF50',
+      color: '#00C6A7', // Mint Green
       description: 'Cover your essential expenses like rent, utilities, groceries, and basic transportation.',
       icon: '🏠'
     },
     {
       title: '30% for Investments',
-      color: '#2196F3',
+      color: '#233D4D', // Deep Sapphire Blue
       description: 'Grow your wealth through stocks, bonds, real estate, or your own business ventures.',
       icon: '📈'
     },
     {
       title: '30% for Savings',
-      color: '#FFC107',
+      color: '#F4A300', // Sunstone Gold
       description: 'Build an emergency fund, save for major purchases, or set aside money for future goals.',
       icon: '💰'
     }
