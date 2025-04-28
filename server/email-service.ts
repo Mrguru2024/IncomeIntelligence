@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import dotenv from 'dotenv';
+import { smsService } from './sms-service';
 
 interface EmailAttachment {
   filename: string;
@@ -32,16 +33,7 @@ if (process.env.RESEND_API_KEY) {
   console.warn('WARNING: Missing RESEND_API_KEY environment variable. Email functionality will be disabled.');
 }
 
-// Track SMS capability - We'll use Resend for both email and SMS
-let smsCapable = false;
-
-// Initialize SMS if Resend API key is available
-if (process.env.RESEND_API_KEY) {
-  smsCapable = true;
-  console.log('SMS client initialized (via Resend)');
-} else {
-  console.warn('WARNING: Missing RESEND_API_KEY environment variable. SMS functionality will be disabled.');
-}
+// SMS is now handled by our separate SMS service which uses Twilio with Resend fallback
 
 /**
  * Send an email using the configured email service
@@ -298,76 +290,32 @@ This is an automated reminder from Stackr Finance. You can manage your reminder 
 }
 
 /**
- * Send an SMS message using the configured SMS service
+ * Send an SMS message using the SMS service
  * @param options The SMS options
  * @returns Promise<boolean> indicating success or failure
  */
 export async function sendSms(options: SmsOptions): Promise<boolean> {
-  if (!smsCapable) {
-    console.warn('SMS service not initialized. Unable to send SMS.');
-    return false;
-  }
-
   try {
     const { to, body } = options;
     
     console.log(`🚀 SENDING SMS TO: ${to} with message: ${body}`);
     
-    // Since we're using Resend for both email and SMS, we're going to send
-    // the SMS content as an email to the user (for testing purposes)
-    // In a production system, we would integrate with an actual SMS provider
-    
-    if (resend) {
-      console.log('Using Resend to deliver SMS message as email');
-      
-      // Convert phone to valid email for testing purposes only
-      // In production, this would use a real SMS gateway
-      const phoneDigits = to.replace(/[^\d]/g, '');
-      const testEmail = `sms-${phoneDigits}@stackr.app`;
-      console.log(`Sending SMS content to test email: ${testEmail}`);
-      
-      const response = await resend.emails.send({
-        from: 'sms@stackr.app',
-        to: testEmail, // Send to the test email for now
-        subject: 'Stackr SMS Message',
-        html: `
-          <div style="font-family: monospace; background-color: #f0f0f0; padding: 20px; border-radius: 10px; max-width: 400px;">
-            <h2 style="color: #333;">SMS Message</h2>
-            <div style="background-color: #dcf8c6; padding: 15px; border-radius: 8px; margin-top: 10px;">
-              <p style="margin: 0; white-space: pre-wrap;">${body}</p>
-              <p style="margin: 0; font-size: 10px; text-align: right; color: #888;">
-                Sent to: ${to}
-              </p>
-            </div>
-            <p style="font-size: 12px; color: #888; margin-top: 20px;">
-              This is a simulated SMS message sent as an email for testing purposes.
-            </p>
-          </div>
-        `,
-        text: `SMS MESSAGE\n\n${body}\n\nSent to: ${to}\n\n(This is a simulated SMS message sent as an email for testing purposes)`,
-      });
-      
-      if (response.error) {
-        console.error('SMS (email) sending failed:', response.error);
-        console.error('Error details:', JSON.stringify(response.error));
-        return false;
-      }
-      
-      console.log('✅ SMS (email) sent successfully', response);
-      
-      // In a real implementation with a SMS gateway/provider, we would use code like this:
-      // const smsProvider = new SmsProvider(process.env.SMS_API_KEY);
-      // const result = await smsProvider.sendMessage({
-      //   to: to,
-      //   message: body
-      // });
-      // 
-      // if (!result.success) {
-      //   console.error('SMS sending failed:', result.error);
-      //   return false;
-      // }
+    // Check if SMS service is available and properly configured
+    if (!smsService.isConfigured()) {
+      console.warn('SMS service not properly configured. Unable to send SMS.');
+      return false;
     }
     
+    // Use the dedicated SMS service with Twilio integration
+    const result = await smsService.sendSMS(to, body);
+    
+    if (!result.success) {
+      console.error('SMS sending failed:', result.error);
+      console.error('Error details:', JSON.stringify(result.details || {}));
+      return false;
+    }
+    
+    console.log('✅ SMS sent successfully via SMS service');
     return true;
   } catch (error) {
     console.error('Error sending SMS:', error);

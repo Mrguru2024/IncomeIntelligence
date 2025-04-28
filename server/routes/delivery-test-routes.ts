@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { sendEmail, sendTestEmail, sendSms } from "../email-service";
+import { sendEmail, sendTestEmail } from "../email-service";
+import { smsService } from "../sms-service";
 
 const router = Router();
 
@@ -27,12 +28,16 @@ router.post("/api/test-delivery", async (req, res) => {
     if (deliveryMethod === 'sms' || deliveryMethod === 'both') {
       if (phone) {
         console.log('Attempting to send test SMS to:', phone);
-        const smsResult = await sendSms({
-          to: phone,
-          body: `Stackr Finance test SMS sent at ${new Date().toLocaleString()}. If you received this message, SMS delivery is working correctly.`
-        });
         
-        results.sms = smsResult;
+        const smsMessage = `Stackr Finance test SMS sent at ${new Date().toLocaleString()}. If you received this message, SMS delivery is working correctly.`;
+        
+        // Use the new SMS service that supports Twilio
+        const smsResult = await smsService.sendSMS(
+          phone,
+          smsMessage
+        );
+        
+        results.sms = smsResult.success;
         console.log('SMS test result:', smsResult);
       }
     }

@@ -615,13 +615,13 @@ function openCreateInvoiceModal() {
                   '</div>'
                 );
               } else {
-                document.write(`
-                  <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-                    <input type="text" name="description[]" placeholder="Description" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
-                    <input type="number" name="quantity[]" placeholder="Quantity" min="1" value="1" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
-                    <input type="number" name="price[]" placeholder="Price" min="0" step="0.01" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>
-                  </div>
-                `);
+                document.write(
+                  '<div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">' +
+                    '<input type="text" name="description[]" placeholder="Description" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>' +
+                    '<input type="number" name="quantity[]" placeholder="Quantity" min="1" value="1" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>' +
+                    '<input type="number" name="price[]" placeholder="Price" min="0" step="0.01" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" required>' +
+                  '</div>'
+                );
               }
             </script>
           </div>
