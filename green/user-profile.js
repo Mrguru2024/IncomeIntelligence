@@ -689,3 +689,16 @@ window.UserProfile = {
 
 // Initialize the module by loading profiles
 userProfilesCache = loadUserProfiles();
+
+// ES module exports to make both import approaches work
+// This will be compatible with import statements in enhanced-quote-generator.js
+export {
+  getUserProfile,
+  initializeUserProfile,
+  saveUserProfile,
+  addQuoteToHistory,
+  updateQuoteStatus,
+  updateProfileFromQuoteForm,
+  getDefaultIndustryParameters,
+  mapJobTypeToIndustry
+};

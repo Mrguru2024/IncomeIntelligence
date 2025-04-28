@@ -363,7 +363,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
   // Serve static assets from green folder directly
-  app.use(express.static(path.join(process.cwd(), 'green')));
+  app.use(express.static(path.join(process.cwd(), 'green'), {
+    setHeaders: (res, path) => {
+      // Set correct MIME types for JavaScript files
+      if (path.endsWith('.js')) {
+        // Check if file is marked as module
+        if (path.includes('user-profile.js')) {
+          res.setHeader('Content-Type', 'text/javascript');
+        } else {
+          res.setHeader('Content-Type', 'application/javascript');
+        }
+      }
+    }
+  }));
   
   // Register user profile routes
   app.use(userProfileRoutes);
@@ -5295,7 +5307,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Serve GREEN version static files
-  app.use('/green', express.static(path.join(process.cwd(), 'green')));
+  app.use('/green', express.static(path.join(process.cwd(), 'green'), {
+    setHeaders: (res, path) => {
+      // Set correct MIME types for JavaScript files
+      if (path.endsWith('.js')) {
+        // Check if file is marked as module
+        if (path.includes('user-profile.js')) {
+          res.setHeader('Content-Type', 'text/javascript');
+        } else {
+          res.setHeader('Content-Type', 'application/javascript');
+        }
+      }
+    }
+  }));
   
   // GREEN version API status endpoint
   app.get('/api/green/status', (req, res) => {

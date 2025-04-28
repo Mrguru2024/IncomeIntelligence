@@ -741,6 +741,104 @@ function setupPriceCounters() {
   });
 }
 
+// Setup parallax effect for a more immersive experience
+function setupParallaxEffect() {
+  window.addEventListener('scroll', function() {
+    const scrollPosition = window.scrollY;
+    const elements = document.querySelectorAll('.tier-card, .quote-header');
+    
+    elements.forEach(element => {
+      const distance = element.getBoundingClientRect().top;
+      if (Math.abs(distance) < window.innerHeight) {
+        const speed = element.classList.contains('quote-header') ? 0.15 : 0.05;
+        element.style.transform = `translateY(${scrollPosition * speed}px)`;
+      }
+    });
+  });
+}
+
+// Setup interactive button effects
+function setupButtonEffects() {
+  const buttons = document.querySelectorAll('.select-tier, button');
+  
+  buttons.forEach(button => {
+    // Add click ripple effect
+    button.addEventListener('click', function(e) {
+      if (!this.classList.contains('select-tier')) {
+        this.classList.add('select-tier'); // Add ripple effects to all buttons
+      }
+      
+      // Create ripple element
+      const ripple = document.createElement('span');
+      ripple.classList.add('absolute', 'inline-block', 'bg-white', 'rounded-full', 'opacity-50');
+      ripple.style.width = '10px';
+      ripple.style.height = '10px';
+      ripple.style.transform = 'scale(0)';
+      ripple.style.pointerEvents = 'none';
+      
+      // Position the ripple
+      const rect = this.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      ripple.style.left = x + 'px';
+      ripple.style.top = y + 'px';
+      
+      this.appendChild(ripple);
+      
+      // Animate and remove
+      ripple.animate([
+        { transform: 'scale(0)', opacity: 0.5 },
+        { transform: 'scale(40)', opacity: 0 }
+      ], {
+        duration: 600,
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+      }).onfinish = () => {
+        ripple.remove();
+      };
+    });
+  });
+}
+
+// Setup animations for when data updates
+function setupDataUpdateAnimations() {
+  // Target elements that may be updated dynamically
+  const dataElements = document.querySelectorAll('#breakdown-total, #breakdown-subtotal, .price-tag');
+  
+  // Store original values
+  dataElements.forEach(element => {
+    element.dataset.originalValue = element.textContent.trim();
+  });
+  
+  // Create a MutationObserver to watch for content changes
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach(mutation => {
+      if (mutation.type === 'childList' || mutation.type === 'characterData') {
+        const element = mutation.target;
+        const newValue = element.textContent.trim();
+        const oldValue = element.dataset.originalValue;
+        
+        if (newValue !== oldValue) {
+          // Play animation when values change
+          element.classList.add('highlight-pulse');
+          setTimeout(() => {
+            element.classList.remove('highlight-pulse');
+            element.dataset.originalValue = newValue;
+          }, 1000);
+        }
+      }
+    });
+  });
+  
+  // Start observing
+  dataElements.forEach(element => {
+    observer.observe(element, { 
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+  });
+}
+
 // Helper function to format dates
 function formatDate(dateString) {
   if (!dateString) return '';
