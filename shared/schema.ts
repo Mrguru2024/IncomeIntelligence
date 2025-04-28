@@ -1623,6 +1623,33 @@ export const insertSpendingLimitSchema = createInsertSchema(spendingLimits).omit
 export type SpendingLimit = typeof spendingLimits.$inferSelect;
 export type InsertSpendingLimit = z.infer<typeof insertSpendingLimitSchema>;
 
+// Guardrails table for category spending discipline rules
+export const guardrails = pgTable("guardrails", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  name: text("name", { length: 100 }).notNull(), // Custom name for this guardrail
+  category: text("category", { length: 100 }).notNull(),
+  monthlyLimit: numeric("monthly_limit").notNull(),
+  warningThreshold: integer("warning_threshold").notNull().default(80), // Percentage (0-100)
+  notifyEmail: boolean("notify_email").default(true),
+  notifyPush: boolean("notify_push").default(true),
+  notifySms: boolean("notify_sms").default(false),
+  enableBlockTransactions: boolean("enable_block_transactions").default(false), // If true, block transactions that would exceed the limit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  isActive: boolean("is_active").default(true),
+});
+
+// Create insert schema for guardrails
+export const insertGuardrailSchema = createInsertSchema(guardrails).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Guardrail = typeof guardrails.$inferSelect;
+export type InsertGuardrail = z.infer<typeof insertGuardrailSchema>;
+
 // Spending logs table to track actual spending
 export const spendingLogs = pgTable("spending_logs", {
   id: serial("id").primaryKey(),
