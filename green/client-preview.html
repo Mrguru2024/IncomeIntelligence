@@ -609,15 +609,15 @@
       <div class="mt-6">
         <h4 class="text-lg font-semibold mb-3">Payment Options</h4>
         <div class="space-y-3">
-          <div class="flex items-center">
+          <div class="flex items-center p-3 rounded-lg border payment-option-container ring-2 ring-blue-500 bg-blue-50 transition-all duration-200">
             <input type="radio" id="payment-deposit" name="payment-option" value="deposit" class="mr-2" checked>
-            <label for="payment-deposit" class="text-gray-800">
+            <label for="payment-deposit" class="text-gray-800 flex-1 cursor-pointer">
               Pay <span id="deposit-percent">50%</span> deposit now (<span id="deposit-value">$3,933.50</span>)
             </label>
           </div>
-          <div class="flex items-center">
+          <div class="flex items-center p-3 rounded-lg border payment-option-container transition-all duration-200">
             <input type="radio" id="payment-full" name="payment-option" value="full" class="mr-2">
-            <label for="payment-full" class="text-gray-800">
+            <label for="payment-full" class="text-gray-800 flex-1 cursor-pointer">
               Pay in full now
             </label>
           </div>
@@ -890,6 +890,7 @@
       const selectedTier = getCurrentSelectedTier();
       const price = demoQuote.tiers[selectedTier].price;
       const isFullPayment = document.getElementById('payment-full').checked;
+      const payNowBtn = document.getElementById('pay-now');
       
       // Determine deposit percentage based on price
       let depositPercent = price > 2000 ? 25 : 50;
@@ -902,6 +903,35 @@
       
       // Update deposit value display
       document.getElementById('deposit-value').textContent = `$${depositAmount.toLocaleString()}`;
+      
+      // Remove any previous highlight classes
+      document.querySelectorAll('.payment-option-container').forEach(container => {
+        container.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+      });
+      
+      // Highlight the selected option
+      const selectedOption = document.querySelector('input[name="payment-option"]:checked').value;
+      const selectedContainer = document.querySelector(`input[value="${selectedOption}"]`).closest('.payment-option-container');
+      selectedContainer.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+      
+      // Update payment button text based on selection
+      if (selectedOption === 'deposit') {
+        payNowBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>Pay Deposit ($${depositAmount.toLocaleString()})`;
+      } else {
+        payNowBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>Pay Full ($${price.toLocaleString()})`;
+      }
+      
+      // Add pulse animation to the payment button
+      payNowBtn.classList.add('pulse-animation');
+      
+      // Remove the animation after 2 seconds
+      setTimeout(() => {
+        payNowBtn.classList.remove('pulse-animation');
+      }, 2000);
     }
     
     // Get the currently selected tier
@@ -1097,6 +1127,12 @@
         
         // Hide selected package
         document.getElementById('selected-package').classList.add('hidden');
+        
+        // Reset progress bar
+        document.querySelector('.progress-bar-fill').style.width = '0%';
+        
+        // Reset pay now button animation
+        document.getElementById('pay-now').classList.remove('pulse-animation');
       });
       
       // Set up pay now button
@@ -1142,10 +1178,36 @@
       });
     }
     
+    // Add hover effects to tier cards
+    function setupTierCardHover() {
+      document.querySelectorAll('.tier-card').forEach(card => {
+        card.addEventListener('mouseover', function() {
+          if (!this.classList.contains('border-blue-500')) {
+            this.classList.remove('border-gray-200');
+            this.classList.add('border-blue-300', 'shadow-md');
+            
+            // Subtle scale effect
+            this.style.transform = 'scale(1.01)';
+          }
+        });
+        
+        card.addEventListener('mouseout', function() {
+          if (!this.classList.contains('border-blue-500')) {
+            this.classList.remove('border-blue-300', 'shadow-md');
+            this.classList.add('border-gray-200');
+            
+            // Reset scale
+            this.style.transform = 'scale(1)';
+          }
+        });
+      });
+    }
+    
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
       initPage();
       setupListeners();
+      setupTierCardHover();
     });
   </script>
 </body>
