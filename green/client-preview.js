@@ -571,6 +571,15 @@ function initializeInteractiveFeatures() {
   
   // Add floating price counter effect when tiers change
   setupPriceCounters();
+  
+  // Add subtle parallax scrolling effect
+  setupParallaxEffect();
+  
+  // Add interactive button effects
+  setupButtonEffects();
+  
+  // Add dynamic data update animations
+  setupDataUpdateAnimations();
 }
 
 // Setup comparison popovers

@@ -8,28 +8,22 @@
  * - Adaptive parameter adjustments based on user behavior
  */
 
-import fs from 'fs';
-import path from 'path';
-
-// File path for storing user profiles
-const USER_PROFILES_FILE = path.join(process.cwd(), 'user-profiles.json');
-
 // In-memory cache of user profiles
 let userProfilesCache = null;
 
 /**
- * Load all user profiles from file
+ * Load all user profiles from localStorage
  */
 function loadUserProfiles() {
   try {
-    if (fs.existsSync(USER_PROFILES_FILE)) {
-      const fileContent = fs.readFileSync(USER_PROFILES_FILE, 'utf8');
-      const profiles = JSON.parse(fileContent);
-      console.log(`Loaded ${Object.keys(profiles).length} user profiles from file`);
-      return profiles;
+    const profiles = localStorage.getItem('stackr_user_profiles');
+    if (profiles) {
+      const parsedProfiles = JSON.parse(profiles);
+      console.log(`Loaded ${Object.keys(parsedProfiles).length} user profiles from localStorage`);
+      return parsedProfiles;
     } else {
       // Initialize empty profiles object
-      console.log('No user profiles file found, creating new profiles store');
+      console.log('No user profiles found, creating new profiles store');
       return {};
     }
   } catch (error) {
@@ -39,11 +33,11 @@ function loadUserProfiles() {
 }
 
 /**
- * Save user profiles to file
+ * Save user profiles to localStorage
  */
 function saveUserProfiles(profiles) {
   try {
-    fs.writeFileSync(USER_PROFILES_FILE, JSON.stringify(profiles, null, 2), 'utf8');
+    localStorage.setItem('stackr_user_profiles', JSON.stringify(profiles));
     return true;
   } catch (error) {
     console.error('Error saving user profiles:', error);
@@ -681,17 +675,17 @@ function getDefaultIndustryParameters(serviceIndustry) {
   return defaultParams[serviceIndustry] || defaultParams.default;
 }
 
-// Initialize the module by loading profiles
-userProfilesCache = loadUserProfiles();
-
-// Export functions
-export {
+// Export methods for browser usage
+window.UserProfile = {
   getUserProfile,
   initializeUserProfile,
   saveUserProfile,
   addQuoteToHistory,
   updateQuoteStatus,
   updateProfileFromQuoteForm,
-  mapJobTypeToIndustry,
-  getDefaultIndustryParameters
+  getDefaultIndustryParameters,
+  mapJobTypeToIndustry
 };
+
+// Initialize the module by loading profiles
+userProfilesCache = loadUserProfiles();
