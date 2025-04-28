@@ -1149,7 +1149,7 @@ function createTestimonialsSection() {
     quoteMarks.style.fontSize = '4rem';
     quoteMarks.style.lineHeight = '1';
     quoteMarks.style.fontFamily = 'Georgia, serif';
-    quoteMarks.style.color = '#4CAF50';
+    quoteMarks.style.color = '#00C6A7'; // Mint Green
     quoteMarks.style.opacity = '0.3';
     quoteMarks.style.marginBottom = '-1rem';
     
@@ -1177,7 +1177,7 @@ function createTestimonialsSection() {
     avatar.style.width = '45px';
     avatar.style.height = '45px';
     avatar.style.borderRadius = '50%';
-    avatar.style.backgroundColor = '#4CAF50';
+    avatar.style.backgroundColor = '#233D4D'; // Deep Sapphire Blue
     avatar.style.color = 'white';
     avatar.style.display = 'flex';
     avatar.style.alignItems = 'center';
@@ -1269,19 +1269,19 @@ function createIncomeOpportunitiesSection() {
       title: 'Stackr Gigs',
       description: 'Access our curated marketplace of gigs and side hustles specifically for service providers.',
       icon: '👔',
-      color: '#4CAF50'
+      color: '#00C6A7' // Mint Green
     },
     {
       title: 'Affiliate Program Hub',
       description: 'Earn commissions by promoting products and services that help you and others grow.',
       icon: '🔗',
-      color: '#2196F3'
+      color: '#233D4D' // Deep Sapphire Blue
     },
     {
       title: 'Daily Money Challenges',
       description: 'Complete simple tasks and challenges to earn extra cash while building good financial habits.',
       icon: '🎯',
-      color: '#FFC107'
+      color: '#F4A300' // Sunstone Gold
     }
   ];
   
@@ -1412,7 +1412,7 @@ function createIncomeOpportunitiesSection() {
     option.style.cursor = 'pointer';
     
     if (index === 2) { // 6M selected by default
-      option.style.backgroundColor = '#4CAF50';
+      option.style.backgroundColor = '#00C6A7'; // Mint Green
       option.style.color = 'white';
     } else {
       option.style.color = '#666';
@@ -1499,7 +1499,7 @@ function createIncomeOpportunitiesSection() {
   baseIncomeGraph.style.right = '0';
   baseIncomeGraph.style.bottom = '0';
   baseIncomeGraph.style.height = '40%';
-  baseIncomeGraph.style.background = 'linear-gradient(to top, rgba(33, 150, 243, 0.2) 0%, rgba(33, 150, 243, 0) 100%)';
+  baseIncomeGraph.style.background = 'linear-gradient(to top, rgba(35, 61, 77, 0.2) 0%, rgba(35, 61, 77, 0) 100%)'; // Deep Sapphire Blue with transparency
   baseIncomeGraph.style.borderTopLeftRadius = '4px';
   baseIncomeGraph.style.borderTopRightRadius = '4px';
   baseIncomeGraph.style.clipPath = 'polygon(0% 100%, 0% 20%, 20% 30%, 40% 25%, 60% 40%, 80% 35%, 100% 30%, 100% 100%)';
@@ -1510,7 +1510,7 @@ function createIncomeOpportunitiesSection() {
   baseIncomeLine.style.right = '0';
   baseIncomeLine.style.bottom = '0';
   baseIncomeLine.style.height = '40%';
-  baseIncomeLine.style.borderTop = '2px solid #2196F3';
+  baseIncomeLine.style.borderTop = '2px solid #233D4D'; // Deep Sapphire Blue
   baseIncomeLine.style.borderTopLeftRadius = '4px';
   baseIncomeLine.style.borderTopRightRadius = '4px';
   baseIncomeLine.style.clipPath = 'polygon(0% 20%, 20% 30%, 40% 25%, 60% 40%, 80% 35%, 100% 30%)';
@@ -1521,7 +1521,7 @@ function createIncomeOpportunitiesSection() {
   stackrIncomeGraph.style.right = '0';
   stackrIncomeGraph.style.bottom = '0';
   stackrIncomeGraph.style.height = '75%';
-  stackrIncomeGraph.style.background = 'linear-gradient(to top, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0) 100%)';
+  stackrIncomeGraph.style.background = 'linear-gradient(to top, rgba(0, 198, 167, 0.2) 0%, rgba(0, 198, 167, 0) 100%)'; // Mint Green with transparency
   stackrIncomeGraph.style.borderTopLeftRadius = '4px';
   stackrIncomeGraph.style.borderTopRightRadius = '4px';
   stackrIncomeGraph.style.clipPath = 'polygon(0% 100%, 0% 60%, 20% 50%, 40% 40%, 60% 25%, 80% 15%, 100% 10%, 100% 100%)';
@@ -1532,7 +1532,7 @@ function createIncomeOpportunitiesSection() {
   stackrIncomeLine.style.right = '0';
   stackrIncomeLine.style.bottom = '0';
   stackrIncomeLine.style.height = '75%';
-  stackrIncomeLine.style.borderTop = '2px solid #4CAF50';
+  stackrIncomeLine.style.borderTop = '2px solid #00C6A7'; // Mint Green
   stackrIncomeLine.style.borderTopLeftRadius = '4px';
   stackrIncomeLine.style.borderTopRightRadius = '4px';
   stackrIncomeLine.style.clipPath = 'polygon(0% 60%, 20% 50%, 40% 40%, 60% 25%, 80% 15%, 100% 10%)';
@@ -1559,7 +1559,7 @@ function createIncomeOpportunitiesSection() {
   const legend1Color = document.createElement('div');
   legend1Color.style.width = '12px';
   legend1Color.style.height = '12px';
-  legend1Color.style.backgroundColor = '#2196F3';
+  legend1Color.style.backgroundColor = '#233D4D'; // Deep Sapphire Blue
   legend1Color.style.borderRadius = '2px';
   
   const legend1Text = document.createElement('span');
@@ -1578,7 +1578,7 @@ function createIncomeOpportunitiesSection() {
   const legend2Color = document.createElement('div');
   legend2Color.style.width = '12px';
   legend2Color.style.height = '12px';
-  legend2Color.style.backgroundColor = '#4CAF50';
+  legend2Color.style.backgroundColor = '#00C6A7'; // Mint Green
   legend2Color.style.borderRadius = '2px';
   
   const legend2Text = document.createElement('span');
@@ -1603,9 +1603,9 @@ function createIncomeOpportunitiesSection() {
   statsContainer.style.textAlign = 'center';
   
   const stats = [
-    { label: 'Average Income Increase', value: '+37%', color: '#4CAF50' },
-    { label: 'New Income Sources', value: '3-5', color: '#2196F3' },
-    { label: 'Avg. Time to First Gig', value: '14 days', color: '#FFC107' }
+    { label: 'Average Income Increase', value: '+37%', color: '#00C6A7' }, // Mint Green
+    { label: 'New Income Sources', value: '3-5', color: '#233D4D' }, // Deep Sapphire Blue
+    { label: 'Avg. Time to First Gig', value: '14 days', color: '#F4A300' } // Sunstone Gold
   ];
   
   stats.forEach(stat => {
@@ -1716,7 +1716,7 @@ function createPricingSection() {
         '✅ Income goals & tracking'
       ],
       ctaText: 'Start 7-Day Free Trial',
-      ctaColor: '#4CAF50'
+      ctaColor: '#00C6A7' // Mint Green
     },
     {
       name: 'Lifetime',
@@ -1734,7 +1734,7 @@ function createPricingSection() {
         '✅ Exclusive webinars'
       ],
       ctaText: 'Get Lifetime Access',
-      ctaColor: '#2196F3'
+      ctaColor: '#233D4D' // Deep Sapphire Blue
     }
   ];
   
@@ -1749,7 +1749,7 @@ function createPricingSection() {
     planCard.style.flex = '1';
     planCard.style.maxWidth = window.innerWidth <= 960 ? '500px' : '350px';
     planCard.style.margin = window.innerWidth <= 960 ? '0 auto' : '0';
-    planCard.style.border = plan.isPopular ? '2px solid #4CAF50' : '1px solid #e0e0e0';
+    planCard.style.border = plan.isPopular ? '2px solid #00C6A7' : '1px solid #e0e0e0'; // Mint Green for popular plan
     planCard.style.position = 'relative';
     planCard.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
     
@@ -1771,7 +1771,7 @@ function createPricingSection() {
       popularBadge.style.top = '-12px';
       popularBadge.style.left = '50%';
       popularBadge.style.transform = 'translateX(-50%)';
-      popularBadge.style.backgroundColor = '#4CAF50';
+      popularBadge.style.backgroundColor = '#00C6A7'; // Mint Green
       popularBadge.style.color = 'white';
       popularBadge.style.padding = '0.3rem 1rem';
       popularBadge.style.borderRadius = '20px';
