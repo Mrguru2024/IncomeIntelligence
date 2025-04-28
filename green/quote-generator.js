@@ -1544,19 +1544,37 @@ function generateMultiQuote(data) {
   
   // Try to personalize the data using the user profile
   try {
-    // Dynamically import the user profile module
-    import('/green/user-profile.js')
-      .then(async module => {
-        // First load the current profile data
-        await module.loadCurrentUserProfile();
-        
-        // Now we can access the cached profile
-        const currentProfile = module.getCurrentProfile();
-        
-        // If we have a profile, use it to personalize the data
-        if (currentProfile) {
-          console.log('Personalizing quotes based on user profile:', currentProfile);
-          personalizedData = module.personalizeQuote(personalizedData);
+    // First check if UserProfile is available globally
+    if (window.UserProfile && typeof window.UserProfile.getCurrentProfile === 'function') {
+      // Use the global UserProfile object
+      console.log('UserProfile found in global scope');
+      
+      // Get the current profile
+      const currentProfile = window.UserProfile.getCurrentProfile();
+      
+      // If we have a profile, use it to personalize the data
+      if (currentProfile) {
+        console.log('User profile already loaded:', currentProfile);
+        personalizedData = window.UserProfile.personalizeQuote(personalizedData);
+      }
+    } else {
+      // Dynamically import the user profile module as fallback
+      import('/green/user-profile.js')
+        .then(async module => {
+          // Access the default export which is the UserProfile object
+          const UserProfileModule = module.default;
+          
+          // First load the current profile data
+          await UserProfileModule.loadCurrentUserProfile();
+          
+          // Now we can access the cached profile
+          const currentProfile = UserProfileModule.getCurrentProfile();
+          
+          // If we have a profile, use it to personalize the data
+          if (currentProfile) {
+            console.log('Personalizing quotes based on user profile:', currentProfile);
+            personalizedData = UserProfileModule.personalizeQuote(personalizedData);
+          }
           
           // Use the personalized data to regenerate quotes if significant changes were made
           const hasSignificantChanges = 

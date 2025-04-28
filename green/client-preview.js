@@ -451,5 +451,12 @@ function formatCurrency(value) {
   return `$${(value || 0).toFixed(2)}`;
 }
 
-// Export the function so it can be used by other modules
+// Export the function for both global and ES module usage
 window.showClientPreviewModal = showClientPreviewModal;
+
+// Also make it available in the modules registry
+if (!window.modules) window.modules = {};
+window.modules['client-preview'] = { showClientPreviewModal };
+
+// Also export as ES module
+export default { showClientPreviewModal };
