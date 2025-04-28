@@ -570,8 +570,69 @@ function renderQuoteGeneratorPage(containerId) {
     profileButton.prepend(profileIcon);
     
     // Event listener for profile button
-    profileButton.addEventListener('click', () => {
+    profileButton.addEventListener('click', (event) => {
       try {
+        // Prevent default navigation behavior
+        event.preventDefault();
+        
+        // Check if we're in a navigation situation and handle it differently
+        // For now, we'll just keep the user on the quote generator page
+        const inProfileModal = document.getElementById('profile-editor-modal');
+        if (inProfileModal) {
+          console.log('Profile modal is already open, focusing on it');
+          return;
+        }
+        
+        // Create a modal container for the profile editor
+        const modalContainer = document.createElement('div');
+        modalContainer.id = 'profile-editor-modal';
+        modalContainer.className = 'modal';
+        modalContainer.style.display = 'block';
+        
+        const modalContent = document.createElement('div');
+        modalContent.className = 'modal-content';
+        modalContent.style.width = '90%';
+        modalContent.style.maxWidth = '700px';
+        modalContent.style.margin = '10% auto';
+        modalContent.style.padding = '20px';
+        modalContent.style.backgroundColor = '#fff';
+        modalContent.style.borderRadius = '8px';
+        modalContent.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+        
+        const modalHeader = document.createElement('div');
+        modalHeader.style.display = 'flex';
+        modalHeader.style.justifyContent = 'space-between';
+        modalHeader.style.alignItems = 'center';
+        modalHeader.style.marginBottom = '20px';
+        
+        const modalTitle = document.createElement('h3');
+        modalTitle.textContent = 'Business Profile Settings';
+        modalTitle.style.margin = '0';
+        modalTitle.style.fontWeight = '600';
+        
+        const closeButton = document.createElement('button');
+        closeButton.innerHTML = '&times;';
+        closeButton.style.background = 'none';
+        closeButton.style.border = 'none';
+        closeButton.style.fontSize = '22px';
+        closeButton.style.cursor = 'pointer';
+        closeButton.onclick = () => {
+          document.body.removeChild(modalContainer);
+        };
+        
+        modalHeader.appendChild(modalTitle);
+        modalHeader.appendChild(closeButton);
+        modalContent.appendChild(modalHeader);
+        
+        // Create a profile editor container
+        const editorContainer = document.createElement('div');
+        editorContainer.id = 'profile-editor-container';
+        
+        modalContent.appendChild(editorContainer);
+        modalContainer.appendChild(modalContent);
+        document.body.appendChild(modalContainer);
+        
+        // Now initialize the profile in the container
         // First attempt to dynamically load the UserProfile module if not available
         if (typeof window.UserProfile === 'undefined') {
           console.log('UserProfile not found in global scope, attempting to load it dynamically');
@@ -590,8 +651,9 @@ function renderQuoteGeneratorPage(containerId) {
               
               script.onload = function() {
                 console.log('UserProfile module loaded dynamically via inline script');
-                // Now call the function again after loading
-                setTimeout(() => profileButton.click(), 100);
+                
+                // Initialize now that module is loaded
+                initProfileInModal();
               };
               
               document.head.appendChild(script);
@@ -599,37 +661,47 @@ function renderQuoteGeneratorPage(containerId) {
             .catch(err => {
               console.error('Failed to load and modify UserProfile module:', err);
               showToast('Unable to load profile editor. Please try again later.', 'error');
+              document.body.removeChild(modalContainer);
             });
           
           return; // Exit early to prevent further execution until module is loaded
+        } else {
+          // Module already loaded, initialize immediately
+          initProfileInModal();
         }
         
-        // Use global UserProfile object after ensuring it's available
-        if (typeof window.UserProfile !== 'undefined') {
-          console.log('Using UserProfile from global scope');
-          if (typeof window.appState !== 'undefined' && window.appState.user && window.appState.user.id) {
-            // Initialize with the current user ID if available
-            window.UserProfile.initUserProfile(window.appState.user.id)
-              .then(() => {
-                // Show the profile editor
-                window.UserProfile.showProfileEditor((updatedProfile) => {
-                  console.log('Profile updated:', updatedProfile);
-                  showToast('Profile updated! Your quotes will now be personalized.', 'success');
+        // Function to initialize profile within the modal
+        function initProfileInModal() {
+          if (typeof window.UserProfile !== 'undefined') {
+            console.log('Using UserProfile from global scope');
+            if (typeof window.appState !== 'undefined' && window.appState.user && window.appState.user.id) {
+              // Initialize with the current user ID if available
+              window.UserProfile.initUserProfile(window.appState.user.id)
+                .then(() => {
+                  // Show the profile editor
+                  window.UserProfile.showProfileEditor((updatedProfile) => {
+                    console.log('Profile updated:', updatedProfile);
+                    showToast('Profile updated! Your quotes will now be personalized.', 'success');
+                    document.body.removeChild(modalContainer);
+                  }, editorContainer);
+                })
+                .catch(err => {
+                  console.error('Error initializing user profile:', err);
+                  showToast('Unable to initialize profile. Please try again later.', 'error');
+                  document.body.removeChild(modalContainer);
                 });
-              })
-              .catch(err => {
-                console.error('Error initializing user profile:', err);
-                showToast('Unable to initialize profile. Please try again later.', 'error');
-              });
+            } else {
+              // Fallback for testing if user ID isn't available
+              window.UserProfile.showProfileEditor(() => {
+                showToast('Profile updated! Your quotes will now be personalized.', 'success');
+                document.body.removeChild(modalContainer);
+              }, editorContainer);
+            }
           } else {
-            // Fallback for testing if user ID isn't available
-            window.UserProfile.showProfileEditor(() => {
-              showToast('Profile updated! Your quotes will now be personalized.', 'success');
-            });
+            console.error('UserProfile still not available after loading attempt');
+            showToast('Unable to load profile editor. Please try again later.', 'error');
+            document.body.removeChild(modalContainer);
           }
-        } else {
-          console.error('UserProfile still not available after loading attempt');
-          showToast('Unable to load profile editor. Please try again later.', 'error');
         }
       } catch (error) {
         console.error('Error opening profile editor:', error);
