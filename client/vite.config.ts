@@ -1,22 +1,27 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import fs from 'fs';
-import bannedModulesPlugin from './banned-modules-plugin.js';
+import fs from "fs";
+import bannedModulesPlugin from "./banned-modules-plugin.js";
 
 // Create an extremely simplified mock module to replace Firebase and Sanity
 // with just the minimal structure needed to prevent crashes
 const createMockModule = () => {
-  const mockPath = path.resolve(__dirname, './src/lib/mocks/dependency-mock.js');
-  
+  const mockPath = path.resolve(
+    __dirname,
+    "./src/lib/mocks/dependency-mock.js"
+  );
+
   // Create the mock directory if it doesn't exist
   const mockDir = path.dirname(mockPath);
   if (!fs.existsSync(mockDir)) {
     fs.mkdirSync(mockDir, { recursive: true });
   }
-  
+
   // Write an extremely minimal mock with just projectId
-  fs.writeFileSync(mockPath, `
+  fs.writeFileSync(
+    mockPath,
+    `
     // Super minimal mock providing only what is absolutely needed
     console.log('Mock dependency loaded');
     
@@ -52,8 +57,9 @@ const createMockModule = () => {
       getAuth,
       createClient
     };
-  `);
-  
+  `
+  );
+
   return mockPath;
 };
 
@@ -66,29 +72,74 @@ export default defineConfig({
     // Use our aggressive banned modules plugin to block Firebase and Sanity
     bannedModulesPlugin(),
   ],
-  
+
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, '../shared'),
-      '@assets': path.resolve(__dirname, '../attached_assets'),
-      
+      "@": path.resolve(__dirname, "./src"),
+      "@shared": path.resolve(__dirname, "../shared"),
+      "@assets": path.resolve(__dirname, "../attached_assets"),
+
       // Map all Firebase-related modules to our comprehensive mock implementations
-      'firebase': path.resolve(__dirname, './src/lib/firebase.ts'),
-      'firebase/app': path.resolve(__dirname, './src/mock-modules/firebase/app.ts'),
-      'firebase/auth': path.resolve(__dirname, './src/mock-modules/firebase/auth.ts'),
-      'firebase/firestore': path.resolve(__dirname, './src/lib/firebase.ts'),
-      '@firebase/app': path.resolve(__dirname, './src/mock-modules/firebase/app.ts'),
-      '@firebase/auth': path.resolve(__dirname, './src/mock-modules/firebase/auth.ts'),
-      '@firebase/firestore': path.resolve(__dirname, './src/lib/firebase.ts'),
-      '@sanity/client': mockModulePath,
-      'sanity': mockModulePath
-    }
+      firebase: path.resolve(__dirname, "./src/lib/firebase.ts"),
+      "firebase/app": path.resolve(
+        __dirname,
+        "./src/mock-modules/firebase/app.ts"
+      ),
+      "firebase/auth": path.resolve(
+        __dirname,
+        "./src/mock-modules/firebase/auth.ts"
+      ),
+      "firebase/firestore": path.resolve(__dirname, "./src/lib/firebase.ts"),
+      "@firebase/app": path.resolve(
+        __dirname,
+        "./src/mock-modules/firebase/app.ts"
+      ),
+      "@firebase/auth": path.resolve(
+        __dirname,
+        "./src/mock-modules/firebase/auth.ts"
+      ),
+      "@firebase/firestore": path.resolve(__dirname, "./src/lib/firebase.ts"),
+      "@sanity/client": mockModulePath,
+      sanity: mockModulePath,
+    },
   },
-  
+
   // Define minimal environment variables
   define: {
-    'import.meta.env.VITE_FIREBASE_PROJECT_ID': JSON.stringify('mock-project-id'),
-    'import.meta.env.VITE_SANITY_PROJECT_ID': JSON.stringify('mock-sanity-project-id'),
-  }
+    "import.meta.env.VITE_FIREBASE_PROJECT_ID":
+      JSON.stringify("mock-project-id"),
+    "import.meta.env.VITE_SANITY_PROJECT_ID": JSON.stringify(
+      "mock-sanity-project-id"
+    ),
+  },
+
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: [
+            "react",
+            "react-dom",
+            "@stripe/react-stripe-js",
+            "@stripe/stripe-js",
+            "zustand",
+            "@tanstack/react-query",
+          ],
+          ui: [
+            "@radix-ui/react-accordion",
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "lucide-react",
+            "tailwind-merge",
+            "class-variance-authority",
+          ],
+          charts: ["recharts", "framer-motion"],
+          forms: ["react-hook-form", "@hookform/resolvers", "zod"],
+          utils: ["date-fns", "uuid", "clsx"],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+    sourcemap: true,
+  },
 });

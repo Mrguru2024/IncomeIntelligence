@@ -1,3 +1,5 @@
+@import "./styles/colors.css";
+
 /* Tab responsive styles */
 .tabs-list {
   display: grid;
@@ -22,8 +24,6 @@
     gap: 0.25rem;
   }
 }
-
-@import './styles/colors.css';
 
 @tailwind base;
 @tailwind components;
@@ -338,7 +338,7 @@ body {
 
 /* Stackr brand-specific accent colors */
 .bg-primary {
-  background-color: var(--deep-sapphire-blue) !important; 
+  background-color: var(--deep-sapphire-blue) !important;
 }
 
 .text-primary {
