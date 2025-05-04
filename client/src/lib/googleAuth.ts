@@ -60,6 +60,27 @@ export const initGoogleSignIn = () => {
   });
 };
 
+// Sign in with Google
+export const signInWithGoogle = async () => {
+  try {
+    const auth2 = window.gapi.auth2.getAuthInstance();
+    const googleUser = await auth2.signIn();
+    const profile = googleUser.getBasicProfile();
+    const authResponse = googleUser.getAuthResponse();
+
+    return {
+      token: authResponse.id_token,
+      email: profile.getEmail(),
+      name: profile.getName(),
+      picture: profile.getImageUrl(),
+      provider: "google" as const,
+    };
+  } catch (error) {
+    console.error("Error signing in with Google:", error);
+    throw error;
+  }
+};
+
 // Initialize Google Sign-In on app load
 export const initializeGoogleAuth = async () => {
   try {

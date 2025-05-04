@@ -1,4 +1,10 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import {
   useQuery,
   useMutation,
@@ -13,11 +19,11 @@ interface GoogleCredentials {
   email: string;
   name: string;
   picture?: string;
-  provider: 'google';
+  provider: "google";
 }
 
-type LoginCredentials = 
-  | { username: string; password: string; provider?: never; }
+type LoginCredentials =
+  | { username: string; password: string; provider?: never }
   | GoogleCredentials;
 
 interface AuthContextType {
@@ -26,7 +32,11 @@ interface AuthContextType {
   error: Error | null;
   loginMutation: UseMutationResult<User, Error, LoginCredentials>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<User, Error, { username: string; email: string; password: string }>;
+  registerMutation: UseMutationResult<
+    User,
+    Error,
+    { username: string; email: string; password: string }
+  >;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -50,26 +60,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Login mutation
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginCredentials) => {
-      if ('provider' in credentials && credentials.provider === 'google') {
-        return authService.loginWithGoogle(credentials);
-      } else {
-        return authService.login(credentials as { username: string; password: string });
-      }
+    mutationFn: async () => {
+      return authService.loginWithGoogle();
     },
-    onSuccess: (loggedInUser: User) => {
-      setUser(loggedInUser);
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+    onSuccess: (user) => {
+      setUser(user);
+      queryClient.invalidateQueries({ queryKey: ["user"] });
       toast({
-        title: "Login Successful",
-        description: `Welcome ${loggedInUser.username}!`,
+        title: "Success",
+        description: "Successfully logged in with Google",
       });
     },
     onError: (error: Error) => {
-      setError(error);
       toast({
-        title: "Login Failed",
-        description: error.message,
+        title: "Error",
+        description: error.message || "Failed to log in with Google",
         variant: "destructive",
       });
     },
@@ -77,12 +82,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Register mutation
   const registerMutation = useMutation({
-    mutationFn: async (credentials: { username: string; email: string; password: string }) => {
+    mutationFn: async (credentials: {
+      username: string;
+      email: string;
+      password: string;
+    }) => {
       return authService.register(credentials);
     },
     onSuccess: (registeredUser: User) => {
       setUser(registeredUser);
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({
         title: "Registration Successful",
         description: "Your account has been created successfully.",
@@ -105,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       setUser(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       queryClient.clear();
       toast({
         title: "Logout Successful",

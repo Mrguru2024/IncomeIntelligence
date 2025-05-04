@@ -1,18 +1,19 @@
 /**
  * Custom Authentication Service
- * 
+ *
  * A Firebase-free authentication service that handles user authentication
  * using our own backend API and JWT tokens.
  */
 
-import { apiRequest } from './queryClient';
+import { apiRequest } from "./queryClient";
+import { signInWithGoogle } from "./googleAuth";
 
 export interface User {
   id: number;
   username: string;
   email?: string;
   role?: string;
-  subscriptionStatus?: 'free' | 'basic' | 'pro' | 'lifetime';
+  subscriptionStatus?: "free" | "basic" | "pro" | "lifetime";
   subscriptionTier?: string;
   subscriptionPlanId?: string;
   subscriptionStartDate?: string;
@@ -51,7 +52,7 @@ class AuthService {
   private currentUser: User | null = null;
   private token: string | null = null;
   private listeners: AuthChangeListener[] = [];
-  
+
   constructor() {
     // Check for existing auth session on init
     this.checkAuthStatus();
@@ -62,7 +63,7 @@ class AuthService {
    */
   private async checkAuthStatus(): Promise<void> {
     try {
-      const response = await apiRequest('GET', '/api/user');
+      const response = await apiRequest("GET", "/api/user");
       if (response.ok) {
         const user = await response.json();
         this.setCurrentUser(user);
@@ -70,7 +71,7 @@ class AuthService {
         this.setCurrentUser(null);
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
+      console.error("Error checking auth status:", error);
       this.setCurrentUser(null);
     }
   }
@@ -81,7 +82,7 @@ class AuthService {
   private setCurrentUser(user: User | null): void {
     this.currentUser = user;
     // Notify all listeners about the auth state change
-    this.listeners.forEach(listener => listener(user));
+    this.listeners.forEach((listener) => listener(user));
   }
 
   /**
@@ -89,13 +90,13 @@ class AuthService {
    */
   async register(credentials: RegisterCredentials): Promise<User> {
     try {
-      const response = await apiRequest('POST', '/api/register', credentials);
-      
+      const response = await apiRequest("POST", "/api/register", credentials);
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
+        throw new Error(errorData.message || "Registration failed");
       }
-      
+
       const user = await response.json();
       this.setCurrentUser(user);
       return user;
@@ -109,12 +110,12 @@ class AuthService {
    */
   async login(credentials: LoginCredentials): Promise<User> {
     try {
-      const response = await apiRequest('POST', '/api/login', credentials);
-      
+      const response = await apiRequest("POST", "/api/login", credentials);
+
       if (!response.ok) {
-        throw new Error('Login failed. Please check your credentials.');
+        throw new Error("Login failed. Please check your credentials.");
       }
-      
+
       const user = await response.json();
       this.setCurrentUser(user);
       return user;
@@ -126,15 +127,20 @@ class AuthService {
   /**
    * Log in or register with Google
    */
-  async loginWithGoogle(credentials: GoogleCredentials): Promise<User> {
+  async loginWithGoogle(): Promise<User> {
     try {
-      const response = await apiRequest('POST', '/api/auth/google', credentials);
-      
+      const credentials = await signInWithGoogle();
+      const response = await apiRequest(
+        "POST",
+        "/api/auth/google",
+        credentials
+      );
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Google authentication failed');
+        throw new Error(errorData.message || "Google authentication failed");
       }
-      
+
       const user = await response.json();
       this.setCurrentUser(user);
       return user;
@@ -148,11 +154,11 @@ class AuthService {
    */
   async logout(): Promise<void> {
     try {
-      await apiRequest('POST', '/api/logout');
+      await apiRequest("POST", "/api/logout");
       this.setCurrentUser(null);
       this.token = null;
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error("Error during logout:", error);
       throw error;
     }
   }
@@ -177,13 +183,13 @@ class AuthService {
    */
   onAuthStateChanged(listener: AuthChangeListener): () => void {
     this.listeners.push(listener);
-    
+
     // Call immediately with current state
     listener(this.currentUser);
-    
+
     // Return unsubscribe function
     return () => {
-      this.listeners = this.listeners.filter(l => l !== listener);
+      this.listeners = this.listeners.filter((l) => l !== listener);
     };
   }
 
@@ -192,16 +198,20 @@ class AuthService {
    */
   async updateProfile(updates: Partial<User>): Promise<User> {
     if (!this.currentUser) {
-      throw new Error('No authenticated user');
+      throw new Error("No authenticated user");
     }
-    
+
     try {
-      const response = await apiRequest('PATCH', `/api/user/${this.currentUser.id}`, updates);
-      
+      const response = await apiRequest(
+        "PATCH",
+        `/api/user/${this.currentUser.id}`,
+        updates
+      );
+
       if (!response.ok) {
-        throw new Error('Failed to update profile');
+        throw new Error("Failed to update profile");
       }
-      
+
       const updatedUser = await response.json();
       this.setCurrentUser(updatedUser);
       return updatedUser;
@@ -213,55 +223,62 @@ class AuthService {
   /**
    * Change user password
    */
-  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
     if (!this.currentUser) {
-      throw new Error('No authenticated user');
+      throw new Error("No authenticated user");
     }
-    
+
     try {
-      const response = await apiRequest('POST', '/api/change-password', {
+      const response = await apiRequest("POST", "/api/change-password", {
         currentPassword,
-        newPassword
+        newPassword,
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to change password');
+        throw new Error(errorData.message || "Failed to change password");
       }
     } catch (error) {
       throw error;
     }
   }
-  
+
   /**
    * Request password reset
    */
   async requestPasswordReset(email: string): Promise<void> {
     try {
-      const response = await apiRequest('POST', '/api/request-password-reset', { email });
-      
+      const response = await apiRequest("POST", "/api/request-password-reset", {
+        email,
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to request password reset');
+        throw new Error(
+          errorData.message || "Failed to request password reset"
+        );
       }
     } catch (error) {
       throw error;
     }
   }
-  
+
   /**
    * Reset password with token
    */
   async resetPassword(token: string, newPassword: string): Promise<void> {
     try {
-      const response = await apiRequest('POST', '/api/reset-password', {
+      const response = await apiRequest("POST", "/api/reset-password", {
         token,
-        newPassword
+        newPassword,
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to reset password');
+        throw new Error(errorData.message || "Failed to reset password");
       }
     } catch (error) {
       throw error;
