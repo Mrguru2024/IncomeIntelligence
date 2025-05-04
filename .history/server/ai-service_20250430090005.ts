@@ -26,13 +26,13 @@ let perplexity: OpenAI;
 
 export function initializeAIClients() {
   if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is required");
+    throw new Error('OPENAI_API_KEY is required');
   }
   if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error("ANTHROPIC_API_KEY is required");
+    throw new Error('ANTHROPIC_API_KEY is required');
   }
   if (!process.env.PERPLEXITY_API_KEY) {
-    throw new Error("PERPLEXITY_API_KEY is required");
+    throw new Error('PERPLEXITY_API_KEY is required');
   }
 
   openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -101,7 +101,7 @@ async function saveToCache(key: string, data: any): Promise<void> {
       JSON.stringify({
         data,
         timestamp: Date.now(),
-      })
+      }),
     );
   } catch (error) {
     console.error("Failed to save to cache:", error);
@@ -132,7 +132,7 @@ async function getFromCache(key: string): Promise<any | null> {
 async function withRetry<T>(
   fn: () => Promise<T>,
   maxRetries = AI_SETTINGS.MAX_RETRIES,
-  initialDelay = 1000
+  initialDelay = 1000,
 ): Promise<T> {
   let retries = 0;
 
@@ -150,7 +150,7 @@ async function withRetry<T>(
       // Exponential backoff
       const delay = initialDelay * Math.pow(2, retries - 1);
       console.log(
-        `Retrying after ${delay}ms (attempt ${retries} of ${maxRetries})...`
+        `Retrying after ${delay}ms (attempt ${retries} of ${maxRetries})...`,
       );
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
@@ -170,7 +170,7 @@ async function executeWithFallback<T>(
   openAIFn: () => Promise<T>,
   anthropicFn: () => Promise<T>,
   perplexityFn: () => Promise<T>,
-  preferredProvider = AI_SETTINGS.DEFAULT_PROVIDER
+  preferredProvider = AI_SETTINGS.DEFAULT_PROVIDER,
 ): Promise<{ data: T; provider: AIProvider }> {
   // Check if auto fallback is disabled
   if (!AI_SETTINGS.AUTO_FALLBACK) {
@@ -190,7 +190,7 @@ async function executeWithFallback<T>(
     } catch (error) {
       console.error(
         `Error with ${preferredProvider} and fallback disabled:`,
-        error
+        error,
       );
       throw error;
     }
@@ -275,7 +275,7 @@ export type FinancialAdviceResponse = {
 
 // Main AI functions
 export async function getFinancialAdvice(
-  requestData: FinancialAdviceRequest
+  requestData: FinancialAdviceRequest,
 ): Promise<FinancialAdviceResponse> {
   // Generate cache key based on the request data
   const cacheKey = generateCacheKey(requestData, AIProvider.OPENAI);
@@ -363,7 +363,7 @@ export async function getFinancialAdvice(
         const responseText = completion.choices[0].message.content;
         return JSON.parse(responseText || "{}");
       },
-      providerToUse
+      providerToUse,
     );
 
     // Format the response
@@ -408,7 +408,7 @@ export interface GoalSuggestionsResponse {
 }
 
 export async function suggestFinancialGoals(
-  incomeData: any[]
+  incomeData: any[],
 ): Promise<GoalSuggestionsResponse> {
   const cacheKey = generateCacheKey(incomeData, AIProvider.OPENAI);
 
@@ -502,7 +502,7 @@ export async function suggestFinancialGoals(
         const responseText = completion.choices[0].message.content;
         return JSON.parse(responseText || "{}");
       },
-      AI_SETTINGS.DEFAULT_PROVIDER
+      AI_SETTINGS.DEFAULT_PROVIDER,
     );
 
     // Save to cache for future use
@@ -538,7 +538,7 @@ export interface ExpenseAnalysisResponse {
 }
 
 export async function analyzeExpenses(
-  expenseData: any[]
+  expenseData: any[],
 ): Promise<ExpenseAnalysisResponse> {
   const cacheKey = generateCacheKey(expenseData, AIProvider.OPENAI);
 
@@ -639,7 +639,7 @@ export async function analyzeExpenses(
         const responseText = completion.choices[0].message.content;
         return JSON.parse(responseText || "{}");
       },
-      AI_SETTINGS.DEFAULT_PROVIDER
+      AI_SETTINGS.DEFAULT_PROVIDER,
     );
 
     // Save to cache for future use
@@ -670,7 +670,7 @@ export async function analyzeExpenses(
 
 // Helper functions
 function buildFinancialAdvicePrompt(
-  requestData: FinancialAdviceRequest
+  requestData: FinancialAdviceRequest,
 ): string {
   // Build a comprehensive prompt based on the user's financial data
   let prompt = `Provide financial advice based on the following data:\n\n`;

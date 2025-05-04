@@ -26,21 +26,31 @@ let perplexity: OpenAI;
 
 export function initializeAIClients() {
   if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is required");
-  }
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error("ANTHROPIC_API_KEY is required");
-  }
-  if (!process.env.PERPLEXITY_API_KEY) {
-    throw new Error("PERPLEXITY_API_KEY is required");
+    console.warn(
+      "WARNING: OPENAI_API_KEY not set. OpenAI functionality will be disabled."
+    );
+  } else {
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   }
 
-  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  perplexity = new OpenAI({
-    baseURL: "https://api.perplexity.ai",
-    apiKey: process.env.PERPLEXITY_API_KEY,
-  });
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.warn(
+      "WARNING: ANTHROPIC_API_KEY not set. Anthropic functionality will be disabled."
+    );
+  } else {
+    anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+
+  if (!process.env.PERPLEXITY_API_KEY) {
+    console.warn(
+      "WARNING: PERPLEXITY_API_KEY not set. Perplexity functionality will be disabled."
+    );
+  } else {
+    perplexity = new OpenAI({
+      baseURL: "https://api.perplexity.ai",
+      apiKey: process.env.PERPLEXITY_API_KEY,
+    });
+  }
 }
 
 // Service settings

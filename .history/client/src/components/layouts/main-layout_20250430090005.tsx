@@ -1,8 +1,8 @@
-import React from "react";
-import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
-import {
-  LayoutDashboard,
+import React from 'react';
+import { Link, useLocation } from 'wouter';
+import { useAuth } from '@/hooks/use-auth';
+import { 
+  LayoutDashboard, 
   PiggyBank,
   BadgeDollarSign,
   Target,
@@ -10,12 +10,15 @@ import {
   Settings,
   LogOut,
   Menu,
-  X,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import StackrLogo from "@/components/StackrLogo";
+  X
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 // Custom hook for media queries
 const useMediaQuery = (query: string) => {
@@ -49,7 +52,9 @@ const NavItem = ({ href, icon, label, isActive, onClick }: NavItemProps) => (
     <a
       onClick={onClick}
       className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-        isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+        isActive 
+          ? 'bg-primary text-primary-foreground' 
+          : 'hover:bg-muted'
       }`}
     >
       {icon}
@@ -60,40 +65,40 @@ const NavItem = ({ href, icon, label, isActive, onClick }: NavItemProps) => (
 
 // Main navigation items
 const navItems = [
-  { href: "/", icon: <LayoutDashboard size={20} />, label: "Dashboard" },
-  { href: "/income", icon: <BadgeDollarSign size={20} />, label: "Income Hub" },
-  { href: "/budget", icon: <PiggyBank size={20} />, label: "Budget Planner" },
-  { href: "/goals", icon: <Target size={20} />, label: "Goals" },
-  { href: "/advice", icon: <Lightbulb size={20} />, label: "Financial Advice" },
-  { href: "/settings", icon: <Settings size={20} />, label: "Settings" },
+  { href: '/', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
+  { href: '/income', icon: <BadgeDollarSign size={20} />, label: 'Income Hub' },
+  { href: '/budget', icon: <PiggyBank size={20} />, label: 'Budget Planner' },
+  { href: '/goals', icon: <Target size={20} />, label: 'Goals' },
+  { href: '/advice', icon: <Lightbulb size={20} />, label: 'Financial Advice' },
+  { href: '/settings', icon: <Settings size={20} />, label: 'Settings' }
 ];
 
 // User info component
 const UserInfo = () => {
   const { user, logoutMutation } = useAuth();
-
+  
   if (!user) return null;
-
+  
   const handleLogout = () => {
     logoutMutation.mutate();
   };
-
+  
   return (
     <div className="flex items-center justify-between p-4 border-t">
       <div className="flex items-center gap-3">
         <Avatar>
           <AvatarFallback>
-            {user.username ? user.username.substring(0, 2).toUpperCase() : "ST"}
+            {user.username ? user.username.substring(0, 2).toUpperCase() : 'ST'}
           </AvatarFallback>
         </Avatar>
         <div>
-          <p className="font-medium">{user.username || "User"}</p>
+          <p className="font-medium">{user.username || 'User'}</p>
           <p className="text-sm text-muted-foreground">Pro Member</p>
         </div>
       </div>
-      <Button
-        variant="ghost"
-        size="icon"
+      <Button 
+        variant="ghost" 
+        size="icon" 
         onClick={handleLogout}
         aria-label="Logout"
       >
@@ -106,7 +111,7 @@ const UserInfo = () => {
 // Mobile navigation
 const MobileNav = () => {
   const [location] = useLocation();
-
+  
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -119,7 +124,7 @@ const MobileNav = () => {
         <div className="flex flex-col h-full">
           <div className="p-4 border-b">
             <div className="flex items-center justify-between">
-              <StackrLogo showText={false} />
+              <h2 className="text-xl font-bold">Stackr Finance</h2>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <X size={18} />
@@ -150,12 +155,12 @@ const MobileNav = () => {
 // Desktop sidebar
 const DesktopSidebar = () => {
   const [location] = useLocation();
-
+  
   return (
     <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-card border-r">
       <div className="flex flex-col h-full">
         <div className="p-4 border-b">
-          <StackrLogo />
+          <h2 className="text-xl font-bold">Stackr Finance</h2>
         </div>
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => (
@@ -175,22 +180,22 @@ const DesktopSidebar = () => {
 };
 
 // Main layout component
-export const MainLayout: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isDesktop = useMediaQuery("(min-width: 768px)");
-
+  
   return (
     <div>
       <DesktopSidebar />
-
+      
       <div className="md:pl-64">
         <div className="flex items-center justify-between p-4 border-b md:hidden">
-          <StackrLogo showText={false} />
+          <h1 className="text-xl font-bold">Stackr Finance</h1>
           <MobileNav />
         </div>
-
-        <main className="p-4 md:p-6">{children}</main>
+        
+        <main className="p-4 md:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

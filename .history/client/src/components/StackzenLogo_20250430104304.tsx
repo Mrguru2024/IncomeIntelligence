@@ -11,8 +11,12 @@ const StackzenLogo: React.FC<StackzenLogoProps> = ({
 }) => {
   return (
     <div className={`flex items-center ${className}`}>
-      <div className="p-1 rounded">
-        <img src="/Full size.svg" alt="Stackzen Logo" className="h-10 w-auto" />
+      <div className="bg-[#233D4D] p-1 rounded">
+        <img
+          src="/Untitled design (3).svg"
+          alt="Stackzen Logo"
+          className="h-10 w-auto"
+        />
       </div>
       {showText && (
         <div className="ml-3">

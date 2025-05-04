@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stackzen - Track what matters. Earn with clarity.</title>
+  <meta name="description" content="Stackzen helps you track finances that matter, manage your income, create customizable quotes, and build your business with confidence." />
+  <link rel="icon" type="image/svg+xml" href="/green/public/stackrzenlogo.svg" />
+  <meta name="theme-color" content="#233D4D" />
+  <base href="/" />
+  
+  <script>
+    console.log('[STACKZEN] Loading Stackzen');
+    
+    // Add a debug logger for development
+    window.debugLog = function(message, isError = false) {
+      const method = isError ? 'error' : 'log';
+      console[method](`[Stackzen] ${message}`);
+    };
+    
+    window.debugLog('Application initialization starting');
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="module" src="/client/src/main.tsx"></script>
+
+  <!-- Replit badge -->
+  <script
+    type="text/javascript"
+    src="https://replit.com/public/js/replit-badge-v3.js"
+  ></script>
+</body>
+</html>
